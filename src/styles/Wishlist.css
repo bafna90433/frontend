@@ -1,0 +1,394 @@
+/* Toy Store Wishlist Styles */
+.toy-store-wishlist {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 20px;
+  font-family: 'Comic Neue', cursive, 'Segoe UI', Roboto, sans-serif;
+  background-color: #fff9f9;
+}
+
+.wishlist-header {
+  text-align: center;
+  margin-bottom: 30px;
+  padding: 20px 0;
+  background-color: #ff6b88;
+  color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(255, 107, 136, 0.2);
+}
+
+.wishlist-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.title-icon {
+  font-size: 2rem !important;
+}
+
+.wishlist-count {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-top: 5px;
+}
+
+.empty-wishlist {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  background-color: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.empty-content {
+  text-align: center;
+  padding: 30px;
+}
+
+.empty-icon {
+  font-size: 4rem !important;
+  color: #ff6b88;
+  margin-bottom: 20px;
+}
+
+.empty-wishlist h3 {
+  font-size: 1.8rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.empty-wishlist p {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 25px;
+}
+
+.shop-btn {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  font-size: 1.1rem;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+}
+
+.shop-btn:hover {
+  background-color: #3e8e41;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+}
+
+.wishlist-grid-container {
+  width: 100%;
+  overflow: hidden;
+}
+
+.wishlist-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 20px;
+  padding: 10px;
+}
+
+.toy-card {
+  background-color: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.toy-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-image-container {
+  position: relative;
+  height: 180px;
+  background-color: #fef6f6;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.toy-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 15px;
+  transition: transform 0.3s ease;
+}
+
+.toy-card:hover .toy-image {
+  transform: scale(1.05);
+}
+
+.wishlist-remove-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: white;
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  color: #ff6b88;
+  transition: all 0.2s;
+  z-index: 2;
+}
+
+.wishlist-remove-btn:hover {
+  background-color: #ff6b88;
+  color: white;
+}
+
+.discount-badge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: #4CAF50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  z-index: 1;
+}
+
+.toy-card-body {
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.toy-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 10px 0;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+
+.toy-name:hover {
+  color: #ff6b88;
+}
+
+.toy-price {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.current-price {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #ff6b88;
+}
+
+.original-price {
+  font-size: 0.9rem;
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* Bulk Pricing Table Styles */
+.toy-bulk-pricing {
+  margin: 10px 0;
+  font-size: 0.8rem;
+  border: 1px solid #ffccd5;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: white;
+}
+
+.bulk-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.bulk-table th {
+  background-color: #ff6b88;
+  color: white;
+  padding: 6px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+}
+
+.bulk-table td {
+  padding: 6px;
+  text-align: center;
+  border-bottom: 1px solid #ffccd5;
+  font-size: 0.75rem;
+}
+
+.bulk-table tr:last-child td {
+  border-bottom: none;
+}
+
+.bulk-table .highlight {
+  background-color: #fff0f3;
+  font-weight: 700;
+  color: #ff6b88;
+}
+
+/* Quantity Controls */
+.toy-actions {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.add-to-cart-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px;
+  background-color: #ff6b88;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.add-to-cart-btn:hover {
+  background-color: #ff4d73;
+  transform: translateY(-2px);
+}
+
+.toy-quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 2px solid #ffccd5;
+  border-radius: 6px;
+  overflow: hidden;
+  background-color: #fff9f9;
+}
+
+.qty-btn {
+  background-color: #ff6b88;
+  color: white;
+  border: none;
+  padding: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+}
+
+.qty-btn:hover {
+  background-color: #ff4d73;
+}
+
+.qty-btn.minus {
+  border-right: 1px solid #ffccd5;
+}
+
+.qty-btn.plus {
+  border-left: 1px solid #ffccd5;
+}
+
+.qty-display {
+  padding: 0 10px;
+  font-weight: 700;
+  color: #333;
+  flex-grow: 1;
+  text-align: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 1600px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .toy-bulk-pricing {
+    font-size: 0.7rem;
+  }
+  
+  .bulk-table th, 
+  .bulk-table td {
+    padding: 4px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 1200px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .wishlist-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .wishlist-title {
+    font-size: 2rem;
+  }
+  
+  .card-image-container {
+    height: 150px;
+  }
+}
+
+@media (max-width: 400px) {
+  .wishlist-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .toy-store-wishlist {
+    padding: 10px;
+  }
+  
+  .toy-bulk-pricing {
+    font-size: 0.8rem;
+  }
+  
+  .bulk-table th, 
+  .bulk-table td {
+    padding: 6px;
+    font-size: 0.8rem;
+  }
+}
