@@ -1,0 +1,55 @@
+/* Main container with top spacing */
+.banner-slider-container {
+  width: 100%;
+  margin: 20px auto 0; /* 30px top margin to push it down */
+  overflow: hidden;
+}
+
+/* Individual slide styling */
+.slide-item {
+  padding: 0 10px; /* Gap between slides */
+  box-sizing: border-box;
+}
+
+/* Image styling */
+.banner-img {
+  width: 100%;
+  height: auto;
+  max-height: 450px;
+  object-fit: cover;
+  display: block;
+  border-radius: 10px; /* Professional subtle rounded corners */
+  transition: transform 0.3s ease;
+}
+
+/* Optional hover effect */
+.banner-img:hover {
+  transform: scale(1.01);
+}
+
+/* Dots customization */
+.slick-dots {
+  bottom: 15px;
+}
+
+.slick-dots li button:before {
+  color: white;
+  opacity: 0.5;
+  font-size: 10px;
+}
+
+.slick-dots li.slick-active button:before {
+  color: white;
+  opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .banner-slider-container {
+    margin: 20px auto 0; /* Slightly less space on mobile */
+  }
+  
+  .banner-img {
+    max-height: 300px;
+  }
+}

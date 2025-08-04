@@ -1,7 +1,7 @@
-// src/components/Home.tsx
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
 import ProductCard from './ProductCard';
+import BannerSlider from './BannerSlider'; // ✅ Import slider
 import '../styles/Home.css';
 import { Skeleton } from '@mui/material';
 import ErrorMessage from './ErrorMessage';
@@ -22,6 +22,7 @@ interface Product {
 const Home: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [banners, setBanners] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,14 +32,16 @@ const Home: React.FC = () => {
         setLoading(true);
         setError(null);
 
-        const [catRes, prodRes] = await Promise.all([
+        const [catRes, prodRes, bannerRes] = await Promise.all([
           api.get('/categories'),
           api.get('/products'),
+          api.get('/banners'),
         ]);
 
-        if (catRes.status === 200 && prodRes.status === 200) {
+        if (catRes.status === 200 && prodRes.status === 200 && bannerRes.status === 200) {
           setCategories(catRes.data);
           setProducts(prodRes.data);
+          setBanners(bannerRes.data.map((b: any) => b.imageUrl));
         } else {
           throw new Error('Failed to fetch data');
         }
@@ -56,13 +59,25 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
+      {/* ✅ Banner Slider (ONLY ONE) */}
+      {banners.length > 0 && <BannerSlider banners={banners} />}
+
       {loading ? (
         Array(3).fill(0).map((_, i) => (
           <div key={i} className="category-block">
-            <Skeleton variant="text" width={200} height={40} />
+            <Skeleton variant="text" width="60%" height={30} sx={{ marginLeft: '0.5rem' }} />
             <div className="product-scroll">
               {Array(4).fill(0).map((_, j) => (
-                <Skeleton key={j} variant="rectangular" width={240} height={320} sx={{ marginRight: '1rem' }} />
+                <Skeleton 
+                  key={j} 
+                  variant="rectangular" 
+                  width={140} 
+                  height={180} 
+                  sx={{ 
+                    marginRight: '0.8rem',
+                    borderRadius: '8px'
+                  }} 
+                />
               ))}
             </div>
           </div>
@@ -75,7 +90,11 @@ const Home: React.FC = () => {
               {products
                 .filter(p => p.category._id === cat._id)
                 .map(product => (
-                  <Link to={`/product/${product._id}`} key={product._id} style={{ textDecoration: 'none' }}>
+                  <Link 
+                    to={`/product/${product._id}`} 
+                    key={product._id} 
+                    className="product-link"
+                  >
                     <ProductCard product={product} />
                   </Link>
                 ))}

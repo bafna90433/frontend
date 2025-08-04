@@ -3,7 +3,7 @@ import { useShop } from "../context/ShopContext";
 import "../styles/Checkout.css";
 
 const Checkout: React.FC = () => {
-  const { cartItems, setCartItemQuantity, clearCart } = useShop();
+  const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
   const [address, setAddress] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -14,16 +14,28 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = "http://localhost:5000/uploads/";
 
+  // TypeScript-safe getItemTotal (matches Cart/ProductCard logic)
   const getItemTotal = (item: any) => {
-    const tiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
     const innerCount = item.quantity || 0;
+    const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
+    const piecesPerInner =
+      item.innerQty && item.innerQty > 0
+        ? item.innerQty
+        : (bulkPricing[0]?.qty > 0 && bulkPricing[0]?.inner > 0)
+          ? bulkPricing[0].qty / bulkPricing[0].inner
+          : 1;
+
+    const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
     const activeTier = tiers.reduce(
-      (match, tier) => (innerCount >= tier.inner ? tier : match),
-      tiers[0]
+      (match, tier) => innerCount >= tier.inner ? tier : match,
+      tiers[0] || { inner: 0, price: item.price }
     );
-    const unitPrice = activeTier?.price || item.price;
-    const totalQty = innerCount * (item.innerQty || 1);
-    return unitPrice * totalQty;
+    const unitPrice = activeTier.price || item.price;
+
+    const totalPieces = innerCount * piecesPerInner;
+    const totalPrice = totalPieces * unitPrice;
+
+    return totalPrice;
   };
 
   const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
@@ -63,13 +75,21 @@ const Checkout: React.FC = () => {
       <div className="checkout-left">
         <h2>Your Order</h2>
         {cartItems.map(item => {
-          const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
+          const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
+          const sortedTiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
           const innerCount = item.quantity || 0;
+          const piecesPerInner =
+            item.innerQty && item.innerQty > 0
+              ? item.innerQty
+              : (bulkPricing[0]?.qty > 0 && bulkPricing[0]?.inner > 0)
+                ? bulkPricing[0].qty / bulkPricing[0].inner
+                : 1;
+
           const activeTier = sortedTiers.reduce(
-            (match, tier) => (innerCount >= tier.inner ? tier : match),
-            sortedTiers[0]
+            (match, tier) => innerCount >= tier.inner ? tier : match,
+            sortedTiers[0] || { inner: 0, price: item.price }
           );
-          const unitPrice = activeTier?.price || item.price;
+          const unitPrice = activeTier.price || item.price;
           const totalPrice = getItemTotal(item);
 
           const imgSrc = item.image?.startsWith("http")
@@ -91,11 +111,34 @@ const Checkout: React.FC = () => {
                 />
               </div>
               <div className="checkout-item-info">
-                <div className="checkout-item-name">{item.name}</div>
+                <div className="checkout-item-name" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  {item.name}
+                  <button
+                    className="checkout-remove-btn"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#e53935",
+                      cursor: "pointer",
+                      fontSize: "18px",
+                      marginLeft: "8px"
+                    }}
+                    onClick={() => removeFromCart(item._id)}
+                    title="Remove from cart"
+                  >
+                    🗑
+                  </button>
+                </div>
                 <div className="checkout-item-qty">
-                  <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
+                  <button
+                    className="qty-btn"
+                    onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}
+                  >–</button>
                   {item.quantity}
-                  <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
+                  <button
+                    className="qty-btn"
+                    onClick={() => setCartItemQuantity(item, item.quantity + 1)}
+                  >+</button>
                   × ₹{unitPrice}
                 </div>
                 <div className="checkout-item-total">Total: ₹{totalPrice}</div>
@@ -109,21 +152,27 @@ const Checkout: React.FC = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedTiers.map((tier, i) => (
-                      <tr
-                        key={i}
-                        className={
-                          innerCount >= tier.inner &&
-                          innerCount < (sortedTiers[i + 1]?.inner || Infinity)
-                            ? "highlight"
-                            : ""
-                        }
-                      >
-                        <td>{tier.inner}+</td>
-                        <td>{tier.qty}</td>
-                        <td>₹{tier.price}</td>
-                      </tr>
-                    ))}
+                    {sortedTiers.map((tier, i) => {
+                      const tierQty =
+                        (tier.inner > 0 && piecesPerInner > 0)
+                          ? tier.inner * piecesPerInner
+                          : tier.qty || "-";
+                      return (
+                        <tr
+                          key={i}
+                          className={
+                            innerCount >= tier.inner &&
+                            innerCount < (sortedTiers[i + 1]?.inner || Infinity)
+                              ? "highlight"
+                              : ""
+                          }
+                        >
+                          <td>{tier.inner}+</td>
+                          <td>{tierQty}</td>
+                          <td>₹{tier.price}</td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

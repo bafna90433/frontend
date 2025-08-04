@@ -1,3 +1,5 @@
+// src/components/Cart.tsx
+
 import React from "react";
 import { useShop } from "../context/ShopContext";
 import { useNavigate } from "react-router-dom";
@@ -5,11 +7,36 @@ import "../styles/Cart.css";
 
 const IMAGE_BASE_URL = "http://localhost:5000/uploads/";
 
+// Corrected getItemTotal function
+const getItemTotal = (item: any) => {
+  const innerCount = item.quantity || 0;
+
+  // Use correct logic for pieces per inner (same as ProductCard)
+  const piecesPerInner =
+    item.innerQty && item.innerQty > 0
+      ? item.innerQty
+      : (item.bulkPricing?.[0]?.qty > 0 && item.bulkPricing?.[0]?.inner > 0)
+        ? item.bulkPricing[0].qty / item.bulkPricing[0].inner
+        : 1;
+
+  const tiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
+  const activeTier = tiers.reduce(
+    (match, tier) => innerCount >= tier.inner ? tier : match,
+    tiers[0] || { inner: 0, price: item.price }
+  );
+  const unitPrice = activeTier.price || item.price;
+
+  const totalPieces = innerCount * piecesPerInner;
+  const totalPrice = totalPieces * unitPrice;
+
+  return totalPrice;
+};
+
 const Cart: React.FC = () => {
-  const { cartItems, setCartItemQuantity, removeFromCart } = useShop();
+  const { cartItems, setCartItemQuantity, removeFromCart, clearCart } = useShop();
   const navigate = useNavigate();
 
-  if (!cartItems.length) {
+  if (cartItems.length === 0) {
     return (
       <div className="cart-empty-container">
         <div className="cart-empty">
@@ -18,7 +45,10 @@ const Cart: React.FC = () => {
           </svg>
           <h3>Your cart is empty</h3>
           <p>Add some amazing toys to your cart to see them here!</p>
-          <button className="continue-shopping-btn" onClick={() => navigate("/")}>
+          <button
+            className="continue-shopping-btn"
+            onClick={() => navigate("/")}
+          >
             Continue Shopping
           </button>
         </div>
@@ -26,19 +56,7 @@ const Cart: React.FC = () => {
     );
   }
 
-  // Cart total calculation (uses bulk price per item)
-  const getItemTotal = (item: any) => {
-    const tiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
-    const innerCount = item.quantity || 0;
-    const activeTier = tiers.reduce(
-      (match, tier) => (innerCount >= tier.inner ? tier : match),
-      tiers[0]
-    );
-    const unitPrice = activeTier?.price || item.price;
-    const totalQty = innerCount * (item.innerQty || 1);
-    return unitPrice * totalQty;
-  };
-  const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
+  const subtotal = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
 
   return (
     <div className="cart-container">
@@ -48,25 +66,37 @@ const Cart: React.FC = () => {
           {cartItems.length} {cartItems.length === 1 ? "item" : "items"}
         </span>
       </div>
+
       <div className="cart-content">
         <div className="cart-items">
-          {cartItems.map((item) => {
+          {cartItems.map((item: any) => {
             const imgSrc =
-              item.image?.startsWith("http") || item.image?.includes("/uploads/")
-                ? item.image?.startsWith("http")
+              item.image?.startsWith("http") ||
+              item.image?.includes("/uploads/")
+                ? item.image.startsWith("http")
                   ? item.image
                   : `http://localhost:5000${item.image}`
-                : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
+                : `${IMAGE_BASE_URL}${encodeURIComponent(item.image)}`;
 
-            const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
             const innerCount = item.quantity || 0;
-            const activeTier = sortedTiers.reduce(
-              (match, tier) => (innerCount >= tier.inner ? tier : match),
-              sortedTiers[0]
+            const piecesPerInner =
+              item.innerQty && item.innerQty > 0
+                ? item.innerQty
+                : (item.bulkPricing?.[0]?.qty > 0 && item.bulkPricing?.[0]?.inner > 0)
+                  ? item.bulkPricing[0].qty / item.bulkPricing[0].inner
+                  : 1;
+
+            const sortedTiers = [...(item.bulkPricing || [])].sort(
+              (a: any, b: any) => a.inner - b.inner
             );
-            const unitPrice = activeTier?.price || item.price;
-            const totalQty = innerCount * (item.innerQty || 1);
-            const totalPrice = unitPrice * totalQty;
+            const activeTier = sortedTiers.reduce(
+              (match: any, tier: any) =>
+                innerCount >= tier.inner ? tier : match,
+              sortedTiers[0] || { inner: 0, price: item.price }
+            );
+            const unitPrice = activeTier.price || item.price;
+            const totalPieces = innerCount * piecesPerInner;
+            const totalPrice = totalPieces * unitPrice;
 
             return (
               <div className="cart-item" key={item._id}>
@@ -104,12 +134,20 @@ const Cart: React.FC = () => {
                       </svg>
                     </button>
                   </div>
-                  <div className="product-price">₹{unitPrice.toLocaleString()} <span className="unit">(per pc)</span></div>
+
+                  <div className="product-price">
+                    ₹{unitPrice.toLocaleString()}{" "}
+                    <span className="unit">(per pc)</span>
+                  </div>
+
                   <div className="quantity-controls">
                     <button
                       className="quantity-btn"
                       onClick={() =>
-                        setCartItemQuantity(item, Math.max(1, item.quantity - 1))
+                        setCartItemQuantity(
+                          item,
+                          Math.max(1, item.quantity - 1)
+                        )
                       }
                       aria-label="Decrease quantity"
                     >
@@ -118,53 +156,64 @@ const Cart: React.FC = () => {
                     <span className="quantity">{item.quantity}</span>
                     <button
                       className="quantity-btn"
-                      onClick={() => setCartItemQuantity(item, item.quantity + 1)}
+                      onClick={() =>
+                        setCartItemQuantity(item, item.quantity + 1)
+                      }
                       aria-label="Increase quantity"
                     >
                       +
                     </button>
                   </div>
+
                   <table className="bulk-table">
                     <thead>
                       <tr>
-                        <th>Inner Qty</th>
-                        <th>Total Qty</th>
-                        <th>Unit Price</th>
+                        <th>Inner</th>
+                        <th>Qty</th>
+                        <th>Per Piece Price</th>
+                        <th>Total</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {sortedTiers.map((tier, i) => (
-                        <tr
-                          key={i}
-                          className={
-                            innerCount >= tier.inner &&
-                            innerCount < (sortedTiers[i + 1]?.inner || Infinity)
-                              ? "highlight"
-                              : ""
-                          }
-                        >
-                          <td>{tier.inner}+</td>
-                          <td>{tier.qty}</td>
-                          <td>₹{tier.price}</td>
-                        </tr>
-                      ))}
+                      {sortedTiers.map((tier: any, i: number) => {
+                        const tierQty = tier.inner * piecesPerInner;
+                        const tierTotal = tierQty * tier.price;
+                        const isActive =
+                          innerCount >= tier.inner &&
+                          innerCount < (sortedTiers[i + 1]?.inner || Infinity);
+
+                        return (
+                          <tr
+                            key={i}
+                            className={isActive ? "highlight" : ""}
+                          >
+                            <td>{tier.inner} inner</td>
+                            <td>{tierQty}</td>
+                            <td>₹{tier.price.toLocaleString()}</td>
+                            <td>= ₹{tierTotal.toLocaleString()}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
 
                 <div className="product-total">
                   <span>Total</span>
-                  <div className="total-price">₹{totalPrice.toLocaleString()}</div>
+                  <div className="total-price">
+                    ₹{totalPrice.toLocaleString()}
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
+
         <div className="cart-summary">
           <h3>Order Summary</h3>
           <div className="summary-row">
             <span>Subtotal</span>
-            <span>₹{total.toLocaleString()}</span>
+            <span>₹{subtotal.toLocaleString()}</span>
           </div>
           <div className="summary-row">
             <span>Shipping</span>
@@ -172,13 +221,40 @@ const Cart: React.FC = () => {
           </div>
           <div className="summary-row total">
             <span>Total</span>
-            <span>₹{total.toLocaleString()}</span>
+            <span>₹{subtotal.toLocaleString()}</span>
           </div>
-          <button className="checkout-btn" onClick={() => navigate("/checkout")}>
+          <button
+            className="checkout-btn"
+            onClick={() => navigate("/checkout")}
+          >
             Proceed to Checkout
           </button>
-          <button className="continue-shopping-btn" onClick={() => navigate("/")}>
+          <button
+            className="continue-shopping-btn"
+            onClick={() => navigate("/")}
+          >
             Continue Shopping
+          </button>
+          <button
+            className="clear-cart-btn"
+            style={{
+              background: "#f44336",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              padding: "8px 16px",
+              marginTop: "12px",
+              cursor: "pointer",
+              fontWeight: 500,
+              fontSize: "15px"
+            }}
+            onClick={() => {
+              if (window.confirm("Are you sure you want to clear the entire cart?")) {
+                clearCart();
+              }
+            }}
+          >
+            Clear Cart
           </button>
         </div>
       </div>

@@ -2,13 +2,15 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShop } from '../context/ShopContext';
 import '../styles/Wishlist.css';
-import { Tooltip, IconButton, Badge } from '@mui/material';
+import { IconButton } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import RemoveIcon from '@mui/icons-material/Remove';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
+import BulkPricingTable from './BulkPricingTable';
+import type { Tier } from './BulkPricingTable';
 
 const IMAGE_BASE_URL = "http://localhost:5000/uploads/";
 
@@ -47,13 +49,24 @@ const Wishlist: React.FC = () => {
           <div className="wishlist-grid">
             {wishlistItems.map(product => {
               const innerCount = getCartQty(product._id);
-              const sortedTiers = [...(product.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
-              const activeTier = sortedTiers.reduce((match, tier) => innerCount >= tier.inner ? tier : match, sortedTiers[0]);
+              const sortedTiers: Tier[] = Array.isArray(product.bulkPricing)
+                ? [...product.bulkPricing].sort((a, b) => a.inner - b.inner)
+                : [];
+
+              const activeTier = sortedTiers.reduce((match, tier) =>
+                innerCount >= tier.inner ? tier : match, sortedTiers[0]);
+
               const unitPrice = activeTier ? Number(activeTier.price) : Number(product.price);
-              const totalQty = innerCount * (product.innerQty || 1);
+              const piecesPerInner = product.innerQty || (sortedTiers[0]?.qty && sortedTiers[0]?.inner
+                ? sortedTiers[0].qty / sortedTiers[0].inner
+                : 1);
+
+              const totalQty = innerCount * piecesPerInner;
               const totalPrice = unitPrice * totalQty;
 
-              const imageFile = Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : null;
+              const imageFile = Array.isArray(product.images) && product.images.length > 0
+                ? product.images[0]
+                : null;
               const imageSrc = imageFile
                 ? imageFile.startsWith('http')
                   ? imageFile
@@ -69,12 +82,12 @@ const Wishlist: React.FC = () => {
               return (
                 <div className="toy-card" key={product._id}>
                   <div className="card-image-container" onClick={() => navigate(`/product/${product._id}`)}>
-                    <img 
-                      src={imageSrc || '/toy-placeholder.png'} 
-                      alt={product.name} 
+                    <img
+                      src={imageSrc || '/toy-placeholder.png'}
+                      alt={product.name}
                       className="toy-image"
                     />
-                    <button 
+                    <button
                       className="wishlist-remove-btn"
                       onClick={(e) => {
                         e.stopPropagation();
@@ -97,41 +110,20 @@ const Wishlist: React.FC = () => {
                     </h3>
 
                     <div className="toy-price">
-                      <span className="current-price">₹{activeTier?.price || product.price}</span>
+                      <span className="current-price">₹{unitPrice.toFixed(2)}</span>
                       {activeTier && activeTier.price < product.price && (
-                        <span className="original-price">₹{product.price}</span>
+                        <span className="original-price">₹{product.price.toFixed(2)}</span>
                       )}
                     </div>
 
-                    {/* Bulk Pricing Table */}
-                    {product.bulkPricing && product.bulkPricing.length > 0 && (
-                      <div className="toy-bulk-pricing">
-                        <table className="bulk-table">
-                          <thead>
-                            <tr>
-                              <th>Inner Qty</th>
-                              <th>Total Qty</th>
-                              <th>Unit Price</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {sortedTiers.map((tier, i) => (
-                              <tr
-                                key={i}
-                                className={
-                                  innerCount >= tier.inner &&
-                                  innerCount < (sortedTiers[i + 1]?.inner || Infinity)
-                                    ? 'highlight'
-                                    : ''
-                                }
-                              >
-                                <td>{tier.inner}+</td>
-                                <td>{tier.qty}</td>
-                                <td>₹{tier.price}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
+                    {/* ✅ Bulk Pricing Table */}
+                    {Array.isArray(product.bulkPricing) && product.bulkPricing.length > 0 && (
+                      <div className="toy-bulk-pricing" onClick={e => e.stopPropagation()}>
+                        <BulkPricingTable
+                          innerQty={piecesPerInner}
+                          tiers={product.bulkPricing}
+                          selectedInner={innerCount}
+                        />
                       </div>
                     )}
 
@@ -150,6 +142,7 @@ const Wishlist: React.FC = () => {
                           <button className="qty-btn plus" onClick={increase}>
                             <AddIcon fontSize="small" />
                           </button>
+                          <span className="qty-total">₹{totalPrice.toLocaleString()}</span>
                         </div>
                       )}
                     </div>

@@ -66,8 +66,27 @@
   font-weight: 600;
   font-size: 16px;
   margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
+.checkout-remove-btn {
+  background: transparent;
+  border: none;
+  color: #e53935;
+  cursor: pointer;
+  font-size: 18px;
+  margin-left: 8px;
+  transition: color 0.15s;
+  padding: 0 4px;
+}
+.checkout-remove-btn:hover,
+.checkout-remove-btn:focus {
+  color: #b71c1c;
+}
+
+/* Quantity Controls */
 .checkout-item-qty {
   display: flex;
   align-items: center;
@@ -87,8 +106,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: 18px;
+  transition: background 0.2s;
+}
+.qty-btn:hover {
+  background: #d1dbf2;
 }
 
+/* Totals */
 .checkout-item-total {
   font-weight: 600;
   font-size: 15px;
@@ -104,11 +129,13 @@
 }
 
 .bulk-table th {
-  background: #f6f9fc;
+  background: #9f3c9b;
   text-align: center;
   font-weight: 600;
   padding: 6px;
   border-bottom: 1px solid #ddd;
+  color: #fff;
+  letter-spacing: 0.5px;
 }
 
 .bulk-table td {
