@@ -1,0 +1,142 @@
+/* ==============================
+   Sidebar.css (FIXED on Desktop)
+   ============================== */
+:root {
+  --nav-bg-start: #0b1220;
+  --nav-bg-end: #0b1220;
+  --nav-text: #eef3f8;
+  --nav-muted: #b9c5d3;
+  --hover: rgba(255, 255, 255, 0.06);
+  --active-bg: rgba(15,58,80,.65);
+  --shadow-soft: 0 8px 24px rgba(2, 12, 24, 0.35);
+  --danger: #e74c3c;
+
+  /* set this if you have a fixed topbar height */
+  --topbar-h: 0px; /* e.g. 56px */
+}
+
+/* If your layout has a grid column for sidebar (e.g. .app-body grid),
+   keep the placeholder column width so content doesn't jump. */
+.app-sidebar {
+  width: 260px;
+  /* no overflow or transform here */
+}
+
+/* ===== Desktop: Fixed Sidebar (no jitter) ===== */
+.sidebar {
+  position: fixed;
+  left: 0;
+  top: var(--topbar-h, 0px);
+  width: 260px;
+  height: calc(100dvh - var(--topbar-h, 0px));
+  overflow: auto;
+
+  background: linear-gradient(180deg, var(--nav-bg-start), var(--nav-bg-end));
+  color: var(--nav-text);
+  padding: 24px 16px 16px;
+  box-shadow: var(--shadow-soft);
+  box-sizing: border-box;
+  will-change: transform; /* minor perf hint, avoids flicker on some GPUs */
+}
+
+/* Title */
+.sidebar__title {
+  margin: 0 0 18px;
+  font-size: 24px;
+  font-weight: 800;
+  color: #fff;
+}
+
+/* Nav */
+.sidebar__nav {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* Items */
+.sidebar__item {
+  border-radius: 12px;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+
+/* Links + Logout common look */
+.sidebar__link,
+.sidebar__item.sidebar__logout {
+  display: block;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--nav-muted);
+  outline: none;
+}
+
+/* Hover */
+.sidebar__item:hover {
+  background: var(--hover);
+}
+
+/* Active state */
+.sidebar__item.active {
+  background: var(--active-bg);
+  border: 1px solid rgba(56,189,248,.25);
+}
+.sidebar__item.active .sidebar__link {
+  color: #fff;
+}
+
+/* Logout */
+.sidebar__logout {
+  cursor: pointer;
+  color: #fca5a5 !important;
+}
+.sidebar__logout:hover {
+  background: rgba(231, 76, 60, 0.14);
+  color: #fff !important;
+}
+
+/* Focus-visible for keyboard users */
+.sidebar__link:focus-visible,
+.sidebar__item.sidebar__logout:focus-visible {
+  box-shadow: 0 0 0 3px rgba(56,189,248,.35);
+  border-radius: 12px;
+}
+
+/* ===== Mobile / Drawer ===== */
+@media (max-width: 900px) {
+  /* let parent drawer control positioning */
+  .sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+    padding: calc(var(--topbar-h, 0px) + 12px) 16px 20px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .app-sidebar {
+    width: 100%;
+  }
+}
+
+/* ===== Guardrails (optional) ===== */
+html, body {
+  height: 100%;
+  overflow-x: hidden;
+}
+
+/* Make sure main content doesn’t go under the fixed sidebar on desktop.
+   If you use a grid with 260px first column, you’re already fine.
+   Otherwise add left padding to the main content area on desktop: */
+@media (min-width: 901px) {
+  .app-content {
+    padding-left: 260px; /* only if your layout isn’t reserving space via grid */
+  }
+}
+
+/* Avoid transforms on major wrappers; they can cause jitter with fixed/sticky */
+/* .app-body, .app-shell { transform: none !important; } */

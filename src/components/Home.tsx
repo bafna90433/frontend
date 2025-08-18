@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import api from '../utils/api';
 import ProductCard from './ProductCard';
-import BannerSlider from './BannerSlider'; // ✅ Import slider
+import BannerSlider from './BannerSlider'; // ✅ slider
 import '../styles/Home.css';
 import { Skeleton } from '@mui/material';
 import ErrorMessage from './ErrorMessage';
-import { Link } from 'react-router-dom';
+
+// ✅ import the floating checkout button
+import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
 
 interface Category { _id: string; name: string; }
 interface Product {
@@ -25,6 +27,9 @@ const Home: React.FC = () => {
   const [banners, setBanners] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Hardcode user role; replace with your auth/user context as needed
+  const userRole: 'admin' | 'customer' = 'customer';
 
   useEffect(() => {
     async function fetchData() {
@@ -55,56 +60,75 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
+  if (error) {
+    return (
+      <ErrorMessage
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
+  }
 
   return (
     <div className="home-container">
-      {/* ✅ Banner Slider (ONLY ONE) */}
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
       {loading ? (
-        Array(3).fill(0).map((_, i) => (
+        Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
-            <Skeleton variant="text" width="60%" height={30} sx={{ marginLeft: '0.5rem' }} />
+            <Skeleton
+              variant="text"
+              width="60%"
+              height={30}
+              sx={{ marginLeft: '0.5rem' }}
+            />
             <div className="product-scroll">
-              {Array(4).fill(0).map((_, j) => (
-                <Skeleton 
-                  key={j} 
-                  variant="rectangular" 
-                  width={140} 
-                  height={180} 
-                  sx={{ 
+              {Array.from({ length: 4 }).map((_, j) => (
+                <Skeleton
+                  key={j}
+                  variant="rectangular"
+                  width={140}
+                  height={180}
+                  sx={{
                     marginRight: '0.8rem',
-                    borderRadius: '8px'
-                  }} 
+                    borderRadius: '8px',
+                  }}
                 />
               ))}
             </div>
           </div>
         ))
       ) : (
-        categories.map(cat => (
-          <div key={cat._id} className="category-block">
-            <h2 className="category-title">{cat.name}</h2>
-            <div className="product-scroll">
-              {products
-                .filter(p => p.category._id === cat._id)
-                .map(product => (
-                  <Link 
-                    to={`/product/${product._id}`} 
-                    key={product._id} 
-                    className="product-link"
-                  >
-                    <ProductCard product={product} />
-                  </Link>
+        categories.map(cat => {
+          const items = products.filter(p => p.category._id === cat._id);
+          return (
+            <div key={cat._id} className="category-block">
+              <h2 className="category-title">{cat.name}</h2>
+              <div className="product-scroll">
+                {items.map(product => (
+                  <div key={product._id} className="product-link">
+                    <ProductCard
+                      product={product}
+                      userRole={userRole}
+                    />
+                  </div>
                 ))}
-              {products.filter(p => p.category._id === cat._id).length === 0 && (
-                <div className="empty-category-message">No products in this category</div>
-              )}
+                {items.length === 0 && (
+                  <div className="empty-category-message">
+                    No products in this category
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
+
+      {/* spacer so content doesn't sit under the floating button */}
+      <div style={{ height: 72 }} />
+
+      {/* ✅ floating checkout button */}
+      <FloatingCheckoutButton />
     </div>
   );
 };

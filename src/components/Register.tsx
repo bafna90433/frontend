@@ -1,198 +1,158 @@
-import React, { useState } from "react";
-import { RecaptchaVerifier, signInWithPhoneNumber } from "firebase/auth";
-import { auth } from "../utils/firebase";
+import React, { useState, ChangeEvent } from "react";
+import { Link } from "react-router-dom";
 import axios from "axios";
-import { countries } from "../data/countries";
+import { auth, setupRecaptcha } from "../firebase";
+import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+import "../styles/Register.css";
 
-const Register: React.FC = () => {
-  const [step, setStep] = useState<"form" | "otp">("form");
+export const Register: React.FC = () => {
   const [form, setForm] = useState({
     firmName: "",
-    country: "",
+    shopName: "",
     state: "",
     city: "",
     zip: "",
-    mobile: "",
+    otpMobile: "",
     whatsapp: "",
     visitingCard: null as File | null,
   });
-  const [availableStates, setAvailableStates] = useState<string[]>([]);
-  const [otp, setOtp] = useState("");
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
 
-  // Handle input change
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ) => {
-    const { name, value, files } = e.target as any;
-    if (name === "country") {
-      setForm((prev) => ({ ...prev, country: value, state: "" }));
-      const selectedCountry = countries.find(
-        (c: any) => c.name === value
-      );
-      setAvailableStates(selectedCountry ? selectedCountry.states : []);
-    } else if (name === "visitingCard") {
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [confirmation, setConfirmation] =
+    useState<ConfirmationResult | null>(null);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value, files } = e.target;
+    if (name === "visitingCard" && files) {
       setForm((prev) => ({ ...prev, visitingCard: files[0] }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
     }
   };
 
-  // Send OTP using Firebase
-  const sendOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (form.mobile.length < 10) {
-      alert("Enter a valid mobile number.");
-      return;
-    }
-
-    // Only create RecaptchaVerifier once!
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(
-        auth,
-        "recaptcha-container",
-        { size: "invisible" }
-      );
-    }
-
-    const appVerifier = (window as any).recaptchaVerifier;
-
-    const fullPhone = "+91" + form.mobile; // Change code if not India
+  const sendOtp = async () => {
     try {
-      const result = await signInWithPhoneNumber(auth, fullPhone, appVerifier);
-      setConfirmationResult(result);
-      setStep("otp");
-    } catch (error: any) {
-      alert(error.message);
+      const recaptcha = setupRecaptcha("recaptcha-container");
+      const result = await signInWithPhoneNumber(
+        auth,
+        form.otpMobile,
+        recaptcha
+      );
+      setConfirmation(result);
+      setOtpSent(true);
+      alert("OTP has been sent.");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to send OTP.");
     }
   };
 
-  // Verify OTP and save registration data
-  const verifyOTP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!confirmationResult) return;
+  const verifyAndRegister = async () => {
+    if (!confirmation) return;
+
     try {
-      await confirmationResult.confirm(otp);
-      // Now submit the form to backend
+      await confirmation.confirm(otp);
+
       const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v as any));
-      await axios.post("http://localhost:5000/api/register", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+      Object.entries(form).forEach(([key, value]) => {
+        if (key === "visitingCard" && value instanceof File) {
+          formData.append("visitingCard", value);
+        } else {
+          formData.append(key, value as string);
+        }
       });
-      alert("Registration Success!");
-      setStep("form");
-      setForm({
-        firmName: "",
-        country: "",
-        state: "",
-        city: "",
-        zip: "",
-        mobile: "",
-        whatsapp: "",
-        visitingCard: null,
-      });
-      setOtp("");
-    } catch (error: any) {
-      alert(error.message);
+
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        formData
+      );
+      alert(res.data.msg || "Registration successful.");
+    } catch (err) {
+      console.error(err);
+      alert("Invalid OTP.");
     }
   };
 
   return (
     <div className="register-container">
       <h2>Register</h2>
-      {step === "form" ? (
-        <form onSubmit={sendOTP} className="register-form">
-          <input
-            type="text"
-            name="firmName"
-            placeholder="Firm Name"
-            value={form.firmName}
-            onChange={handleChange}
-            required
-          />
-          <select
-            name="country"
-            value={form.country}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Select Country</option>
-            {countries.map((country: any) => (
-              <option key={country.code} value={country.name}>
-                {country.name}
-              </option>
-            ))}
-          </select>
-          <select
-            name="state"
-            value={form.state}
-            onChange={handleChange}
-            required
-            disabled={!form.country}
-          >
-            <option value="">Select State</option>
-            {availableStates.map((state, idx) => (
-              <option key={idx} value={state}>
-                {state}
-              </option>
-            ))}
-          </select>
-          <input
-            type="text"
-            name="city"
-            placeholder="City"
-            value={form.city}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="zip"
-            placeholder="Zip Code"
-            value={form.zip}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="mobile"
-            placeholder="Mobile Number"
-            value={form.mobile}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="text"
-            name="whatsapp"
-            placeholder="WhatsApp Number"
-            value={form.whatsapp}
-            onChange={handleChange}
-            required
-          />
-          <input
-            type="file"
-            name="visitingCard"
-            accept="image/*,application/pdf"
-            onChange={handleChange}
-            required
-          />
-          <div id="recaptcha-container"></div>
-          <button type="submit">Send OTP</button>
-        </form>
+
+      <input
+        name="firmName"
+        placeholder="Firm Name"
+        value={form.firmName}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="shopName"
+        placeholder="Shop Name"
+        value={form.shopName}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="state"
+        placeholder="State"
+        value={form.state}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="city"
+        placeholder="City"
+        value={form.city}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="zip"
+        placeholder="Zip Code"
+        value={form.zip}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="otpMobile"
+        placeholder="+91XXXXXXXXXX"
+        value={form.otpMobile}
+        onChange={handleChange}
+        type="tel"
+      />
+      <input
+        name="whatsapp"
+        placeholder="WhatsApp Number"
+        value={form.whatsapp}
+        onChange={handleChange}
+        type="tel"
+      />
+      <input name="visitingCard" type="file" onChange={handleChange} />
+
+      <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
+
+      {!otpSent ? (
+        <button onClick={sendOtp}>Send OTP</button>
       ) : (
-        <form onSubmit={verifyOTP} className="otp-form">
+        <>
           <input
-            type="text"
+            placeholder="Enter OTP"
             value={otp}
             onChange={(e) => setOtp(e.target.value)}
-            placeholder="Enter OTP"
-            required
+            className="otp"
+            type="text"
           />
-          <button type="submit">Verify OTP & Register</button>
-        </form>
+          <button onClick={verifyAndRegister}>Verify & Register</button>
+        </>
       )}
+
+      {/* Already registered? Login */}
+      <div style={{ marginTop: "16px", textAlign: "center" }}>
+        <span>Already registered? </span>
+        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
+          Login
+        </Link>
+      </div>
     </div>
   );
 };
-
-export default Register;

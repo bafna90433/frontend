@@ -248,3 +248,74 @@
     align-items: flex-start;
   }
 }
+/* ===== Saved addresses on Checkout ===== */
+.ship-address-section {
+  margin-bottom: 16px;
+  padding: 12px;
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  background: #fafbff;
+}
+.ship-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.btn-link {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+.btn-link:hover { text-decoration: underline; }
+
+.addr-skel, .addr-empty { color: #6b7280; font-size: 0.95rem; }
+
+.addr-radio-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+.addr-radio-item label {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  align-items: start;
+  gap: 10px;
+  cursor: pointer;
+}
+.addr-card-mini {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.addr-radio-item.sel .addr-card-mini {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96,165,250,.25);
+}
+.addr-row-1 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+.addr-name { font-weight: 700; }
+.addr-chip {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #bae6fd;
+}
+.addr-row-2 { color: #374151; font-size: 0.92rem; }
+.addr-row-3 { color: #6b7280; font-size: 0.9rem; margin-top: 2px; }
+
+.addr-edit-toggle {
+  margin-top: 10px;
+  color: #374151;
+  font-size: 0.95rem;
+}

@@ -7,20 +7,6 @@ const BottomNav: React.FC = () => {
 
   const navItems = [
     {
-      label: 'Categories',
-      to: '/categories',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
-             stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
-             strokeLinejoin="round" viewBox="0 0 24 24" className="nav-icon">
-          <rect x="3" y="3" width="7" height="7" rx="1" ry="1" />
-          <rect x="14" y="3" width="7" height="7" rx="1" ry="1" />
-          <rect x="14" y="14" width="7" height="7" rx="1" ry="1" />
-          <rect x="3" y="14" width="7" height="7" rx="1" ry="1" />
-        </svg>
-      )
-    },
-    {
       label: 'Orders',
       to: '/orders',
       icon: (
@@ -49,8 +35,8 @@ const BottomNav: React.FC = () => {
       )
     },
     {
-      label: 'Account',
-      to: '/account',
+      label: 'My Account',
+      to: '/my-account',
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
@@ -63,10 +49,15 @@ const BottomNav: React.FC = () => {
     },
   ];
 
+  const isActivePath = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
+
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Bottom Navigation">
       {navItems.map((item) => {
-        const isActive = location.pathname === item.to;
+        const isActive = isActivePath(item.to);
         return (
           <Link
             key={item.to}
