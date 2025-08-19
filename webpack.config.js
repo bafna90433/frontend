@@ -3,50 +3,35 @@ const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: "./src/index.tsx", // main React entry
+  entry: "./src/index.tsx",
   output: {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.[contenthash].js",
-    clean: true,
-    publicPath: "/" // important for React Router
+    publicPath: "/",
+    clean: true
   },
   resolve: {
     extensions: [".tsx", ".ts", ".js"]
   },
   module: {
     rules: [
-      {
-        test: /\.tsx?$/,
-        use: "ts-loader",
-        exclude: /node_modules/
-      },
-      {
-        test: /\.css$/i,
-        use: ["style-loader", "css-loader"]
-      },
-      {
-        test: /\.(png|jpe?g|gif|svg)$/i,
-        type: "asset/resource"
-      }
+      { test: /\.tsx?$/, exclude: /node_modules/, use: "ts-loader" },
+      { test: /\.css$/i, use: ["style-loader", "css-loader"] },
+      { test: /\.(png|jpe?g|gif|svg|webp|ico)$/i, type: "asset/resource" },
+      { test: /\.(woff2?|eot|ttf|otf)$/i, type: "asset/resource" }
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: "./public/index.html"
-    }),
+    new HtmlWebpackPlugin({ template: "./public/index.html" }),
     new CopyWebpackPlugin({
       patterns: [
-        { from: "public", to: "." } // copy static assets
+        { from: "public", to: ".", globOptions: { ignore: ["**/index.html"] } }
       ]
     })
   ],
   devServer: {
-    historyApiFallback: true, // React Router support
-    static: {
-      directory: path.join(__dirname, "public")
-    },
-    compress: true,
-    port: 3000,
-    open: true
+    historyApiFallback: true,
+    static: { directory: path.join(__dirname, "public") },
+    port: 3000
   }
 };
