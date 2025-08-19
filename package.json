@@ -5,7 +5,8 @@
   "proxy": "http://localhost:5000",
   "scripts": {
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production"
+    "build": "webpack --mode production",
+    "vercel-build": "webpack --mode production"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
