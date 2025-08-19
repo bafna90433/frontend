@@ -5,7 +5,8 @@
   "proxy": "http://localhost:5000",
   "scripts": {
     "start": "webpack serve --mode development --open",
-    "build": "webpack --mode production"
+    "build": "npx webpack --mode production",
+    "postinstall": "npm install webpack webpack-cli --save"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -13,8 +14,12 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "axios": "^1.11.0",
+    "copy-webpack-plugin": "^13.0.0",
+    "css-loader": "^7.1.2",
+    "file-loader": "^6.2.0",
     "firebase": "^12.0.0",
     "framer-motion": "^12.23.12",
+    "html-webpack-plugin": "^5.5.0",
     "lodash.memoize": "^4.1.2",
     "memoize": "^10.1.0",
     "memoize-one": "^6.0.0",
@@ -25,15 +30,11 @@
     "react-router-dom": "^6.30.1",
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
-    "styled-components": "^6.1.19",
-    "copy-webpack-plugin": "^13.0.0",
-    "css-loader": "^7.1.2",
-    "file-loader": "^6.2.0",
-    "html-webpack-plugin": "^5.5.0",
     "style-loader": "^4.0.0",
+    "styled-components": "^6.1.19",
     "ts-loader": "^9.5.0",
     "typescript": "^5.3.3",
-    "webpack": "^5.91.0",
+    "webpack": "^5.101.3",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1"
   },
