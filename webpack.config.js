@@ -1,44 +1,52 @@
-// admin_panel/webpack.config.js
-const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
-  entry: './src/index.tsx',
+  entry: "./src/index.tsx", // main React entry
+  output: {
+    path: path.resolve(__dirname, "dist"),
+    filename: "bundle.[contenthash].js",
+    clean: true,
+    publicPath: "/" // important for React Router
+  },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js']
+    extensions: [".tsx", ".ts", ".js"]
   },
   module: {
     rules: [
       {
         test: /\.tsx?$/,
-        use: 'ts-loader',
+        use: "ts-loader",
         exclude: /node_modules/
       },
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader']
+        use: ["style-loader", "css-loader"]
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg)$/i,
+        type: "asset/resource"
       }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html'
+      template: "./public/index.html"
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: "public", to: "." } // copy static assets
+      ]
     })
   ],
-  output: {
-    filename: 'bundle.js',
-    path: path.resolve(__dirname, 'dist'),
-    clean: true,
-    publicPath: '/',
-  },
   devServer: {
+    historyApiFallback: true, // React Router support
     static: {
-      directory: path.resolve(__dirname, 'dist'),
+      directory: path.join(__dirname, "public")
     },
-    port: 8082, // <<--- ADMIN PANEL PORT, NEVER USE 8081 HERE!
-    historyApiFallback: true,
-    proxy: {
-      '/api': 'http://localhost:5000'
-    }
+    compress: true,
+    port: 3000,
+    open: true
   }
 };
