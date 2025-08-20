@@ -1,5 +1,5 @@
 const path = require('path');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -24,16 +24,14 @@ module.exports = {
     ]
   },
   plugins: [
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: "public", to: "." }  // ✅ copy index.html, favicon, etc. to dist
-      ]
+    new HtmlWebpackPlugin({
+      template: './public/index.html'
     })
   ],
   output: {
     filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/',   // ✅ must be absolute
+    publicPath: '/',   // ✅ React Router ke liye correct
     clean: true
   },
   devServer: {
