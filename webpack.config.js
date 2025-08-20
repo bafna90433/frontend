@@ -14,24 +14,30 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.css$/i, // ✅ Add this
+        test: /\.css$/i,
         use: ['style-loader', 'css-loader']
+      },
+      {
+        test: /\.(png|jpe?g|gif|svg|woff2?|eot|ttf)$/i,
+        type: 'asset/resource',
       }
     ]
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './public/index.html'
+      template: './public/index.html',
+      inject: 'body' // ✅ ensures bundle.js is inserted correctly
     })
   ],
   output: {
-    filename: 'bundle.js',
+    filename: 'bundle.[contenthash].js', // ✅ cache-busting
     path: path.resolve(__dirname, 'dist'),
+    publicPath: '/',  // ✅ absolute path for Vercel
     clean: true
   },
   devServer: {
     static: './dist',
     port: 8080,
-    historyApiFallback: true // ✅ Ensures routing works in dev server
+    historyApiFallback: true // ✅ React Router SPA fallback
   }
 };
