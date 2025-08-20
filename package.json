@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "proxy": "http://localhost:5000",
-  "engines": { "node": ">=18 <21" },
   "scripts": {
     "start": "webpack serve --mode development --open",
     "build": "webpack --mode production"
@@ -41,8 +40,8 @@
     "style-loader": "^4.0.0",
     "ts-loader": "^9.5.0",
     "typescript": "^5.3.3",
-    "webpack": "5.91.0",
-    "webpack-cli": "5.1.4",
-    "webpack-dev-server": "4.15.1"
+    "webpack": "^5.101.3",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^4.15.1"
   }
 }

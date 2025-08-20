@@ -1,37 +1,37 @@
-const path = require("path");
-const HtmlWebpackPlugin = require("html-webpack-plugin");
-const CopyWebpackPlugin = require("copy-webpack-plugin");
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = {
-  entry: "./src/index.tsx",
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "bundle.[contenthash].js",
-    publicPath: "/",
-    clean: true
-  },
+  entry: './src/index.tsx',
   resolve: {
-    extensions: [".tsx", ".ts", ".js"]
+    extensions: ['.ts', '.tsx', '.js']
   },
   module: {
     rules: [
-      { test: /\.tsx?$/, exclude: /node_modules/, use: "ts-loader" },
-      { test: /\.css$/i, use: ["style-loader", "css-loader"] },
-      { test: /\.(png|jpe?g|gif|svg|webp|ico)$/i, type: "asset/resource" },
-      { test: /\.(woff2?|eot|ttf|otf)$/i, type: "asset/resource" }
+      {
+        test: /\.tsx?$/,
+        use: 'ts-loader',
+        exclude: /node_modules/
+      },
+      {
+        test: /\.css$/i, // ✅ Add this
+        use: ['style-loader', 'css-loader']
+      }
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({ template: "./public/index.html" }),
-    new CopyWebpackPlugin({
-      patterns: [
-        { from: "public", to: ".", globOptions: { ignore: ["**/index.html"] } }
-      ]
+    new HtmlWebpackPlugin({
+      template: './public/index.html'
     })
   ],
+  output: {
+    filename: 'bundle.js',
+    path: path.resolve(__dirname, 'dist'),
+    clean: true
+  },
   devServer: {
-    historyApiFallback: true,
-    static: { directory: path.join(__dirname, "public") },
-    port: 3000
+    static: './dist',
+    port: 8080,
+    historyApiFallback: true // ✅ Ensures routing works in dev server
   }
 };

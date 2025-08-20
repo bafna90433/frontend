@@ -5,10 +5,10 @@ import axios from "axios";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
-const LOGO_IMG = "/logo.png";               // served from public/
-const API_BASE = "http://localhost:5000";   // change if your backend URL differs
+const LOGO_IMG = "/logo.png"; // public/ folder
+const API_BASE = "http://localhost:5000";
 
-// Minimal product type for suggestions
+// ------------------ Types ------------------
 type Suggestion = {
   _id: string;
   name: string;
@@ -25,7 +25,7 @@ const getThumb = (p: Suggestion): string | null => {
   return `${API_BASE}/uploads/${encodeURIComponent(f)}`;
 };
 
-// Forward-ref SearchForm
+// ------------------ SearchForm ------------------
 const SearchForm = React.forwardRef<HTMLFormElement, {
   mobile?: boolean;
   q: string;
@@ -122,11 +122,13 @@ const SearchForm = React.forwardRef<HTMLFormElement, {
 });
 SearchForm.displayName = "SearchForm";
 
+// ------------------ Header ------------------
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
-
   const { cartItems } = useShop();
+
+  // cart count
   const cartCount = useMemo(() => {
     if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce((sum: number, it: any) => {
@@ -135,16 +137,7 @@ const Header: React.FC = () => {
     }, 0);
   }, [cartItems]);
 
-  const [user, setUser] = useState<any | null>(null);
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem("user");
-      setUser(raw ? JSON.parse(raw) : null);
-    } catch {
-      setUser(null);
-    }
-  }, [location.pathname]);
-
+  // search state
   const [q, setQ] = useState("");
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -159,7 +152,6 @@ const Header: React.FC = () => {
     setOpenSug(false);
   };
 
-  // Live suggestions
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
@@ -168,6 +160,7 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
+  // fetch suggestions
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -187,19 +180,16 @@ const Header: React.FC = () => {
           params: { search: needle, limit: 50 },
         });
         if (!alive) return;
-
         const arr: Suggestion[] = Array.isArray(data)
           ? data
           : Array.isArray((data as any)?.products)
           ? (data as any).products
           : [];
-
         const n = needle.toLowerCase();
         const filtered = arr.filter((p) =>
           (p.name || "").toLowerCase().includes(n) ||
           (p.sku || "").toLowerCase().includes(n)
         );
-
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
@@ -220,6 +210,7 @@ const Header: React.FC = () => {
     };
   }, [q]);
 
+  // outside click
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -233,6 +224,7 @@ const Header: React.FC = () => {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
+  // keyboard nav
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!openSug || (!sug.length && !loadingSug)) return;
     if (e.key === "ArrowDown") {
@@ -262,7 +254,6 @@ const Header: React.FC = () => {
             alt="BAFNA TOYS"
             className="bt-logo__img"
             onError={(e) => {
-              // If image fails, show styled text fallback
               (e.currentTarget as HTMLImageElement).style.display = "none";
               const sib = (e.currentTarget.nextSibling as HTMLElement | null);
               if (sib) sib.classList.add("bt-logo__text--show");
@@ -289,18 +280,14 @@ const Header: React.FC = () => {
 
         {/* ACTIONS */}
         <nav className="bt-actions" aria-label="Primary">
-          {!user ? (
-            <>
-              <Link className="bt-link" to="/register">Register</Link>
-              <Link className="bt-link" to="/login">Login</Link>
-            </>
-          ) : (
-            <Link className="bt-link" to="/my-account">My Account</Link>
-          )}
+          <Link className="bt-link" to="/login">Login</Link>
 
           <Link className="bt-cart" to="/cart" aria-label={`Cart with ${cartCount} items`}>
             <svg viewBox="0 0 24 24" className="bt-ico">
-              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 14h9.66c.75 0 1.41-.41 1.75-1.03L22 6H6.21l-.94-2H2v2h2l3.6 7.59-1.35 2.45C5.52 16.37 6.48 18 8 18h12v-2H8l1.1-2z" />
+              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
+                0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 
+                14h9.66c.75 0 1.41-.41 1.75-1.03L22 6H6.21l-.94-2H2v2h2l3.6 
+                7.59-1.35 2.45C5.52 16.37 6.48 18 8 18h12v-2H8l1.1-2z" />
             </svg>
             {cartCount > 0 && <span className="bt-cart__badge">{cartCount}</span>}
             <span className="bt-cart__text">Cart</span>
@@ -308,7 +295,7 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* MOBILE SEARCH ROW */}
+      {/* MOBILE SEARCH */}
       <div className="bt-search--mobile">
         <SearchForm
           ref={mobRef}
