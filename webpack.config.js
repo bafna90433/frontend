@@ -1,5 +1,5 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -24,20 +24,21 @@ module.exports = {
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({
-      template: './public/index.html',
-      inject: 'body' // ✅ ensures bundle.js is inserted correctly
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: "public", to: "." }  // ✅ copy index.html, favicon, etc. to dist
+      ]
     })
   ],
   output: {
-    filename: 'bundle.[contenthash].js', // ✅ cache-busting
+    filename: 'bundle.js',
     path: path.resolve(__dirname, 'dist'),
-    publicPath: '/',  // ✅ absolute path for Vercel
+    publicPath: '/',   // ✅ must be absolute
     clean: true
   },
   devServer: {
     static: './dist',
     port: 8080,
-    historyApiFallback: true // ✅ React Router SPA fallback
+    historyApiFallback: true
   }
 };
