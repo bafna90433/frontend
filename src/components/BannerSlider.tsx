@@ -3,8 +3,7 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../styles/BannerSlider.css';
-
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+import { getImageUrl } from '../utils/image';
 
 interface Props {
   banners: string[];
@@ -29,7 +28,7 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
         {banners.map((url, index) => (
           <div key={index} className="slide-item">
             <img
-              src={url.startsWith("http") ? url : `${IMAGE_BASE_URL}/${url.replace(/^\/+/, '')}`}
+              src={getImageUrl(url)}
               alt={`Banner ${index + 1}`}
               className="banner-img"
             />

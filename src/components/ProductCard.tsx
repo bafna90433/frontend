@@ -26,8 +26,9 @@ interface ProductCardProps {
   userRole: 'admin' | 'customer';
 }
 
-// ✅ Use env variable instead of hardcoded localhost
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+// ✅ API and Image Base
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
   const { cartItems, setCartItemQuantity } = useShop();
@@ -64,14 +65,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
-  // ✅ Fix image URL with env base
+  // ✅ Image URL handling
   const imageFile = product.images?.[0] ?? null;
   const imageSrc = imageFile
     ? (imageFile.startsWith('http')
         ? imageFile
         : imageFile.includes('/uploads/')
-          ? `${IMAGE_BASE_URL}/${imageFile.replace(/^\/+/, '')}`
-          : `${IMAGE_BASE_URL}/${encodeURIComponent(imageFile)}`)
+          ? `${API_BASE}${imageFile}`
+          : `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(imageFile)}`)
     : null;
 
   return (
