@@ -4,7 +4,9 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../styles/BannerSlider.css';
 
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+// 🔑 Env variables
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 interface Props {
   banners: string[];
@@ -23,26 +25,31 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
     cssEase: 'ease-in-out',
   };
 
+  // ✅ centralized banner URL function
+  const getBannerUrl = (url: string): string => {
+    if (!url) return "https://via.placeholder.com/1200x400?text=No+Banner";
+
+    if (url.startsWith("http")) {
+      return url;
+    } else if (url.includes("/uploads/")) {
+      return `${API_BASE}${url}`;
+    } else {
+      return `${IMAGE_BASE_URL}/uploads/${url.replace(/^\/+/, "")}`;
+    }
+  };
+
   return (
     <div className="banner-slider-container">
       <Slider {...settings}>
-        {banners.map((url, index) => {
-          // ✅ If backend sends just "banners/file.png"
-          const cleanPath = url.replace(/^\/+/, '');
-          const imageSrc = url.startsWith("http")
-            ? url
-            : `${IMAGE_BASE_URL}/uploads/${cleanPath}`;
-
-          return (
-            <div key={index} className="slide-item">
-              <img
-                src={imageSrc}
-                alt={`Banner ${index + 1}`}
-                className="banner-img"
-              />
-            </div>
-          );
-        })}
+        {banners.map((url, index) => (
+          <div key={index} className="slide-item">
+            <img
+              src={getBannerUrl(url)}
+              alt={`Banner ${index + 1}`}
+              className="banner-img"
+            />
+          </div>
+        ))}
       </Slider>
     </div>
   );
