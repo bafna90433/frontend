@@ -4,12 +4,11 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import '../styles/BannerSlider.css';
 
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+
 interface Props {
   banners: string[];
 }
-
-// ✅ Env se lo base URL
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
 
 const BannerSlider: React.FC<Props> = ({ banners }) => {
   const settings = {
@@ -27,22 +26,15 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
   return (
     <div className="banner-slider-container">
       <Slider {...settings}>
-        {banners.map((url, index) => {
-          // ✅ Agar full http/https aata hai toh wahi use karo, warna prepend karo IMAGE_BASE_URL
-          const imageSrc = url.startsWith('http')
-            ? url
-            : `${IMAGE_BASE_URL}/${url.replace(/^\/+/, '')}`;
-
-          return (
-            <div key={index} className="slide-item">
-              <img
-                src={imageSrc}
-                alt={`Banner ${index + 1}`}
-                className="banner-img"
-              />
-            </div>
-          );
-        })}
+        {banners.map((url, index) => (
+          <div key={index} className="slide-item">
+            <img
+              src={url.startsWith("http") ? url : `${IMAGE_BASE_URL}/${url.replace(/^\/+/, '')}`}
+              alt={`Banner ${index + 1}`}
+              className="banner-img"
+            />
+          </div>
+        ))}
       </Slider>
     </div>
   );
