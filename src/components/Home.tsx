@@ -9,16 +9,21 @@ import ErrorMessage from './ErrorMessage';
 // ✅ import the floating checkout button
 import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
 
-interface Category { _id: string; name: string; }
+interface Category {
+  _id: string;
+  name: string;
+}
+
 interface Product {
   _id: string;
   name: string;
-  image: string;
+  sku?: string;
   price: number;
   category: { _id: string; name: string };
   bulkPricing: { inner: number; qty: number; price: number }[];
   innerQty: number;
-  images?: string[];
+  images: string[];  // ✅ always array
+  taxFields?: string[];
 }
 
 const Home: React.FC = () => {
@@ -46,13 +51,17 @@ const Home: React.FC = () => {
         if (catRes.status === 200 && prodRes.status === 200 && bannerRes.status === 200) {
           setCategories(catRes.data);
           setProducts(prodRes.data);
-          setBanners(bannerRes.data.map((b: any) => b.imageUrl));
+
+          // ✅ fallback for different banner field names
+          setBanners(
+            bannerRes.data.map((b: any) => b.imageUrl || b.url || b.image).filter(Boolean)
+          );
         } else {
           throw new Error('Failed to fetch data');
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error('Fetch error:', err);
-        setError('Failed to load products. Please try again later.');
+        setError(err.response?.data?.message || 'Failed to load products. Please try again later.');
       } finally {
         setLoading(false);
       }

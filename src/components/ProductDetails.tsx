@@ -10,6 +10,9 @@ import { useShop } from '../context/ShopContext';
 // ✅ floating checkout button
 import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
 
+// ✅ Env-based image base URL
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+
 interface BulkTier {
   inner: string;
   qty: number;
@@ -70,17 +73,18 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // Robust image code
+  // ✅ Robust image resolver (local + prod)
   let baseImage = '';
   if (product.images && product.images.length > 0) {
     baseImage = product.images[selectedImage] || product.image || '';
   } else {
     baseImage = product.image || '';
   }
+
   const imageUrl = baseImage
     ? baseImage.startsWith('http')
       ? baseImage
-      : `http://localhost:5000${baseImage}`
+      : `${IMAGE_BASE_URL}/${baseImage.replace(/^\/+/, '')}`
     : 'https://via.placeholder.com/200x200?text=No+Image';
 
   // Bulk pricing logic
@@ -119,7 +123,6 @@ const ProductDetails: React.FC = () => {
 
   const toggleDescription = () => setExpandedDescription((v) => !v);
 
-  // For mobile: Scroll to top when changing image to avoid layout jumps
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
     if (window.innerWidth < 768) {
@@ -142,16 +145,21 @@ const ProductDetails: React.FC = () => {
           </div>
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
-              {product.images.map((img, i) => (
-                <img
-                  key={i}
-                  src={img.startsWith('http') ? img : `http://localhost:5000${img}`}
-                  alt={`${product.name} thumbnail ${i + 1}`}
-                  className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
-                  onClick={() => handleSelectImage(i)}
-                  style={{ cursor: 'pointer' }}
-                />
-              ))}
+              {product.images.map((img, i) => {
+                const thumbUrl = img.startsWith('http')
+                  ? img
+                  : `${IMAGE_BASE_URL}/${img.replace(/^\/+/, '')}`;
+                return (
+                  <img
+                    key={i}
+                    src={thumbUrl}
+                    alt={`${product.name} thumbnail ${i + 1}`}
+                    className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                    onClick={() => handleSelectImage(i)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                );
+              })}
             </div>
           )}
         </div>
@@ -180,9 +188,7 @@ const ProductDetails: React.FC = () => {
           {product.description && (
             <div className="description-section">
               <div className="section-header">
-                <h3 className="section-title">
-                  <span role="img" aria-label="Description">📋</span> Product Description
-                </h3>
+                <h3 className="section-title">📋 Product Description</h3>
                 <button onClick={toggleDescription} className="toggle-description">
                   {expandedDescription ? (
                     <>
@@ -203,9 +209,7 @@ const ProductDetails: React.FC = () => {
 
           <div className="bulk-pricing-section">
             <div className="section-header">
-              <h3 className="section-title">
-                <span role="img" aria-label="Bulk Pricing">📊</span> Bulk Pricing
-              </h3>
+              <h3 className="section-title">📊 Bulk Pricing</h3>
               <div className="pieces-info">
                 <FaBoxOpen className="box-icon" />
                 {piecesPerInner} pieces per inner
@@ -220,16 +224,12 @@ const ProductDetails: React.FC = () => {
                 />
               </div>
             ) : (
-              <div className="no-bulk-pricing" style={{ margin: '10px 0', color: '#555' }}>
-                No bulk pricing tiers available.
-              </div>
+              <div className="no-bulk-pricing">No bulk pricing tiers available.</div>
             )}
           </div>
 
           <div className="quantity-section">
-            <h3 className="section-title">
-              <span role="img" aria-label="Quantity">🔢</span> Quantity (Inners)
-            </h3>
+            <h3 className="section-title">🔢 Quantity (Inners)</h3>
             {productInCart ? (
               <>
                 <div className="quantity-controls">
@@ -309,7 +309,7 @@ const ProductDetails: React.FC = () => {
       {/* spacer so content doesn't sit under the floating button */}
       <div style={{ height: 84 }} />
 
-      {/* ✅ floating checkout button (left side, shows count via ShopContext) */}
+      {/* ✅ floating checkout button */}
       <FloatingCheckoutButton />
     </>
   );
