@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import axios from "axios";
-import ProductCard from "./ProductCard";
-import "../styles/Products.css";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import '../styles/ProductCard.css';
+import { useShop } from '../context/ShopContext';
 
-const API_BASE = "http://localhost:5000";
+interface BulkTier {
+  inner: number;
+  qty: number;
+  price: number;
+}
 
-type BulkTier = { inner: number; qty: number; price: number };
-type Product = {
+interface Product {
   _id: string;
   name: string;
   sku?: string;
@@ -17,80 +19,133 @@ type Product = {
   bulkPricing: BulkTier[];
   category?: { _id: string; name: string } | string;
   taxFields?: string[];
-};
+}
 
-const Products: React.FC = () => {
-  const location = useLocation();
+interface ProductCardProps {
+  product: Product;
+  userRole: 'admin' | 'customer';
+}
+
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || `${API_BASE}/uploads/`;
+
+const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
+  const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
-  const params = new URLSearchParams(location.search);
-  // support both ?search= and ?q=
-  const q = (params.get("search") || params.get("q") || "").trim();
 
-  const [items, setItems] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
+  const cartItem = cartItems.find(item => item._id === product._id);
+  const innerCount = cartItem?.quantity ?? 0;
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      setLoading(true);
-      setErr(null);
-      try {
-        // try backend search (prefer `search` param; change if your API expects `q`)
-        const { data } = await axios.get(`${API_BASE}/api/products`, {
-          params: { search: q },
-        });
-        if (!alive) return;
-        const arr: Product[] = Array.isArray(data)
-          ? data
-          : Array.isArray(data?.products)
-          ? data.products
-          : [];
-        setItems(arr);
-      } catch (e) {
-        if (alive) setErr("Could not load products.");
-      } finally {
-        if (alive) setLoading(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [q]);
+  const sortedTiers = [...product.bulkPricing].sort((a, b) => a.inner - b.inner);
 
-  const title = q ? `Results for “${q}”` : "All Products";
+  const activeTier: BulkTier | undefined = sortedTiers.length > 0
+    ? sortedTiers.reduce((prev, tier) => (innerCount >= tier.inner ? tier : prev), sortedTiers[0])
+    : undefined;
+
+  const piecesPerInner = product.innerQty && product.innerQty > 0
+    ? product.innerQty
+    : sortedTiers.length > 0 && sortedTiers[0].qty > 0
+      ? sortedTiers[0].qty / sortedTiers[0].inner
+      : 1;
+
+  const totalPieces = innerCount * piecesPerInner;
+  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
+
+  const handleAdd = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCartItemQuantity(product, 1);
+  };
+  const increase = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCartItemQuantity(product, innerCount + 1);
+  };
+  const decrease = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCartItemQuantity(product, Math.max(0, innerCount - 1));
+  };
+
+  const imageFile = product.images?.[0] ?? null;
+  const imageSrc = imageFile
+    ? (imageFile.startsWith('http')
+        ? imageFile
+        : imageFile.includes('/uploads/')
+          ? `${API_BASE}${imageFile}`
+          : `${IMAGE_BASE_URL}${encodeURIComponent(imageFile)}`)
+    : null;
 
   return (
-    <div className="products-page">
-      <div className="products-head">
-        <h1>{title}</h1>
-        {q && (
-          <button className="clear-btn" onClick={() => navigate("/products")}>
-            Clear
-          </button>
-        )}
+    <div className="product-card-item">
+      <div
+        className="product-image-container"
+        onClick={() => navigate(`/product/${product._id}`)}
+      >
+        {imageSrc
+          ? <img src={imageSrc} alt={product.name} className="product-image" />
+          : <div className="no-image">No Image</div>
+        }
       </div>
 
-      {loading ? (
-        <div className="state">Loading…</div>
-      ) : err ? (
-        <div className="state error">{err}</div>
-      ) : items.length === 0 ? (
-        <div className="state empty">
-          <p>No products found.</p>
-          <button className="clear-btn" onClick={() => navigate("/products")}>
-            View all products
-          </button>
+      <div className="product-details">
+        <h3 className="product-name">{product.name}</h3>
+
+        <div className="product-meta">
+          {product.sku && <span className="product-sku">SKU: {product.sku}</span>}
+          {product.category && (
+            <span className="product-category">
+              {typeof product.category === 'string'
+                ? product.category
+                : product.category?.name}
+            </span>
+          )}
         </div>
-      ) : (
-        <div className="product-grid">
-          {items.map((p) => (
-            <ProductCard key={p._id} product={p} userRole="customer" />
-          ))}
+
+        {product.taxFields && product.taxFields.length > 0 && (
+          <div className="product-tax-fields">
+            {product.taxFields.map((tax, idx) => (
+              <span key={idx} className="tax-field">{tax}</span>
+            ))}
+          </div>
+        )}
+
+        <div className="packing-section">
+          <h4 className="packing-title">
+            <span className="packing-icon">P</span> Packing & Pricing
+          </h4>
+          <ul className="pricing-list">
+            {sortedTiers.map(tier => (
+              <li
+                key={tier.inner}
+                className={activeTier && tier.inner === activeTier.inner ? 'active-tier-row' : ''}
+              >
+                {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
+              </li>
+            ))}
+          </ul>
         </div>
-      )}
+
+        <div className="cart-controls">
+          {innerCount === 0 ? (
+            <button onClick={handleAdd} className="add-to-cart-btn">
+              ADD TO CART
+            </button>
+          ) : (
+            <div className="quantity-selector-wrapper">
+              <div className="quantity-selector">
+                <button onClick={decrease} className="qty-btn">-</button>
+                <span className="qty-count">{innerCount}</span>
+                <button onClick={increase} className="qty-btn">+</button>
+              </div>
+              {userRole === 'admin' && (
+                <div className="admin-total-price">
+                  Total: ₹{totalPrice.toLocaleString()}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Products;
+export default ProductCard;
