@@ -6,9 +6,11 @@ import BulkPricingTable, { Tier } from './BulkPricingTable';
 import { FiChevronDown, FiChevronUp, FiShoppingCart } from 'react-icons/fi';
 import { FaPercentage, FaBoxOpen, FaTag } from 'react-icons/fa';
 import { useShop } from '../context/ShopContext';
+
+// ✅ floating checkout button
 import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
 
-// ✅ centralized image helper
+// ✅ centralized image resolver
 import { getImageUrl } from '../utils/image';
 
 interface BulkTier {
@@ -71,13 +73,14 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ use centralized helper
+  // ✅ Robust image resolver (centralized)
   let baseImage = '';
   if (product.images && product.images.length > 0) {
     baseImage = product.images[selectedImage] || product.image || '';
   } else {
     baseImage = product.image || '';
   }
+
   const imageUrl = getImageUrl(baseImage);
 
   // Bulk pricing logic
@@ -138,19 +141,16 @@ const ProductDetails: React.FC = () => {
           </div>
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
-              {product.images.map((img, i) => {
-                const thumbUrl = getImageUrl(img);
-                return (
-                  <img
-                    key={i}
-                    src={thumbUrl}
-                    alt={`${product.name} thumbnail ${i + 1}`}
-                    className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
-                    onClick={() => handleSelectImage(i)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                );
-              })}
+              {product.images.map((img, i) => (
+                <img
+                  key={i}
+                  src={getImageUrl(img)}
+                  alt={`${product.name} thumbnail ${i + 1}`}
+                  className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                  onClick={() => handleSelectImage(i)}
+                  style={{ cursor: 'pointer' }}
+                />
+              ))}
             </div>
           )}
         </div>
@@ -297,7 +297,10 @@ const ProductDetails: React.FC = () => {
         </div>
       </div>
 
+      {/* spacer so content doesn't sit under the floating button */}
       <div style={{ height: 84 }} />
+
+      {/* ✅ floating checkout button */}
       <FloatingCheckoutButton />
     </>
   );
