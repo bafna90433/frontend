@@ -71,14 +71,13 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ use centralized helper
-  let baseImage = '';
+  // Get all available images
+  const allImages = [];
   if (product.images && product.images.length > 0) {
-    baseImage = product.images[selectedImage] || product.image || '';
-  } else {
-    baseImage = product.image || '';
+    allImages.push(...product.images);
+  } else if (product.image) {
+    allImages.push(product.image);
   }
-  const imageUrl = getImageUrl(baseImage);
 
   // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -127,31 +126,38 @@ const ProductDetails: React.FC = () => {
     <>
       <div className="product-details-container">
         <div className="product-gallery">
-          <div className="main-image-container">
-            <img src={imageUrl} alt={product.name} className="main-image" />
-            {showDiscount && (
-              <div className="discount-badge">
-                <FaTag className="discount-icon" />
-                Save ₹{discount.toFixed(2)}
+          {allImages.length > 0 ? (
+            <>
+              <div className="main-image-container">
+                <img 
+                  src={getImageUrl(allImages[selectedImage])} 
+                  alt={product.name} 
+                  className="main-image" 
+                />
+                {showDiscount && (
+                  <div className="discount-badge">
+                    <FaTag className="discount-icon" />
+                    Save ₹{discount.toFixed(2)}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          {product.images && product.images.length > 1 && (
-            <div className="thumbnail-container">
-              {product.images.map((img, i) => {
-                const thumbUrl = getImageUrl(img);
-                return (
-                  <img
-                    key={i}
-                    src={thumbUrl}
-                    alt={`${product.name} thumbnail ${i + 1}`}
-                    className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
-                    onClick={() => handleSelectImage(i)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                );
-              })}
-            </div>
+              {allImages.length > 1 && (
+                <div className="thumbnail-container">
+                  {allImages.map((img, i) => (
+                    <img
+                      key={i}
+                      src={getImageUrl(img)}
+                      alt={`${product.name} thumbnail ${i + 1}`}
+                      className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                      onClick={() => handleSelectImage(i)}
+                      style={{ cursor: 'pointer' }}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="no-image">No Image Available</div>
           )}
         </div>
 
@@ -253,6 +259,21 @@ const ProductDetails: React.FC = () => {
               </>
             ) : (
               <div className="action-buttons-row">
+                <div className="quantity-selector">
+                  <button 
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))} 
+                    className="quantity-button"
+                  >
+                    −
+                  </button>
+                  <span className="quantity-display">{quantity}</span>
+                  <button 
+                    onClick={() => setQuantity(quantity + 1)} 
+                    className="quantity-button"
+                  >
+                    +
+                  </button>
+                </div>
                 <button
                   className="add-to-cart-button"
                   onClick={() => {
