@@ -10,8 +10,8 @@ import { useShop } from '../context/ShopContext';
 // ✅ floating checkout button
 import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
 
-// ✅ Env-based image base URL
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL as string;
+// ✅ centralized image resolver
+import { getImageUrl } from '../utils/image';
 
 interface BulkTier {
   inner: string;
@@ -73,7 +73,7 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ Robust image resolver (local + prod)
+  // ✅ Robust image resolver (centralized)
   let baseImage = '';
   if (product.images && product.images.length > 0) {
     baseImage = product.images[selectedImage] || product.image || '';
@@ -81,11 +81,7 @@ const ProductDetails: React.FC = () => {
     baseImage = product.image || '';
   }
 
-  const imageUrl = baseImage
-    ? baseImage.startsWith('http')
-      ? baseImage
-      : `${IMAGE_BASE_URL}/${baseImage.replace(/^\/+/, '')}`
-    : 'https://via.placeholder.com/200x200?text=No+Image';
+  const imageUrl = getImageUrl(baseImage);
 
   // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -145,21 +141,16 @@ const ProductDetails: React.FC = () => {
           </div>
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
-              {product.images.map((img, i) => {
-                const thumbUrl = img.startsWith('http')
-                  ? img
-                  : `${IMAGE_BASE_URL}/${img.replace(/^\/+/, '')}`;
-                return (
-                  <img
-                    key={i}
-                    src={thumbUrl}
-                    alt={`${product.name} thumbnail ${i + 1}`}
-                    className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
-                    onClick={() => handleSelectImage(i)}
-                    style={{ cursor: 'pointer' }}
-                  />
-                );
-              })}
+              {product.images.map((img, i) => (
+                <img
+                  key={i}
+                  src={getImageUrl(img)}
+                  alt={`${product.name} thumbnail ${i + 1}`}
+                  className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                  onClick={() => handleSelectImage(i)}
+                  style={{ cursor: 'pointer' }}
+                />
+              ))}
             </div>
           )}
         </div>
