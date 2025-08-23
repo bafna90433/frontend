@@ -26,7 +26,9 @@ interface ProductCardProps {
   userRole: 'admin' | 'customer';
 }
 
+// ✅ API and Image Base
 const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
   const { cartItems, setCartItemQuantity } = useShop();
@@ -63,13 +65,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
+  // ✅ Image URL handling
   const imageFile = product.images?.[0] ?? null;
   const imageSrc = imageFile
     ? (imageFile.startsWith('http')
         ? imageFile
         : imageFile.includes('/uploads/')
-          ? `http://localhost:5000${imageFile}`
-          : `${IMAGE_BASE_URL}${encodeURIComponent(imageFile)}`)
+          ? `${API_BASE}${imageFile}`
+          : `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(imageFile)}`)
     : null;
 
   return (
