@@ -14,12 +14,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
-// ✅ Corrected reCAPTCHA setup function
+// ✅ Corrected reCAPTCHA setup function (render + single instance)
 export function setupRecaptcha(containerId: string) {
-  return new RecaptchaVerifier(auth, containerId, {
-    size: 'invisible',
-    callback: () => {
-      console.log("reCAPTCHA solved");
-    },
-  });
+  const w = window as any;
+  if (!w.recaptchaVerifier) {
+    w.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+      callback: () => console.log("reCAPTCHA solved ✅"),
+    });
+    w.recaptchaVerifier.render(); // required in Vercel
+  }
+  return w.recaptchaVerifier;
 }

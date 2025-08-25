@@ -34,14 +34,22 @@ export const Register: React.FC = () => {
     }
   };
 
+  // ✅ Normalize to E.164 (+91XXXXXXXXXX)
+  const normalizeMobile = (m: string) =>
+    m.trim().replace(/^\+91/, "").replace(/\D/g, "");
+
   const sendOtp = async () => {
     try {
+      const raw = normalizeMobile(form.otpMobile);
+      if (raw.length !== 10) {
+        alert("Please enter a valid 10-digit number");
+        return;
+      }
+      const fullNumber = `+91${raw}`;
+
       const recaptcha = setupRecaptcha("recaptcha-container");
-      const result = await signInWithPhoneNumber(
-        auth,
-        form.otpMobile,
-        recaptcha
-      );
+      const result = await signInWithPhoneNumber(auth, fullNumber, recaptcha);
+
       setConfirmation(result);
       setOtpSent(true);
       alert("OTP has been sent.");
@@ -118,7 +126,7 @@ export const Register: React.FC = () => {
       />
       <input
         name="otpMobile"
-        placeholder="+91XXXXXXXXXX"
+        placeholder="Mobile (10 digits)"
         value={form.otpMobile}
         onChange={handleChange}
         type="tel"
@@ -149,6 +157,7 @@ export const Register: React.FC = () => {
         </>
       )}
 
+      {/* Already registered? Login */}
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
         <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
