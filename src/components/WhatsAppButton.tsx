@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./WhatsAppButton.css";
 
-const API = "http://localhost:5000";
+// ✅ Use env variable for backend API
+const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 type Agent = {
   name: string;
@@ -74,8 +75,8 @@ const WhatsAppButton: React.FC = () => {
         if (data.autoOpenDelay && data.autoOpenDelay > 0) {
           setTimeout(() => setOpen(true), data.autoOpenDelay);
         }
-      } catch {
-        // ignore fetch errors
+      } catch (err) {
+        console.error("Failed to fetch WhatsApp settings", err);
       }
     })();
   }, []);
@@ -113,7 +114,9 @@ const WhatsAppButton: React.FC = () => {
         <div className="wa-panel">
           <div className="wa-panel-head">
             <div className="wa-title">Start a Conversation</div>
-            <div className="wa-sub">Hi! Click one of our team members below to chat on WhatsApp</div>
+            <div className="wa-sub">
+              Hi! Click one of our team members below to chat on WhatsApp
+            </div>
           </div>
 
           <div className="wa-panel-body">
@@ -127,7 +130,6 @@ const WhatsAppButton: React.FC = () => {
                       src={resolveUrl(a.avatar)}
                       alt={a.name}
                       onError={(e) => {
-                        // fallback to a simple initial if image 404s
                         (e.currentTarget as HTMLImageElement).style.display = "none";
                         const parent = (e.currentTarget as HTMLImageElement).parentElement!;
                         const fallback = document.createElement("div");
@@ -137,7 +139,9 @@ const WhatsAppButton: React.FC = () => {
                       }}
                     />
                   ) : (
-                    <div className="wa-avatar-fallback">{(a.name?.[0] || "A").toUpperCase()}</div>
+                    <div className="wa-avatar-fallback">
+                      {(a.name?.[0] || "A").toUpperCase()}
+                    </div>
                   )}
                 </div>
                 <div className="wa-agent-info">
@@ -151,7 +155,11 @@ const WhatsAppButton: React.FC = () => {
         </div>
       )}
 
-      <button className="wa-fab" onClick={() => setOpen((v) => !v)} aria-label="Chat on WhatsApp">
+      <button
+        className="wa-fab"
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Chat on WhatsApp"
+      >
         {open ? "✕" : "💬"}
       </button>
     </div>
