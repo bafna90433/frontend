@@ -5,6 +5,9 @@ import { auth, setupRecaptcha } from "../firebase";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import "../styles/Register.css";
 
+// ✅ Use env variable instead of hardcoded localhost
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
     firmName: "",
@@ -64,7 +67,7 @@ export const Register: React.FC = () => {
       });
 
       const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
+        `${API_BASE}/api/auth/register`,
         formData
       );
       alert(res.data.msg || "Registration successful.");
@@ -146,7 +149,6 @@ export const Register: React.FC = () => {
         </>
       )}
 
-      {/* Already registered? Login */}
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
         <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
