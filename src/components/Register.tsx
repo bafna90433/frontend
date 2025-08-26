@@ -1,12 +1,10 @@
+// src/components/Register.tsx
 import React, { useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { auth, setupRecaptcha } from "../firebase";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import "../styles/Register.css";
-
-// ✅ Use only env variable (no localhost fallback in prod)
-const API_BASE = import.meta.env.VITE_API_URL;
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -24,8 +22,9 @@ export const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [confirmation, setConfirmation] =
     useState<ConfirmationResult | null>(null);
+  const [isSending, setIsSending] = useState(false); // prevents double clicks
+  const [isVerifying, setIsVerifying] = useState(false);
 
-  /* ------------ Handle Inputs ------------ */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "visitingCard" && files) {
@@ -35,41 +34,71 @@ export const Register: React.FC = () => {
     }
   };
 
-  /* ------------ Normalize to E.164 (+91XXXXXXXXXX) ------------ */
-  const normalizeMobile = (m: string) =>
-    m.trim().replace(/^\+91/, "").replace(/\D/g, "");
+  // Helper: ensure phone is E.164. If user enters 10 digits, assume +91 prefix.
+  const normalizePhone = (raw: string) => {
+    const s = raw.trim();
+    if (!s) return "";
+    if (s.startsWith("+")) return s;
+    // allow numbers with spaces/dashes
+    const digits = s.replace(/\D/g, "");
+    if (digits.length === 10) return `+91${digits}`;
+    // if user typed country code without + e.g. 919XXXXXXXXX
+    if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`;
+    return ""; // unknown format
+  };
 
-  /* ------------ Send OTP ------------ */
   const sendOtp = async () => {
     try {
-      const raw = normalizeMobile(form.otpMobile);
-      if (raw.length !== 10) {
-        alert("Please enter a valid 10-digit number");
+      if (isSending) return;
+      setIsSending(true);
+
+      const phoneCandidate = normalizePhone(form.otpMobile);
+      if (!phoneCandidate) {
+        alert("Enter phone number in +91XXXXXXXXXX or 10-digit format (XXXXXXXXXX).");
+        setIsSending(false);
         return;
       }
 
-      const fullNumber = `+91${raw}`;
-      console.log("📲 Sending OTP to:", fullNumber);
-
+      // ensure recaptcha and auth are available
       const recaptcha = setupRecaptcha("recaptcha-container");
-      const result = await signInWithPhoneNumber(auth, fullNumber, recaptcha);
+      console.log("sendOtp debug -> auth:", auth, "recaptcha:", recaptcha);
 
+      if (!recaptcha) {
+        alert("reCAPTCHA unavailable. Check console for details and ensure #recaptcha-container exists.");
+        setIsSending(false);
+        return;
+      }
+
+      // signInWithPhoneNumber expects E.164 phone format and a RecaptchaVerifier instance
+      const result = await signInWithPhoneNumber(auth, phoneCandidate, recaptcha);
       setConfirmation(result);
       setOtpSent(true);
-      alert("OTP has been sent ✅");
-    } catch (err: any) {
-      console.error("❌ OTP Error:", err);
-      alert(err.message || "Failed to send OTP.");
+      alert("OTP has been sent to " + phoneCandidate);
+    } catch (err) {
+      console.error("sendOtp error:", err);
+      alert("Failed to send OTP. See console for details.");
+    } finally {
+      setIsSending(false);
     }
   };
 
-  /* ------------ Verify OTP + Register ------------ */
   const verifyAndRegister = async () => {
-    if (!confirmation) return;
-
     try {
-      await confirmation.confirm(otp);
+      if (isVerifying) return;
+      setIsVerifying(true);
 
+      if (!confirmation) {
+        alert("No OTP session found. Please request an OTP first.");
+        return;
+      }
+      if (!otp || otp.trim().length === 0) {
+        alert("Enter the OTP received on your phone.");
+        return;
+      }
+
+      await confirmation.confirm(otp.trim());
+
+      // build form data for backend registration
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
@@ -79,15 +108,21 @@ export const Register: React.FC = () => {
         }
       });
 
-      const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
-      alert(res.data.msg || "Registration successful ✅");
-    } catch (err: any) {
-      console.error("❌ Verification/Register Error:", err);
-      alert(err.message || "Invalid OTP.");
+      // TODO: replace with env var in production
+      const res = await axios.post("http://localhost:5000/api/auth/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert(res.data?.msg || "Registration successful.");
+      // optional: redirect to login or clear form
+    } catch (err) {
+      console.error("verifyAndRegister error:", err);
+      alert("OTP verification failed. Please check the code and try again.");
+    } finally {
+      setIsVerifying(false);
     }
   };
 
-  /* ------------ UI ------------ */
   return (
     <div className="register-container">
       <h2>Register</h2>
@@ -129,7 +164,7 @@ export const Register: React.FC = () => {
       />
       <input
         name="otpMobile"
-        placeholder="Mobile (10 digits)"
+        placeholder="+91XXXXXXXXXX or XXXXXXXXXX"
         value={form.otpMobile}
         onChange={handleChange}
         type="tel"
@@ -143,11 +178,13 @@ export const Register: React.FC = () => {
       />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* reCAPTCHA must be in DOM */}
-      <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
+      {/* reCAPTCHA container — required for RecaptchaVerifier */}
+      <div id="recaptcha-container" style={{ marginBottom: "12px" }} />
 
       {!otpSent ? (
-        <button onClick={sendOtp}>Send OTP</button>
+        <button onClick={sendOtp} disabled={isSending}>
+          {isSending ? "Sending..." : "Send OTP"}
+        </button>
       ) : (
         <>
           <input
@@ -157,16 +194,15 @@ export const Register: React.FC = () => {
             className="otp"
             type="text"
           />
-          <button onClick={verifyAndRegister}>Verify & Register</button>
+          <button onClick={verifyAndRegister} disabled={isVerifying}>
+            {isVerifying ? "Verifying..." : "Verify & Register"}
+          </button>
         </>
       )}
 
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
-        <Link
-          to="/login"
-          style={{ textDecoration: "underline", color: "#007bff" }}
-        >
+        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
           Login
         </Link>
       </div>

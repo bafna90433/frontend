@@ -1,12 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // ✅ Link add
 import axios from "axios";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import { auth, setupRecaptcha } from "../firebase";
 import "../styles/LoginOTP.css";
 
-// ✅ Use env variable instead of hardcoded localhost
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE = "http://localhost:5000";
 
 const LoginOTP: React.FC = () => {
   const [mobile, setMobile] = useState("");
@@ -29,9 +28,8 @@ const LoginOTP: React.FC = () => {
 
     setSending(true);
     try {
-      const { data: user } = await axios.get(
-        `${API_BASE}/api/registrations/phone/${raw}`
-      );
+      // 1) pre-check with backend (registered + approved)
+      const { data: user } = await axios.get(`${API_BASE}/api/registrations/phone/${raw}`);
 
       if (!user) {
         alert("This mobile number is not registered. Please register first.");
@@ -43,17 +41,14 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
+      // 2) Send OTP via Firebase
       const w = window as any;
       if (!w.recaptchaVerifier) {
         w.recaptchaVerifier = setupRecaptcha("recaptcha-container");
       }
 
       const fullNumber = `+91${raw}`;
-      const confirmationResult = await signInWithPhoneNumber(
-        auth,
-        fullNumber,
-        w.recaptchaVerifier
-      );
+      const confirmationResult = await signInWithPhoneNumber(auth, fullNumber, w.recaptchaVerifier);
       setConfirmation(confirmationResult);
       alert("OTP sent successfully.");
     } catch (err: any) {
@@ -78,9 +73,7 @@ const LoginOTP: React.FC = () => {
       await confirmation.confirm(otp);
 
       const raw = normalizeMobile(mobile);
-      const { data: user } = await axios.get(
-        `${API_BASE}/api/registrations/phone/${raw}`
-      );
+      const { data: user } = await axios.get(`${API_BASE}/api/registrations/phone/${raw}`);
 
       if (!user) {
         alert("This mobile number is not registered. Please register first.");
@@ -93,7 +86,7 @@ const LoginOTP: React.FC = () => {
       }
 
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", "otp");
+      localStorage.setItem("token", "otp"); // replace with real JWT if you have one
       window.dispatchEvent(new Event("storage"));
 
       navigate("/my-account");
@@ -131,8 +124,10 @@ const LoginOTP: React.FC = () => {
         {verifying ? "Verifying..." : "Verify & Login"}
       </button>
 
+      {/* reCAPTCHA container */}
       <div id="recaptcha-container"></div>
 
+      {/* ✅ Bottom Register link */}
       <div style={{ marginTop: 16, textAlign: "center" }}>
         <span>New here? </span>
         <Link to="/register" style={{ textDecoration: "underline", color: "#007bff" }}>
