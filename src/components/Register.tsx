@@ -1,4 +1,3 @@
-// src/components/Register.tsx
 import React, { useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -22,7 +21,7 @@ export const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [confirmation, setConfirmation] =
     useState<ConfirmationResult | null>(null);
-  const [isSending, setIsSending] = useState(false); // prevents double clicks
+  const [isSending, setIsSending] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -34,46 +33,38 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Helper: ensure phone is E.164. If user enters 10 digits, assume +91 prefix.
+  // ✅ Ensure phone is in E.164 format (+91XXXXXXXXXX)
   const normalizePhone = (raw: string) => {
-    const s = raw.trim();
-    if (!s) return "";
-    if (s.startsWith("+")) return s;
-    // allow numbers with spaces/dashes
-    const digits = s.replace(/\D/g, "");
+    const digits = raw.replace(/\D/g, "");
     if (digits.length === 10) return `+91${digits}`;
-    // if user typed country code without + e.g. 919XXXXXXXXX
-    if (digits.length === 12 && digits.startsWith("91")) return `+${digits}`;
-    return ""; // unknown format
+    if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
+    if (raw.startsWith("+")) return raw;
+    return "";
   };
 
+  // ✅ Send OTP (real SMS only)
   const sendOtp = async () => {
     try {
-      if (isSending) return;
       setIsSending(true);
 
       const phoneCandidate = normalizePhone(form.otpMobile);
       if (!phoneCandidate) {
-        alert("Enter phone number in +91XXXXXXXXXX or 10-digit format (XXXXXXXXXX).");
+        alert("Enter valid phone in +91XXXXXXXXXX format");
         setIsSending(false);
         return;
       }
 
-      // ensure recaptcha and auth are available
-      const recaptcha = setupRecaptcha("recaptcha-container");
-      console.log("sendOtp debug -> auth:", auth, "recaptcha:", recaptcha);
-
+      const recaptcha = await setupRecaptcha("recaptcha-container");
       if (!recaptcha) {
-        alert("reCAPTCHA unavailable. Check console for details and ensure #recaptcha-container exists.");
+        alert("reCAPTCHA unavailable. Reload page.");
         setIsSending(false);
         return;
       }
 
-      // signInWithPhoneNumber expects E.164 phone format and a RecaptchaVerifier instance
       const result = await signInWithPhoneNumber(auth, phoneCandidate, recaptcha);
       setConfirmation(result);
       setOtpSent(true);
-      alert("OTP has been sent to " + phoneCandidate);
+      alert("OTP sent to " + phoneCandidate);
     } catch (err) {
       console.error("sendOtp error:", err);
       alert("Failed to send OTP. See console for details.");
@@ -82,23 +73,17 @@ export const Register: React.FC = () => {
     }
   };
 
+  // ✅ Verify OTP and Register
   const verifyAndRegister = async () => {
+    if (!confirmation) {
+      alert("No OTP session found. Please request OTP again.");
+      return;
+    }
     try {
-      if (isVerifying) return;
       setIsVerifying(true);
-
-      if (!confirmation) {
-        alert("No OTP session found. Please request an OTP first.");
-        return;
-      }
-      if (!otp || otp.trim().length === 0) {
-        alert("Enter the OTP received on your phone.");
-        return;
-      }
-
       await confirmation.confirm(otp.trim());
 
-      // build form data for backend registration
+      // prepare form data
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
@@ -108,16 +93,17 @@ export const Register: React.FC = () => {
         }
       });
 
-      // TODO: replace with env var in production
-      const res = await axios.post("http://localhost:5000/api/auth/register", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      // TODO: replace with your backend API base URL
+      const res = await axios.post(
+        "http://localhost:5000/api/auth/register",
+        formData,
+        { headers: { "Content-Type": "multipart/form-data" } }
+      );
 
-      alert(res.data?.msg || "Registration successful.");
-      // optional: redirect to login or clear form
+      alert(res.data.msg || "Registration successful.");
     } catch (err) {
       console.error("verifyAndRegister error:", err);
-      alert("OTP verification failed. Please check the code and try again.");
+      alert("Invalid OTP. Please try again.");
     } finally {
       setIsVerifying(false);
     }
@@ -127,58 +113,16 @@ export const Register: React.FC = () => {
     <div className="register-container">
       <h2>Register</h2>
 
-      <input
-        name="firmName"
-        placeholder="Firm Name"
-        value={form.firmName}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="shopName"
-        placeholder="Shop Name"
-        value={form.shopName}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="state"
-        placeholder="State"
-        value={form.state}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="city"
-        placeholder="City"
-        value={form.city}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="zip"
-        placeholder="Zip Code"
-        value={form.zip}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="otpMobile"
-        placeholder="+91XXXXXXXXXX or XXXXXXXXXX"
-        value={form.otpMobile}
-        onChange={handleChange}
-        type="tel"
-      />
-      <input
-        name="whatsapp"
-        placeholder="WhatsApp Number"
-        value={form.whatsapp}
-        onChange={handleChange}
-        type="tel"
-      />
+      <input name="firmName" placeholder="Firm Name" value={form.firmName} onChange={handleChange} />
+      <input name="shopName" placeholder="Shop Name" value={form.shopName} onChange={handleChange} />
+      <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
+      <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
+      <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
+      <input name="otpMobile" placeholder="+91XXXXXXXXXX" value={form.otpMobile} onChange={handleChange} />
+      <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* reCAPTCHA container — required for RecaptchaVerifier */}
+      {/* reCAPTCHA container */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }} />
 
       {!otpSent ? (
