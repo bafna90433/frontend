@@ -5,7 +5,7 @@ import { auth, setupRecaptcha } from "../firebase";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import "../styles/Register.css";
 
-// ✅ Use only env variable, no localhost fallback in prod
+// ✅ Use only env variable (no localhost fallback in prod)
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export const Register: React.FC = () => {
@@ -25,6 +25,7 @@ export const Register: React.FC = () => {
   const [confirmation, setConfirmation] =
     useState<ConfirmationResult | null>(null);
 
+  /* ------------ Handle Inputs ------------ */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "visitingCard" && files) {
@@ -34,10 +35,11 @@ export const Register: React.FC = () => {
     }
   };
 
-  // ✅ Normalize to E.164 (+91XXXXXXXXXX)
+  /* ------------ Normalize to E.164 (+91XXXXXXXXXX) ------------ */
   const normalizeMobile = (m: string) =>
     m.trim().replace(/^\+91/, "").replace(/\D/g, "");
 
+  /* ------------ Send OTP ------------ */
   const sendOtp = async () => {
     try {
       const raw = normalizeMobile(form.otpMobile);
@@ -45,20 +47,23 @@ export const Register: React.FC = () => {
         alert("Please enter a valid 10-digit number");
         return;
       }
+
       const fullNumber = `+91${raw}`;
+      console.log("📲 Sending OTP to:", fullNumber);
 
       const recaptcha = setupRecaptcha("recaptcha-container");
       const result = await signInWithPhoneNumber(auth, fullNumber, recaptcha);
 
       setConfirmation(result);
       setOtpSent(true);
-      alert("OTP has been sent.");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send OTP.");
+      alert("OTP has been sent ✅");
+    } catch (err: any) {
+      console.error("❌ OTP Error:", err);
+      alert(err.message || "Failed to send OTP.");
     }
   };
 
+  /* ------------ Verify OTP + Register ------------ */
   const verifyAndRegister = async () => {
     if (!confirmation) return;
 
@@ -75,13 +80,14 @@ export const Register: React.FC = () => {
       });
 
       const res = await axios.post(`${API_BASE}/api/auth/register`, formData);
-      alert(res.data.msg || "Registration successful.");
-    } catch (err) {
-      console.error(err);
-      alert("Invalid OTP.");
+      alert(res.data.msg || "Registration successful ✅");
+    } catch (err: any) {
+      console.error("❌ Verification/Register Error:", err);
+      alert(err.message || "Invalid OTP.");
     }
   };
 
+  /* ------------ UI ------------ */
   return (
     <div className="register-container">
       <h2>Register</h2>
@@ -137,6 +143,7 @@ export const Register: React.FC = () => {
       />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
+      {/* reCAPTCHA must be in DOM */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (
@@ -156,7 +163,10 @@ export const Register: React.FC = () => {
 
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
-        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
+        <Link
+          to="/login"
+          style={{ textDecoration: "underline", color: "#007bff" }}
+        >
           Login
         </Link>
       </div>
