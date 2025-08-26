@@ -31,7 +31,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Normalize phone number to E.164 format
+  // Normalize phone number to +91XXXXXXXXXX
   const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
     if (digits.length === 10) return `+91${digits}`;
@@ -49,10 +49,11 @@ export const Register: React.FC = () => {
         return;
       }
 
-      // Setup recaptcha
+      // ✅ Setup invisible reCAPTCHA
       const recaptcha = setupRecaptcha("recaptcha-container");
+      await recaptcha.render();
 
-      // Send OTP
+      // ✅ Send OTP
       const result = await signInWithPhoneNumber(auth, phone, recaptcha);
       setConfirmation(result);
       setOtpSent(true);
@@ -64,7 +65,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Verify OTP & Register
+  // Verify OTP and Register User
   const verifyAndRegister = async () => {
     if (!confirmation) {
       alert("No OTP session found.");
@@ -102,11 +103,11 @@ export const Register: React.FC = () => {
       <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
       <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
       <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
-      <input name="otpMobile" placeholder="+91XXXXXXXXXX" value={form.otpMobile} onChange={handleChange} />
+      <input name="otpMobile" placeholder="Enter Mobile" value={form.otpMobile} onChange={handleChange} />
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* Recaptcha */}
+      {/* reCAPTCHA container */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (

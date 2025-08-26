@@ -1,26 +1,33 @@
+// src/firebase.ts
 import { initializeApp } from "firebase/app";
 import { getAuth, RecaptchaVerifier } from "firebase/auth";
 
+// ✅ Direct Firebase Config (hardcoded)
 const firebaseConfig = {
-  apiKey: "AIzaSyD4hfhVbPgZqQ0PoqQZ0Yrs8GekrbjBjY",   // from your WordPress digits config
+  apiKey: "AIzaSyD4hfhVpBgdZqQ0PoqQZ0Yrs8GekrbjBjY",
   authDomain: "bafnatoys-otp.firebaseapp.com",
   projectId: "bafnatoys-otp",
-  storageBucket: "bafnatoys-otp.appspot.com",
+  storageBucket: "bafnatoys-otp.appspot.com", // ⚡ "appspot.com" hona chahiye
   messagingSenderId: "417820640865",
   appId: "1:417820640865:web:9675a4a996763b51084c20",
-  measurementId: "G-ZTTC8YDQ2J",
+  measurementId: "G-ZTTC8YDQ2J"
 };
 
+// ✅ Initialize Firebase
 const app = initializeApp(firebaseConfig);
+
+// ✅ Firebase Auth
 export const auth = getAuth(app);
 
-// Setup Recaptcha
+// ✅ reCAPTCHA setup
 export const setupRecaptcha = (containerId: string) => {
-  const verifier = new RecaptchaVerifier(auth, containerId, {
-    size: "normal", // you can use 'invisible' also
+  return new RecaptchaVerifier(auth, containerId, {
+    size: "invisible", // "normal" bhi kar sakte ho
     callback: (response: any) => {
-      console.log("Recaptcha verified ✅", response);
+      console.log("reCAPTCHA solved ✅", response);
+    },
+    "expired-callback": () => {
+      console.warn("reCAPTCHA expired ❌");
     },
   });
-  return verifier;
 };
