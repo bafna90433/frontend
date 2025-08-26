@@ -1,11 +1,9 @@
 import React, { useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import api from "../utils/api";
 import { auth, setupRecaptcha } from "../firebase";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import "../styles/Register.css";
-
-const API_BASE = import.meta.env.VITE_API_URL;
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -21,10 +19,9 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [confirmation, setConfirmation] =
-    useState<ConfirmationResult | null>(null);
+  const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
 
-  /* ------------ Handle Inputs ------------ */
+  // Handle input changes
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "visitingCard" && files) {
@@ -34,7 +31,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  /* ------------ Normalize Phone ------------ */
+  // Normalize phone number to E.164 format
   const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
     if (digits.length === 10) return `+91${digits}`;
@@ -43,7 +40,7 @@ export const Register: React.FC = () => {
     return "";
   };
 
-  /* ------------ Send OTP ------------ */
+  // Send OTP
   const sendOtp = async () => {
     try {
       const phone = normalizePhone(form.otpMobile);
@@ -52,9 +49,10 @@ export const Register: React.FC = () => {
         return;
       }
 
+      // Setup recaptcha
       const recaptcha = setupRecaptcha("recaptcha-container");
-      await recaptcha.render(); // ✅ Must call render()
 
+      // Send OTP
       const result = await signInWithPhoneNumber(auth, phone, recaptcha);
       setConfirmation(result);
       setOtpSent(true);
@@ -66,7 +64,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  /* ------------ Verify OTP + Register ------------ */
+  // Verify OTP & Register
   const verifyAndRegister = async () => {
     if (!confirmation) {
       alert("No OTP session found.");
@@ -84,7 +82,7 @@ export const Register: React.FC = () => {
         }
       });
 
-      const res = await axios.post(`${API_BASE}/api/auth/register`, formData, {
+      const res = await api.post("/auth/register", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -108,7 +106,7 @@ export const Register: React.FC = () => {
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* ✅ reCAPTCHA container */}
+      {/* Recaptcha */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (

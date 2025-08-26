@@ -1,11 +1,9 @@
 import React, { useState } from "react";
-import { useNavigate, Link } from "react-router-dom"; // ✅ Link add
-import axios from "axios";
+import { useNavigate, Link } from "react-router-dom";
+import api from "../utils/api";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import { auth, setupRecaptcha } from "../firebase";
 import "../styles/LoginOTP.css";
-
-const API_BASE = "http://localhost:5000";
 
 const LoginOTP: React.FC = () => {
   const [mobile, setMobile] = useState("");
@@ -28,8 +26,7 @@ const LoginOTP: React.FC = () => {
 
     setSending(true);
     try {
-      // 1) pre-check with backend (registered + approved)
-      const { data: user } = await axios.get(`${API_BASE}/api/registrations/phone/${raw}`);
+      const { data: user } = await api.get(`/registrations/phone/${raw}`);
 
       if (!user) {
         alert("This mobile number is not registered. Please register first.");
@@ -41,7 +38,6 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
-      // 2) Send OTP via Firebase
       const w = window as any;
       if (!w.recaptchaVerifier) {
         w.recaptchaVerifier = setupRecaptcha("recaptcha-container");
@@ -52,7 +48,7 @@ const LoginOTP: React.FC = () => {
       setConfirmation(confirmationResult);
       alert("OTP sent successfully.");
     } catch (err: any) {
-      if (axios.isAxiosError(err) && err.response?.status === 404) {
+      if (err.response?.status === 404) {
         alert("This mobile number is not registered. Please register first.");
         navigate("/register");
       } else {
@@ -73,7 +69,7 @@ const LoginOTP: React.FC = () => {
       await confirmation.confirm(otp);
 
       const raw = normalizeMobile(mobile);
-      const { data: user } = await axios.get(`${API_BASE}/api/registrations/phone/${raw}`);
+      const { data: user } = await api.get(`/registrations/phone/${raw}`);
 
       if (!user) {
         alert("This mobile number is not registered. Please register first.");
@@ -86,7 +82,7 @@ const LoginOTP: React.FC = () => {
       }
 
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", "otp"); // replace with real JWT if you have one
+      localStorage.setItem("token", "otp"); 
       window.dispatchEvent(new Event("storage"));
 
       navigate("/my-account");
@@ -124,10 +120,8 @@ const LoginOTP: React.FC = () => {
         {verifying ? "Verifying..." : "Verify & Login"}
       </button>
 
-      {/* reCAPTCHA container */}
       <div id="recaptcha-container"></div>
 
-      {/* ✅ Bottom Register link */}
       <div style={{ marginTop: 16, textAlign: "center" }}>
         <span>New here? </span>
         <Link to="/register" style={{ textDecoration: "underline", color: "#007bff" }}>
