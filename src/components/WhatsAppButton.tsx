@@ -1,38 +1,10 @@
+// src/components/WhatsAppButton.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api, { MEDIA_URL } from "../utils/api";
 import "./WhatsAppButton.css";
 
-// ✅ Use env variable for backend API
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-
-type Agent = {
-  name: string;
-  phone: string;
-  title?: string;
-  avatar?: string;
-  enabled?: boolean;
-  message?: string;
-};
-
-type Settings = {
-  enabled: boolean;
-  defaultMessage: string;
-  position: "right" | "left";
-  offsetX: number;
-  offsetY: number;
-  showGreeting: boolean;
-  greetingText: string;
-  autoOpenDelay: number;
-  showOnMobile: boolean;
-  showOnDesktop: boolean;
-  showOnPaths: string[];
-  hideOnPaths: string[];
-  enableSchedule: boolean;
-  startHour: number;
-  endHour: number;
-  days: number[];
-  agents: Agent[];
-};
+type Agent = { name: string; phone: string; title?: string; avatar?: string; enabled?: boolean; message?: string; };
+type Settings = { enabled: boolean; defaultMessage: string; position: "right" | "left"; offsetX: number; offsetY: number; showGreeting: boolean; greetingText: string; autoOpenDelay: number; showOnMobile: boolean; showOnDesktop: boolean; showOnPaths: string[]; hideOnPaths: string[]; enableSchedule: boolean; startHour: number; endHour: number; days: number[]; agents: Agent[]; };
 
 const matchPath = (p: string, pattern: string) => {
   if (pattern.endsWith("/*")) {
@@ -56,11 +28,10 @@ const withinSchedule = (s: Settings) => {
   return s.days.includes(d) && h >= s.startHour && h < s.endHour;
 };
 
-// ✅ make avatar URL absolute when needed
 const resolveUrl = (u?: string) => {
   if (!u) return "";
   if (u.startsWith("http") || u.startsWith("blob:") || u.startsWith("data:")) return u;
-  return `${API}${u.startsWith("/") ? u : `/uploads/${u}`}`;
+  return `${MEDIA_URL}${u.startsWith("/") ? u : `/uploads/${u}`}`;
 };
 
 const WhatsAppButton: React.FC = () => {
@@ -70,28 +41,23 @@ const WhatsAppButton: React.FC = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get<Settings>(`${API}/api/whatsapp`);
+        const { data } = await api.get<Settings>("/whatsapp");
         setS(data);
         if (data.autoOpenDelay && data.autoOpenDelay > 0) {
           setTimeout(() => setOpen(true), data.autoOpenDelay);
         }
-      } catch (err) {
-        console.error("Failed to fetch WhatsApp settings", err);
+      } catch {
+        // ignore fetch errors
       }
     })();
   }, []);
 
-  const activeAgents = useMemo(
-    () => (s?.agents || []).filter((a) => a.enabled !== false && a.phone),
-    [s]
-  );
+  const activeAgents = useMemo(() => (s?.agents || []).filter((a) => a.enabled !== false && a.phone), [s]);
 
   if (!s || !s.enabled) return null;
 
   const pathOk = isPathAllowed(window.location.pathname, s.showOnPaths, s.hideOnPaths);
-  const deviceOk =
-    (s.showOnDesktop && window.innerWidth >= 768) ||
-    (s.showOnMobile && window.innerWidth < 768);
+  const deviceOk = (s.showOnDesktop && window.innerWidth >= 768) || (s.showOnMobile && window.innerWidth < 768);
 
   if (!pathOk || !deviceOk || !withinSchedule(s)) return null;
 
@@ -100,7 +66,7 @@ const WhatsAppButton: React.FC = () => {
     [s.position === "right" ? "right" : "left"]: s.offsetX,
     bottom: s.offsetY,
     zIndex: 999999,
-  } as React.CSSProperties;
+  };
 
   const openUrl = (agent: Agent) => {
     const message = (agent.message || s.defaultMessage || "").trim();
@@ -114,9 +80,7 @@ const WhatsAppButton: React.FC = () => {
         <div className="wa-panel">
           <div className="wa-panel-head">
             <div className="wa-title">Start a Conversation</div>
-            <div className="wa-sub">
-              Hi! Click one of our team members below to chat on WhatsApp
-            </div>
+            <div className="wa-sub">Hi! Click one of our team members below to chat on WhatsApp</div>
           </div>
 
           <div className="wa-panel-body">
@@ -139,9 +103,7 @@ const WhatsAppButton: React.FC = () => {
                       }}
                     />
                   ) : (
-                    <div className="wa-avatar-fallback">
-                      {(a.name?.[0] || "A").toUpperCase()}
-                    </div>
+                    <div className="wa-avatar-fallback">{(a.name?.[0] || "A").toUpperCase()}</div>
                   )}
                 </div>
                 <div className="wa-agent-info">
@@ -155,11 +117,7 @@ const WhatsAppButton: React.FC = () => {
         </div>
       )}
 
-      <button
-        className="wa-fab"
-        onClick={() => setOpen((v) => !v)}
-        aria-label="Chat on WhatsApp"
-      >
+      <button className="wa-fab" onClick={() => setOpen((v) => !v)} aria-label="Chat on WhatsApp">
         {open ? "✕" : "💬"}
       </button>
     </div>

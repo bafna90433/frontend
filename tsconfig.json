@@ -7,6 +7,8 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
-  }
+    "skipLibCheck": true,
+    "types": ["vite/client"]        // 👈 add this
+  },
+  "include": ["src", "vite-env.d.ts"]   // 👈 add vite-env.d.ts here
 }
