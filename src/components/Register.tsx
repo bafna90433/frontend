@@ -21,8 +21,6 @@ export const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [confirmation, setConfirmation] =
     useState<ConfirmationResult | null>(null);
-  const [isSending, setIsSending] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -33,55 +31,28 @@ export const Register: React.FC = () => {
     }
   };
 
-  // ✅ Normalize to E.164
-  const normalizePhone = (raw: string) => {
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length === 10) return `+91${digits}`;
-    if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
-    if (raw.startsWith("+")) return raw;
-    return "";
-  };
-
-  // ✅ Send OTP (real SMS only)
   const sendOtp = async () => {
     try {
-      setIsSending(true);
-
-      const phoneCandidate = normalizePhone(form.otpMobile);
-      if (!phoneCandidate) {
-        alert("Enter valid phone in +91XXXXXXXXXX format");
-        setIsSending(false);
-        return;
-      }
-
-      const recaptcha = await setupRecaptcha("recaptcha-container");
-      if (!recaptcha) {
-        alert("reCAPTCHA unavailable. Reload page.");
-        setIsSending(false);
-        return;
-      }
-
-      const result = await signInWithPhoneNumber(auth, phoneCandidate, recaptcha);
+      const recaptcha = setupRecaptcha("recaptcha-container");
+      const result = await signInWithPhoneNumber(
+        auth,
+        form.otpMobile,
+        recaptcha
+      );
       setConfirmation(result);
       setOtpSent(true);
-      alert("OTP sent to " + phoneCandidate);
+      alert("OTP has been sent.");
     } catch (err) {
-      console.error("sendOtp error:", err);
-      alert("Failed to send OTP. Check console for details.");
-    } finally {
-      setIsSending(false);
+      console.error(err);
+      alert("Failed to send OTP.");
     }
   };
 
-  // ✅ Verify OTP & Register
   const verifyAndRegister = async () => {
-    if (!confirmation) {
-      alert("No OTP session found. Please request OTP again.");
-      return;
-    }
+    if (!confirmation) return;
+
     try {
-      setIsVerifying(true);
-      await confirmation.confirm(otp.trim());
+      await confirmation.confirm(otp);
 
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
@@ -92,19 +63,14 @@ export const Register: React.FC = () => {
         }
       });
 
-      // 🔥 Change this to your deployed backend URL on Railway
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
+        formData
       );
-
       alert(res.data.msg || "Registration successful.");
     } catch (err) {
-      console.error("verifyAndRegister error:", err);
-      alert("Invalid OTP. Please try again.");
-    } finally {
-      setIsVerifying(false);
+      console.error(err);
+      alert("Invalid OTP.");
     }
   };
 
@@ -112,22 +78,61 @@ export const Register: React.FC = () => {
     <div className="register-container">
       <h2>Register</h2>
 
-      <input name="firmName" placeholder="Firm Name" value={form.firmName} onChange={handleChange} />
-      <input name="shopName" placeholder="Shop Name" value={form.shopName} onChange={handleChange} />
-      <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
-      <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
-      <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
-      <input name="otpMobile" placeholder="+91XXXXXXXXXX" value={form.otpMobile} onChange={handleChange} />
-      <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
+      <input
+        name="firmName"
+        placeholder="Firm Name"
+        value={form.firmName}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="shopName"
+        placeholder="Shop Name"
+        value={form.shopName}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="state"
+        placeholder="State"
+        value={form.state}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="city"
+        placeholder="City"
+        value={form.city}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="zip"
+        placeholder="Zip Code"
+        value={form.zip}
+        onChange={handleChange}
+        type="text"
+      />
+      <input
+        name="otpMobile"
+        placeholder="+91XXXXXXXXXX"
+        value={form.otpMobile}
+        onChange={handleChange}
+        type="tel"
+      />
+      <input
+        name="whatsapp"
+        placeholder="WhatsApp Number"
+        value={form.whatsapp}
+        onChange={handleChange}
+        type="tel"
+      />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* ✅ Recaptcha container */}
-      <div id="recaptcha-container" style={{ marginBottom: "12px" }} />
+      <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (
-        <button onClick={sendOtp} disabled={isSending}>
-          {isSending ? "Sending..." : "Send OTP"}
-        </button>
+        <button onClick={sendOtp}>Send OTP</button>
       ) : (
         <>
           <input
@@ -137,12 +142,11 @@ export const Register: React.FC = () => {
             className="otp"
             type="text"
           />
-          <button onClick={verifyAndRegister} disabled={isVerifying}>
-            {isVerifying ? "Verifying..." : "Verify & Register"}
-          </button>
+          <button onClick={verifyAndRegister}>Verify & Register</button>
         </>
       )}
 
+      {/* Already registered? Login */}
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
         <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
