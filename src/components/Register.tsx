@@ -5,6 +5,8 @@ import { auth, setupRecaptcha } from "../firebase";
 import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 import "../styles/Register.css";
 
+const API_BASE = import.meta.env.VITE_API_URL;
+
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
     firmName: "",
@@ -22,6 +24,7 @@ export const Register: React.FC = () => {
   const [confirmation, setConfirmation] =
     useState<ConfirmationResult | null>(null);
 
+  /* ------------ Handle Inputs ------------ */
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "visitingCard" && files) {
@@ -31,28 +34,46 @@ export const Register: React.FC = () => {
     }
   };
 
+  /* ------------ Normalize Phone ------------ */
+  const normalizePhone = (raw: string) => {
+    const digits = raw.replace(/\D/g, "");
+    if (digits.length === 10) return `+91${digits}`;
+    if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
+    if (raw.startsWith("+")) return raw;
+    return "";
+  };
+
+  /* ------------ Send OTP ------------ */
   const sendOtp = async () => {
     try {
+      const phone = normalizePhone(form.otpMobile);
+      if (!phone) {
+        alert("Enter valid phone number");
+        return;
+      }
+
       const recaptcha = setupRecaptcha("recaptcha-container");
-      const result = await signInWithPhoneNumber(
-        auth,
-        form.otpMobile,
-        recaptcha
-      );
+      await recaptcha.render(); // ✅ Must call render()
+
+      const result = await signInWithPhoneNumber(auth, phone, recaptcha);
       setConfirmation(result);
       setOtpSent(true);
-      alert("OTP has been sent.");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to send OTP.");
+
+      alert("OTP sent to " + phone);
+    } catch (err: any) {
+      console.error("OTP Error:", err);
+      alert("Failed to send OTP: " + (err.message || "Unknown error"));
     }
   };
 
+  /* ------------ Verify OTP + Register ------------ */
   const verifyAndRegister = async () => {
-    if (!confirmation) return;
-
+    if (!confirmation) {
+      alert("No OTP session found.");
+      return;
+    }
     try {
-      await confirmation.confirm(otp);
+      await confirmation.confirm(otp.trim());
 
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
@@ -63,14 +84,14 @@ export const Register: React.FC = () => {
         }
       });
 
-      const res = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        formData
-      );
-      alert(res.data.msg || "Registration successful.");
-    } catch (err) {
-      console.error(err);
-      alert("Invalid OTP.");
+      const res = await axios.post(`${API_BASE}/api/auth/register`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      alert(res.data.msg || "Registration successful ✅");
+    } catch (err: any) {
+      console.error("Verify/Register Error:", err);
+      alert("Invalid OTP: " + (err.message || "Unknown error"));
     }
   };
 
@@ -78,57 +99,16 @@ export const Register: React.FC = () => {
     <div className="register-container">
       <h2>Register</h2>
 
-      <input
-        name="firmName"
-        placeholder="Firm Name"
-        value={form.firmName}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="shopName"
-        placeholder="Shop Name"
-        value={form.shopName}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="state"
-        placeholder="State"
-        value={form.state}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="city"
-        placeholder="City"
-        value={form.city}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="zip"
-        placeholder="Zip Code"
-        value={form.zip}
-        onChange={handleChange}
-        type="text"
-      />
-      <input
-        name="otpMobile"
-        placeholder="+91XXXXXXXXXX"
-        value={form.otpMobile}
-        onChange={handleChange}
-        type="tel"
-      />
-      <input
-        name="whatsapp"
-        placeholder="WhatsApp Number"
-        value={form.whatsapp}
-        onChange={handleChange}
-        type="tel"
-      />
+      <input name="firmName" placeholder="Firm Name" value={form.firmName} onChange={handleChange} />
+      <input name="shopName" placeholder="Shop Name" value={form.shopName} onChange={handleChange} />
+      <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
+      <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
+      <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
+      <input name="otpMobile" placeholder="+91XXXXXXXXXX" value={form.otpMobile} onChange={handleChange} />
+      <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
+      {/* ✅ reCAPTCHA container */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (
@@ -146,7 +126,6 @@ export const Register: React.FC = () => {
         </>
       )}
 
-      {/* Already registered? Login */}
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
         <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
