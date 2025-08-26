@@ -33,7 +33,7 @@ export const Register: React.FC = () => {
     }
   };
 
-  // ✅ Ensure phone is in E.164 format (+91XXXXXXXXXX)
+  // ✅ Normalize to E.164
   const normalizePhone = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
     if (digits.length === 10) return `+91${digits}`;
@@ -67,13 +67,13 @@ export const Register: React.FC = () => {
       alert("OTP sent to " + phoneCandidate);
     } catch (err) {
       console.error("sendOtp error:", err);
-      alert("Failed to send OTP. See console for details.");
+      alert("Failed to send OTP. Check console for details.");
     } finally {
       setIsSending(false);
     }
   };
 
-  // ✅ Verify OTP and Register
+  // ✅ Verify OTP & Register
   const verifyAndRegister = async () => {
     if (!confirmation) {
       alert("No OTP session found. Please request OTP again.");
@@ -83,7 +83,6 @@ export const Register: React.FC = () => {
       setIsVerifying(true);
       await confirmation.confirm(otp.trim());
 
-      // prepare form data
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
@@ -93,7 +92,7 @@ export const Register: React.FC = () => {
         }
       });
 
-      // TODO: replace with your backend API base URL
+      // 🔥 Change this to your deployed backend URL on Railway
       const res = await axios.post(
         "http://localhost:5000/api/auth/register",
         formData,
@@ -122,7 +121,7 @@ export const Register: React.FC = () => {
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
-      {/* reCAPTCHA container */}
+      {/* ✅ Recaptcha container */}
       <div id="recaptcha-container" style={{ marginBottom: "12px" }} />
 
       {!otpSent ? (
