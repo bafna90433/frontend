@@ -1,9 +1,9 @@
 import React, { useState, ChangeEvent } from "react";
 import { Link } from "react-router-dom";
-import api from "../utils/api";
-import { auth, setupRecaptcha } from "../firebase";
-import { signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
+import axios from "axios";
 import "../styles/Register.css";
+
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -19,9 +19,8 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [confirmation, setConfirmation] = useState<ConfirmationResult | null>(null);
 
-  // Handle input changes
+  // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
     if (name === "visitingCard" && files) {
@@ -31,48 +30,36 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Normalize phone number to +91XXXXXXXXXX
-  const normalizePhone = (raw: string) => {
-    const digits = raw.replace(/\D/g, "");
-    if (digits.length === 10) return `+91${digits}`;
-    if (digits.startsWith("91") && digits.length === 12) return `+${digits}`;
-    if (raw.startsWith("+")) return raw;
-    return "";
-  };
-
   // Send OTP
   const sendOtp = async () => {
     try {
-      const phone = normalizePhone(form.otpMobile);
-      if (!phone) {
-        alert("Enter valid phone number");
+      if (form.otpMobile.length !== 10) {
+        alert("⚠️ Enter valid 10-digit mobile number");
         return;
       }
-
-      // ✅ Setup invisible reCAPTCHA
-      const recaptcha = setupRecaptcha("recaptcha-container");
-      await recaptcha.render();
-
-      // ✅ Send OTP
-      const result = await signInWithPhoneNumber(auth, phone, recaptcha);
-      setConfirmation(result);
-      setOtpSent(true);
-
-      alert("OTP sent to " + phone);
+      const res = await axios.post(`${API_BASE}/otp/send`, { phone: form.otpMobile });
+      if (res.data.success) {
+        setOtpSent(true);
+        alert("✅ OTP sent successfully!");
+      }
     } catch (err: any) {
-      console.error("OTP Error:", err);
-      alert("Failed to send OTP: " + (err.message || "Unknown error"));
+      console.error("OTP Error:", err.response?.data || err.message);
+      alert("❌ Failed to send OTP");
     }
   };
 
-  // Verify OTP and Register User
+  // Verify OTP + Register
   const verifyAndRegister = async () => {
-    if (!confirmation) {
-      alert("No OTP session found.");
-      return;
-    }
     try {
-      await confirmation.confirm(otp.trim());
+      const verifyRes = await axios.post(`${API_BASE}/otp/verify`, {
+        phone: form.otpMobile,
+        otp,
+      });
+
+      if (!verifyRes.data.success) {
+        alert("❌ Invalid OTP");
+        return;
+      }
 
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
@@ -83,14 +70,14 @@ export const Register: React.FC = () => {
         }
       });
 
-      const res = await api.post("/auth/register", formData, {
+      const res = await axios.post(`${API_BASE}/registrations/register`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      alert(res.data.msg || "Registration successful ✅");
+      alert(res.data.message || "🎉 Registration successful!");
     } catch (err: any) {
-      console.error("Verify/Register Error:", err);
-      alert("Invalid OTP: " + (err.message || "Unknown error"));
+      console.error("Verify/Register Error:", err.response?.data || err.message);
+      alert("❌ Something went wrong during registration");
     }
   };
 
@@ -103,33 +90,22 @@ export const Register: React.FC = () => {
       <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
       <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
       <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
-      <input name="otpMobile" placeholder="Enter Mobile" value={form.otpMobile} onChange={handleChange} />
-      <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} />
+      <input name="otpMobile" placeholder="Enter Mobile (10 digits)" value={form.otpMobile} onChange={handleChange} type="tel" />
+      <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} type="tel" />
       <input name="visitingCard" type="file" onChange={handleChange} />
-
-      {/* reCAPTCHA container */}
-      <div id="recaptcha-container" style={{ marginBottom: "12px" }}></div>
 
       {!otpSent ? (
         <button onClick={sendOtp}>Send OTP</button>
       ) : (
         <>
-          <input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="otp"
-            type="text"
-          />
+          <input placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} className="otp" type="text" />
           <button onClick={verifyAndRegister}>Verify & Register</button>
         </>
       )}
 
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
-        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
-          Login
-        </Link>
+        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>Login</Link>
       </div>
     </div>
   );
