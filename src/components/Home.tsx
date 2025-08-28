@@ -19,7 +19,7 @@ interface Product {
   name: string;
   sku?: string;
   price: number;
-  category: { _id: string; name: string };
+  category?: { _id: string; name: string }; // ✅ made optional
   bulkPricing: { inner: number; qty: number; price: number }[];
   innerQty: number;
   images: string[];  // ✅ always array
@@ -49,12 +49,14 @@ const Home: React.FC = () => {
         ]);
 
         if (catRes.status === 200 && prodRes.status === 200 && bannerRes.status === 200) {
-          setCategories(catRes.data);
-          setProducts(prodRes.data);
+          setCategories(catRes.data || []);
+          setProducts(prodRes.data || []);
 
           // ✅ fallback for different banner field names
           setBanners(
-            bannerRes.data.map((b: any) => b.imageUrl || b.url || b.image).filter(Boolean)
+            (bannerRes.data || [])
+              .map((b: any) => b.imageUrl || b.url || b.image)
+              .filter(Boolean)
           );
         } else {
           throw new Error('Failed to fetch data');
@@ -107,9 +109,10 @@ const Home: React.FC = () => {
             </div>
           </div>
         ))
-      ) : (
+      ) : categories.length > 0 ? (
         categories.map(cat => {
-          const items = products.filter(p => p.category._id === cat._id);
+          const items = products.filter(p => p.category?._id === cat._id); // ✅ safe check
+
           return (
             <div key={cat._id} className="category-block">
               <h2 className="category-title">{cat.name}</h2>
@@ -131,6 +134,10 @@ const Home: React.FC = () => {
             </div>
           );
         })
+      ) : (
+        <div className="empty-category-message">
+          No categories available
+        </div>
       )}
 
       {/* spacer so content doesn't sit under the floating button */}
