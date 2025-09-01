@@ -1,5 +1,5 @@
 import React, { useState, ChangeEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
@@ -19,6 +19,7 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const navigate = useNavigate(); // ✅ for redirect
 
   // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -75,6 +76,10 @@ export const Register: React.FC = () => {
       });
 
       alert(res.data.message || "🎉 Registration successful!");
+
+      // ✅ redirect to login page after successful registration
+      navigate("/login");
+
     } catch (err: any) {
       console.error("Verify/Register Error:", err.response?.data || err.message);
       alert("❌ Something went wrong during registration");
@@ -98,14 +103,22 @@ export const Register: React.FC = () => {
         <button onClick={sendOtp}>Send OTP</button>
       ) : (
         <>
-          <input placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} className="otp" type="text" />
+          <input
+            placeholder="Enter OTP"
+            value={otp}
+            onChange={(e) => setOtp(e.target.value)}
+            className="otp"
+            type="text"
+          />
           <button onClick={verifyAndRegister}>Verify & Register</button>
         </>
       )}
 
       <div style={{ marginTop: "16px", textAlign: "center" }}>
         <span>Already registered? </span>
-        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>Login</Link>
+        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
+          Login
+        </Link>
       </div>
     </div>
   );
