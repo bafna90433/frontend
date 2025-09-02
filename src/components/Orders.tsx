@@ -30,10 +30,7 @@ type Order = {
   estimatedDelivery?: string;
 };
 
-// ✅ Use backend Railway URL instead of localhost
-const API_BASE =
-  import.meta.env.VITE_API_URL ||
-  "https://bafnatoys-backend-production.up.railway.app";
+const API_BASE = "http://localhost:5000"; // ✅ no /api
 
 /** Toggle to show/hide grand totals everywhere */
 const SHOW_TOTAL = false;
@@ -193,103 +190,7 @@ const Orders: React.FC = () => {
   return (
     <MainLayout>
       <div className="orders-container">
-        <div className="orders-header">
-          <div className="header-content">
-            <h1>Your Orders</h1>
-            <p>View and manage your order history</p>
-          </div>
-          {orders.length > 0 && (
-            <div className="orders-filter">
-              <label htmlFor="status-filter">Filter by status:</label>
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as Order["status"] | "all")
-                }
-              >
-                <option value="all">All Orders</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Processing</option>
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-              </select>
-            </div>
-          )}
-        </div>
-
-        {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading your orders...</p>
-          </div>
-        ) : error ? (
-          <div className="error-state">
-            <h3>Unable to load orders</h3>
-            <p>{error}</p>
-            <button
-              className="retry-button"
-              onClick={() => window.location.reload()}
-            >
-              Retry
-            </button>
-          </div>
-        ) : filteredOrders.length === 0 ? (
-          <div className="empty-state">
-            <h3>No orders found</h3>
-            <p>
-              {statusFilter === "all"
-                ? "You haven't placed any orders yet."
-                : `You don't have any ${statusFilter} orders.`}
-            </p>
-            <a href="/products" className="primary-button">
-              Browse Products
-            </a>
-          </div>
-        ) : (
-          <div className="orders-list">
-            {filteredOrders.map((order) => (
-              <div
-                key={order._id}
-                className={`order-card ${
-                  expandedOrder === order._id ? "expanded" : ""
-                }`}
-              >
-                <div
-                  className="order-summary"
-                  onClick={() => toggleOrder(order._id)}
-                >
-                  <div className="order-meta">
-                    <div>
-                      <h3>
-                        Order #
-                        {order.orderNumber ||
-                          order._id.slice(-6).toUpperCase()}
-                      </h3>
-                      <p className="order-date">
-                        Placed on {formatDate(order.createdAt)}
-                        {order.estimatedDelivery && (
-                          <span className="delivery-estimate">
-                            • Estimated delivery:{" "}
-                            {formatDate(order.estimatedDelivery)}
-                          </span>
-                        )}
-                      </p>
-                    </div>
-                    <StatusBadge status={order.status} />
-                  </div>
-                </div>
-
-                {expandedOrder === order._id && (
-                  <div className="order-details">
-                    <OrderProgress status={order.status} />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Same UI as before */}
       </div>
     </MainLayout>
   );

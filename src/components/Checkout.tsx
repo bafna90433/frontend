@@ -40,7 +40,7 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${API}/uploads/`;
 
-  // =============== Helpers ===============
+  // ================= Helpers =================
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
     return item.innerQty && item.innerQty > 0
@@ -50,29 +50,15 @@ const Checkout: React.FC = () => {
       : 1;
   };
 
-  const activeUnitPriceFor = (item: any) => {
-    const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
-    const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
+  const getItemTotalPieces = (item: any) => {
     const innerCount = item.quantity || 0;
-    const activeTier =
-      tiers.reduce((m, t) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price }) ||
-      { price: item.price };
-    return activeTier.price || item.price;
+    return innerCount * piecesPerInnerFor(item);
   };
-
-  const getItemTotal = (item: any) => {
-    const innerCount = item.quantity || 0;
-    const totalPieces = innerCount * piecesPerInnerFor(item);
-    const unitPrice = activeUnitPriceFor(item);
-    return totalPieces * unitPrice;
-  };
-
-  const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
 
   const isPhoneValid = /^\d{10}$/.test(phone);
   const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // =============== Fetch addresses ===============
+  // ================= Fetch addresses =================
   useEffect(() => {
     (async () => {
       setAddrLoading(true);
@@ -114,7 +100,7 @@ const Checkout: React.FC = () => {
     setManualAddress(false);
   }, [selectedAddressId]);
 
-  // =============== Place Order ===============
+  // ================= Place Order =================
   const handlePlaceOrder = async () => {
     if (!manualAddress && selectedAddressId) {
       const a = addresses.find((x) => x._id === selectedAddressId);
@@ -134,15 +120,13 @@ const Checkout: React.FC = () => {
     const items = cartItems.map((i: any) => ({
       productId: i._id,
       name: i.name,
-      qty: (i.quantity || 0) * piecesPerInnerFor(i), // backend qty = pieces
-      price: activeUnitPriceFor(i),
+      qty: getItemTotalPieces(i), // only qty in pieces
       image: i.image,
     }));
 
     const payload: any = {
       customerId: user._id,
       items,
-      total,
       paymentMethod: payment === "cod" ? "COD" : "ONLINE",
       shipping: { address, phone, email, notes },
     };
@@ -165,7 +149,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // =============== UI ===============
+  // ================= UI =================
   if (cartItems.length === 0 && !orderPlaced) {
     return <div className="checkout-empty">No items in cart.</div>;
   }
@@ -191,7 +175,6 @@ const Checkout: React.FC = () => {
           const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
           const innerCount = item.quantity || 0;
           const piecesPerInner = piecesPerInnerFor(item);
-          const unitPrice = activeUnitPriceFor(item);
 
           const imgSrc = item.image?.startsWith("http")
             ? item.image
@@ -225,7 +208,7 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
-                  × ₹{unitPrice}
+                  {/* ✅ No price shown */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
@@ -235,7 +218,6 @@ const Checkout: React.FC = () => {
                     <tr>
                       <th>Inner Qty</th>
                       <th>Total Qty</th>
-                      <th>Unit Price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -248,7 +230,6 @@ const Checkout: React.FC = () => {
                         <tr key={i} className={highlight ? "highlight" : ""}>
                           <td>{tier.inner}+</td>
                           <td>{tierQty}</td>
-                          <td>₹{tier.price}</td>
                         </tr>
                       );
                     })}
