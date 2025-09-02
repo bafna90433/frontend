@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
 import "../styles/Orders.css";
@@ -30,15 +30,34 @@ type Order = {
   estimatedDelivery?: string;
 };
 
-const API_BASE = "http://localhost:5000";
-
 /** Toggle to show/hide grand totals everywhere */
 const SHOW_TOTAL = false;
 
-const resolveImage = (img?: string) => {
-  if (!img) return "/placeholder-product.png";
-  if (img.startsWith("http")) return img;
-  return `${API_BASE}/${img.replace(/^\//, "")}`;
+/** Utility: trim a single trailing slash */
+const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
+
+/** Resolve API + image bases from Vite envs (with safe fallbacks for local dev) */
+const useBases = () => {
+  return useMemo(() => {
+    // VITE_API_URL is expected to include /api at the end in prod, e.g.
+    // https://bafnatoys-backend-production.up.railway.app/api
+    const rawApi = import.meta.env.VITE_API_URL as string | undefined;
+
+    // If VITE_IMAGE_BASE_URL isn't provided, derive it from VITE_API_URL by stripping `/api`
+    const rawImage =
+      (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ||
+      (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) ||
+      (import.meta.env.VITE_MEDIA_URL as string | undefined); // allow your Cloudinary base if you prefer
+
+    const apiBase = trimTrailingSlash(
+      rawApi || "http://localhost:5000/api"
+    );
+    const imageBase = trimTrailingSlash(
+      rawImage || "http://localhost:5000"
+    );
+
+    return { apiBase, imageBase };
+  }, []);
 };
 
 const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
@@ -62,6 +81,14 @@ const toInners = (it: Pick<OrderItem, "qty" | "nosPerInner">) => {
 };
 
 const Orders: React.FC = () => {
+  const { apiBase, imageBase } = useBases();
+
+  const resolveImage = (img?: string) => {
+    if (!img) return "/placeholder-product.png";
+    if (/^https?:\/\//i.test(img)) return img;
+    return `${imageBase}/${img.replace(/^\//, "")}`;
+  };
+
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -81,10 +108,13 @@ const Orders: React.FC = () => {
         }
 
         const user = JSON.parse(raw);
-        const { data } = await axios.get<Order[]>(
-          `${API_BASE}/api/orders`,
-          { params: { customerId: user._id } }
-        );
+        // Ensure we hit .../api/orders (NOT localhost in prod, and no /api/api)
+        const url = `${apiBase}/orders`;
+
+        const { data } = await axios.get<Order[]>(url, {
+          params: { customerId: user._id },
+          // withCredentials optional depending on your auth setup
+        });
 
         setOrders(
           Array.isArray(data)
@@ -96,8 +126,9 @@ const Orders: React.FC = () => {
             : []
         );
       } catch (e: any) {
+        // Network errors won't have a response; keep message friendly
         setError(
-          e.response?.status === 404
+          e?.response?.status === 404
             ? "No orders found"
             : "Could not fetch orders. Please try again later."
         );
@@ -107,7 +138,7 @@ const Orders: React.FC = () => {
     };
 
     fetchOrders();
-  }, []);
+  }, [apiBase]);
 
   const toggleOrder = (orderId: string) => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
@@ -125,7 +156,7 @@ const Orders: React.FC = () => {
       shipped: { color: "#8B5CF6", label: "Shipped", icon: "🚚" },
       delivered: { color: "#10B981", label: "Delivered", icon: "✅" },
       cancelled: { color: "#EF4444", label: "Cancelled", icon: "❌" },
-    };
+    } as const;
 
     return (
       <div className="status-badge-container">
@@ -150,7 +181,7 @@ const Orders: React.FC = () => {
       { id: "processing", label: "Processing" },
       { id: "shipped", label: "Shipped" },
       { id: "delivered", label: "Delivered" },
-    ];
+    ] as const;
 
     const currentIndex = steps.findIndex((step) => step.id === status);
     const cancelled = status === "cancelled";
@@ -230,7 +261,10 @@ const Orders: React.FC = () => {
             </div>
             <h3>Unable to load orders</h3>
             <p>{error}</p>
-            <button className="retry-button" onClick={() => window.location.reload()}>
+            <button
+              className="retry-button"
+              onClick={() => window.location.reload()}
+            >
               Retry
             </button>
           </div>
@@ -260,17 +294,23 @@ const Orders: React.FC = () => {
                   expandedOrder === order._id ? "expanded" : ""
                 }`}
               >
-                <div className="order-summary" onClick={() => toggleOrder(order._id)}>
+                <div
+                  className="order-summary"
+                  onClick={() => toggleOrder(order._id)}
+                >
                   <div className="order-meta">
                     <div>
                       <h3>
-                        Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
+                        Order #
+                        {order.orderNumber ||
+                          order._id.slice(-6).toUpperCase()}
                       </h3>
                       <p className="order-date">
                         Placed on {formatDate(order.createdAt)}
                         {order.estimatedDelivery && (
                           <span className="delivery-estimate">
-                            • Estimated delivery: {formatDate(order.estimatedDelivery)}
+                            • Estimated delivery:{" "}
+                            {formatDate(order.estimatedDelivery)}
                           </span>
                         )}
                       </p>
@@ -285,16 +325,18 @@ const Orders: React.FC = () => {
                           <img
                             src={resolveImage(item.image)}
                             alt={item.name}
-                            onError={(e) =>
-                              (e.currentTarget.src = "/placeholder-product.png")
-                            }
+                            onError={(e) => {
+                              e.currentTarget.src = "/placeholder-product.png";
+                            }}
                           />
                           <span>{item.name}</span>
-                          {i === 2 && order.items && order.items.length > 3 && (
-                            <span className="item-quantity">
-                              +{order.items.length - 3}
-                            </span>
-                          )}
+                          {i === 2 &&
+                            order.items &&
+                            order.items.length > 3 && (
+                              <span className="item-quantity">
+                                +{order.items.length - 3}
+                              </span>
+                            )}
                         </div>
                       ))}
                     </div>
@@ -307,11 +349,13 @@ const Orders: React.FC = () => {
                       <div className="order-total">
                         <span>Total Inners:</span>
                         <strong>
-                          {order.items?.reduce((sum, it) => sum + toInners(it), 0)}
+                          {order.items?.reduce(
+                            (sum, it) => sum + toInners(it),
+                            0
+                          )}
                         </strong>
                       </div>
 
-                      {/* HIDE grand total in summary (top-right) */}
                       {SHOW_TOTAL && (
                         <div className="order-total amount">
                           <span>Amount:</span>
@@ -322,12 +366,19 @@ const Orders: React.FC = () => {
                   </div>
 
                   <div className="expand-toggle">
-                    <span>{expandedOrder === order._id ? "Show less" : "Show details"}</span>
+                    <span>
+                      {expandedOrder === order._id
+                        ? "Show less"
+                        : "Show details"}
+                    </span>
                     <svg
                       className="expand-icon"
                       viewBox="0 0 24 24"
                       style={{
-                        transform: expandedOrder === order._id ? "rotate(180deg)" : "none",
+                        transform:
+                          expandedOrder === order._id
+                            ? "rotate(180deg)"
+                            : "none",
                       }}
                     >
                       <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
@@ -349,10 +400,10 @@ const Orders: React.FC = () => {
                                 <img
                                   src={resolveImage(item.image)}
                                   alt={item.name}
-                                  onError={(e) =>
-                                    (e.currentTarget.src =
-                                      "/placeholder-product.png")
-                                  }
+                                  onError={(e) => {
+                                    e.currentTarget.src =
+                                      "/placeholder-product.png";
+                                  }}
                                 />
                               </div>
                               <div className="item-info">
@@ -364,8 +415,9 @@ const Orders: React.FC = () => {
                                   <span>•</span>
                                   <span>{toInners(item)} inners</span>
                                 </div>
-                                {/* individual item price ok to keep; remove if not needed */}
-                                <div className="item-price">₹{item.price.toFixed(2)}</div>
+                                <div className="item-price">
+                                  ₹{item.price.toFixed(2)}
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -377,7 +429,8 @@ const Orders: React.FC = () => {
                         <div className="summary-row">
                           <span>Order Number</span>
                           <span>
-                            {order.orderNumber || order._id.slice(-6).toUpperCase()}
+                            {order.orderNumber ||
+                              order._id.slice(-6).toUpperCase()}
                           </span>
                         </div>
                         <div className="summary-row">
@@ -389,7 +442,6 @@ const Orders: React.FC = () => {
                           <span>{order.paymentMethod || "Not specified"}</span>
                         </div>
 
-                        {/* HIDE grand total in right card */}
                         {SHOW_TOTAL && (
                           <>
                             <div className="summary-divider"></div>
