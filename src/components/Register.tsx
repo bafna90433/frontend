@@ -3,7 +3,13 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
-const API_BASE = (import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL) : "http://localhost:5000") + "/api";
+/** Build API base robustly:
+ * - If VITE_API_URL ends with /api, don't add another /api
+ * - If it doesn't, append /api
+ * - Trim trailing slashes
+ */
+const RAW = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
+const API_BASE = RAW.endsWith("/api") ? RAW : `${RAW}/api`;
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -21,7 +27,7 @@ export const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
-  // Normalize to last 10 digits
+  // Normalize to last 10 digits (handles +91, spaces, dashes, leading 0)
   const normalizeTo10 = (raw: string) => {
     const digits = String(raw || "").replace(/\D/g, "");
     return digits.length > 10 ? digits.slice(-10) : digits;
@@ -53,7 +59,7 @@ export const Register: React.FC = () => {
 
       if (res.data && res.data.success) {
         setOtpSent(true);
-        // Dev: server may return OTP when RETURN_OTP_IN_RESPONSE=true
+        // Dev helper: server may return OTP if RETURN_OTP_IN_RESPONSE=true
         if (res.data.otp) {
           console.log("DEV OTP:", res.data.otp);
           alert(`✅ OTP sent (dev). OTP: ${res.data.otp}`);
@@ -90,8 +96,7 @@ export const Register: React.FC = () => {
 
       // build form data
       const formData = new FormData();
-      // careful with TS: cast to any to iterate
-      Object.entries(form as any).forEach(([key, value]) => {
+      (Object.entries(form) as [string, any][]).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
           formData.append("visitingCard", value);
         } else {
