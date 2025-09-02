@@ -41,7 +41,7 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${API}/uploads/`;
 
-  // ================= Helpers =================
+  // =============== Helpers ===============
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
     return item.innerQty && item.innerQty > 0
@@ -51,15 +51,29 @@ const Checkout: React.FC = () => {
       : 1;
   };
 
-  const getItemTotalPieces = (item: any) => {
+  const activeUnitPriceFor = (item: any) => {
+    const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
+    const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
     const innerCount = item.quantity || 0;
-    return innerCount * piecesPerInnerFor(item);
+    const activeTier =
+      tiers.reduce((m, t) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price }) ||
+      { price: item.price };
+    return activeTier.price || item.price;
   };
+
+  const getItemTotal = (item: any) => {
+    const innerCount = item.quantity || 0;
+    const totalPieces = innerCount * piecesPerInnerFor(item);
+    const unitPrice = activeUnitPriceFor(item);
+    return totalPieces * unitPrice;
+  };
+
+  const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
 
   const isPhoneValid = /^\d{10}$/.test(phone);
   const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // ================= Fetch addresses =================
+  // =============== Fetch addresses ===============
   useEffect(() => {
     (async () => {
       setAddrLoading(true);
@@ -101,7 +115,7 @@ const Checkout: React.FC = () => {
     setManualAddress(false);
   }, [selectedAddressId]);
 
-  // ================= Place Order =================
+  // =============== Place Order ===============
   const handlePlaceOrder = async () => {
     if (!manualAddress && selectedAddressId) {
       const a = addresses.find((x) => x._id === selectedAddressId);
@@ -118,16 +132,19 @@ const Checkout: React.FC = () => {
 
     if (!cartItems.length) return alert("Cart is empty.");
 
+    // ✅ Backend ko price aur total bhejna compulsory hai
     const items = cartItems.map((i: any) => ({
       productId: i._id,
       name: i.name,
-      qty: getItemTotalPieces(i), // only qty in pieces
+      qty: (i.quantity || 0) * piecesPerInnerFor(i),
+      price: activeUnitPriceFor(i), // sent but not shown
       image: i.image,
     }));
 
     const payload: any = {
       customerId: user._id,
       items,
+      total, // sent but hidden
       paymentMethod: payment === "cod" ? "COD" : "ONLINE",
       shipping: { address, phone, email, notes },
     };
@@ -136,8 +153,7 @@ const Checkout: React.FC = () => {
 
     try {
       setPlacing(true);
-      // ✅ FIX: call only /orders (not /api/orders)
-      const { data } = await axios.post(`${API}/orders`, payload);
+      const { data } = await axios.post(`${API}/api/orders`, payload);
       const on = data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
@@ -151,7 +167,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // ================= UI =================
+  // =============== UI ===============
   if (cartItems.length === 0 && !orderPlaced) {
     return <div className="checkout-empty">No items in cart.</div>;
   }
@@ -210,7 +226,7 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
-                  {/* ✅ Price removed */}
+                  {/* ❌ No price shown here */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
@@ -220,6 +236,7 @@ const Checkout: React.FC = () => {
                     <tr>
                       <th>Inner Qty</th>
                       <th>Total Qty</th>
+                      {/* ❌ Unit Price hidden */}
                     </tr>
                   </thead>
                   <tbody>
@@ -232,6 +249,7 @@ const Checkout: React.FC = () => {
                         <tr key={i} className={highlight ? "highlight" : ""}>
                           <td>{tier.inner}+</td>
                           <td>{tierQty}</td>
+                          {/* ❌ Price column hidden */}
                         </tr>
                       );
                     })}
@@ -326,6 +344,11 @@ const Checkout: React.FC = () => {
             <input type="radio" checked={payment === "online"} disabled />
             Pay Online (Coming Soon)
           </label>
+        </div>
+
+        {/* ❌ Order total hidden from user */}
+        <div className="checkout-total" style={{ display: "none" }}>
+          <strong>Total: ₹{total.toLocaleString()}</strong>
         </div>
 
         <button
