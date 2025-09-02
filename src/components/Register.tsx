@@ -1,9 +1,10 @@
+// src/components/Register.tsx
 import React, { useState, ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
-// Robust API base: works whether VITE_API_URL has /api or not
+// API base that works whether VITE_API_URL has /api or not
 const rawBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
 const cleaned = rawBase.replace(/\/+$/, "");
 const API_BASE = cleaned.endsWith("/api") ? cleaned : `${cleaned}/api`;
@@ -35,7 +36,6 @@ const Register: React.FC = () => {
     }
   };
 
-  // Check if a mobile is already registered
   const checkExisting = async (phone: string) => {
     try {
       const res = await axios.get(`${API_BASE}/registrations/phone/${encodeURIComponent(phone)}`);
@@ -46,19 +46,15 @@ const Register: React.FC = () => {
     }
   };
 
-  // Send OTP (with duplicate guard)
   const sendOtp = async () => {
     try {
       const phone = normalizePhone(form.otpMobile);
       if (phone.length !== 10) {
-        alert("⚠️ Enter a valid 10-digit mobile number");
+        alert("Enter a valid 10-digit mobile number");
         return;
       }
 
-      const check = await checkExisting(phone).catch((e) => {
-        console.error("Check existing error:", e.response?.data || e.message);
-        throw new Error("Failed to check existing registration");
-      });
+      const check = await checkExisting(phone);
       if (check.exists) {
         if (confirm("This mobile number is already registered. Go to Login?")) {
           navigate("/login");
@@ -70,20 +66,18 @@ const Register: React.FC = () => {
       console.log("OTP send:", res.data);
       setOtpSent(true);
       alert(res.data?.message || "OTP sent");
-      // If backend is in dev mode and returns OTP, you'll see it in console.
-      if (res.data?.otp) console.log("DEV OTP:", res.data.otp);
+      if (res.data?.otp) console.log("DEV OTP:", res.data.otp); // visible only if backend returns it in dev
     } catch (err: any) {
       console.error("OTP Error:", err.response?.data || err.message);
       alert(err.response?.data?.message || "Failed to send OTP. Please try again.");
     }
   };
 
-  // Verify OTP + Register
   const verifyAndRegister = async () => {
     try {
       const phone = normalizePhone(form.otpMobile);
       if (phone.length !== 10) {
-        alert("⚠️ Invalid phone number");
+        alert("Invalid phone number");
         return;
       }
 
@@ -122,12 +116,10 @@ const Register: React.FC = () => {
         if (confirm("Go to Login?")) navigate("/login");
         return;
       }
-
       if (err.response?.status === 400 && err.response.data?.message) {
         alert(err.response.data.message);
         return;
       }
-
       alert("Something went wrong during registration. Please try again.");
     }
   };
