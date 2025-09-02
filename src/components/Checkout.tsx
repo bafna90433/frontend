@@ -41,7 +41,7 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${API}/uploads/`;
 
-  // =============== Helpers ===============
+  // ================= Helpers =================
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
     return item.innerQty && item.innerQty > 0
@@ -73,12 +73,12 @@ const Checkout: React.FC = () => {
   const isPhoneValid = /^\d{10}$/.test(phone);
   const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // =============== Fetch addresses ===============
+  // ================= Fetch addresses =================
   useEffect(() => {
     (async () => {
       setAddrLoading(true);
       try {
-        const { data } = await axios.get(`${API}/addresses`);
+        const { data } = await axios.get(`${API}/api/addresses`);
         const list: Address[] = Array.isArray(data) ? data : (data?.data ?? []);
         setAddresses(list);
       } catch {
@@ -115,7 +115,7 @@ const Checkout: React.FC = () => {
     setManualAddress(false);
   }, [selectedAddressId]);
 
-  // =============== Place Order ===============
+  // ================= Place Order =================
   const handlePlaceOrder = async () => {
     if (!manualAddress && selectedAddressId) {
       const a = addresses.find((x) => x._id === selectedAddressId);
@@ -132,19 +132,18 @@ const Checkout: React.FC = () => {
 
     if (!cartItems.length) return alert("Cart is empty.");
 
-    // ✅ Backend ko price aur total bhejna compulsory hai
     const items = cartItems.map((i: any) => ({
       productId: i._id,
       name: i.name,
       qty: (i.quantity || 0) * piecesPerInnerFor(i),
-      price: activeUnitPriceFor(i), // sent but not shown
+      price: activeUnitPriceFor(i), // ✅ keep price for backend validation
       image: i.image,
     }));
 
     const payload: any = {
       customerId: user._id,
       items,
-      total, // sent but hidden
+      total,
       paymentMethod: payment === "cod" ? "COD" : "ONLINE",
       shipping: { address, phone, email, notes },
     };
@@ -167,7 +166,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // =============== UI ===============
+  // ================= UI =================
   if (cartItems.length === 0 && !orderPlaced) {
     return <div className="checkout-empty">No items in cart.</div>;
   }
@@ -193,6 +192,7 @@ const Checkout: React.FC = () => {
           const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
           const innerCount = item.quantity || 0;
           const piecesPerInner = piecesPerInnerFor(item);
+          const unitPrice = activeUnitPriceFor(item);
 
           const imgSrc = item.image?.startsWith("http")
             ? item.image
@@ -226,7 +226,6 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
-                  {/* ❌ No price shown here */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
@@ -236,7 +235,7 @@ const Checkout: React.FC = () => {
                     <tr>
                       <th>Inner Qty</th>
                       <th>Total Qty</th>
-                      {/* ❌ Unit Price hidden */}
+                      <th>Unit Price</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -249,7 +248,7 @@ const Checkout: React.FC = () => {
                         <tr key={i} className={highlight ? "highlight" : ""}>
                           <td>{tier.inner}+</td>
                           <td>{tierQty}</td>
-                          {/* ❌ Price column hidden */}
+                          <td>₹{tier.price}</td>
                         </tr>
                       );
                     })}
@@ -346,7 +345,6 @@ const Checkout: React.FC = () => {
           </label>
         </div>
 
-        {/* ❌ Order total hidden from user */}
         <div className="checkout-total" style={{ display: "none" }}>
           <strong>Total: ₹{total.toLocaleString()}</strong>
         </div>
