@@ -1,12 +1,9 @@
 // src/components/Checkout.tsx
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
+import api, { MEDIA_URL } from "../utils/api";   // ✅ use central api.ts
 import "../styles/Checkout.css";
-
-const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
-const LOCAL_KEY = "bt.addresses";
 
 type Address = {
   _id?: string;
@@ -20,6 +17,8 @@ type Address = {
   label?: "Home" | "Office" | "Other";
   isDefault?: boolean;
 };
+
+const LOCAL_KEY = "bt.addresses";
 
 const Checkout: React.FC = () => {
   const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
@@ -39,9 +38,9 @@ const Checkout: React.FC = () => {
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
 
-  const IMAGE_BASE_URL = `${API}/uploads/`;
+  const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
 
-  // ================= Helpers =================
+  // =============== Helpers ===============
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
     return item.innerQty && item.innerQty > 0
@@ -73,12 +72,12 @@ const Checkout: React.FC = () => {
   const isPhoneValid = /^\d{10}$/.test(phone);
   const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // ================= Fetch addresses =================
+  // =============== Fetch addresses ===============
   useEffect(() => {
     (async () => {
       setAddrLoading(true);
       try {
-        const { data } = await axios.get(`${API}/api/addresses`);
+        const { data } = await api.get("/addresses");  // ✅ correct
         const list: Address[] = Array.isArray(data) ? data : (data?.data ?? []);
         setAddresses(list);
       } catch {
@@ -115,7 +114,7 @@ const Checkout: React.FC = () => {
     setManualAddress(false);
   }, [selectedAddressId]);
 
-  // ================= Place Order =================
+  // =============== Place Order ===============
   const handlePlaceOrder = async () => {
     if (!manualAddress && selectedAddressId) {
       const a = addresses.find((x) => x._id === selectedAddressId);
@@ -135,15 +134,15 @@ const Checkout: React.FC = () => {
     const items = cartItems.map((i: any) => ({
       productId: i._id,
       name: i.name,
-      qty: (i.quantity || 0) * piecesPerInnerFor(i),
-      price: activeUnitPriceFor(i), // ✅ keep price for backend validation
+      qty: (i.quantity || 0) * piecesPerInnerFor(i), // backend qty = pieces
+      price: activeUnitPriceFor(i),                 // ✅ still sent to backend
       image: i.image,
     }));
 
     const payload: any = {
       customerId: user._id,
       items,
-      total,
+      total,                                         // ✅ still sent to backend
       paymentMethod: payment === "cod" ? "COD" : "ONLINE",
       shipping: { address, phone, email, notes },
     };
@@ -152,7 +151,7 @@ const Checkout: React.FC = () => {
 
     try {
       setPlacing(true);
-      const { data } = await axios.post(`${API}/api/orders`, payload);
+      const { data } = await api.post("/orders", payload);  // ✅ correct
       const on = data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
@@ -166,7 +165,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // ================= UI =================
+  // =============== UI ===============
   if (cartItems.length === 0 && !orderPlaced) {
     return <div className="checkout-empty">No items in cart.</div>;
   }
@@ -197,7 +196,7 @@ const Checkout: React.FC = () => {
           const imgSrc = item.image?.startsWith("http")
             ? item.image
             : item.image?.includes("/uploads/")
-            ? `${API}${item.image}`
+            ? `${MEDIA_URL}${item.image}`
             : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
 
           return (
@@ -226,6 +225,7 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
+                  {/* ✅ No price shown in UI */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
@@ -345,6 +345,7 @@ const Checkout: React.FC = () => {
           </label>
         </div>
 
+        {/* ✅ Hidden from UI but sent to backend */}
         <div className="checkout-total" style={{ display: "none" }}>
           <strong>Total: ₹{total.toLocaleString()}</strong>
         </div>
