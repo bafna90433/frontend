@@ -30,7 +30,10 @@ type Order = {
   estimatedDelivery?: string;
 };
 
-const API_BASE = "http://localhost:5000";
+// ✅ Use backend Railway URL instead of localhost
+const API_BASE =
+  import.meta.env.VITE_API_URL ||
+  "https://bafnatoys-backend-production.up.railway.app";
 
 /** Toggle to show/hide grand totals everywhere */
 const SHOW_TOTAL = false;
@@ -223,28 +226,21 @@ const Orders: React.FC = () => {
           </div>
         ) : error ? (
           <div className="error-state">
-            <div className="error-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18a8 8 0 0 1-8-8a8 8 0 0 1 8-8a8 8 0 0 1 8 8a8 8 0 0 1-8 8z" />
-              </svg>
-            </div>
             <h3>Unable to load orders</h3>
             <p>{error}</p>
-            <button className="retry-button" onClick={() => window.location.reload()}>
+            <button
+              className="retry-button"
+              onClick={() => window.location.reload()}
+            >
               Retry
             </button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2M5 8V7h2v3.82C5.84 10.4 5 9.3 5 8m14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-              </svg>
-            </div>
             <h3>No orders found</h3>
             <p>
               {statusFilter === "all"
-                ? "You haven't placed any orders yet. Start shopping to see your orders here."
+                ? "You haven't placed any orders yet."
                 : `You don't have any ${statusFilter} orders.`}
             </p>
             <a href="/products" className="primary-button">
@@ -260,156 +256,34 @@ const Orders: React.FC = () => {
                   expandedOrder === order._id ? "expanded" : ""
                 }`}
               >
-                <div className="order-summary" onClick={() => toggleOrder(order._id)}>
+                <div
+                  className="order-summary"
+                  onClick={() => toggleOrder(order._id)}
+                >
                   <div className="order-meta">
                     <div>
                       <h3>
-                        Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
+                        Order #
+                        {order.orderNumber ||
+                          order._id.slice(-6).toUpperCase()}
                       </h3>
                       <p className="order-date">
                         Placed on {formatDate(order.createdAt)}
                         {order.estimatedDelivery && (
                           <span className="delivery-estimate">
-                            • Estimated delivery: {formatDate(order.estimatedDelivery)}
+                            • Estimated delivery:{" "}
+                            {formatDate(order.estimatedDelivery)}
                           </span>
                         )}
                       </p>
                     </div>
                     <StatusBadge status={order.status} />
                   </div>
-
-                  <div className="order-preview">
-                    <div className="items-preview">
-                      {order.items?.slice(0, 3).map((item, i) => (
-                        <div key={i} className="item-preview">
-                          <img
-                            src={resolveImage(item.image)}
-                            alt={item.name}
-                            onError={(e) =>
-                              (e.currentTarget.src = "/placeholder-product.png")
-                            }
-                          />
-                          <span>{item.name}</span>
-                          {i === 2 && order.items && order.items.length > 3 && (
-                            <span className="item-quantity">
-                              +{order.items.length - 3}
-                            </span>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="order-totals">
-                      <div className="order-total">
-                        <span>Items:</span>
-                        <strong>{order.items?.length}</strong>
-                      </div>
-                      <div className="order-total">
-                        <span>Total Inners:</span>
-                        <strong>
-                          {order.items?.reduce((sum, it) => sum + toInners(it), 0)}
-                        </strong>
-                      </div>
-
-                      {/* HIDE grand total in summary (top-right) */}
-                      {SHOW_TOTAL && (
-                        <div className="order-total amount">
-                          <span>Amount:</span>
-                          <strong>₹{order.total.toFixed(2)}</strong>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="expand-toggle">
-                    <span>{expandedOrder === order._id ? "Show less" : "Show details"}</span>
-                    <svg
-                      className="expand-icon"
-                      viewBox="0 0 24 24"
-                      style={{
-                        transform: expandedOrder === order._id ? "rotate(180deg)" : "none",
-                      }}
-                    >
-                      <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
-                    </svg>
-                  </div>
                 </div>
 
                 {expandedOrder === order._id && (
                   <div className="order-details">
                     <OrderProgress status={order.status} />
-
-                    <div className="details-grid">
-                      <div className="items-list">
-                        <h4>Order Items ({order.items?.length})</h4>
-                        <div className="items-container">
-                          {order.items?.map((item, i) => (
-                            <div key={i} className="item-detail">
-                              <div className="item-image">
-                                <img
-                                  src={resolveImage(item.image)}
-                                  alt={item.name}
-                                  onError={(e) =>
-                                    (e.currentTarget.src =
-                                      "/placeholder-product.png")
-                                  }
-                                />
-                              </div>
-                              <div className="item-info">
-                                <h5>{item.name}</h5>
-                                <div className="item-specs">
-                                  <span>{item.qty} pieces</span>
-                                  <span>•</span>
-                                  <span>{item.nosPerInner || 12} per inner</span>
-                                  <span>•</span>
-                                  <span>{toInners(item)} inners</span>
-                                </div>
-                                {/* individual item price ok to keep; remove if not needed */}
-                                <div className="item-price">₹{item.price.toFixed(2)}</div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="order-summary-card">
-                        <h4>Order Summary</h4>
-                        <div className="summary-row">
-                          <span>Order Number</span>
-                          <span>
-                            {order.orderNumber || order._id.slice(-6).toUpperCase()}
-                          </span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Order Date</span>
-                          <span>{formatDate(order.createdAt)}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Payment Method</span>
-                          <span>{order.paymentMethod || "Not specified"}</span>
-                        </div>
-
-                        {/* HIDE grand total in right card */}
-                        {SHOW_TOTAL && (
-                          <>
-                            <div className="summary-divider"></div>
-                            <div className="summary-row total-row">
-                              <span>Total Amount</span>
-                              <span className="grand-total">
-                                ₹{order.total.toFixed(2)}
-                              </span>
-                            </div>
-                          </>
-                        )}
-
-                        {order.status === "shipped" && (
-                          <button className="track-button">Track Package</button>
-                        )}
-                        {order.status === "delivered" && (
-                          <button className="review-button">Leave Review</button>
-                        )}
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
