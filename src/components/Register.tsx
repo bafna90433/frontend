@@ -1,3 +1,4 @@
+// src/components/Register.tsx
 import React, { useState, ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -19,7 +20,7 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const navigate = useNavigate(); // ✅ for redirect
+  const navigate = useNavigate();
 
   // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -31,37 +32,73 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Send OTP
+  // helper: check if phone already registered
+  const checkExisting = async (phone: string) => {
+    try {
+      const res = await axios.get(`${API_BASE}/registrations/phone/${encodeURIComponent(phone)}`);
+      // If 200 -> user exists, return the user object
+      return { exists: true, user: res.data };
+    } catch (err: any) {
+      // If 404 -> not found, proceed
+      if (err.response?.status === 404) return { exists: false };
+      // other errors -> bubble up for UI handling
+      throw err;
+    }
+  };
+
+  // Send OTP (first check if already registered)
   const sendOtp = async () => {
     try {
       if (form.otpMobile.length !== 10) {
         alert("⚠️ Enter valid 10-digit mobile number");
         return;
       }
+
+      // Check existing registration
+      const check = await checkExisting(form.otpMobile);
+      if (check.exists) {
+        // Show a clear message and suggest login
+        const doLogin = confirm(
+          "This mobile number is already registered. Do you want to go to Login?"
+        );
+        if (doLogin) navigate("/login");
+        return;
+      }
+
+      // Not registered -> send OTP
       const res = await axios.post(`${API_BASE}/otp/send`, { phone: form.otpMobile });
-      if (res.data.success) {
+      if (res.data?.success) {
         setOtpSent(true);
         alert("✅ OTP sent successfully!");
+      } else {
+        // Some providers return non-success shape; handle gracefully
+        alert(res.data?.message || "✅ OTP request sent (check logs).");
+        setOtpSent(true);
       }
     } catch (err: any) {
       console.error("OTP Error:", err.response?.data || err.message);
-      alert("❌ Failed to send OTP");
+      alert(
+        err.response?.data?.message ||
+          "❌ Failed to send OTP. Please try again or contact support."
+      );
     }
   };
 
   // Verify OTP + Register
   const verifyAndRegister = async () => {
     try {
+      // verify OTP first
       const verifyRes = await axios.post(`${API_BASE}/otp/verify`, {
         phone: form.otpMobile,
         otp,
       });
 
-      if (!verifyRes.data.success) {
+      if (!verifyRes.data?.success) {
         alert("❌ Invalid OTP");
         return;
       }
 
+      // Build FormData for registration (file upload)
       const formData = new FormData();
       Object.entries(form).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
@@ -71,18 +108,34 @@ export const Register: React.FC = () => {
         }
       });
 
+      // call register endpoint
       const res = await axios.post(`${API_BASE}/registrations/register`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      // success
       alert(res.data.message || "🎉 Registration successful!");
-
-      // ✅ redirect to login page after successful registration
       navigate("/login");
-
     } catch (err: any) {
       console.error("Verify/Register Error:", err.response?.data || err.message);
-      alert("❌ Something went wrong during registration");
+
+      // If backend returns 409 (duplicate), show a specific message
+      if (err.response?.status === 409) {
+        alert(err.response.data?.message || "This mobile is already registered.");
+        // optionally redirect to login
+        const goLogin = confirm("Mobile already registered. Go to Login?");
+        if (goLogin) navigate("/login");
+        return;
+      }
+
+      // OTP verify endpoint might return 400 for invalid/expired OTP
+      if (err.response?.status === 400 && err.response.data?.message) {
+        alert(err.response.data.message);
+        return;
+      }
+
+      // generic fallback
+      alert("❌ Something went wrong during registration. Please try again.");
     }
   };
 
@@ -123,3 +176,5 @@ export const Register: React.FC = () => {
     </div>
   );
 };
+
+export default Register;
