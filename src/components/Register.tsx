@@ -4,7 +4,9 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// Ensure API_BASE always points to the backend /api root (no double slashes)
+const rawBase = import.meta.env.VITE_API_URL || "http://localhost:5000";
+const API_BASE = rawBase.replace(/\/$/, "") + "/api";
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -22,6 +24,9 @@ export const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const navigate = useNavigate();
 
+  // Normalize phone to last 10 digits
+  const normalizePhone = (s = "") => String(s).replace(/\D/g, "").slice(-10);
+
   // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
@@ -32,16 +37,14 @@ export const Register: React.FC = () => {
     }
   };
 
-  // helper: check if phone already registered
+  // helper: check if phone already registered (uses normalized phone)
   const checkExisting = async (phone: string) => {
     try {
       const res = await axios.get(`${API_BASE}/registrations/phone/${encodeURIComponent(phone)}`);
-      // If 200 -> user exists, return the user object
       return { exists: true, user: res.data };
     } catch (err: any) {
-      // If 404 -> not found, proceed
       if (err.response?.status === 404) return { exists: false };
-      // other errors -> bubble up for UI handling
+      // bubble up other errors
       throw err;
     }
   };
@@ -49,52 +52,59 @@ export const Register: React.FC = () => {
   // Send OTP (first check if already registered)
   const sendOtp = async () => {
     try {
-      if (form.otpMobile.length !== 10) {
+      const phone = normalizePhone(form.otpMobile);
+      if (phone.length !== 10) {
         alert("⚠️ Enter valid 10-digit mobile number");
         return;
       }
 
       // Check existing registration
-      const check = await checkExisting(form.otpMobile);
-      if (check.exists) {
-        // Show a clear message and suggest login
-        const doLogin = confirm(
-          "This mobile number is already registered. Do you want to go to Login?"
-        );
-        if (doLogin) navigate("/login");
+      try {
+        const check = await checkExisting(phone);
+        if (check.exists) {
+          const doLogin = confirm("This mobile number is already registered. Do you want to go to Login?");
+          if (doLogin) navigate("/login");
+          return;
+        }
+      } catch (err: any) {
+        // Non-404 error from checkExisting → show & stop
+        console.error("Check existing user error:", err.response?.data || err.message);
+        alert("Failed to check existing registration. Try again.");
         return;
       }
 
       // Not registered -> send OTP
-      const res = await axios.post(`${API_BASE}/otp/send`, { phone: form.otpMobile });
+      const res = await axios.post(`${API_BASE}/otp/send`, { phone });
+      console.log("OTP send response:", res.data);
       if (res.data?.success) {
         setOtpSent(true);
+        // dev helper: log otp if backend returns it (only enable in dev)
+        if (res.data.otp) console.log("DEV OTP:", res.data.otp);
         alert("✅ OTP sent successfully!");
       } else {
-        // Some providers return non-success shape; handle gracefully
         alert(res.data?.message || "✅ OTP request sent (check logs).");
         setOtpSent(true);
       }
     } catch (err: any) {
       console.error("OTP Error:", err.response?.data || err.message);
-      alert(
-        err.response?.data?.message ||
-          "❌ Failed to send OTP. Please try again or contact support."
-      );
+      alert(err.response?.data?.message || "❌ Failed to send OTP. Please try again or contact support.");
     }
   };
 
   // Verify OTP + Register
   const verifyAndRegister = async () => {
     try {
-      // verify OTP first
-      const verifyRes = await axios.post(`${API_BASE}/otp/verify`, {
-        phone: form.otpMobile,
-        otp,
-      });
+      const phone = normalizePhone(form.otpMobile);
+      if (phone.length !== 10) {
+        alert("⚠️ Invalid phone number");
+        return;
+      }
 
+      // verify OTP first
+      const verifyRes = await axios.post(`${API_BASE}/otp/verify`, { phone, otp });
+      console.log("OTP verify response:", verifyRes.data);
       if (!verifyRes.data?.success) {
-        alert("❌ Invalid OTP");
+        alert(verifyRes.data?.message || "❌ Invalid OTP");
         return;
       }
 
@@ -104,7 +114,10 @@ export const Register: React.FC = () => {
         if (key === "visitingCard" && value instanceof File) {
           formData.append("visitingCard", value);
         } else {
-          formData.append(key, value as string);
+          // normalize phone fields before submitting
+          if (key === "otpMobile") formData.append("otpMobile", phone);
+          else if (key === "whatsapp") formData.append("whatsapp", normalizePhone(value as string));
+          else formData.append(key, value as string);
         }
       });
 
@@ -113,8 +126,8 @@ export const Register: React.FC = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // success
-      alert(res.data.message || "🎉 Registration successful!");
+      console.log("Register response:", res.data);
+      alert(res.data?.message || "🎉 Registration successful!");
       navigate("/login");
     } catch (err: any) {
       console.error("Verify/Register Error:", err.response?.data || err.message);
@@ -122,7 +135,6 @@ export const Register: React.FC = () => {
       // If backend returns 409 (duplicate), show a specific message
       if (err.response?.status === 409) {
         alert(err.response.data?.message || "This mobile is already registered.");
-        // optionally redirect to login
         const goLogin = confirm("Mobile already registered. Go to Login?");
         if (goLogin) navigate("/login");
         return;
@@ -148,7 +160,13 @@ export const Register: React.FC = () => {
       <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
       <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
       <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
-      <input name="otpMobile" placeholder="Enter Mobile (10 digits)" value={form.otpMobile} onChange={handleChange} type="tel" />
+      <input
+        name="otpMobile"
+        placeholder="Enter Mobile (10 digits)"
+        value={form.otpMobile}
+        onChange={handleChange}
+        type="tel"
+      />
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} type="tel" />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
@@ -156,13 +174,7 @@ export const Register: React.FC = () => {
         <button onClick={sendOtp}>Send OTP</button>
       ) : (
         <>
-          <input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="otp"
-            type="text"
-          />
+          <input placeholder="Enter OTP" value={otp} onChange={(e) => setOtp(e.target.value)} className="otp" type="text" />
           <button onClick={verifyAndRegister}>Verify & Register</button>
         </>
       )}
