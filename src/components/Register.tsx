@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+const API_BASE = (import.meta.env.VITE_API_URL ? String(import.meta.env.VITE_API_URL) : "http://localhost:5000") + "/api";
 
 export const Register: React.FC = () => {
   const [form, setForm] = useState({
@@ -19,12 +19,18 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const navigate = useNavigate(); // ✅ for redirect
+  const navigate = useNavigate();
+
+  // Normalize to last 10 digits
+  const normalizeTo10 = (raw: string) => {
+    const digits = String(raw || "").replace(/\D/g, "");
+    return digits.length > 10 ? digits.slice(-10) : digits;
+  };
 
   // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    if (name === "visitingCard" && files) {
+    const { name, value, files } = e.target as HTMLInputElement;
+    if (name === "visitingCard" && files && files.length > 0) {
       setForm((prev) => ({ ...prev, visitingCard: files[0] }));
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
@@ -34,40 +40,63 @@ export const Register: React.FC = () => {
   // Send OTP
   const sendOtp = async () => {
     try {
-      if (form.otpMobile.length !== 10) {
-        alert("⚠️ Enter valid 10-digit mobile number");
+      const phone = normalizeTo10(form.otpMobile);
+      if (phone.length !== 10) {
+        alert("⚠️ Enter a valid 10-digit mobile number (you can omit +91/0).");
         return;
       }
-      const res = await axios.post(`${API_BASE}/otp/send`, { phone: form.otpMobile });
-      if (res.data.success) {
+
+      console.log("Calling OTP send:", `${API_BASE}/otp/send`, { phone });
+
+      const res = await axios.post(`${API_BASE}/otp/send`, { phone });
+      console.log("OTP send response:", res.status, res.data);
+
+      if (res.data && res.data.success) {
         setOtpSent(true);
-        alert("✅ OTP sent successfully!");
+        // Dev: server may return OTP when RETURN_OTP_IN_RESPONSE=true
+        if (res.data.otp) {
+          console.log("DEV OTP:", res.data.otp);
+          alert(`✅ OTP sent (dev). OTP: ${res.data.otp}`);
+        } else {
+          alert("✅ OTP sent successfully! Check your SMS.");
+        }
+      } else {
+        alert("❌ Failed to send OTP: " + (res.data?.message || "unknown error"));
       }
     } catch (err: any) {
       console.error("OTP Error:", err.response?.data || err.message);
-      alert("❌ Failed to send OTP");
+      const msg = err.response?.data?.message || err.response?.data || err.message;
+      alert("❌ Failed to send OTP: " + String(msg));
     }
   };
 
   // Verify OTP + Register
   const verifyAndRegister = async () => {
     try {
+      const phone = normalizeTo10(form.otpMobile);
+
+      // verify first
       const verifyRes = await axios.post(`${API_BASE}/otp/verify`, {
-        phone: form.otpMobile,
+        phone,
         otp,
       });
 
-      if (!verifyRes.data.success) {
+      console.log("OTP verify response:", verifyRes.status, verifyRes.data);
+
+      if (!verifyRes.data?.success) {
         alert("❌ Invalid OTP");
         return;
       }
 
+      // build form data
       const formData = new FormData();
-      Object.entries(form).forEach(([key, value]) => {
+      // careful with TS: cast to any to iterate
+      Object.entries(form as any).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
           formData.append("visitingCard", value);
         } else {
-          formData.append(key, value as string);
+          if (key === "otpMobile") formData.append("otpMobile", phone);
+          else formData.append(key, value as string);
         }
       });
 
@@ -75,14 +104,13 @@ export const Register: React.FC = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
+      console.log("Register response:", res.status, res.data);
+
       alert(res.data.message || "🎉 Registration successful!");
-
-      // ✅ redirect to login page after successful registration
       navigate("/login");
-
     } catch (err: any) {
       console.error("Verify/Register Error:", err.response?.data || err.message);
-      alert("❌ Something went wrong during registration");
+      alert("❌ Something went wrong during registration: " + String(err.response?.data?.message || err.message));
     }
   };
 
@@ -95,7 +123,13 @@ export const Register: React.FC = () => {
       <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
       <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
       <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
-      <input name="otpMobile" placeholder="Enter Mobile (10 digits)" value={form.otpMobile} onChange={handleChange} type="tel" />
+      <input
+        name="otpMobile"
+        placeholder="Enter Mobile (10 digits)"
+        value={form.otpMobile}
+        onChange={handleChange}
+        type="tel"
+      />
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} type="tel" />
       <input name="visitingCard" type="file" onChange={handleChange} />
 
@@ -123,3 +157,5 @@ export const Register: React.FC = () => {
     </div>
   );
 };
+
+export default Register;
