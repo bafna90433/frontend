@@ -1,3 +1,4 @@
+// src/components/Checkout.tsx
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
@@ -135,7 +136,8 @@ const Checkout: React.FC = () => {
 
     try {
       setPlacing(true);
-      const { data } = await axios.post(`${API}/api/orders`, payload);
+      // ✅ FIX: call only /orders (not /api/orders)
+      const { data } = await axios.post(`${API}/orders`, payload);
       const on = data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
@@ -208,7 +210,7 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
-                  {/* ✅ No price shown */}
+                  {/* ✅ Price removed */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
