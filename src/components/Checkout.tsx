@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
-import api, { MEDIA_URL } from "../utils/api";   // ✅ use central api.ts
+import api, { MEDIA_URL } from "../utils/api";
 import "../styles/Checkout.css";
 
 type Address = {
@@ -43,11 +43,15 @@ const Checkout: React.FC = () => {
   // =============== Helpers ===============
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
-    return item.innerQty && item.innerQty > 0
-      ? item.innerQty
-      : bulkPricing[0]?.qty > 0 && bulkPricing[0]?.inner > 0
-      ? bulkPricing[0].qty / bulkPricing[0].inner
-      : 1;
+    const candidate =
+      item.innerQty && item.innerQty > 0
+        ? item.innerQty
+        : bulkPricing[0]?.qty > 0 && bulkPricing[0]?.inner > 0
+        ? bulkPricing[0].qty / bulkPricing[0].inner
+        : 1;
+    // ensure numeric
+    const n = Number(candidate) || 1;
+    return n;
   };
 
   const activeUnitPriceFor = (item: any) => {
@@ -55,7 +59,7 @@ const Checkout: React.FC = () => {
     const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
     const innerCount = item.quantity || 0;
     const activeTier =
-      tiers.reduce((m, t) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price }) ||
+      tiers.reduce((m: any, t: any) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price }) ||
       { price: item.price };
     return activeTier.price || item.price;
   };
@@ -77,7 +81,7 @@ const Checkout: React.FC = () => {
     (async () => {
       setAddrLoading(true);
       try {
-        const { data } = await api.get("/addresses");  // ✅ correct
+        const { data } = await api.get("/addresses");
         const list: Address[] = Array.isArray(data) ? data : (data?.data ?? []);
         setAddresses(list);
       } catch {
@@ -131,18 +135,26 @@ const Checkout: React.FC = () => {
 
     if (!cartItems.length) return alert("Cart is empty.");
 
-    const items = cartItems.map((i: any) => ({
-      productId: i._id,
-      name: i.name,
-      qty: (i.quantity || 0) * piecesPerInnerFor(i), // backend qty = pieces
-      price: activeUnitPriceFor(i),                 // ✅ still sent to backend
-      image: i.image,
-    }));
+    // IMPORTANT: send both pieces (qty), and snapshot fields inners and piecesPerInner
+    const items = cartItems.map((i: any) => {
+      const piecesPerInner = piecesPerInnerFor(i);
+      const inners = Number(i.quantity || 0);
+      const qtyPieces = inners * piecesPerInner; // total pieces - backend expects 'qty' as pieces
+      return {
+        productId: i._id,
+        name: i.name,
+        qty: qtyPieces,
+        price: activeUnitPriceFor(i),
+        image: i.image,
+        inners, // how many inners user ordered
+        piecesPerInner, // snapshot of pieces per inner at order time
+      };
+    });
 
     const payload: any = {
       customerId: user._id,
       items,
-      total,                                         // ✅ still sent to backend
+      total,
       paymentMethod: payment === "cod" ? "COD" : "ONLINE",
       shipping: { address, phone, email, notes },
     };
@@ -151,7 +163,7 @@ const Checkout: React.FC = () => {
 
     try {
       setPlacing(true);
-      const { data } = await api.post("/orders", payload);  // ✅ correct
+      const { data } = await api.post("/orders", payload);
       const on = data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
@@ -225,7 +237,6 @@ const Checkout: React.FC = () => {
                   <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
                   {item.quantity}
                   <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
-                  {/* ✅ No price shown in UI */}
                 </div>
 
                 <div className="checkout-item-total">Total Inners: {item.quantity}</div>
@@ -345,7 +356,6 @@ const Checkout: React.FC = () => {
           </label>
         </div>
 
-        {/* ✅ Hidden from UI but sent to backend */}
         <div className="checkout-total" style={{ display: "none" }}>
           <strong>Total: ₹{total.toLocaleString()}</strong>
         </div>

@@ -1,3 +1,4 @@
+// src/components/Orders.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
@@ -6,10 +7,12 @@ import "../styles/Orders.css";
 type OrderItem = {
   productId?: string;
   name: string;
-  qty: number;
+  qty: number; // pieces
   price: number;
   image?: string;
-  nosPerInner?: number;
+  nosPerInner?: number;     // legacy (existing DB)
+  piecesPerInner?: number;  // snapshot at order time (preferred)
+  inners?: number;          // optional: how many inners user ordered
 };
 
 type Order = {
@@ -39,22 +42,15 @@ const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
 /** Resolve API + image bases from Vite envs (with safe fallbacks for local dev) */
 const useBases = () => {
   return useMemo(() => {
-    // VITE_API_URL is expected to include /api at the end in prod, e.g.
-    // https://bafnatoys-backend-production.up.railway.app/api
     const rawApi = import.meta.env.VITE_API_URL as string | undefined;
 
-    // If VITE_IMAGE_BASE_URL isn't provided, derive it from VITE_API_URL by stripping `/api`
     const rawImage =
       (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ||
       (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) ||
-      (import.meta.env.VITE_MEDIA_URL as string | undefined); // allow your Cloudinary base if you prefer
+      (import.meta.env.VITE_MEDIA_URL as string | undefined);
 
-    const apiBase = trimTrailingSlash(
-      rawApi || "http://localhost:5000/api"
-    );
-    const imageBase = trimTrailingSlash(
-      rawImage || "http://localhost:5000"
-    );
+    const apiBase = trimTrailingSlash(rawApi || "http://localhost:5000/api");
+    const imageBase = trimTrailingSlash(rawImage || "http://localhost:5000");
 
     return { apiBase, imageBase };
   }, []);
@@ -75,8 +71,20 @@ const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
   }
 };
 
-const toInners = (it: Pick<OrderItem, "qty" | "nosPerInner">) => {
-  const perInner = it.nosPerInner && it.nosPerInner > 0 ? it.nosPerInner : 12;
+/**
+ * Convert order item pieces -> inners.
+ * Priority:
+ *  1) if item.inners is present use it (exact snapshot)
+ *  2) else if piecesPerInner present use it: Math.ceil(qty / piecesPerInner)
+ *  3) else if nosPerInner present use it
+ *  4) fallback to 12
+ */
+const toInners = (it: Pick<OrderItem, "qty" | "nosPerInner" | "piecesPerInner" | "inners">) => {
+  if (typeof (it as any).inners === "number" && (it as any).inners >= 0) {
+    return (it as any).inners;
+  }
+  const ppi = (it as any).piecesPerInner ?? (it as any).nosPerInner ?? 12;
+  const perInner = Number(ppi) > 0 ? Number(ppi) : 12;
   return Math.ceil((it.qty || 0) / perInner);
 };
 
@@ -93,9 +101,7 @@ const Orders: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">(
-    "all"
-  );
+  const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">("all");
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -108,29 +114,20 @@ const Orders: React.FC = () => {
         }
 
         const user = JSON.parse(raw);
-        // Ensure we hit .../api/orders (NOT localhost in prod, and no /api/api)
         const url = `${apiBase}/orders`;
 
         const { data } = await axios.get<Order[]>(url, {
           params: { customerId: user._id },
-          // withCredentials optional depending on your auth setup
         });
 
         setOrders(
           Array.isArray(data)
-            ? data.sort(
-                (a, b) =>
-                  new Date(b.createdAt || 0).getTime() -
-                  new Date(a.createdAt || 0).getTime()
-              )
+            ? data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
             : []
         );
       } catch (e: any) {
-        // Network errors won't have a response; keep message friendly
         setError(
-          e?.response?.status === 404
-            ? "No orders found"
-            : "Could not fetch orders. Please try again later."
+          e?.response?.status === 404 ? "No orders found" : "Could not fetch orders. Please try again later."
         );
       } finally {
         setLoading(false);
@@ -144,10 +141,7 @@ const Orders: React.FC = () => {
     setExpandedOrder(expandedOrder === orderId ? null : orderId);
   };
 
-  const filteredOrders =
-    statusFilter === "all"
-      ? orders
-      : orders.filter((order) => order.status === statusFilter);
+  const filteredOrders = statusFilter === "all" ? orders : orders.filter((order) => order.status === statusFilter);
 
   const StatusBadge = ({ status }: { status: Order["status"] }) => {
     const statusMap = {
@@ -189,29 +183,12 @@ const Orders: React.FC = () => {
     return (
       <div className={`order-progress ${cancelled ? "cancelled" : ""}`}>
         {steps.map((step, index) => (
-          <div
-            key={step.id}
-            className={`progress-step ${
-              index <= currentIndex ? "active" : ""
-            } ${index === currentIndex ? "current" : ""}`}
-          >
+          <div key={step.id} className={`progress-step ${index <= currentIndex ? "active" : ""} ${index === currentIndex ? "current" : ""}`}>
             <div className="step-indicator">
-              {cancelled ? (
-                <span>❌</span>
-              ) : index < currentIndex ? (
-                <span>✓</span>
-              ) : (
-                <span>{index + 1}</span>
-              )}
+              {cancelled ? <span>❌</span> : index < currentIndex ? <span>✓</span> : <span>{index + 1}</span>}
             </div>
             <div className="step-label">{step.label}</div>
-            {index < steps.length - 1 && (
-              <div
-                className={`step-connector ${
-                  index < currentIndex ? "active" : ""
-                }`}
-              ></div>
-            )}
+            {index < steps.length - 1 && <div className={`step-connector ${index < currentIndex ? "active" : ""}`}></div>}
           </div>
         ))}
       </div>
@@ -229,13 +206,7 @@ const Orders: React.FC = () => {
           {orders.length > 0 && (
             <div className="orders-filter">
               <label htmlFor="status-filter">Filter by status:</label>
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(e) =>
-                  setStatusFilter(e.target.value as Order["status"] | "all")
-                }
-              >
+              <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as Order["status"] | "all")}>
                 <option value="all">All Orders</option>
                 <option value="pending">Pending</option>
                 <option value="processing">Processing</option>
@@ -261,12 +232,7 @@ const Orders: React.FC = () => {
             </div>
             <h3>Unable to load orders</h3>
             <p>{error}</p>
-            <button
-              className="retry-button"
-              onClick={() => window.location.reload()}
-            >
-              Retry
-            </button>
+            <button className="retry-button" onClick={() => window.location.reload()}>Retry</button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
@@ -281,37 +247,22 @@ const Orders: React.FC = () => {
                 ? "You haven't placed any orders yet. Start shopping to see your orders here."
                 : `You don't have any ${statusFilter} orders.`}
             </p>
-            <a href="/products" className="primary-button">
-              Browse Products
-            </a>
+            <a href="/products" className="primary-button">Browse Products</a>
           </div>
         ) : (
           <div className="orders-list">
             {filteredOrders.map((order) => (
-              <div
-                key={order._id}
-                className={`order-card ${
-                  expandedOrder === order._id ? "expanded" : ""
-                }`}
-              >
-                <div
-                  className="order-summary"
-                  onClick={() => toggleOrder(order._id)}
-                >
+              <div key={order._id} className={`order-card ${expandedOrder === order._id ? "expanded" : ""}`}>
+                <div className="order-summary" onClick={() => toggleOrder(order._id)}>
                   <div className="order-meta">
                     <div>
                       <h3>
-                        Order #
-                        {order.orderNumber ||
-                          order._id.slice(-6).toUpperCase()}
+                        Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
                       </h3>
                       <p className="order-date">
                         Placed on {formatDate(order.createdAt)}
                         {order.estimatedDelivery && (
-                          <span className="delivery-estimate">
-                            • Estimated delivery:{" "}
-                            {formatDate(order.estimatedDelivery)}
-                          </span>
+                          <span className="delivery-estimate"> • Estimated delivery: {formatDate(order.estimatedDelivery)}</span>
                         )}
                       </p>
                     </div>
@@ -322,21 +273,9 @@ const Orders: React.FC = () => {
                     <div className="items-preview">
                       {order.items?.slice(0, 3).map((item, i) => (
                         <div key={i} className="item-preview">
-                          <img
-                            src={resolveImage(item.image)}
-                            alt={item.name}
-                            onError={(e) => {
-                              e.currentTarget.src = "/placeholder-product.png";
-                            }}
-                          />
+                          <img src={resolveImage(item.image)} alt={item.name} onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }} />
                           <span>{item.name}</span>
-                          {i === 2 &&
-                            order.items &&
-                            order.items.length > 3 && (
-                              <span className="item-quantity">
-                                +{order.items.length - 3}
-                              </span>
-                            )}
+                          {i === 2 && order.items && order.items.length > 3 && <span className="item-quantity">+{order.items.length - 3}</span>}
                         </div>
                       ))}
                     </div>
@@ -348,12 +287,7 @@ const Orders: React.FC = () => {
                       </div>
                       <div className="order-total">
                         <span>Total Inners:</span>
-                        <strong>
-                          {order.items?.reduce(
-                            (sum, it) => sum + toInners(it),
-                            0
-                          )}
-                        </strong>
+                        <strong>{order.items?.reduce((sum, it) => sum + toInners(it), 0)}</strong>
                       </div>
 
                       {SHOW_TOTAL && (
@@ -366,21 +300,8 @@ const Orders: React.FC = () => {
                   </div>
 
                   <div className="expand-toggle">
-                    <span>
-                      {expandedOrder === order._id
-                        ? "Show less"
-                        : "Show details"}
-                    </span>
-                    <svg
-                      className="expand-icon"
-                      viewBox="0 0 24 24"
-                      style={{
-                        transform:
-                          expandedOrder === order._id
-                            ? "rotate(180deg)"
-                            : "none",
-                      }}
-                    >
+                    <span>{expandedOrder === order._id ? "Show less" : "Show details"}</span>
+                    <svg className="expand-icon" viewBox="0 0 24 24" style={{ transform: expandedOrder === order._id ? "rotate(180deg)" : "none" }}>
                       <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z" />
                     </svg>
                   </div>
@@ -397,26 +318,14 @@ const Orders: React.FC = () => {
                           {order.items?.map((item, i) => (
                             <div key={i} className="item-detail">
                               <div className="item-image">
-                                <img
-                                  src={resolveImage(item.image)}
-                                  alt={item.name}
-                                  onError={(e) => {
-                                    e.currentTarget.src =
-                                      "/placeholder-product.png";
-                                  }}
-                                />
+                                <img src={resolveImage(item.image)} alt={item.name} onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }} />
                               </div>
                               <div className="item-info">
                                 <h5>{item.name}</h5>
                                 <div className="item-specs">
                                   <span>{item.qty} pieces</span>
                                   <span>•</span>
-                                  <span>{item.nosPerInner || 12} per inner</span>
-                                  <span>•</span>
                                   <span>{toInners(item)} inners</span>
-                                </div>
-                                <div className="item-price">
-                                  ₹{item.price.toFixed(2)}
                                 </div>
                               </div>
                             </div>
@@ -428,10 +337,7 @@ const Orders: React.FC = () => {
                         <h4>Order Summary</h4>
                         <div className="summary-row">
                           <span>Order Number</span>
-                          <span>
-                            {order.orderNumber ||
-                              order._id.slice(-6).toUpperCase()}
-                          </span>
+                          <span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span>
                         </div>
                         <div className="summary-row">
                           <span>Order Date</span>
@@ -447,19 +353,13 @@ const Orders: React.FC = () => {
                             <div className="summary-divider"></div>
                             <div className="summary-row total-row">
                               <span>Total Amount</span>
-                              <span className="grand-total">
-                                ₹{order.total.toFixed(2)}
-                              </span>
+                              <span className="grand-total">₹{order.total.toFixed(2)}</span>
                             </div>
                           </>
                         )}
 
-                        {order.status === "shipped" && (
-                          <button className="track-button">Track Package</button>
-                        )}
-                        {order.status === "delivered" && (
-                          <button className="review-button">Leave Review</button>
-                        )}
+                        {order.status === "shipped" && <button className="track-button">Track Package</button>}
+                        {order.status === "delivered" && <button className="review-button">Leave Review</button>}
                       </div>
                     </div>
                   </div>
