@@ -184,10 +184,10 @@
   .packing-section { order: 2; margin-bottom: 12px; }                /* 4: packing */
   .cart-controls { order: 3; margin-top: auto; }                     /* 5: add to cart */
 
-  .product-sku, .product-category { font-size: 8px; padding: 2px 6px; }
+  .product-sku, .product-category { font-size: 6px; padding: 2px 6px; }
   .tax-field { font-size: 0.7rem; padding: 2px 5px; }
-  .packing-title { font-size: 13px; margin-bottom: 10px; }
-  .pricing-list li { font-size: 12px; margin-bottom: 6px; }
+  .packing-title { font-size: 12px; margin-bottom: 8px; }
+  .pricing-list li { font-size: 10px; margin-bottom: 6px; }
   .add-to-cart-btn { padding: 10px 16px; font-size: 0.95rem; }
   .qty-count { font-size: 1.2rem; }
   .admin-total-price { font-size: 0.9rem; }

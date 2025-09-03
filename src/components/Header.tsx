@@ -1,14 +1,14 @@
 // src/components/Header.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import api, { API_ROOT } from "../utils/api";
 import axios from "axios";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
-const LOGO_IMG = "/logo.png"; // public/ folder
-const API_BASE = "http://localhost:5000";
+const LOGO_IMG = "/logo.png";
 
-// ------------------ Types ------------------
+// Types
 type Suggestion = {
   _id: string;
   name: string;
@@ -17,34 +17,57 @@ type Suggestion = {
   price?: number;
 };
 
+const IMAGE_BASE = (import.meta as any).env?.VITE_IMAGE_BASE_URL || "";
+
+// Build thumbnail URL for suggestions
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
-  if (f.startsWith("http")) return f;
-  if (f.includes("/uploads/")) return `${API_BASE}${f}`;
-  return `${API_BASE}/uploads/${encodeURIComponent(f)}`;
+  if (/^https?:\/\//i.test(f)) return f;
+  // prefer MEDIA/Cloudinary base if configured
+  if (IMAGE_BASE) {
+    const base = IMAGE_BASE.replace(/\/+$/, "");
+    return `${base}/${f.replace(/^\/+/, "")}`;
+  }
+  // handle legacy /uploads/ path
+  if (f.startsWith("/uploads/") || f.includes("/uploads/")) {
+    return `${API_ROOT.replace(/\/+$/, "")}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
+  }
+  return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
-// ------------------ SearchForm ------------------
-const SearchForm = React.forwardRef<HTMLFormElement, {
-  mobile?: boolean;
-  q: string;
-  setQ: React.Dispatch<React.SetStateAction<string>>;
-  onSubmit: (e: React.FormEvent) => void;
-  onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-  openSug: boolean;
-  setOpenSug: React.Dispatch<React.SetStateAction<boolean>>;
-  loadingSug: boolean;
-  sug: Suggestion[];
-  activeIdx: number;
-  setActiveIdx: React.Dispatch<React.SetStateAction<number>>;
-  navigate: ReturnType<typeof useNavigate>;
-}>(({
-  mobile,
-  q, setQ, onSubmit, onKeyDown,
-  openSug, setOpenSug, loadingSug, sug,
-  activeIdx, setActiveIdx, navigate
-}, ref) => {
+const SearchForm = React.forwardRef(function SearchForm(
+  props: {
+    mobile?: boolean;
+    q: string;
+    setQ: React.Dispatch<React.SetStateAction<string>>;
+    onSubmit: (e: React.FormEvent) => void;
+    onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+    openSug: boolean;
+    setOpenSug: React.Dispatch<React.SetStateAction<boolean>>;
+    loadingSug: boolean;
+    sug: Suggestion[];
+    activeIdx: number;
+    setActiveIdx: React.Dispatch<React.SetStateAction<number>>;
+    navigate: ReturnType<typeof useNavigate>;
+  },
+  ref: React.Ref<HTMLFormElement>
+) {
+  const {
+    mobile,
+    q,
+    setQ,
+    onSubmit,
+    onKeyDown,
+    openSug,
+    setOpenSug,
+    loadingSug,
+    sug,
+    activeIdx,
+    setActiveIdx,
+    navigate,
+  } = props;
+
   return (
     <form
       className={`bt-search ${mobile ? "is-mobile" : ""}`}
@@ -72,9 +95,7 @@ const SearchForm = React.forwardRef<HTMLFormElement, {
       {openSug && (
         <div className="bt-suggest" role="listbox">
           {loadingSug && <div className="bt-suggest__loading">Searching…</div>}
-          {!loadingSug && sug.length === 0 && (
-            <div className="bt-suggest__empty">No matches</div>
-          )}
+          {!loadingSug && sug.length === 0 && <div className="bt-suggest__empty">No matches</div>}
           {!loadingSug && sug.length > 0 && (
             <ul className="bt-suggest__list">
               {sug.map((p, idx) => (
@@ -108,9 +129,8 @@ const SearchForm = React.forwardRef<HTMLFormElement, {
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
-              const query = q.trim();
+              const query = (document.querySelector(".bt-search__input") as HTMLInputElement)?.value || "";
               navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
-              setOpenSug(false);
             }}
           >
             See all results
@@ -122,7 +142,6 @@ const SearchForm = React.forwardRef<HTMLFormElement, {
 });
 SearchForm.displayName = "SearchForm";
 
-// ------------------ Header ------------------
 const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -145,13 +164,6 @@ const Header: React.FC = () => {
     setQ(qs);
   }, [location.search]);
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const query = q.trim();
-    navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
-    setOpenSug(false);
-  };
-
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
@@ -160,7 +172,6 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  // fetch suggestions
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -176,24 +187,27 @@ const Header: React.FC = () => {
       }
       setLoadingSug(true);
       try {
-        const { data } = await axios.get(`${API_BASE}/api/products`, {
+        // Use axios instance (api) that points to API_ROOT/api
+        const res = await axios.get(`${API_ROOT.replace(/\/+$/, "")}/api/products`, {
           params: { search: needle, limit: 50 },
         });
         if (!alive) return;
-        const arr: Suggestion[] = Array.isArray(data)
-          ? data
-          : Array.isArray((data as any)?.products)
-          ? (data as any).products
+
+        const arr: Suggestion[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray((res.data as any)?.products)
+          ? (res.data as any).products
           : [];
+
         const n = needle.toLowerCase();
-        const filtered = arr.filter((p) =>
-          (p.name || "").toLowerCase().includes(n) ||
-          (p.sku || "").toLowerCase().includes(n)
+        const filtered = arr.filter(
+          (p) => (p.name || "").toLowerCase().includes(n) || (p.sku || "").toLowerCase().includes(n)
         );
+
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
-      } catch {
+      } catch (err) {
         if (alive) {
           setSug([]);
           setOpenSug(true);
@@ -203,7 +217,7 @@ const Header: React.FC = () => {
         if (alive) setLoadingSug(false);
       }
     };
-    t = setTimeout(run, 250);
+    t = setTimeout(run, 200);
     return () => {
       alive = false;
       clearTimeout(t);
@@ -224,7 +238,13 @@ const Header: React.FC = () => {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // keyboard nav
+  const onSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const query = q.trim();
+    navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+    setOpenSug(false);
+  };
+
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!openSug || (!sug.length && !loadingSug)) return;
     if (e.key === "ArrowDown") {
@@ -237,6 +257,8 @@ const Header: React.FC = () => {
       if (activeIdx >= 0 && sug[activeIdx]) {
         navigate(`/product/${sug[activeIdx]._id}`);
         setOpenSug(false);
+      } else {
+        onSubmit(e as any);
       }
     } else if (e.key === "Escape") {
       setOpenSug(false);
@@ -247,22 +269,11 @@ const Header: React.FC = () => {
   return (
     <header className="bt-header">
       <div className="bt-header__bar">
-        {/* LOGO */}
         <Link to="/" className="bt-logo" aria-label="Go to homepage">
-          <img
-            src={LOGO_IMG}
-            alt="BAFNA TOYS"
-            className="bt-logo__img"
-            onError={(e) => {
-              (e.currentTarget as HTMLImageElement).style.display = "none";
-              const sib = (e.currentTarget.nextSibling as HTMLElement | null);
-              if (sib) sib.classList.add("bt-logo__text--show");
-            }}
-          />
+          <img src={LOGO_IMG} alt="BAFNA TOYS" className="bt-logo__img" />
           <span className="bt-logo__text">Bafna Toys</span>
         </Link>
 
-        {/* SEARCH (desktop) */}
         <SearchForm
           ref={deskRef}
           q={q}
@@ -278,9 +289,10 @@ const Header: React.FC = () => {
           navigate={navigate}
         />
 
-        {/* ACTIONS */}
         <nav className="bt-actions" aria-label="Primary">
-          <Link className="bt-link" to="/login">Login</Link>
+          <Link className="bt-link" to="/login">
+            Login
+          </Link>
 
           <Link className="bt-cart" to="/cart" aria-label={`Cart with ${cartCount} items`}>
             <svg viewBox="0 0 24 24" className="bt-ico">
@@ -295,7 +307,6 @@ const Header: React.FC = () => {
         </nav>
       </div>
 
-      {/* MOBILE SEARCH */}
       <div className="bt-search--mobile">
         <SearchForm
           ref={mobRef}
