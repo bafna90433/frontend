@@ -7,12 +7,11 @@ import "../styles/Orders.css";
 type OrderItem = {
   productId?: string;
   name: string;
-  qty: number; // pieces
-  price: number;
+  qty: number;            // pieces
+  price: number;          // price per piece
   image?: string;
-  nosPerInner?: number;     // legacy (existing DB)
-  piecesPerInner?: number;  // snapshot at order time (preferred)
-  inners?: number;          // optional: how many inners user ordered
+  nosPerInner?: number;   // pieces per inner (optional)
+  inners?: number;        // computed inners (backend may provide)
 };
 
 type Order = {
@@ -23,27 +22,16 @@ type Order = {
   items?: OrderItem[];
   total: number;
   paymentMethod?: string;
-  shippingAddress?: {
-    street: string;
-    city: string;
-    state: string;
-    postalCode: string;
-    country: string;
-  };
   estimatedDelivery?: string;
 };
 
-/** Toggle to show/hide grand totals everywhere */
 const SHOW_TOTAL = false;
 
-/** Utility: trim a single trailing slash */
 const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
 
-/** Resolve API + image bases from Vite envs (with safe fallbacks for local dev) */
 const useBases = () => {
   return useMemo(() => {
     const rawApi = import.meta.env.VITE_API_URL as string | undefined;
-
     const rawImage =
       (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ||
       (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) ||
@@ -59,32 +47,17 @@ const useBases = () => {
 const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
   if (!iso) return "-";
   try {
-    const defaultOptions: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      ...options,
-    };
-    return new Date(iso).toLocaleDateString("en-US", defaultOptions);
+    const defaultOpts: Intl.DateTimeFormatOptions = { year: "numeric", month: "short", day: "numeric", ...options };
+    return new Date(iso).toLocaleDateString("en-US", defaultOpts);
   } catch {
     return iso!;
   }
 };
 
-/**
- * Convert order item pieces -> inners.
- * Priority:
- *  1) if item.inners is present use it (exact snapshot)
- *  2) else if piecesPerInner present use it: Math.ceil(qty / piecesPerInner)
- *  3) else if nosPerInner present use it
- *  4) fallback to 12
- */
-const toInners = (it: Pick<OrderItem, "qty" | "nosPerInner" | "piecesPerInner" | "inners">) => {
-  if (typeof (it as any).inners === "number" && (it as any).inners >= 0) {
-    return (it as any).inners;
-  }
-  const ppi = (it as any).piecesPerInner ?? (it as any).nosPerInner ?? 12;
-  const perInner = Number(ppi) > 0 ? Number(ppi) : 12;
+// compute inners from item. prefer item.inners (backend), else use nosPerInner fallback
+const toInners = (it: Pick<OrderItem, "qty" | "nosPerInner" | "inners">) => {
+  if (it.inners && Number.isFinite(it.inners)) return Number(it.inners);
+  const perInner = it.nosPerInner && it.nosPerInner > 0 ? it.nosPerInner : 12;
   return Math.ceil((it.qty || 0) / perInner);
 };
 
@@ -112,23 +85,12 @@ const Orders: React.FC = () => {
           setLoading(false);
           return;
         }
-
         const user = JSON.parse(raw);
         const url = `${apiBase}/orders`;
-
-        const { data } = await axios.get<Order[]>(url, {
-          params: { customerId: user._id },
-        });
-
-        setOrders(
-          Array.isArray(data)
-            ? data.sort((a, b) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())
-            : []
-        );
+        const { data } = await axios.get<Order[]>(url, { params: { customerId: user._id } });
+        setOrders(Array.isArray(data) ? data.sort((a, b) => (new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime())) : []);
       } catch (e: any) {
-        setError(
-          e?.response?.status === 404 ? "No orders found" : "Could not fetch orders. Please try again later."
-        );
+        setError(e?.response?.status === 404 ? "No orders found" : "Could not fetch orders. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -137,11 +99,9 @@ const Orders: React.FC = () => {
     fetchOrders();
   }, [apiBase]);
 
-  const toggleOrder = (orderId: string) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
-  };
+  const toggleOrder = (orderId: string) => setExpandedOrder(expandedOrder === orderId ? null : orderId);
 
-  const filteredOrders = statusFilter === "all" ? orders : orders.filter((order) => order.status === statusFilter);
+  const filteredOrders = statusFilter === "all" ? orders : orders.filter((o) => o.status === statusFilter);
 
   const StatusBadge = ({ status }: { status: Order["status"] }) => {
     const statusMap = {
@@ -151,7 +111,6 @@ const Orders: React.FC = () => {
       delivered: { color: "#10B981", label: "Delivered", icon: "✅" },
       cancelled: { color: "#EF4444", label: "Cancelled", icon: "❌" },
     } as const;
-
     return (
       <div className="status-badge-container">
         <span
@@ -176,19 +135,15 @@ const Orders: React.FC = () => {
       { id: "shipped", label: "Shipped" },
       { id: "delivered", label: "Delivered" },
     ] as const;
-
-    const currentIndex = steps.findIndex((step) => step.id === status);
+    const currentIndex = steps.findIndex((s) => s.id === status);
     const cancelled = status === "cancelled";
-
     return (
       <div className={`order-progress ${cancelled ? "cancelled" : ""}`}>
-        {steps.map((step, index) => (
-          <div key={step.id} className={`progress-step ${index <= currentIndex ? "active" : ""} ${index === currentIndex ? "current" : ""}`}>
-            <div className="step-indicator">
-              {cancelled ? <span>❌</span> : index < currentIndex ? <span>✓</span> : <span>{index + 1}</span>}
-            </div>
+        {steps.map((step, idx) => (
+          <div key={step.id} className={`progress-step ${idx <= currentIndex ? "active" : ""} ${idx === currentIndex ? "current" : ""}`}>
+            <div className="step-indicator">{cancelled ? <span>❌</span> : idx < currentIndex ? <span>✓</span> : <span>{idx + 1}</span>}</div>
             <div className="step-label">{step.label}</div>
-            {index < steps.length - 1 && <div className={`step-connector ${index < currentIndex ? "active" : ""}`}></div>}
+            {idx < steps.length - 1 && <div className={`step-connector ${idx < currentIndex ? "active" : ""}`}></div>}
           </div>
         ))}
       </div>
@@ -219,34 +174,13 @@ const Orders: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="loading-state">
-            <div className="loading-spinner"></div>
-            <p>Loading your orders...</p>
-          </div>
+          <div className="loading-state"><div className="loading-spinner" /> <p>Loading your orders...</p></div>
         ) : error ? (
-          <div className="error-state">
-            <div className="error-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M11 15h2v2h-2zm0-8h2v6h-2zm1-5C6.47 2 2 6.5 2 12a10 10 0 0 0 10 10a10 10 0 0 0 10-10A10 10 0 0 0 12 2m0 18a8 8 0 0 1-8-8a8 8 0 0 1 8-8a8 8 0 0 1 8 8a8 8 0 0 1-8 8z" />
-              </svg>
-            </div>
-            <h3>Unable to load orders</h3>
-            <p>{error}</p>
-            <button className="retry-button" onClick={() => window.location.reload()}>Retry</button>
-          </div>
+          <div className="error-state"><h3>Unable to load orders</h3><p>{error}</p><button onClick={() => window.location.reload()}>Retry</button></div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-icon">
-              <svg viewBox="0 0 24 24">
-                <path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V19H7v2h10v-2h-4v-3.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2M5 8V7h2v3.82C5.84 10.4 5 9.3 5 8m14 0c0 1.3-.84 2.4-2 2.82V7h2v1z" />
-              </svg>
-            </div>
             <h3>No orders found</h3>
-            <p>
-              {statusFilter === "all"
-                ? "You haven't placed any orders yet. Start shopping to see your orders here."
-                : `You don't have any ${statusFilter} orders.`}
-            </p>
+            <p>{statusFilter === "all" ? "You haven't placed any orders yet." : `You don't have any ${statusFilter} orders.`}</p>
             <a href="/products" className="primary-button">Browse Products</a>
           </div>
         ) : (
@@ -256,15 +190,8 @@ const Orders: React.FC = () => {
                 <div className="order-summary" onClick={() => toggleOrder(order._id)}>
                   <div className="order-meta">
                     <div>
-                      <h3>
-                        Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}
-                      </h3>
-                      <p className="order-date">
-                        Placed on {formatDate(order.createdAt)}
-                        {order.estimatedDelivery && (
-                          <span className="delivery-estimate"> • Estimated delivery: {formatDate(order.estimatedDelivery)}</span>
-                        )}
-                      </p>
+                      <h3>Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}</h3>
+                      <p className="order-date">Placed on {formatDate(order.createdAt)}</p>
                     </div>
                     <StatusBadge status={order.status} />
                   </div>
@@ -273,7 +200,7 @@ const Orders: React.FC = () => {
                     <div className="items-preview">
                       {order.items?.slice(0, 3).map((item, i) => (
                         <div key={i} className="item-preview">
-                          <img src={resolveImage(item.image)} alt={item.name} onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }} />
+                          <img src={resolveImage(item.image)} alt={item.name} onError={(e) => (e.currentTarget.src = "/placeholder-product.png")} />
                           <span>{item.name}</span>
                           {i === 2 && order.items && order.items.length > 3 && <span className="item-quantity">+{order.items.length - 3}</span>}
                         </div>
@@ -281,21 +208,9 @@ const Orders: React.FC = () => {
                     </div>
 
                     <div className="order-totals">
-                      <div className="order-total">
-                        <span>Items:</span>
-                        <strong>{order.items?.length}</strong>
-                      </div>
-                      <div className="order-total">
-                        <span>Total Inners:</span>
-                        <strong>{order.items?.reduce((sum, it) => sum + toInners(it), 0)}</strong>
-                      </div>
-
-                      {SHOW_TOTAL && (
-                        <div className="order-total amount">
-                          <span>Amount:</span>
-                          <strong>₹{order.total.toFixed(2)}</strong>
-                        </div>
-                      )}
+                      <div className="order-total"><span>Items:</span><strong>{order.items?.length}</strong></div>
+                      <div className="order-total"><span>Total Inners:</span><strong>{order.items?.reduce((sum, it) => sum + toInners(it), 0)}</strong></div>
+                      {SHOW_TOTAL && <div className="order-total amount"><span>Amount:</span><strong>₹{order.total.toFixed(2)}</strong></div>}
                     </div>
                   </div>
 
@@ -310,7 +225,6 @@ const Orders: React.FC = () => {
                 {expandedOrder === order._id && (
                   <div className="order-details">
                     <OrderProgress status={order.status} />
-
                     <div className="details-grid">
                       <div className="items-list">
                         <h4>Order Items ({order.items?.length})</h4>
@@ -318,7 +232,7 @@ const Orders: React.FC = () => {
                           {order.items?.map((item, i) => (
                             <div key={i} className="item-detail">
                               <div className="item-image">
-                                <img src={resolveImage(item.image)} alt={item.name} onError={(e) => { e.currentTarget.src = "/placeholder-product.png"; }} />
+                                <img src={resolveImage(item.image)} alt={item.name} onError={(e) => (e.currentTarget.src = "/placeholder-product.png")} />
                               </div>
                               <div className="item-info">
                                 <h5>{item.name}</h5>
@@ -335,29 +249,10 @@ const Orders: React.FC = () => {
 
                       <div className="order-summary-card">
                         <h4>Order Summary</h4>
-                        <div className="summary-row">
-                          <span>Order Number</span>
-                          <span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Order Date</span>
-                          <span>{formatDate(order.createdAt)}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Payment Method</span>
-                          <span>{order.paymentMethod || "Not specified"}</span>
-                        </div>
-
-                        {SHOW_TOTAL && (
-                          <>
-                            <div className="summary-divider"></div>
-                            <div className="summary-row total-row">
-                              <span>Total Amount</span>
-                              <span className="grand-total">₹{order.total.toFixed(2)}</span>
-                            </div>
-                          </>
-                        )}
-
+                        <div className="summary-row"><span>Order Number</span><span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span></div>
+                        <div className="summary-row"><span>Order Date</span><span>{formatDate(order.createdAt)}</span></div>
+                        <div className="summary-row"><span>Payment Method</span><span>{order.paymentMethod || "Not specified"}</span></div>
+                        {SHOW_TOTAL && <><div className="summary-divider" /><div className="summary-row total-row"><span>Total Amount</span><span className="grand-total">₹{order.total.toFixed(2)}</span></div></>}
                         {order.status === "shipped" && <button className="track-button">Track Package</button>}
                         {order.status === "delivered" && <button className="review-button">Leave Review</button>}
                       </div>

@@ -40,28 +40,24 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
 
-  // =============== Helpers ===============
+  // Helpers
   const piecesPerInnerFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
-    const candidate =
-      item.innerQty && item.innerQty > 0
-        ? item.innerQty
-        : bulkPricing[0]?.qty > 0 && bulkPricing[0]?.inner > 0
-        ? bulkPricing[0].qty / bulkPricing[0].inner
-        : 1;
-    // ensure numeric
-    const n = Number(candidate) || 1;
-    return n;
+    if (item.innerQty && item.innerQty > 0) return item.innerQty;
+    if (item.nosPerInner && item.nosPerInner > 0) return item.nosPerInner;
+    if (bulkPricing.length > 0 && bulkPricing[0].qty > 0 && bulkPricing[0].inner > 0) {
+      return bulkPricing[0].qty / bulkPricing[0].inner;
+    }
+    return 1;
   };
 
   const activeUnitPriceFor = (item: any) => {
     const bulkPricing = Array.isArray(item.bulkPricing) ? item.bulkPricing : [];
     const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
     const innerCount = item.quantity || 0;
-    const activeTier =
-      tiers.reduce((m: any, t: any) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price }) ||
-      { price: item.price };
-    return activeTier.price || item.price;
+    if (tiers.length === 0) return item.price || 0;
+    const active = tiers.reduce((m, t) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price });
+    return active?.price ?? item.price ?? 0;
   };
 
   const getItemTotal = (item: any) => {
@@ -76,7 +72,7 @@ const Checkout: React.FC = () => {
   const isPhoneValid = /^\d{10}$/.test(phone);
   const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
-  // =============== Fetch addresses ===============
+  // Fetch saved addresses
   useEffect(() => {
     (async () => {
       setAddrLoading(true);
@@ -116,9 +112,9 @@ const Checkout: React.FC = () => {
     setPhone(a.phone || "");
     setAddress(addrToString(a));
     setManualAddress(false);
-  }, [selectedAddressId]);
+  }, [selectedAddressId, addresses]);
 
-  // =============== Place Order ===============
+  // Place order
   const handlePlaceOrder = async () => {
     if (!manualAddress && selectedAddressId) {
       const a = addresses.find((x) => x._id === selectedAddressId);
@@ -135,19 +131,16 @@ const Checkout: React.FC = () => {
 
     if (!cartItems.length) return alert("Cart is empty.");
 
-    // IMPORTANT: send both pieces (qty), and snapshot fields inners and piecesPerInner
+    // Build items: send qty as PIECES (frontend sends inners * piecesPerInner)
     const items = cartItems.map((i: any) => {
-      const piecesPerInner = piecesPerInnerFor(i);
-      const inners = Number(i.quantity || 0);
-      const qtyPieces = inners * piecesPerInner; // total pieces - backend expects 'qty' as pieces
+      const ppi = piecesPerInnerFor(i);
       return {
         productId: i._id,
         name: i.name,
-        qty: qtyPieces,
+        qty: (i.quantity || 0) * ppi, // pieces
         price: activeUnitPriceFor(i),
-        image: i.image,
-        inners, // how many inners user ordered
-        piecesPerInner, // snapshot of pieces per inner at order time
+        image: i.image || i.images?.[0] || "",
+        nosPerInner: ppi,
       };
     });
 
@@ -164,20 +157,19 @@ const Checkout: React.FC = () => {
     try {
       setPlacing(true);
       const { data } = await api.post("/orders", payload);
-      const on = data?.order?.orderNumber;
+      const on = data?.order?.orderNumber || data?.orderNumber || data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
       setOrderPlaced(true);
       clearCart();
     } catch (err: any) {
       console.error("Order place error:", err);
-      alert(err?.response?.data?.message || "Could not place order. Please try again.");
+      alert(err?.response?.data?.message || err?.message || "Could not place order. Please try again.");
     } finally {
       setPlacing(false);
     }
   };
 
-  // =============== UI ===============
   if (cartItems.length === 0 && !orderPlaced) {
     return <div className="checkout-empty">No items in cart.</div>;
   }
@@ -196,7 +188,6 @@ const Checkout: React.FC = () => {
 
   return (
     <div className="checkout-wrapper two-column">
-      {/* LEFT - Cart items */}
       <div className="checkout-left">
         <h2>Your Order</h2>
         {cartItems.map((item: any) => {
@@ -271,7 +262,6 @@ const Checkout: React.FC = () => {
         })}
       </div>
 
-      {/* RIGHT - Address + Payment */}
       <div className="checkout-right">
         <h2>Shipping & Payment</h2>
 
