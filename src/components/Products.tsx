@@ -1,179 +1,227 @@
-// src/components/ProductCard.tsx
-import React from "react";
-import { useNavigate } from "react-router-dom";
-import "../styles/ProductCard.css";
-import { useShop } from "../context/ShopContext";
-import { API_ROOT, MEDIA_URL } from "../utils/api";
+// src/components/Products.tsx
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import api from "../utils/api";
+import ProductCard from "./ProductCard";
+import "../styles/Products.css";
 
-interface BulkTier {
-  inner: number;
-  qty: number;
-  price: number;
-}
+type BulkTier = { inner: number; qty: number; price: number };
 
-interface Product {
+type Product = {
   _id: string;
   name: string;
   sku?: string;
-  images?: string[];
-  price: number;
+  images?: string[] | string;
+  price?: number;
   innerQty?: number;
-  bulkPricing: BulkTier[];
-  category?: { _id: string; name: string } | string;
+  bulkPricing?: BulkTier[];
+  category?: { _id?: string; name?: string } | string;
   taxFields?: string[];
-}
-
-interface ProductCardProps {
-  product: Product;
-  userRole: "admin" | "customer";
-}
-
-const resolveImageSrc = (imageFile?: string | null) => {
-  if (!imageFile) return null;
-
-  // already absolute
-  if (/^https?:\/\//i.test(imageFile)) return imageFile;
-
-  // If Cloudinary MEDIA_URL is configured and imageFile appears to be a cloud public id or path
-  if (MEDIA_URL) {
-    const base = MEDIA_URL.replace(/\/+$/, "");
-    // If imageFile already contains '/image/upload/' (rare), just prefix MEDIA_URL anyway
-    if (imageFile.includes("/image/upload/")) {
-      return `${base}/${imageFile.replace(/^\/+/, "")}`;
-    }
-    // public_id style e.g. 'bafnatoys/abc.png' or 'folder/name.png'
-    return `${base}/${imageFile.replace(/^\/+/, "")}`;
-  }
-
-  // If backend stored '/uploads/...' return API_ROOT + path
-  if (imageFile.startsWith("/uploads/") || imageFile.includes("/uploads/")) {
-    return `${API_ROOT.replace(/\/+$/, "")}${imageFile.startsWith("/") ? "" : "/"}${imageFile.replace(/^\/+/, "")}`;
-  }
-
-  // fallback to API uploads path
-  return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(imageFile)}`;
+  // allow other fields
+  [k: string]: any;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
-  const { cartItems, setCartItemQuantity } = useShop();
-  const navigate = useNavigate();
-
-  const cartItem = cartItems.find((item: any) => item._id === product._id);
-  const innerCount = cartItem?.quantity ?? 0;
-
-  const sortedTiers = (product.bulkPricing || []).slice().sort((a, b) => a.inner - b.inner);
-
-  const activeTier: BulkTier | undefined =
-    sortedTiers.length > 0
-      ? sortedTiers.reduce((prev, tier) => (innerCount >= tier.inner ? tier : prev), sortedTiers[0])
-      : undefined;
-
-  const piecesPerInner =
-    product.innerQty && product.innerQty > 0
-      ? product.innerQty
-      : sortedTiers.length > 0 && sortedTiers[0].qty > 0
-      ? sortedTiers[0].qty / sortedTiers[0].inner
-      : 1;
-
-  const totalPieces = innerCount * piecesPerInner;
-  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product as any, 1);
+const parseQuery = (search: string) => {
+  const params = new URLSearchParams(search);
+  return {
+    q: params.get("search") || params.get("q") || "",
+    category: params.get("category") || "",
+    page: Number(params.get("page") || "1"),
+    limit: Number(params.get("limit") || "24"),
   };
-  const increase = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product as any, innerCount + 1);
-  };
-  const decrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product as any, Math.max(0, innerCount - 1));
-  };
+};
 
-  const imageFile = product.images?.[0] ?? null;
-  const imageSrc = resolveImageSrc(imageFile);
+const normalizeText = (s: any) => (typeof s === "string" ? s.toLowerCase() : "");
+
+const matchesQuery = (p: Product, q: string) => {
+  if (!q) return true;
+  const n = q.trim().toLowerCase();
+  if (!n) return true;
+
+  // fields to check
+  const checks: string[] = [];
+
+  checks.push(normalizeText(p.name));
+  checks.push(normalizeText(p.sku));
+  if (Array.isArray(p.images)) checks.push(p.images.join(" ").toLowerCase());
+  if (typeof p.category === "string") checks.push(p.category.toLowerCase());
+  if (p.category && typeof p.category === "object" && p.category.name) checks.push(String(p.category.name).toLowerCase());
+
+  // extra: check tags or other textual fields if present
+  if (Array.isArray(p.tags)) checks.push(p.tags.join(" ").toLowerCase());
+  if (p.description) checks.push(String(p.description).toLowerCase());
+
+  return checks.some((c) => c.includes(n));
+};
+
+const cleanProduct = (raw: any): Product => {
+  return {
+    _id: String(raw._id ?? raw.id ?? ""),
+    name: raw.name ?? raw.title ?? "Untitled",
+    sku: raw.sku ?? "",
+    images: Array.isArray(raw.images) ? raw.images : typeof raw.images === "string" ? [raw.images] : [],
+    price: typeof raw.price === "number" ? raw.price : Number(raw.price) || 0,
+    innerQty: raw.innerQty,
+    bulkPricing: Array.isArray(raw.bulkPricing) ? raw.bulkPricing : [],
+    category: raw.category ?? raw.categoryName ?? "",
+    taxFields: Array.isArray(raw.taxFields) ? raw.taxFields : [],
+    ...raw,
+  } as Product;
+};
+
+const Products: React.FC = () => {
+  const location = useLocation();
+  const { q: initialQ, category: initialCategory, page: initialPage, limit: initialLimit } = parseQuery(location.search);
+
+  const [query, setQuery] = useState<string>(initialQ);
+  const [category, setCategory] = useState<string>(initialCategory);
+  const [page, setPage] = useState<number>(initialPage || 1);
+  const [limit] = useState<number>(initialLimit || 24);
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [displayed, setDisplayed] = useState<Product[]>([]);
+  const [total, setTotal] = useState<number | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // keep state in sync when URL changes
+  useEffect(() => {
+    const parsed = parseQuery(location.search);
+    setQuery(parsed.q);
+    setCategory(parsed.category);
+    setPage(parsed.page || 1);
+  }, [location.search]);
+
+  useEffect(() => {
+    let alive = true;
+    const controller = new AbortController();
+
+    const fetchProducts = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const params: Record<string, any> = { limit };
+        if (query && query.trim().length > 0) params.search = query.trim();
+        if (category && category.trim().length > 0) params.category = category.trim();
+        if (page && page > 1) params.page = page;
+
+        // attempt server-side filtering (if backend supports it)
+        const res = await api.get("/products", {
+          params,
+          signal: controller.signal,
+        });
+
+        if (!alive) return;
+
+        // Normalize server response to array of products
+        let arr: any[] = [];
+
+        if (Array.isArray(res.data)) {
+          arr = res.data;
+        } else if (res.data && Array.isArray(res.data.products)) {
+          arr = res.data.products;
+          if (typeof res.data.total === "number") setTotal(res.data.total);
+        } else if (res.data && Array.isArray(res.data.docs)) {
+          arr = res.data.docs;
+          if (typeof res.data.total === "number") setTotal(res.data.total);
+        } else if (res.data && typeof res.data === "object" && res.data.products) {
+          // fallback
+          arr = Array.isArray(res.data.products) ? res.data.products : [];
+        } else {
+          // fallback: try to coerce to [] safely
+          arr = Array.isArray(res.data) ? res.data : [];
+        }
+
+        // Clean items defensively
+        const cleaned = arr.map(cleanProduct);
+
+        // If query exists but server returned many (unfiltered), or server ignored search,
+        // apply client-side filter as a fallback:
+        let filtered = cleaned;
+        if (query && query.trim().length > 0) {
+          // If server respected search, cleaned should already be filtered.
+          // But to be safe, filter client-side as well.
+          filtered = cleaned.filter((p) => matchesQuery(p, query));
+        }
+
+        // If category param is provided, filter for category match too
+        if (category && category.trim().length > 0) {
+          const c = category.trim().toLowerCase();
+          filtered = filtered.filter((p) => {
+            if (!p.category) return false;
+            if (typeof p.category === "string") return p.category.toLowerCase().includes(c);
+            if (typeof p.category === "object" && p.category.name) return String(p.category.name).toLowerCase().includes(c);
+            return false;
+          });
+        }
+
+        setProducts(cleaned);
+        setDisplayed(filtered);
+      } catch (err: any) {
+        if (controller.signal.aborted) return;
+        console.error("Failed to fetch products:", err);
+        setError(err?.response?.data?.message || err?.message || "Failed to load products");
+        setProducts([]);
+        setDisplayed([]);
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+
+    fetchProducts();
+
+    return () => {
+      alive = false;
+      controller.abort();
+    };
+  }, [query, category, page, limit]);
+
+  const heading = query
+    ? `Results for "${query}"`
+    : category
+    ? `Category: ${category}`
+    : "Products";
 
   return (
-    <div className="product-card-item">
-      <div className="product-image-container" onClick={() => navigate(`/product/${product._id}`)}>
-        {imageSrc ? (
-          <img
-            src={imageSrc}
-            alt={product.name}
-            className="product-image"
-            onError={(e) => {
-              // fallback to generic placeholder data URI (prevents 404 fetch to /placeholder-product.png)
-              (e.currentTarget as HTMLImageElement).src =
-                "data:image/svg+xml;utf8," +
-                encodeURIComponent(
-                  `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='400'><rect width='100%' height='100%' fill='#f6f7f8'/><text x='50%' y='50%' fill='#ccc' font-size='24' text-anchor='middle' dy='.3em'>No image</text></svg>`
-                );
-            }}
-          />
-        ) : (
-          <div className="no-image">No Image</div>
-        )}
-      </div>
+    <div className="products-page container" style={{ padding: "24px" }}>
+      <h1 className="page-title">{heading}</h1>
 
-      <div className="product-details">
-        <h3 className="product-name">{product.name}</h3>
+      {loading && <div className="loader">Loading products…</div>}
+      {error && <div className="error">Error: {error}</div>}
 
-        <div className="product-meta">
-          {product.sku && <span className="product-sku">SKU: {product.sku}</span>}
-          {product.category && (
-            <span className="product-category">
-              {typeof product.category === "string" ? product.category : product.category?.name}
-            </span>
-          )}
-        </div>
-
-        {product.taxFields && product.taxFields.length > 0 && (
-          <div className="product-tax-fields">
-            {product.taxFields.map((tax, idx) => (
-              <span key={idx} className="tax-field">
-                {tax}
-              </span>
-            ))}
-          </div>
-        )}
-
-        <div className="packing-section">
-          <h4 className="packing-title">
-            <span className="packing-icon">P</span> Packing & Pricing
-          </h4>
-          <ul className="pricing-list">
-            {sortedTiers.map((tier) => (
-              <li key={tier.inner} className={activeTier && tier.inner === activeTier.inner ? "active-tier-row" : ""}>
-                {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="cart-controls">
-          {innerCount === 0 ? (
-            <button onClick={handleAdd} className="add-to-cart-btn">
-              ADD TO CART
-            </button>
+      {!loading && !error && (
+        <>
+          {displayed.length === 0 ? (
+            <div className="empty">
+              No products found{query ? ` for "${query}"` : ""}{category ? ` in category "${category}"` : ""}.
+            </div>
           ) : (
-            <div className="quantity-selector-wrapper">
-              <div className="quantity-selector">
-                <button onClick={decrease} className="qty-btn">
-                  -
-                </button>
-                <span className="qty-count">{innerCount}</span>
-                <button onClick={increase} className="qty-btn">
-                  +
-                </button>
-              </div>
-              {userRole === "admin" && <div className="admin-total-price">Total: ₹{totalPrice.toLocaleString()}</div>}
+            <div className="products-grid" style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill,minmax(240px,1fr))",
+              gap: "24px"
+            }}>
+              {displayed.map((p) => (
+                <ProductCard key={p._id} product={p} userRole="customer" />
+              ))}
             </div>
           )}
+        </>
+      )}
+
+      {/* Optional pager when server returns total */}
+      {!loading && !error && total !== null && (
+        <div style={{ marginTop: 20, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div>Page {page} of {Math.max(1, Math.ceil((total || displayed.length) / limit))}</div>
+          <div>
+            <button disabled={page <= 1} onClick={() => setPage((s) => Math.max(1, s - 1))}>Prev</button>
+            <button onClick={() => setPage((s) => s + 1)}>Next</button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };
 
-export default ProductCard;
+export default Products;

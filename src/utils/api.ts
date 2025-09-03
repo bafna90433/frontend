@@ -2,49 +2,41 @@
 import axios from "axios";
 
 /**
- * Keep compatibility:
- * - VITE_API_URL may be provided as root (no /api) or may include /api.
- * - Provide both API_ROOT (no /api) and API (with /api) named exports
- * - Provide MEDIA_URL (cloudinary / image base)
- * - Default export is axios instance (baseURL -> API)
+ * Vite env:
+ * - VITE_API_URL may be 'https://host' or 'https://host/api'
+ * - VITE_IMAGE_BASE_URL (optional) is for Cloudinary / CDN base (no trailing slash)
  */
 
-// raw environment value (may be like "https://host" or "https://host/api")
 const RAW = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
 
-// API_ROOT: no trailing slash, and no "/api" suffix
+// API_ROOT: host without trailing slash and without /api suffix
 export const API_ROOT: string = RAW.replace(/\/+$/, "").replace(/\/api\/?$/, "");
 
-// API (with /api)
-export const API: string = `${API_ROOT}/api`;
+// API_URL: full API endpoint (with /api)
+export const API_URL: string = API_ROOT + "/api";
 
-// MEDIA_URL: cloudinary/image base OR fallback to API_ROOT/uploads pattern
+// MEDIA_URL: optional Cloudinary / image base, fallback to API_ROOT/uploads
 export const MEDIA_URL: string =
   (import.meta as any).env?.VITE_IMAGE_BASE_URL ||
-  (import.meta as any).env?.VITE_MEDIA_URL || // if you used VITE_MEDIA_URL earlier
+  (import.meta as any).env?.VITE_MEDIA_URL ||
   `${API_ROOT}/uploads`;
 
-// Backwards compatibility: keep API_URL name if other files already import it
-export const API_URL: string = API; // original behavior: pointed to /api
-
-// Axios instance pointing at the API (/api)
+// Axios instance that front-end should use
 const api = axios.create({
-  baseURL: API,
+  baseURL: API_URL,
   withCredentials: true,
-  headers: {
-    Accept: "application/json",
-  },
+  headers: { Accept: "application/json" },
 });
 
-// optional interceptor: add customer JWT if present
+// Attach JWT token (if present) to requests
 api.interceptors.request.use((config) => {
   try {
     const token = localStorage.getItem("token");
     if (token && config.headers) {
       (config.headers as any).Authorization = `Bearer ${token}`;
     }
-  } catch (e) {
-    // ignore in SSR / env without localStorage
+  } catch {
+    // ignore (e.g. SSR or privacy modes)
   }
   return config;
 });

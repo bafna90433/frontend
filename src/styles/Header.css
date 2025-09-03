@@ -257,3 +257,29 @@
   .bt-logo__img { height: 32px; }
   .bt-logo__text { font-size: 22px; }
 }
+/* ------------------ MY ACCOUNT ------------------ */
+.bt-account {
+  display: inline-flex;
+  align-items: center;
+}
+
+.bt-account__button {
+  background: #f1f1f1;
+  color: #FF6B88;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-weight: 800;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.bt-account__button:hover {
+  background: #FF6B88;   /* same as cart color */
+  color: #fff;
+  box-shadow: var(--shadow-1);
+}

@@ -1,14 +1,12 @@
 // src/components/Header.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import api, { API_ROOT } from "../utils/api";
-import axios from "axios";
+import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
 const LOGO_IMG = "/logo.png";
 
-// Types
 type Suggestion = {
   _id: string;
   name: string;
@@ -17,21 +15,25 @@ type Suggestion = {
   price?: number;
 };
 
-const IMAGE_BASE = (import.meta as any).env?.VITE_IMAGE_BASE_URL || "";
+// IMAGE base detection (Vite env or fallback)
+const IMAGE_BASE =
+  (import.meta as any).env?.VITE_IMAGE_BASE_URL ||
+  (import.meta as any).env?.VITE_MEDIA_URL ||
+  MEDIA_URL ||
+  "";
 
-// Build thumbnail URL for suggestions
+// build thumbnail URL
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
   if (/^https?:\/\//i.test(f)) return f;
-  // prefer MEDIA/Cloudinary base if configured
   if (IMAGE_BASE) {
     const base = IMAGE_BASE.replace(/\/+$/, "");
     return `${base}/${f.replace(/^\/+/, "")}`;
   }
-  // handle legacy /uploads/ path
-  if (f.startsWith("/uploads/") || f.includes("/uploads/")) {
-    return `${API_ROOT.replace(/\/+$/, "")}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
+  if (f.includes("/uploads/")) {
+    const root = API_ROOT.replace(/\/+$/, "");
+    return `${root}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
   }
   return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
@@ -71,7 +73,9 @@ const SearchForm = React.forwardRef(function SearchForm(
   return (
     <form
       className={`bt-search ${mobile ? "is-mobile" : ""}`}
-      onSubmit={onSubmit}
+      onSubmit={(e) => {
+        onSubmit(e);
+      }}
       role="search"
       aria-label={mobile ? "Site search mobile" : "Site search"}
       ref={ref}
@@ -107,8 +111,8 @@ const SearchForm = React.forwardRef(function SearchForm(
                   onMouseEnter={() => setActiveIdx(idx)}
                   onMouseDown={(e) => {
                     e.preventDefault();
-                    navigate(`/product/${p._id}`);
                     setOpenSug(false);
+                    navigate(`/product/${p._id}`);
                   }}
                 >
                   {getThumb(p) ? (
@@ -129,7 +133,8 @@ const SearchForm = React.forwardRef(function SearchForm(
             type="button"
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
-              const query = (document.querySelector(".bt-search__input") as HTMLInputElement)?.value || "";
+              const query = q.trim();
+              setOpenSug(false);
               navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
             }}
           >
@@ -147,7 +152,6 @@ const Header: React.FC = () => {
   const location = useLocation();
   const { cartItems } = useShop();
 
-  // cart count
   const cartCount = useMemo(() => {
     if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce((sum: number, it: any) => {
@@ -164,6 +168,7 @@ const Header: React.FC = () => {
     setQ(qs);
   }, [location.search]);
 
+  // suggestions
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
@@ -172,6 +177,31 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
+  // ---------- USER / AUTH UI ----------
+  const parseUser = (): any | null => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
+
+  const [user, setUser] = useState<any | null>(() => parseUser());
+
+  // update user on storage events (and on custom dispatchEvent("storage") from LoginOTP)
+  useEffect(() => {
+    const onStorage = () => setUser(parseUser());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("user-changed", onStorage as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("user-changed", onStorage as EventListener);
+    };
+  }, []);
+
+  // ---------- SUGGESTIONS FETCH ----------
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -187,10 +217,8 @@ const Header: React.FC = () => {
       }
       setLoadingSug(true);
       try {
-        // Use axios instance (api) that points to API_ROOT/api
-        const res = await axios.get(`${API_ROOT.replace(/\/+$/, "")}/api/products`, {
-          params: { search: needle, limit: 50 },
-        });
+        // use shared api instance (works in prod because baseURL is set there)
+        const res = await api.get("/products", { params: { search: needle, limit: 50 } });
         if (!alive) return;
 
         const arr: Suggestion[] = Array.isArray(res.data)
@@ -207,7 +235,7 @@ const Header: React.FC = () => {
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
-      } catch (err) {
+      } catch {
         if (alive) {
           setSug([]);
           setOpenSug(true);
@@ -224,7 +252,7 @@ const Header: React.FC = () => {
     };
   }, [q]);
 
-  // outside click
+  // outside click closes suggestions
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -241,8 +269,8 @@ const Header: React.FC = () => {
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const query = q.trim();
-    navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
     setOpenSug(false);
+    navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -255,10 +283,12 @@ const Header: React.FC = () => {
       setActiveIdx((i) => (i - 1 < 0 ? sug.length - 1 : i - 1));
     } else if (e.key === "Enter") {
       if (activeIdx >= 0 && sug[activeIdx]) {
-        navigate(`/product/${sug[activeIdx]._id}`);
         setOpenSug(false);
+        navigate(`/product/${sug[activeIdx]._id}`);
       } else {
-        onSubmit(e as any);
+        setOpenSug(false);
+        const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
+        navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
       }
     } else if (e.key === "Escape") {
       setOpenSug(false);
@@ -290,9 +320,23 @@ const Header: React.FC = () => {
         />
 
         <nav className="bt-actions" aria-label="Primary">
-          <Link className="bt-link" to="/login">
-            Login
-          </Link>
+          {/* if logged in show My Account; otherwise show Login */}
+          {user ? (
+            <div className="bt-account">
+              <button
+                className="bt-account__button"
+                onClick={() => navigate("/my-account")}
+                title="Go to My Account"
+                aria-label="My Account"
+              >
+                My Account
+              </button>
+            </div>
+          ) : (
+            <Link className="bt-link" to="/login">
+              Login
+            </Link>
+          )}
 
           <Link className="bt-cart" to="/cart" aria-label={`Cart with ${cartCount} items`}>
             <svg viewBox="0 0 24 24" className="bt-ico">
