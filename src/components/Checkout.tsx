@@ -1,4 +1,3 @@
-// src/components/Checkout.tsx
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
@@ -56,13 +55,16 @@ const Checkout: React.FC = () => {
     const tiers = [...bulkPricing].sort((a, b) => a.inner - b.inner);
     const innerCount = item.quantity || 0;
     if (tiers.length === 0) return item.price || 0;
-    const active = tiers.reduce((m, t) => (innerCount >= t.inner ? t : m), tiers[0] || { inner: 0, price: item.price });
+    const active = tiers.reduce(
+      (m, t) => (innerCount >= t.inner ? t : m),
+      tiers[0] || { inner: 0, price: item.price }
+    );
     return active?.price ?? item.price ?? 0;
   };
 
   const getItemTotal = (item: any) => {
-    const innerCount = item.quantity || 0;
-    const totalPieces = innerCount * piecesPerInnerFor(item);
+    const inners = item.quantity || 0;
+    const totalPieces = inners * piecesPerInnerFor(item);
     const unitPrice = activeUnitPriceFor(item);
     return totalPieces * unitPrice;
   };
@@ -131,16 +133,21 @@ const Checkout: React.FC = () => {
 
     if (!cartItems.length) return alert("Cart is empty.");
 
-    // Build items: send qty as PIECES (frontend sends inners * piecesPerInner)
+    // Build items: send qty (pieces), innerQty, inners
     const items = cartItems.map((i: any) => {
-      const ppi = piecesPerInnerFor(i);
+      const ppi = piecesPerInnerFor(i);       // pieces per inner
+      const inners = i.quantity || 0;         // selected inners
+      const totalPieces = inners * ppi;       // total pieces
+      const unitPrice = activeUnitPriceFor(i);
+
       return {
         productId: i._id,
         name: i.name,
-        qty: (i.quantity || 0) * ppi, // pieces
-        price: activeUnitPriceFor(i),
+        qty: totalPieces,      // ✅ total pieces
+        innerQty: ppi,         // ✅ pieces per inner
+        inners: inners,        // ✅ user selected inners
+        price: unitPrice,      // price per piece
         image: i.image || i.images?.[0] || "",
-        nosPerInner: ppi,
       };
     });
 
@@ -157,14 +164,19 @@ const Checkout: React.FC = () => {
     try {
       setPlacing(true);
       const { data } = await api.post("/orders", payload);
-      const on = data?.order?.orderNumber || data?.orderNumber || data?.order?.orderNumber;
+      const on =
+        data?.order?.orderNumber || data?.orderNumber || data?.order?.orderNumber;
       if (!on) throw new Error("Order number not returned");
       setOrderNumber(on);
       setOrderPlaced(true);
       clearCart();
     } catch (err: any) {
       console.error("Order place error:", err);
-      alert(err?.response?.data?.message || err?.message || "Could not place order. Please try again.");
+      alert(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Could not place order. Please try again."
+      );
     } finally {
       setPlacing(false);
     }
@@ -192,7 +204,7 @@ const Checkout: React.FC = () => {
         <h2>Your Order</h2>
         {cartItems.map((item: any) => {
           const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
-          const innerCount = item.quantity || 0;
+          const inners = item.quantity || 0;
           const piecesPerInner = piecesPerInnerFor(item);
           const unitPrice = activeUnitPriceFor(item);
 
@@ -209,7 +221,9 @@ const Checkout: React.FC = () => {
                   src={imgSrc}
                   alt={item.name}
                   className="checkout-item-big-img"
-                  onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")}
+                  onError={(e) =>
+                    ((e.target as HTMLImageElement).src = "/placeholder.png")
+                  }
                 />
               </div>
               <div className="checkout-item-info">
@@ -225,12 +239,24 @@ const Checkout: React.FC = () => {
                 </div>
 
                 <div className="checkout-item-qty">
-                  <button onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity - 1))}>–</button>
+                  <button
+                    onClick={() =>
+                      setCartItemQuantity(item, Math.max(1, item.quantity - 1))
+                    }
+                  >
+                    –
+                  </button>
                   {item.quantity}
-                  <button onClick={() => setCartItemQuantity(item, item.quantity + 1)}>+</button>
+                  <button
+                    onClick={() => setCartItemQuantity(item, item.quantity + 1)}
+                  >
+                    +
+                  </button>
                 </div>
 
-                <div className="checkout-item-total">Total Inners: {item.quantity}</div>
+                <div className="checkout-item-total">
+                  Total Inners: {inners}
+                </div>
 
                 <table className="bulk-table">
                   <thead>
@@ -243,9 +269,12 @@ const Checkout: React.FC = () => {
                   <tbody>
                     {sortedTiers.map((tier, i) => {
                       const tierQty =
-                        tier.inner > 0 && piecesPerInner > 0 ? tier.inner * piecesPerInner : tier.qty || "-";
+                        tier.inner > 0 && piecesPerInner > 0
+                          ? tier.inner * piecesPerInner
+                          : tier.qty || "-";
                       const nextInner = sortedTiers[i + 1]?.inner ?? Infinity;
-                      const highlight = innerCount >= tier.inner && innerCount < nextInner;
+                      const highlight =
+                        inners >= tier.inner && inners < nextInner;
                       return (
                         <tr key={i} className={highlight ? "highlight" : ""}>
                           <td>{tier.inner}+</td>
@@ -268,13 +297,17 @@ const Checkout: React.FC = () => {
         <section className="ship-address-section">
           <div className="ship-head">
             <b>Select Shipping Address</b>
-            <Link to="/addresses" className="btn-link">Add / Manage</Link>
+            <Link to="/addresses" className="btn-link">
+              Add / Manage
+            </Link>
           </div>
 
           {addrLoading ? (
             <div>Loading addresses…</div>
           ) : addresses.length === 0 ? (
-            <div>No saved addresses. <Link to="/addresses">Add one</Link></div>
+            <div>
+              No saved addresses. <Link to="/addresses">Add one</Link>
+            </div>
           ) : (
             <ul className="addr-radio-list">
               {addresses.map((a) => (
@@ -337,11 +370,19 @@ const Checkout: React.FC = () => {
         <div className="checkout-payments">
           <b>Payment Method:</b>
           <label>
-            <input type="radio" checked={payment === "cod"} onChange={() => setPayment("cod")} />
+            <input
+              type="radio"
+              checked={payment === "cod"}
+              onChange={() => setPayment("cod")}
+            />
             Cash on Delivery
           </label>
           <label>
-            <input type="radio" checked={payment === "online"} disabled />
+            <input
+              type="radio"
+              checked={payment === "online"}
+              disabled
+            />
             Pay Online (Coming Soon)
           </label>
         </div>
