@@ -8,29 +8,53 @@ const Checkout: React.FC = () => {
   const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
   const navigate = useNavigate();
 
-  const [payment] = useState<"cod">("cod"); // sirf COD
+  const [payment] = useState<"cod">("cod");
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
 
-  // Helpers
-  const piecesPerInnerFor = (item: any) => {
-    if (item.innerQty && item.innerQty > 0) return item.innerQty;
-    if (item.nosPerInner && item.nosPerInner > 0) return item.nosPerInner;
-    return 1;
-  };
-
-  const getItemTotal = (item: any) => {
+  // ✅ Calculation like ProductCard
+  const getItemTotalPrice = (item: any) => {
+    const sortedTiers = [...(item.bulkPricing || [])].sort(
+      (a, b) => a.inner - b.inner
+    );
     const inners = item.quantity || 0;
-    const totalPieces = inners * piecesPerInnerFor(item);
-    return totalPieces;
+
+    const activeTier =
+      sortedTiers.length > 0
+        ? sortedTiers.reduce(
+            (prev, tier) => (inners >= tier.inner ? tier : prev),
+            sortedTiers[0]
+          )
+        : null;
+
+    if (!activeTier) return 0;
+
+    const piecesPerInner =
+      item.innerQty && item.innerQty > 0
+        ? item.innerQty
+        : activeTier.qty > 0
+        ? activeTier.qty / activeTier.inner
+        : 1;
+
+    const totalPieces = inners * piecesPerInner;
+
+    return totalPieces * activeTier.price;
   };
 
-  const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
+  // ✅ Totals
+  const totalInners = cartItems.reduce(
+    (sum, item) => sum + (item.quantity || 0),
+    0
+  );
+  const grandTotal = cartItems.reduce(
+    (sum, item) => sum + getItemTotalPrice(item),
+    0
+  );
 
-  // Place order
+  // ✅ Place Order
   const handlePlaceOrder = async () => {
     const raw = localStorage.getItem("user");
     if (!raw) {
@@ -42,17 +66,33 @@ const Checkout: React.FC = () => {
     if (!cartItems.length) return alert("Cart is empty.");
 
     const items = cartItems.map((i: any) => {
-      const ppi = piecesPerInnerFor(i);
-      const inners = i.quantity || 0;
-      const totalPieces = inners * ppi;
+      const sortedTiers = [...(i.bulkPricing || [])].sort(
+        (a, b) => a.inner - b.inner
+      );
+      const activeTier =
+        sortedTiers.length > 0
+          ? sortedTiers.reduce(
+              (prev, tier) => (i.quantity >= tier.inner ? tier : prev),
+              sortedTiers[0]
+            )
+          : null;
+
+      const piecesPerInner =
+        i.innerQty && i.innerQty > 0
+          ? i.innerQty
+          : activeTier && activeTier.inner > 0
+          ? activeTier.qty / activeTier.inner
+          : 1;
+
+      const totalPieces = (i.quantity || 0) * piecesPerInner;
 
       return {
         productId: i._id,
         name: i.name,
         qty: totalPieces,
-        innerQty: ppi,
-        inners: inners,
-        price: i.price || 0, // ✅ backend ke liye bhejna zaroori hai
+        innerQty: piecesPerInner,
+        inners: i.quantity || 0,
+        price: activeTier ? activeTier.price : i.price || 0,
         image: i.image || i.images?.[0] || "",
       };
     });
@@ -60,7 +100,7 @@ const Checkout: React.FC = () => {
     const payload: any = {
       customerId: user._id,
       items,
-      total,
+      total: grandTotal, // still sent to backend
       paymentMethod: "COD",
     };
 
@@ -111,13 +151,20 @@ const Checkout: React.FC = () => {
             (a, b) => a.inner - b.inner
           );
           const inners = item.quantity || 0;
-          const piecesPerInner = piecesPerInnerFor(item);
 
           const imgSrc = item.image?.startsWith("http")
             ? item.image
             : item.image?.includes("/uploads/")
             ? `${MEDIA_URL}${item.image}`
             : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
+
+          const activeTier =
+            sortedTiers.length > 0
+              ? sortedTiers.reduce(
+                  (prev, tier) => (inners >= tier.inner ? tier : prev),
+                  sortedTiers[0]
+                )
+              : null;
 
           return (
             <div key={item._id} className="checkout-item">
@@ -143,7 +190,7 @@ const Checkout: React.FC = () => {
                   </button>
                 </div>
 
-                {/* Fancy Quantity Selector */}
+                {/* Quantity Selector */}
                 <div className="checkout-item-qty fancy-qty">
                   <button
                     className="qty-btn"
@@ -166,32 +213,28 @@ const Checkout: React.FC = () => {
                   Total Inners: {inners}
                 </div>
 
-                {/* Bulk Price Table (without Price column) */}
-                <table className="bulk-table">
-                  <thead>
-                    <tr>
-                      <th>Inner Qty</th>
-                      <th>Total Qty</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedTiers.map((tier, i) => {
-                      const tierQty =
-                        tier.inner > 0 && piecesPerInner > 0
-                          ? tier.inner * piecesPerInner
-                          : tier.qty || "-";
-                      const nextInner = sortedTiers[i + 1]?.inner ?? Infinity;
+                {/* ✅ Packing & Pricing */}
+                <div className="packing-section">
+                  <h4 className="packing-title">
+                    <span className="packing-icon">P</span> Packing & Pricing
+                  </h4>
+                  <ul className="pricing-list">
+                    {sortedTiers.map((tier) => {
                       const highlight =
-                        inners >= tier.inner && inners < nextInner;
+                        activeTier && tier.inner === activeTier.inner;
                       return (
-                        <tr key={i} className={highlight ? "highlight" : ""}>
-                          <td>{tier.inner}+</td>
-                          <td>{tierQty}</td>
-                        </tr>
+                        <li
+                          key={tier.inner}
+                          className={highlight ? "active-tier-row" : ""}
+                        >
+                          {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
+                        </li>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </ul>
+                </div>
+
+                {/* ❌ Total Price hidden */}
               </div>
             </div>
           );
@@ -204,7 +247,8 @@ const Checkout: React.FC = () => {
 
         <div className="checkout-summary">
           <p><b>Total Items:</b> {cartItems.length}</p>
-          <p><b>Total Inners:</b> {total}</p>
+          <p><b>Total Inners:</b> {totalInners}</p>
+          {/* ❌ Grand Total hidden */}
         </div>
 
         <div className="checkout-payments clean-payments">
