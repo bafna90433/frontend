@@ -1,14 +1,19 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import '../styles/BottomNav.css';
+import React from "react";
+import { Link, useLocation } from "react-router-dom";
+import "../styles/BottomNav.css";
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
 
+  // ✅ Agar product details page hai to nav hide karo
+  if (location.pathname.startsWith("/product/")) {
+    return null;
+  }
+
   const navItems = [
     {
-      label: 'Orders',
-      to: '/orders',
+      label: "Orders",
+      to: "/orders",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
@@ -23,8 +28,8 @@ const BottomNav: React.FC = () => {
       )
     },
     {
-      label: 'Shop',
-      to: '/',
+      label: "Shop",
+      to: "/",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
@@ -35,8 +40,8 @@ const BottomNav: React.FC = () => {
       )
     },
     {
-      label: 'My Account',
-      to: '/my-account',
+      label: "My Account",
+      to: "/my-account",
       icon: (
         <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
              stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
@@ -50,14 +55,9 @@ const BottomNav: React.FC = () => {
   ];
 
   const isActivePath = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname === path || location.pathname.startsWith(path + '/');
+    if (path === "/") return location.pathname === "/";
+    return location.pathname === path || location.pathname.startsWith(path + "/");
   };
-
-  // ✅ Show only on home page
-  if (location.pathname !== '/') {
-    return null;
-  }
 
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Bottom Navigation">
@@ -67,9 +67,8 @@ const BottomNav: React.FC = () => {
           <Link
             key={item.to}
             to={item.to}
-            className={`bottom-nav-item${isActive ? ' active' : ''}`}
-            aria-current={isActive ? 'page' : undefined}
-            tabIndex={0}
+            className={`bottom-nav-item${isActive ? " active" : ""}`}
+            aria-current={isActive ? "page" : undefined}
           >
             <div className="icon">{item.icon}</div>
             <div className="label">{item.label}</div>

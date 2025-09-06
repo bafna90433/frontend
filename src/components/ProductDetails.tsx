@@ -1,16 +1,13 @@
-import React, { useEffect, useState } from 'react';
+// src/components/ProductDetails.tsx
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import api from '../utils/api';
 import '../styles/ProductDetails.css';
 import BulkPricingTable, { Tier } from './BulkPricingTable';
-import { FiChevronDown, FiChevronUp, FiShoppingCart } from 'react-icons/fi';
-import { FaPercentage, FaBoxOpen, FaTag } from 'react-icons/fa';
+import { FiShoppingCart } from 'react-icons/fi';
+import { FaBoxOpen, FaTag } from 'react-icons/fa';
 import { useShop } from '../context/ShopContext';
-
-// ✅ floating checkout button
 import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
-
-// ✅ centralized image resolver
 import { getImageUrl } from '../utils/image';
 
 interface BulkTier {
@@ -37,7 +34,11 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [expandedDescription, setExpandedDescription] = useState(false);
+
+  // Swipe detection variables
+  const touchStartX = useRef(0);
+  const touchEndX = useRef(0);
+  const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const { cartItems, addToCart, setCartItemQuantity, removeFromCart } = useShop();
   const navigate = useNavigate();
@@ -62,6 +63,36 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
+  // Handle touch events for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    if (!product?.images || product.images.length <= 1) return;
+
+    const diffX = touchStartX.current - touchEndX.current;
+    const swipeThreshold = 50; // Minimum distance for a swipe
+
+    if (Math.abs(diffX) > swipeThreshold) {
+      if (diffX > 0) {
+        // Swipe left - next image
+        setSelectedImage(prev => 
+          prev === product.images!.length - 1 ? 0 : prev + 1
+        );
+      } else {
+        // Swipe right - previous image
+        setSelectedImage(prev => 
+          prev === 0 ? product.images!.length - 1 : prev - 1
+        );
+      }
+    }
+  };
+
   if (loading)
     return (
       <div className="loading-container">
@@ -73,14 +104,13 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ Robust image resolver (centralized)
+  // ✅ Image resolver
   let baseImage = '';
   if (product.images && product.images.length > 0) {
     baseImage = product.images[selectedImage] || product.image || '';
   } else {
     baseImage = product.image || '';
   }
-
   const imageUrl = getImageUrl(baseImage);
 
   // Bulk pricing logic
@@ -105,19 +135,12 @@ const ProductDetails: React.FC = () => {
       : 1;
 
   const unitPrice = activeTier ? activeTier.price : product.price;
-  const totalQty = (productInCart?.quantity || quantity) * piecesPerInner;
-  const discount = product.price - unitPrice;
-  const showDiscount = discount > 0;
-  const discountPercentage =
-    product.price > 0 ? Math.round((discount / product.price) * 100) : 0;
 
   const tiersForTable: Tier[] = sortedTiers.map((t) => ({
     inner: parseInt(t.inner),
     price: t.price,
     qty: t.qty,
   }));
-
-  const toggleDescription = () => setExpandedDescription((v) => !v);
 
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
@@ -129,13 +152,31 @@ const ProductDetails: React.FC = () => {
   return (
     <>
       <div className="product-details-container">
+        {/* Product Gallery */}
         <div className="product-gallery">
-          <div className="main-image-container">
+          <div 
+            className="main-image-container"
+            ref={imageContainerRef}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             <img src={imageUrl} alt={product.name} className="main-image" />
-            {showDiscount && (
+            {product.price && (
               <div className="discount-badge">
                 <FaTag className="discount-icon" />
-                Save ₹{discount.toFixed(2)}
+                ₹{unitPrice.toFixed(2)}
+              </div>
+            )}
+            {/* Swipe indicators for mobile */}
+            {product.images && product.images.length > 1 && window.innerWidth < 768 && (
+              <div className="swipe-indicators">
+                {product.images.map((_, i) => (
+                  <div 
+                    key={i} 
+                    className={`swipe-dot ${selectedImage === i ? 'active' : ''}`}
+                  />
+                ))}
               </div>
             )}
           </div>
@@ -148,56 +189,22 @@ const ProductDetails: React.FC = () => {
                   alt={`${product.name} thumbnail ${i + 1}`}
                   className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
                   onClick={() => handleSelectImage(i)}
-                  style={{ cursor: 'pointer' }}
                 />
               ))}
             </div>
           )}
         </div>
 
+        {/* Product Info */}
         <div className="product-info">
           <div className="product-header">
             <h1 className="product-title">{product.name}</h1>
             <div className="price-section">
-              <div className="price-row">
-                {showDiscount && (
-                  <span className="original-price">₹{product.price.toFixed(2)}</span>
-                )}
-                <span className={`current-price ${showDiscount ? 'discounted' : ''}`}>
-                  ₹{unitPrice.toFixed(2)}
-                </span>
-                {showDiscount && (
-                  <span className="discount-percentage mobile">
-                    <FaPercentage className="percentage-icon" />
-                    {discountPercentage}% OFF
-                  </span>
-                )}
-              </div>
+              <span className="current-price">₹{unitPrice.toFixed(2)}</span>
             </div>
           </div>
 
-          {product.description && (
-            <div className="description-section">
-              <div className="section-header">
-                <h3 className="section-title">📋 Product Description</h3>
-                <button onClick={toggleDescription} className="toggle-description">
-                  {expandedDescription ? (
-                    <>
-                      Show Less <FiChevronUp className="toggle-icon" />
-                    </>
-                  ) : (
-                    <>
-                      Read More <FiChevronDown className="toggle-icon" />
-                    </>
-                  )}
-                </button>
-              </div>
-              <div className={`description-content ${expandedDescription ? 'expanded' : ''}`}>
-                {product.description}
-              </div>
-            </div>
-          )}
-
+          {/* Bulk Pricing */}
           <div className="bulk-pricing-section">
             <div className="section-header">
               <h3 className="section-title">📊 Bulk Pricing</h3>
@@ -219,6 +226,7 @@ const ProductDetails: React.FC = () => {
             )}
           </div>
 
+          {/* Quantity Section */}
           <div className="quantity-section">
             <h3 className="section-title">🔢 Quantity (Inners)</h3>
             {productInCart ? (
@@ -246,9 +254,6 @@ const ProductDetails: React.FC = () => {
                   >
                     +
                   </button>
-                </div>
-                <div className="total-pieces">
-                  Total: {productInCart.quantity * piecesPerInner} pieces
                 </div>
               </>
             ) : (
@@ -294,13 +299,29 @@ const ProductDetails: React.FC = () => {
               </div>
             )}
           </div>
+
+          {/* Product Description (Shifted Below Buttons) */}
+          {product.description && (
+            <div className="description-section" style={{ marginTop: '1.5rem' }}>
+              <div className="section-header">
+                <h3 className="section-title">📋 Product Description</h3>
+              </div>
+              <div className="description-content expanded">
+                <ul className="description-list">
+                  {product.description
+                    .split('\n')
+                    .filter((line) => line.trim() !== '')
+                    .map((line, idx) => (
+                      <li key={idx}>{line}</li>
+                    ))}
+                </ul>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* spacer so content doesn't sit under the floating button */}
       <div style={{ height: 84 }} />
-
-      {/* ✅ floating checkout button */}
       <FloatingCheckoutButton />
     </>
   );

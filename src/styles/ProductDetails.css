@@ -562,3 +562,36 @@ body {
 .current-price {
   display: none !important;
 }
+/* Add to your ProductDetails.css file */
+
+/* Swipe indicators for mobile */
+.swipe-indicators {
+  position: absolute;
+  bottom: 12px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+}
+
+.swipe-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: rgba(255, 255, 255, 0.6);
+  transition: all 0.3s ease;
+}
+
+.swipe-dot.active {
+  background-color: #fff;
+  transform: scale(1.2);
+}
+
+/* Hide swipe indicators on desktop */
+@media (min-width: 768px) {
+  .swipe-indicators {
+    display: none;
+  }
+}
