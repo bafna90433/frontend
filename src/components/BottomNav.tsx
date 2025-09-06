@@ -5,8 +5,8 @@ import "../styles/BottomNav.css";
 const BottomNav: React.FC = () => {
   const location = useLocation();
 
-  // ✅ Agar product details page hai to nav hide karo
-  if (location.pathname.startsWith("/product/")) {
+  // ✅ Agar current path "/" nahi hai to nav hide karo
+  if (location.pathname !== "/") {
     return null;
   }
 
