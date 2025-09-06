@@ -1,0 +1,40 @@
+.back-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  background: linear-gradient(90deg, #FF6B88, #FF4F70); /* subtle gradient */
+  padding: 14px 0;
+  text-align: center;
+  z-index: 100;
+  display: none; /* hidden on desktop */
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08); /* top shadow */
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+
+.back-text {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.back-text:hover {
+  color: #f0f0f0;
+  transform: translateY(-1px); /* slight lift on hover */
+}
+
+/* ✅ Show only on mobile */
+@media (max-width: 768px) {
+  .back-footer {
+    display: block;
+  }
+}

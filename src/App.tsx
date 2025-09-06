@@ -10,6 +10,7 @@ import Cart from "./components/Cart";
 import Wishlist from "./components/Wishlist";
 import Checkout from "./components/Checkout";
 import BottomNav from "./components/BottomNav";
+import BackFooter from "./components/BackFooter";  // ✅ added
 
 // auth / account
 import { Register } from "./components/Register";
@@ -20,7 +21,7 @@ import Orders from "./components/Orders";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 // products listing / search results
-import Products from "./components/Products"; // ⬅️ added
+import Products from "./components/Products";
 
 // floating WhatsApp
 import WhatsAppButton from "./components/WhatsAppButton";
@@ -40,7 +41,7 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
 
             {/* products */}
-            <Route path="/products" element={<Products />} /> {/* ⬅️ added */}
+            <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetails />} />
 
             {/* cart / checkout */}
@@ -92,6 +93,7 @@ const App: React.FC = () => {
         </main>
 
         <BottomNav />
+        <BackFooter />  {/* ✅ Back button text at bottom */}
         <WhatsAppButton />
       </Router>
     </ShopProvider>
