@@ -54,6 +54,11 @@ const BottomNav: React.FC = () => {
     return location.pathname === path || location.pathname.startsWith(path + '/');
   };
 
+  // ✅ Show only on home page
+  if (location.pathname !== '/') {
+    return null;
+  }
+
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Bottom Navigation">
       {navItems.map((item) => {
