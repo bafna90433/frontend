@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";   // ✅ for redirect
+import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import api, { MEDIA_URL } from "../utils/api";
 import "../styles/Checkout.css";
 
 const Checkout: React.FC = () => {
   const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
-  const navigate = useNavigate();  // ✅ initialize navigate
+  const navigate = useNavigate();
 
   const [payment] = useState<"cod">("cod"); // sirf COD
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -25,7 +25,7 @@ const Checkout: React.FC = () => {
   const getItemTotal = (item: any) => {
     const inners = item.quantity || 0;
     const totalPieces = inners * piecesPerInnerFor(item);
-    return totalPieces; // sirf qty ke liye
+    return totalPieces;
   };
 
   const total = cartItems.reduce((sum, item) => sum + getItemTotal(item), 0);
@@ -34,7 +34,6 @@ const Checkout: React.FC = () => {
   const handlePlaceOrder = async () => {
     const raw = localStorage.getItem("user");
     if (!raw) {
-      // ✅ Agar login nahi hai to direct login page pe bhejo
       navigate("/login");
       return;
     }
@@ -53,6 +52,7 @@ const Checkout: React.FC = () => {
         qty: totalPieces,
         innerQty: ppi,
         inners: inners,
+        price: i.price || 0, // ✅ backend ke liye bhejna zaroori hai
         image: i.image || i.images?.[0] || "",
       };
     });
@@ -107,7 +107,9 @@ const Checkout: React.FC = () => {
       <div className="checkout-left">
         <h2>Your Order</h2>
         {cartItems.map((item: any) => {
-          const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
+          const sortedTiers = [...(item.bulkPricing || [])].sort(
+            (a, b) => a.inner - b.inner
+          );
           const inners = item.quantity || 0;
           const piecesPerInner = piecesPerInnerFor(item);
 
@@ -164,13 +166,12 @@ const Checkout: React.FC = () => {
                   Total Inners: {inners}
                 </div>
 
-                {/* Bulk Price Table (without Unit Price column) */}
+                {/* Bulk Price Table (without Price column) */}
                 <table className="bulk-table">
                   <thead>
                     <tr>
                       <th>Inner Qty</th>
                       <th>Total Qty</th>
-                      {/* Unit Price hidden */}
                     </tr>
                   </thead>
                   <tbody>
@@ -197,7 +198,7 @@ const Checkout: React.FC = () => {
         })}
       </div>
 
-      {/* RIGHT: REDESIGNED CARD */}
+      {/* RIGHT: ORDER SUMMARY */}
       <div className="checkout-right checkout-card">
         <h2 className="checkout-title">Complete Your Order</h2>
 
