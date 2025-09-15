@@ -20,7 +20,8 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [loading, setLoading] = useState(false); // ✅ loader state
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const navigate = useNavigate();
 
   const normalizeTo10 = (raw: string) => {
@@ -28,16 +29,60 @@ export const Register: React.FC = () => {
     return digits.length > 10 ? digits.slice(-10) : digits;
   };
 
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {};
+    
+    if (!form.firmName.trim()) newErrors.firmName = "Firm Name is required";
+    if (!form.shopName.trim()) newErrors.shopName = "Shop Name is required";
+    if (!form.state.trim()) newErrors.state = "State is required";
+    if (!form.city.trim()) newErrors.city = "City is required";
+    if (!form.zip.trim()) newErrors.zip = "Zip Code is required";
+    
+    const phone = normalizeTo10(form.otpMobile);
+    if (phone.length !== 10) newErrors.otpMobile = "Enter a valid 10-digit mobile number";
+    
+    if (!form.visitingCard) newErrors.visitingCard = "Visiting Card is required";
+    else if (form.visitingCard.size > 5 * 1024 * 1024) { // 5MB limit
+      newErrors.visitingCard = "File size should be less than 5MB";
+    } else if (!form.visitingCard.type.startsWith("image/")) {
+      newErrors.visitingCard = "Please upload an image file";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
     if (name === "visitingCard" && files && files.length > 0) {
       setForm((prev) => ({ ...prev, visitingCard: files[0] }));
+      // Clear error when file is selected
+      if (errors.visitingCard) {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors.visitingCard;
+          return newErrors;
+        });
+      }
     } else {
       setForm((prev) => ({ ...prev, [name]: value }));
+      // Clear error when field is filled
+      if (errors[name as keyof typeof errors]) {
+        setErrors(prev => {
+          const newErrors = {...prev};
+          delete newErrors[name];
+          return newErrors;
+        });
+      }
     }
   };
 
   const sendOtp = async () => {
+    if (!validateForm()) {
+      alert("⚠️ Please fix the errors before sending OTP");
+      return;
+    }
+
     try {
       const phone = normalizeTo10(form.otpMobile);
       if (phone.length !== 10) {
@@ -59,9 +104,14 @@ export const Register: React.FC = () => {
   };
 
   const verifyAndRegister = async () => {
+    if (!validateForm()) {
+      alert("⚠️ Please fix the errors before registering");
+      return;
+    }
+
     try {
       const phone = normalizeTo10(form.otpMobile);
-      setLoading(true); // ✅ show loader
+      setLoading(true);
 
       // Verify OTP
       const verifyRes = await axios.post(`${API_BASE}/otp/verify`, { phone, otp });
@@ -86,7 +136,7 @@ export const Register: React.FC = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      setLoading(false); // ✅ hide loader
+      setLoading(false);
 
       if (
         res.data?.alreadyRegistered ||
@@ -100,7 +150,7 @@ export const Register: React.FC = () => {
       alert("🎉 Registration submitted! Your account will be approved by admin within 24 hours.");
       navigate("/login");
     } catch (err: any) {
-      setLoading(false); // ✅ hide loader
+      setLoading(false);
       console.error("Verify/Register Error:", err.response?.data || err.message);
 
       if (
@@ -121,10 +171,20 @@ export const Register: React.FC = () => {
       <h2>Register</h2>
 
       <input name="firmName" placeholder="Firm Name" value={form.firmName} onChange={handleChange} />
+      {errors.firmName && <div className="error">{errors.firmName}</div>}
+      
       <input name="shopName" placeholder="Shop Name" value={form.shopName} onChange={handleChange} />
+      {errors.shopName && <div className="error">{errors.shopName}</div>}
+      
       <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
+      {errors.state && <div className="error">{errors.state}</div>}
+      
       <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
+      {errors.city && <div className="error">{errors.city}</div>}
+      
       <input name="zip" placeholder="Zip Code" value={form.zip} onChange={handleChange} />
+      {errors.zip && <div className="error">{errors.zip}</div>}
+      
       <input
         name="otpMobile"
         placeholder="Enter Mobile (10 digits)"
@@ -132,8 +192,15 @@ export const Register: React.FC = () => {
         onChange={handleChange}
         type="tel"
       />
+      {errors.otpMobile && <div className="error">{errors.otpMobile}</div>}
+      
       <input name="whatsapp" placeholder="WhatsApp Number" value={form.whatsapp} onChange={handleChange} type="tel" />
-      <input name="visitingCard" type="file" onChange={handleChange} />
+      
+      <div className="file-input-container">
+        <label>Visiting Card (Required) *</label>
+        <input name="visitingCard" type="file" onChange={handleChange} accept="image/*" />
+        {errors.visitingCard && <div className="error">{errors.visitingCard}</div>}
+      </div>
 
       {!otpSent ? (
         <button onClick={sendOtp}>Send OTP</button>
@@ -157,7 +224,6 @@ export const Register: React.FC = () => {
         </Link>
       </div>
 
-      {/* ✅ Loader Overlay */}
       {loading && (
         <div className="loader-overlay">
           <div className="loader"></div>
