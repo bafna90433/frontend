@@ -19,7 +19,6 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
-      // Check if user exists
       const { data: user } = await axios.get(`${API_BASE}/registrations/phone/${mobile}`);
       if (!user) {
         alert("❌ Not registered, please register first.");
@@ -32,7 +31,6 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
-      // If registered & approved → send OTP
       const res = await axios.post(`${API_BASE}/otp/send`, { phone: mobile });
       if (res.data.success) {
         setOtpSent(true);
@@ -55,7 +53,6 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
-      // Fetch user details (already confirmed registered in sendOTP, but double-check)
       const { data: user } = await axios.get(`${API_BASE}/registrations/phone/${mobile}`);
       if (!user) {
         alert("❌ Not registered, please register first.");
@@ -67,12 +64,12 @@ const LoginOTP: React.FC = () => {
         return;
       }
 
-      // Save user to localStorage
       localStorage.setItem("user", JSON.stringify(user));
       localStorage.setItem("token", "otp");
       window.dispatchEvent(new Event("storage"));
 
-      navigate("/my-account");
+      // ✅ Redirect to Home Page
+      navigate("/");
     } catch (err) {
       console.error(err);
       alert("❌ OTP verification failed");

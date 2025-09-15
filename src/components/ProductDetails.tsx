@@ -35,13 +35,17 @@ const ProductDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
 
-  // Swipe detection variables
+  // Swipe detection
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
   const { cartItems, addToCart, setCartItemQuantity, removeFromCart } = useShop();
   const navigate = useNavigate();
+
+  // ✅ user approval check
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isApproved = user?.isApproved;
 
   useEffect(() => {
     setLoading(true);
@@ -67,38 +71,23 @@ const ProductDetails: React.FC = () => {
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
-
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
   };
-
   const handleTouchEnd = () => {
     if (!product?.images || product.images.length <= 1) return;
-
     const diffX = touchStartX.current - touchEndX.current;
-    const swipeThreshold = 50; // Minimum distance for a swipe
-
+    const swipeThreshold = 50;
     if (Math.abs(diffX) > swipeThreshold) {
       if (diffX > 0) {
-        // Swipe left - next image
-        setSelectedImage(prev => 
-          prev === product.images!.length - 1 ? 0 : prev + 1
-        );
+        setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1);
       } else {
-        // Swipe right - previous image
-        setSelectedImage(prev => 
-          prev === 0 ? product.images!.length - 1 : prev - 1
-        );
+        setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
       }
     }
   };
 
-  if (loading)
-    return (
-      <div className="loading-container">
-        <p>Loading product details…</p>
-      </div>
-    );
+  if (loading) return <div className="loading-container"><p>Loading product details…</p></div>;
   if (error) return <div className="error-message">{error}</div>;
   if (!product) return <div className="error-message">Product not found</div>;
 
@@ -154,7 +143,7 @@ const ProductDetails: React.FC = () => {
       <div className="product-details-container">
         {/* Product Gallery */}
         <div className="product-gallery">
-          <div 
+          <div
             className="main-image-container"
             ref={imageContainerRef}
             onTouchStart={handleTouchStart}
@@ -162,24 +151,15 @@ const ProductDetails: React.FC = () => {
             onTouchEnd={handleTouchEnd}
           >
             <img src={imageUrl} alt={product.name} className="main-image" />
-            {product.price && (
+
+            {isApproved && product.price && (
               <div className="discount-badge">
                 <FaTag className="discount-icon" />
                 ₹{unitPrice.toFixed(2)}
               </div>
             )}
-            {/* Swipe indicators for mobile */}
-            {product.images && product.images.length > 1 && window.innerWidth < 768 && (
-              <div className="swipe-indicators">
-                {product.images.map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`swipe-dot ${selectedImage === i ? 'active' : ''}`}
-                  />
-                ))}
-              </div>
-            )}
           </div>
+
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
               {product.images.map((img, i) => (
@@ -200,7 +180,11 @@ const ProductDetails: React.FC = () => {
           <div className="product-header">
             <h1 className="product-title">{product.name}</h1>
             <div className="price-section">
-              <span className="current-price">₹{unitPrice.toFixed(2)}</span>
+              {isApproved ? (
+                <span className="current-price">₹{unitPrice.toFixed(2)}</span>
+              ) : (
+                <span className="locked-message">🔒 Price visible after admin approval</span>
+              )}
             </div>
           </div>
 
@@ -213,24 +197,29 @@ const ProductDetails: React.FC = () => {
                 {piecesPerInner} pieces per inner
               </div>
             </div>
-            {tiersForTable.length > 0 ? (
-              <div className="table-responsive">
-                <BulkPricingTable
-                  innerQty={piecesPerInner}
-                  tiers={tiersForTable}
-                  selectedInner={productInCart?.quantity || quantity}
-                />
-              </div>
+
+            {isApproved ? (
+              tiersForTable.length > 0 ? (
+                <div className="table-responsive">
+                  <BulkPricingTable
+                    innerQty={piecesPerInner}
+                    tiers={tiersForTable}
+                    selectedInner={productInCart?.quantity || quantity}
+                  />
+                </div>
+              ) : (
+                <div className="no-bulk-pricing">No bulk pricing tiers available.</div>
+              )
             ) : (
-              <div className="no-bulk-pricing">No bulk pricing tiers available.</div>
+              <p className="locked-message">🔒 Bulk pricing available after admin approval</p>
             )}
           </div>
 
           {/* Quantity Section */}
-          <div className="quantity-section">
-            <h3 className="section-title">🔢 Quantity (Inners)</h3>
-            {productInCart ? (
-              <>
+          {isApproved && (
+            <div className="quantity-section">
+              <h3 className="section-title">🔢 Quantity (Inners)</h3>
+              {productInCart ? (
                 <div className="quantity-controls">
                   <button
                     onClick={() => {
@@ -255,52 +244,52 @@ const ProductDetails: React.FC = () => {
                     +
                   </button>
                 </div>
-              </>
-            ) : (
-              <div className="action-buttons-row">
-                <button
-                  className="add-to-cart-button"
-                  onClick={() => {
-                    addToCart(
-                      {
-                        ...product,
-                        bulkPricing: product.bulkPricing.map((t) => ({
-                          inner: parseInt(t.inner),
-                          qty: t.qty,
-                          price: t.price,
-                        })),
-                      },
-                      quantity
-                    );
-                  }}
-                >
-                  <FiShoppingCart className="cart-icon" />
-                  Add to Cart
-                </button>
-                <button
-                  className="buy-now-button"
-                  onClick={() => {
-                    addToCart(
-                      {
-                        ...product,
-                        bulkPricing: product.bulkPricing.map((t) => ({
-                          inner: parseInt(t.inner),
-                          qty: t.qty,
-                          price: t.price,
-                        })),
-                      },
-                      quantity
-                    );
-                    navigate('/cart');
-                  }}
-                >
-                  🛒 Buy Now
-                </button>
-              </div>
-            )}
-          </div>
+              ) : (
+                <div className="action-buttons-row">
+                  <button
+                    className="add-to-cart-button"
+                    onClick={() => {
+                      addToCart(
+                        {
+                          ...product,
+                          bulkPricing: product.bulkPricing.map((t) => ({
+                            inner: parseInt(t.inner),
+                            qty: t.qty,
+                            price: t.price,
+                          })),
+                        },
+                        quantity
+                      );
+                    }}
+                  >
+                    <FiShoppingCart className="cart-icon" />
+                    Add to Cart
+                  </button>
+                  <button
+                    className="buy-now-button"
+                    onClick={() => {
+                      addToCart(
+                        {
+                          ...product,
+                          bulkPricing: product.bulkPricing.map((t) => ({
+                            inner: parseInt(t.inner),
+                            qty: t.qty,
+                            price: t.price,
+                          })),
+                        },
+                        quantity
+                      );
+                      navigate('/cart');
+                    }}
+                  >
+                    🛒 Buy Now
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Product Description (Shifted Below Buttons) */}
+          {/* Product Description */}
           {product.description && (
             <div className="description-section" style={{ marginTop: '1.5rem' }}>
               <div className="section-header">

@@ -34,6 +34,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
+  // ✅ Check user approval from localStorage
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isApproved = user?.isApproved;
+
   const cartItem = cartItems.find(item => item._id === product._id);
   const innerCount = cartItem?.quantity ?? 0;
 
@@ -109,21 +113,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
           </div>
         )}
 
-        <div className="packing-section">
-          <h4 className="packing-title">
-            <span className="packing-icon">P</span> Packing & Pricing
-          </h4>
-          <ul className="pricing-list">
-            {sortedTiers.map(tier => (
-              <li
-                key={tier.inner}
-                className={activeTier && tier.inner === activeTier.inner ? 'active-tier-row' : ''}
-              >
-                {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
-              </li>
-            ))}
-          </ul>
-        </div>
+        {/* ✅ Price only if user is approved */}
+        {isApproved ? (
+          <div className="packing-section">
+            <h4 className="packing-title">
+              <span className="packing-icon">P</span> Packing & Pricing
+            </h4>
+            <ul className="pricing-list">
+              {sortedTiers.map(tier => (
+                <li
+                  key={tier.inner}
+                  className={activeTier && tier.inner === activeTier.inner ? 'active-tier-row' : ''}
+                >
+                  {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : (
+          <p className="locked-message">🔒 Prices visible after admin approval</p>
+        )}
 
         <div className="cart-controls">
           {innerCount === 0 ? (
@@ -137,7 +146,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
                 <span className="qty-count">{innerCount}</span>
                 <button onClick={increase} className="qty-btn">+</button>
               </div>
-              {userRole === 'admin' && (
+              {userRole === 'admin' && isApproved && (
                 <div className="admin-total-price">
                   Total: ₹{totalPrice.toLocaleString()}
                 </div>
