@@ -15,11 +15,14 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
 
-  // ✅ Calculation like ProductCard
+  // ✅ User check
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isApproved = user?.isApproved === true;
+  const isAdmin = user?.role === "admin";
+
+  // ✅ Calculation
   const getItemTotalPrice = (item: any) => {
-    const sortedTiers = [...(item.bulkPricing || [])].sort(
-      (a, b) => a.inner - b.inner
-    );
+    const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
     const inners = item.quantity || 0;
 
     const activeTier =
@@ -40,19 +43,11 @@ const Checkout: React.FC = () => {
         : 1;
 
     const totalPieces = inners * piecesPerInner;
-
     return totalPieces * activeTier.price;
   };
 
-  // ✅ Totals
-  const totalInners = cartItems.reduce(
-    (sum, item) => sum + (item.quantity || 0),
-    0
-  );
-  const grandTotal = cartItems.reduce(
-    (sum, item) => sum + getItemTotalPrice(item),
-    0
-  );
+  const totalInners = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const grandTotal = cartItems.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
 
   // ✅ Place Order
   const handlePlaceOrder = async () => {
@@ -66,9 +61,7 @@ const Checkout: React.FC = () => {
     if (!cartItems.length) return alert("Cart is empty.");
 
     const items = cartItems.map((i: any) => {
-      const sortedTiers = [...(i.bulkPricing || [])].sort(
-        (a, b) => a.inner - b.inner
-      );
+      const sortedTiers = [...(i.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
       const activeTier =
         sortedTiers.length > 0
           ? sortedTiers.reduce(
@@ -100,7 +93,7 @@ const Checkout: React.FC = () => {
     const payload: any = {
       customerId: user._id,
       items,
-      total: grandTotal, // still sent to backend
+      total: grandTotal,
       paymentMethod: "COD",
     };
 
@@ -147,9 +140,7 @@ const Checkout: React.FC = () => {
       <div className="checkout-left">
         <h2>Your Order</h2>
         {cartItems.map((item: any) => {
-          const sortedTiers = [...(item.bulkPricing || [])].sort(
-            (a, b) => a.inner - b.inner
-          );
+          const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
           const inners = item.quantity || 0;
 
           const imgSrc = item.image?.startsWith("http")
@@ -209,9 +200,7 @@ const Checkout: React.FC = () => {
                   </button>
                 </div>
 
-                <div className="checkout-item-total">
-                  Total Inners: {inners}
-                </div>
+                <div className="checkout-item-total">Total Inners: {inners}</div>
 
                 {/* ✅ Packing & Pricing */}
                 <div className="packing-section">
@@ -227,14 +216,20 @@ const Checkout: React.FC = () => {
                           key={tier.inner}
                           className={highlight ? "active-tier-row" : ""}
                         >
-                          {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
+                          {tier.inner} inner ({tier.qty} pcs) 
+                          {isApproved ? ` ₹${tier.price}/pc` : " 🔒"}
                         </li>
                       );
                     })}
                   </ul>
                 </div>
 
-                {/* ❌ Total Price hidden */}
+                {/* ✅ Show total per product only if approved */}
+                {isApproved && (
+                  <div className="product-line-total">
+                    <b>Line Total:</b> ₹{getItemTotalPrice(item).toLocaleString()}
+                  </div>
+                )}
               </div>
             </div>
           );
@@ -248,7 +243,9 @@ const Checkout: React.FC = () => {
         <div className="checkout-summary">
           <p><b>Total Items:</b> {cartItems.length}</p>
           <p><b>Total Inners:</b> {totalInners}</p>
-          {/* ❌ Grand Total hidden */}
+          {isApproved && (
+            <p><b>Grand Total:</b> ₹{grandTotal.toLocaleString()}</p>
+          )}
         </div>
 
         <div className="checkout-payments clean-payments">

@@ -3,7 +3,7 @@ import { useShop } from "../context/ShopContext";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
 
-interface CartProps {} // userRole removed
+interface CartProps {}
 
 const IMAGE_BASE_URL = "http://localhost:5000/uploads/";
 
@@ -31,6 +31,11 @@ function getItemValues(item: any) {
 const Cart: React.FC<CartProps> = () => {
   const { cartItems, setCartItemQuantity, removeFromCart, clearCart } = useShop();
   const navigate = useNavigate();
+
+  // ✅ user role / approval
+  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const isApproved = user?.isApproved === true;
+  const isAdmin = user?.role === "admin";
 
   if (cartItems.length === 0) {
     return (
@@ -117,9 +122,13 @@ const Cart: React.FC<CartProps> = () => {
                   </div>
 
                   {/* per-piece price */}
-                  <div className="product-price">
-                    ₹{unitPrice.toLocaleString()} <span className="unit">(per pc)</span>
-                  </div>
+                  {isApproved ? (
+                    <div className="product-price">
+                      ₹{unitPrice.toLocaleString()} <span className="unit">(per pc)</span>
+                    </div>
+                  ) : (
+                    <div className="locked-message">🔒 Price after admin approval</div>
+                  )}
 
                   {/* qty controls */}
                   <div className="quantity-controls">
@@ -141,26 +150,28 @@ const Cart: React.FC<CartProps> = () => {
                   </div>
 
                   {/* bulk pricing list */}
-                  <div className="bulk-pricing-list">
-                    {tiers.map((tier: any, i: number) => {
-                      const rowQty = tier.qty ?? tier.inner * piecesPerInner;
-                      const nextInner = tiers[i + 1]?.inner ?? Infinity;
-                      const isActive =
-                        innerCount >= tier.inner && innerCount < nextInner;
+                  {isApproved && (
+                    <div className="bulk-pricing-list">
+                      {tiers.map((tier: any, i: number) => {
+                        const rowQty = tier.qty ?? tier.inner * piecesPerInner;
+                        const nextInner = tiers[i + 1]?.inner ?? Infinity;
+                        const isActive =
+                          innerCount >= tier.inner && innerCount < nextInner;
 
-                      return (
-                        <div
-                          key={i}
-                          className={`bulk-pricing-item${isActive ? " highlight" : ""}`}
-                        >
-                          ₹{tier.price.toLocaleString()} / {tier.inner} inner / {rowQty} nos
-                        </div>
-                      );
-                    })}
-                  </div>
+                        return (
+                          <div
+                            key={i}
+                            className={`bulk-pricing-item${isActive ? " highlight" : ""}`}
+                          >
+                            ₹{tier.price.toLocaleString()} / {tier.inner} inner / {rowQty} nos
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
 
-                {/* TOTAL: now just innerCount, no “pcs” */}
+                {/* TOTAL: innerCount only */}
                 <div className="product-total">
                   <span>Total</span>
                   <div className="total-inners">{innerCount}</div>
@@ -177,6 +188,15 @@ const Cart: React.FC<CartProps> = () => {
             <span>Total Inners</span>
             <span>{totalInnerCount}</span>
           </div>
+
+          {/* ✅ Only approved users (customer + admin) see money totals */}
+          {isApproved && (
+            <div className="summary-row subtotal">
+              <span>Subtotal</span>
+              <span>₹{subtotal.toLocaleString()}</span>
+            </div>
+          )}
+
           <button className="checkout-btn" onClick={() => navigate("/checkout")}>
             Proceed to Checkout
           </button>
