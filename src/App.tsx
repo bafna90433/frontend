@@ -13,7 +13,7 @@ import BottomNav from "./components/BottomNav";
 import BackFooter from "./components/BackFooter";  // ✅ added
 
 // auth / account
-import { Register } from "./components/Register";
+import Register from "./components/Register";   // ✅ fixed (was { Register })
 import MyAccount from "./components/MyAccount";
 import LoginOTP from "./components/LoginOTP";
 import EditProfile from "./components/EditProfile";
@@ -50,7 +50,7 @@ const App: React.FC = () => {
             <Route path="/checkout" element={<Checkout />} />
 
             {/* auth */}
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<Register />} /> {/* ✅ fixed */}
             <Route path="/login" element={<LoginOTP />} />
 
             {/* protected */}

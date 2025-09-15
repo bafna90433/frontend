@@ -3,11 +3,6 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../styles/Register.css";
 
-/** Build API base robustly:
- * - If VITE_API_URL ends with /api, don't add another /api
- * - If it doesn't, append /api
- * - Trim trailing slashes
- */
 const RAW = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
 const API_BASE = RAW.endsWith("/api") ? RAW : `${RAW}/api`;
 
@@ -25,15 +20,14 @@ export const Register: React.FC = () => {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ loader state
   const navigate = useNavigate();
 
-  // Normalize to last 10 digits (handles +91, spaces, dashes, leading 0)
   const normalizeTo10 = (raw: string) => {
     const digits = String(raw || "").replace(/\D/g, "");
     return digits.length > 10 ? digits.slice(-10) : digits;
   };
 
-  // input handle
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target as HTMLInputElement;
     if (name === "visitingCard" && files && files.length > 0) {
@@ -43,58 +37,41 @@ export const Register: React.FC = () => {
     }
   };
 
-  // Send OTP
   const sendOtp = async () => {
     try {
       const phone = normalizeTo10(form.otpMobile);
       if (phone.length !== 10) {
-        alert("⚠️ Enter a valid 10-digit mobile number (you can omit +91/0).");
+        alert("⚠️ Enter a valid 10-digit mobile number.");
         return;
       }
 
-      console.log("Calling OTP send:", `${API_BASE}/otp/send`, { phone });
-
       const res = await axios.post(`${API_BASE}/otp/send`, { phone });
-      console.log("OTP send response:", res.status, res.data);
-
       if (res.data && res.data.success) {
         setOtpSent(true);
-        // Dev helper: server may return OTP if RETURN_OTP_IN_RESPONSE=true
-        if (res.data.otp) {
-          console.log("DEV OTP:", res.data.otp);
-          alert(`✅ OTP sent (dev). OTP: ${res.data.otp}`);
-        } else {
-          alert("✅ OTP sent successfully! Check your SMS.");
-        }
+        alert("✅ OTP sent successfully! Check your SMS.");
       } else {
         alert("❌ Failed to send OTP: " + (res.data?.message || "unknown error"));
       }
     } catch (err: any) {
       console.error("OTP Error:", err.response?.data || err.message);
-      const msg = err.response?.data?.message || err.response?.data || err.message;
-      alert("❌ Failed to send OTP: " + String(msg));
+      alert("❌ Failed to send OTP. Try again.");
     }
   };
 
-  // Verify OTP + Register
   const verifyAndRegister = async () => {
     try {
       const phone = normalizeTo10(form.otpMobile);
+      setLoading(true); // ✅ show loader
 
-      // verify first
-      const verifyRes = await axios.post(`${API_BASE}/otp/verify`, {
-        phone,
-        otp,
-      });
-
-      console.log("OTP verify response:", verifyRes.status, verifyRes.data);
-
+      // Verify OTP
+      const verifyRes = await axios.post(`${API_BASE}/otp/verify`, { phone, otp });
       if (!verifyRes.data?.success) {
+        setLoading(false);
         alert("❌ Invalid OTP");
         return;
       }
 
-      // build form data
+      // Build formData
       const formData = new FormData();
       (Object.entries(form) as [string, any][]).forEach(([key, value]) => {
         if (key === "visitingCard" && value instanceof File) {
@@ -109,13 +86,33 @@ export const Register: React.FC = () => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      console.log("Register response:", res.status, res.data);
+      setLoading(false); // ✅ hide loader
 
-      alert(res.data.message || "🎉 Registration successful!");
+      if (
+        res.data?.alreadyRegistered ||
+        res.data?.message?.includes("already exists")
+      ) {
+        alert("⚠️ This mobile number is already registered. Please login.");
+        navigate("/login");
+        return;
+      }
+
+      alert("🎉 Registration submitted! Your account will be approved by admin within 24 hours.");
       navigate("/login");
     } catch (err: any) {
+      setLoading(false); // ✅ hide loader
       console.error("Verify/Register Error:", err.response?.data || err.message);
-      alert("❌ Something went wrong during registration: " + String(err.response?.data?.message || err.message));
+
+      if (
+        err.response?.data?.message?.includes("already exists") ||
+        err.response?.data?.message?.includes("already registered")
+      ) {
+        alert("⚠️ This mobile number is already registered. Please login.");
+        navigate("/login");
+        return;
+      }
+
+      alert("❌ Registration failed. Please try again later.");
     }
   };
 
@@ -159,6 +156,14 @@ export const Register: React.FC = () => {
           Login
         </Link>
       </div>
+
+      {/* ✅ Loader Overlay */}
+      {loading && (
+        <div className="loader-overlay">
+          <div className="loader"></div>
+          <p>⏳ Please wait, verifying & submitting registration...</p>
+        </div>
+      )}
     </div>
   );
 };
