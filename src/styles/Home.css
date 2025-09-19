@@ -260,3 +260,87 @@
 .home-container {
   padding-bottom: 84px; /* safe space for the floating button */
 }
+/* 🔹 PROFESSIONAL MOBILE CATEGORY SCROLL — SMALL RECT BOXES */
+:root {
+  --cat-1: #2563eb;    /* Deep blue */
+  --cat-2: #0d9488;    /* Teal */
+  --cat-3: #d97706;    /* Amber */
+  --cat-4: #4338ca;    /* Indigo */
+  --cat-5: #059669;    /* Emerald */
+  --cat-6: #7c3aed;    /* Violet */
+  --cat-7: #e11d48;    /* Rose */
+  --cat-text-light: #f8fafc;
+  --cat-bg: #ffffff;
+  --cat-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  --cat-border: #e2e8f0;
+  --cat-hover-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+  --body-bg: #f6f8fb;
+}
+
+.mobile-category-scroll {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-category-scroll {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    gap: 12px;
+    padding: 10px 16px;
+    background: var(--cat-bg);
+    margin-bottom: 20px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x;
+  }
+
+  .mobile-category-scroll::-webkit-scrollbar {
+    display: none;
+  }
+
+  .box-category {
+    min-width: 90px;
+    height: 50px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--cat-text-light);
+    text-align: center;
+    padding: 6px 8px;
+    box-shadow: var(--cat-shadow);
+    flex-shrink: 0;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease,
+      opacity 0.2s ease;
+    border: 1px solid var(--cat-border);
+    scroll-snap-align: center;
+    white-space: nowrap; /* single line text */
+  }
+
+  .box-category:focus {
+    outline: 2px solid var(--cat-1);
+    outline-offset: 2px;
+  }
+
+  .box-category:active,
+  .box-category:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cat-hover-shadow);
+    opacity: 0.96;
+  }
+
+  /* Color rotation */
+  .box-category:nth-child(7n+1) { background: var(--cat-1); }
+  .box-category:nth-child(7n+2) { background: var(--cat-2); }
+  .box-category:nth-child(7n+3) { background: var(--cat-3); }
+  .box-category:nth-child(7n+4) { background: var(--cat-4); }
+  .box-category:nth-child(7n+5) { background: var(--cat-5); }
+  .box-category:nth-child(7n+6) { background: var(--cat-6); }
+  .box-category:nth-child(7n+7) { background: var(--cat-7); }
+}

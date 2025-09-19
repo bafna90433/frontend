@@ -50,7 +50,7 @@
   box-shadow: var(--shadow-2);
 }
 
-/* Areas (like screenshot: 2x2 blocks) */
+/* Areas (Desktop grid) */
 .account-info     { grid-column: span 6; }
 .account-contact  { grid-column: span 6; }
 .account-status   { grid-column: span 6; }
@@ -129,7 +129,73 @@
   padding: 20px 8px;
 }
 
-/* Responsive */
+/* 🔹 Mobile Tabs */
+.account-tabs {
+  display: none;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.account-tabs button {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  background: #f9fafb;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+
+.account-tabs button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #2563eb;
+}
+
+.account-tabs .logout-tab {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+
+.account-tabs .logout-tab:hover {
+  opacity: 0.9;
+}
+
+/* 🔹 Action buttons (mobile only) */
+.account-actions {
+  display: none;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.account-actions .btn-primary {
+  background: #1f8a70;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.account-actions .btn-danger {
+  background: #ef4444;
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.account-actions button:hover {
+  opacity: 0.9;
+}
+
+/* ✅ Responsive */
 @media (max-width: 1100px) {
   .account-info,
   .account-contact,
@@ -140,7 +206,24 @@
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
+  /* Mobile: show tabs + buttons, hide desktop grid */
+  .account-tabs {
+    display: flex;
+  }
+
+  .account-actions {
+    display: flex;
+  }
+
+  .account-grid {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
   .account-container { padding: 18px; }
   .account-title { font-size: 28px; }
   .account-row {

@@ -8,7 +8,6 @@ const Checkout: React.FC = () => {
   const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
   const navigate = useNavigate();
 
-  const [payment] = useState<"cod">("cod");
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [orderNumber, setOrderNumber] = useState<string | null>(null);
   const [placing, setPlacing] = useState(false);
@@ -18,7 +17,6 @@ const Checkout: React.FC = () => {
   // ✅ User check
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved === true;
-  const isAdmin = user?.role === "admin";
 
   // ✅ Calculation
   const getItemTotalPrice = (item: any) => {
@@ -94,7 +92,7 @@ const Checkout: React.FC = () => {
       customerId: user._id,
       items,
       total: grandTotal,
-      paymentMethod: "COD",
+      paymentMethod: "COD", // still backend ke liye fixed
     };
 
     try {
@@ -248,12 +246,7 @@ const Checkout: React.FC = () => {
           )}
         </div>
 
-        <div className="checkout-payments clean-payments">
-          <b>Select Payment</b>
-          <div className="payment-option active">
-            <span>💵 Cash on Delivery</span>
-          </div>
-        </div>
+        {/* ✅ Payment Option Removed */}
 
         <button
           className="checkout-placeorder modern-btn"

@@ -1,8 +1,5 @@
-/* src/styles/Products.css */
-
 /* ---- Theme variables ---- */
-:root{
-  --container-width: 1200px;
+:root {
   --gap: 18px;
   --card-bg: #fff;
   --card-radius: 12px;
@@ -12,54 +9,24 @@
   --thumb-bg: #f4fbff;
 }
 
-/* ---- Page container / header ---- */
+/* ---- Page container ---- */
 .products-page {
-  max-width: var(--container-width);
+  width: 100%;              /* ✅ full width */
+  max-width: 100%;          /* ✅ remove fixed max */
   margin: 20px auto;
   padding: 0 16px;
   box-sizing: border-box;
 }
 
-.products-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  gap: 12px;
-}
-.products-head h1 {
-  margin: 0;
-  font-size: 28px;
-  color: #1b2b3a;
-  font-weight: 800;
-}
-.products-sub {
-  color: #666;
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.products-loading,
-.products-error,
-.products-empty {
-  padding: 24px;
-  text-align: center;
-  color: #666;
-}
-
-/* ---- Grid ----
-   Desktop: 5 columns
-   Tablet:  3 columns
-   Mobile:  2 columns
-*/
+/* ---- Grid ---- */
 .products-grid {
   display: grid;
   gap: var(--gap);
-  /* 5 equal columns on wide screens */
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* ✅ responsive full width */
+  width: 100%;
 }
 
-/* card (small-card) */
+/* ---- Card ---- */
 .small-card {
   background: var(--card-bg);
   border-radius: var(--card-radius);
@@ -76,6 +43,7 @@
   box-shadow: 0 14px 32px rgba(18,38,63,0.08);
 }
 
+/* Thumbnail */
 .small-card-thumb {
   background: var(--thumb-bg);
   height: 160px;
@@ -88,14 +56,12 @@
   padding: 16px;
   box-sizing: border-box;
 }
-
 .small-card-thumb img {
   max-height: 100%;
   max-width: 100%;
   object-fit: contain;
   display: block;
 }
-
 .small-card-noimg {
   width: 100px;
   height: 100px;
@@ -108,6 +74,7 @@
   font-size: 14px;
 }
 
+/* Body */
 .small-card-body {
   padding: 12px;
   display: flex;
@@ -116,7 +83,6 @@
   flex: 1;
   box-sizing: border-box;
 }
-
 .small-card-title {
   font-weight: 700;
   color: #112;
@@ -126,13 +92,11 @@
   margin: 0;
   word-break: break-word;
 }
-
 .small-card-sku {
   font-size: 12px;
   color: var(--muted);
   margin-top: 2px;
 }
-
 .small-card-price {
   margin-top: auto;
   font-weight: 900;
@@ -140,13 +104,13 @@
   font-size: 16px;
 }
 
+/* Actions */
 .small-card-actions {
   display: flex;
   gap: 8px;
   margin-top: 8px;
   align-items: center;
 }
-
 .btn-primary {
   background: var(--accent);
   color: #fff;
@@ -158,11 +122,12 @@
   box-shadow: 0 4px 12px rgba(255,107,136,0.12);
 }
 
-/* subtle utility */
+/* Utility */
 .text-muted { color: var(--muted); font-size: 13px; }
 
-/* ---- Responsiveness ---- */
-/* medium / tablet screens */
+/* ---- Responsive ---- */
+
+/* Tablet screens */
 @media (max-width: 1100px) {
   .products-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -171,25 +136,26 @@
   .small-card-thumb { height: 150px; }
 }
 
-/* small / mobile screens */
+/* Mobile (≤600px) */
 @media (max-width: 600px) {
   .products-page { padding: 0 12px; }
   .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-  .products-head h1 { font-size: 22px; }
   .small-card { min-height: 230px; }
   .small-card-thumb { height: 130px; padding: 12px; }
   .small-card-title { font-size: 14px; }
   .small-card-price { font-size: 15px; }
 }
 
-/* very wide screens: keep container centered and card size pleasant */
-@media (min-width: 1600px) {
-  .products-page { max-width: 1500px; }
+/* Extra small (≤400px → force 2 columns) */
+@media (max-width: 400px) {
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
-/* accessible focus state for clickable card elements */
+/* Accessible focus */
 .small-card:focus-within, .small-card:hover { outline: none; }
 .small-card a:focus, .small-card button:focus {
   box-shadow: 0 0 0 3px rgba(17,34,51,0.06);
