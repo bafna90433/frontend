@@ -25,6 +25,7 @@
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "styled-components": "^6.1.19",
+    "sweetalert2": "^11.23.0",
     "swiper": "^11.2.10"
   },
   "devDependencies": {

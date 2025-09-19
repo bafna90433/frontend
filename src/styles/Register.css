@@ -1,65 +1,80 @@
-/* Register.css */
+/* =============================
+   Register.css – Modern & Clean
+   ============================= */
+
 .register-container {
-  max-width: 500px;
+  max-width: 480px;
   margin: 2rem auto;
   padding: 2rem;
   background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  animation: fadeIn 0.5s ease-in-out;
 }
 
+/* Title */
 .register-container h2 {
   text-align: center;
-  color: #2c3e50;
+  color: #1e293b;
   margin-bottom: 1.5rem;
-  font-size: 2rem;
-  font-weight: 600;
+  font-size: 1.9rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
+/* Input Fields */
 .register-container input {
   width: 100%;
-  padding: 12px 15px;
+  padding: 12px 14px;
   margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  border-radius: 10px;
   font-size: 1rem;
-  transition: all 0.3s ease;
+  background: #f9fafb;
+  transition: all 0.25s ease;
   box-sizing: border-box;
 }
 
 .register-container input:focus {
-  border-color: #3498db;
-  box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+  border-color: #3b82f6;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
   outline: none;
 }
 
+/* File Upload */
 .register-container input[type="file"] {
-  padding: 10px;
-  background: #f8f9fa;
-  border: 1px dashed #ccc;
+  padding: 14px;
+  border: 2px dashed #cbd5e1;
+  background: #f8fafc;
   text-align: center;
   cursor: pointer;
+  transition: background 0.25s ease;
 }
 
 .register-container input[type="file"]:hover {
-  background: #e9ecef;
+  background: #f1f5f9;
 }
 
+/* OTP Field */
 .register-container .otp {
   letter-spacing: 10px;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   text-align: center;
-  padding: 12px 5px;
+  padding: 14px 10px;
+  background: #fdfdfd;
+  font-weight: 600;
 }
 
+/* Buttons */
 .register-container button {
   width: 100%;
-  padding: 12px;
-  background: #3498db;
-  color: white;
+  padding: 14px;
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #fff;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
@@ -68,88 +83,73 @@
 }
 
 .register-container button:hover {
-  background: #2980b9;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
 }
 
 .register-container button:active {
   transform: translateY(0);
+  box-shadow: none;
 }
 
-#recaptcha-container {
-  display: flex;
-  justify-content: center;
-  margin: 1rem 0;
+/* Error Text */
+.error {
+  color: #dc2626;
+  font-size: 0.85rem;
+  margin: -0.5rem 0 0.8rem 0;
+  font-weight: 500;
 }
 
-/* Responsive adjustments */
-@media (max-width: 600px) {
-  .register-container {
-    margin: 1rem;
-    padding: 1.5rem;
-  }
-  
-  .register-container h2 {
-    font-size: 1.5rem;
-  }
+/* Divider */
+.divider {
+  text-align: center;
+  margin: 1.8rem 0 1rem;
+  position: relative;
 }
 
-/* Animation for form elements */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.divider span {
+  background: #fff;
+  padding: 0 10px;
+  color: #64748b;
+  font-size: 0.9rem;
+  position: relative;
+  z-index: 1;
 }
 
-.register-container input,
-.register-container button {
-  animation: fadeIn 0.5s ease forwards;
+.divider::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: 1px;
+  width: 100%;
+  background: #e2e8f0;
+  z-index: 0;
 }
 
-/* Staggered animations for form elements */
-.register-container input:nth-child(1) { animation-delay: 0.1s; }
-.register-container input:nth-child(2) { animation-delay: 0.2s; }
-.register-container input:nth-child(3) { animation-delay: 0.3s; }
-.register-container input:nth-child(4) { animation-delay: 0.4s; }
-.register-container input:nth-child(5) { animation-delay: 0.5s; }
-.register-container input:nth-child(6) { animation-delay: 0.6s; }
-.register-container input:nth-child(7) { animation-delay: 0.7s; }
-.register-container input:nth-child(8) { animation-delay: 0.8s; }
-.register-container button { animation-delay: 0.9s; }
-
-/* Style for the OTP section */
-.register-container .otp-section {
-  margin-top: 1.5rem;
-  padding-top: 1.5rem;
-  border-top: 1px solid #eee;
-  animation: fadeIn 0.5s ease forwards;
-  animation-delay: 1s;
-}
+/* Loader */
 .loader-overlay {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.85);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   z-index: 9999;
+  backdrop-filter: blur(4px);
 }
 
 .loader {
   border: 6px solid #f3f3f3;
-  border-top: 6px solid #007bff;
+  border-top: 6px solid #2563eb;
   border-radius: 50%;
-  width: 50px;
-  height: 50px;
+  width: 54px;
+  height: 54px;
   animation: spin 1s linear infinite;
   margin-bottom: 12px;
 }
@@ -157,4 +157,21 @@
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .register-container {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  .register-container h2 {
+    font-size: 1.5rem;
+  }
 }
