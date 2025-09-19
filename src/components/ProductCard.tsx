@@ -27,34 +27,58 @@ interface ProductCardProps {
 }
 
 // ✅ API and Image Base
-const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
-const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL =
+  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+
+// ✅ Helper for Cloudinary Optimization
+const getOptimizedImageUrl = (url: string, width = 400) => {
+  if (!url) return "";
+
+  // Cloudinary case
+  if (url.includes("res.cloudinary.com")) {
+    return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
+  }
+
+  // Normal server path
+  if (url.startsWith("http")) return url;
+  if (url.includes("/uploads/")) return `${API_BASE}${url}`;
+
+  return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
+};
 
 const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
-  // ✅ Check user approval from localStorage
+  // ✅ Check user approval
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
 
-  const cartItem = cartItems.find(item => item._id === product._id);
+  const cartItem = cartItems.find((item) => item._id === product._id);
   const innerCount = cartItem?.quantity ?? 0;
 
   const sortedTiers = [...product.bulkPricing].sort((a, b) => a.inner - b.inner);
 
-  const activeTier: BulkTier | undefined = sortedTiers.length > 0
-    ? sortedTiers.reduce((prev, tier) => (innerCount >= tier.inner ? tier : prev), sortedTiers[0])
-    : undefined;
+  const activeTier: BulkTier | undefined =
+    sortedTiers.length > 0
+      ? sortedTiers.reduce(
+          (prev, tier) => (innerCount >= tier.inner ? tier : prev),
+          sortedTiers[0]
+        )
+      : undefined;
 
-  const piecesPerInner = product.innerQty && product.innerQty > 0
-    ? product.innerQty
-    : sortedTiers.length > 0 && sortedTiers[0].qty > 0
+  const piecesPerInner =
+    product.innerQty && product.innerQty > 0
+      ? product.innerQty
+      : sortedTiers.length > 0 && sortedTiers[0].qty > 0
       ? sortedTiers[0].qty / sortedTiers[0].inner
       : 1;
 
   const totalPieces = innerCount * piecesPerInner;
-  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
+  const totalPrice =
+    totalPieces * (activeTier ? activeTier.price : product.price);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,15 +93,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
-  // ✅ Image URL handling
+  // ✅ Optimized Image URL
   const imageFile = product.images?.[0] ?? null;
-  const imageSrc = imageFile
-    ? (imageFile.startsWith('http')
-        ? imageFile
-        : imageFile.includes('/uploads/')
-          ? `${API_BASE}${imageFile}`
-          : `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(imageFile)}`)
-    : null;
+  const imageSrc = imageFile ? getOptimizedImageUrl(imageFile, 400) : null;
 
   return (
     <div className="product-card-item">
@@ -85,10 +103,18 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
         className="product-image-container"
         onClick={() => navigate(`/product/${product._id}`)}
       >
-        {imageSrc
-          ? <img src={imageSrc} alt={product.name} className="product-image" />
-          : <div className="no-image">No Image</div>
-        }
+        {imageSrc ? (
+          <img
+            src={imageSrc}
+            alt={product.name}
+            className="product-image"
+            width="400"
+            height="400"
+            loading="lazy"
+          />
+        ) : (
+          <div className="no-image">No Image</div>
+        )}
       </div>
 
       <div className="product-details">
@@ -98,7 +124,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
           {product.sku && <span className="product-sku">SKU: {product.sku}</span>}
           {product.category && (
             <span className="product-category">
-              {typeof product.category === 'string'
+              {typeof product.category === "string"
                 ? product.category
                 : product.category?.name}
             </span>
@@ -108,7 +134,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
         {product.taxFields && product.taxFields.length > 0 && (
           <div className="product-tax-fields">
             {product.taxFields.map((tax, idx) => (
-              <span key={idx} className="tax-field">{tax}</span>
+              <span key={idx} className="tax-field">
+                {tax}
+              </span>
             ))}
           </div>
         )}
@@ -120,10 +148,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
               <span className="packing-icon">P</span> Packing & Pricing
             </h4>
             <ul className="pricing-list">
-              {sortedTiers.map(tier => (
+              {sortedTiers.map((tier) => (
                 <li
                   key={tier.inner}
-                  className={activeTier && tier.inner === activeTier.inner ? 'active-tier-row' : ''}
+                  className={
+                    activeTier && tier.inner === activeTier.inner
+                      ? "active-tier-row"
+                      : ""
+                  }
                 >
                   {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
                 </li>
@@ -131,7 +163,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
             </ul>
           </div>
         ) : (
-          <p className="locked-message">🔒 Prices visible after admin approval</p>
+          <p className="locked-message">
+            🔒 Prices visible after admin approval
+          </p>
         )}
 
         <div className="cart-controls">
@@ -142,11 +176,15 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
           ) : (
             <div className="quantity-selector-wrapper">
               <div className="quantity-selector">
-                <button onClick={decrease} className="qty-btn">-</button>
+                <button onClick={decrease} className="qty-btn">
+                  -
+                </button>
                 <span className="qty-count">{innerCount}</span>
-                <button onClick={increase} className="qty-btn">+</button>
+                <button onClick={increase} className="qty-btn">
+                  +
+                </button>
               </div>
-              {userRole === 'admin' && isApproved && (
+              {userRole === "admin" && isApproved && (
                 <div className="admin-total-price">
                   Total: ₹{totalPrice.toLocaleString()}
                 </div>

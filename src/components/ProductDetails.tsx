@@ -93,14 +93,14 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ Image resolver
+  // ✅ Main Image (optimized)
   let baseImage = '';
   if (product.images && product.images.length > 0) {
     baseImage = product.images[selectedImage] || product.image || '';
   } else {
     baseImage = product.image || '';
   }
-  const imageUrl = getImageUrl(baseImage);
+  const imageUrl = getImageUrl(baseImage, 800); // 🔥 request optimized 800px wide image
 
   // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -150,7 +150,14 @@ const ProductDetails: React.FC = () => {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
-            <img src={imageUrl} alt={product.name} className="main-image" />
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className="main-image"
+              width="800"
+              height="800"
+              loading="lazy"
+            />
 
             {isApproved && product.price && (
               <div className="discount-badge">
@@ -165,9 +172,12 @@ const ProductDetails: React.FC = () => {
               {product.images.map((img, i) => (
                 <img
                   key={i}
-                  src={getImageUrl(img)}
+                  src={getImageUrl(img, 150)} // 🔥 optimized thumbnail
                   alt={`${product.name} thumbnail ${i + 1}`}
                   className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                  width="150"
+                  height="150"
+                  loading="lazy"
                   onClick={() => handleSelectImage(i)}
                 />
               ))}
