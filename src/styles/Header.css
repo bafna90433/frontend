@@ -296,8 +296,8 @@
 .bt-cat-scroll {
   display: flex;
   overflow-x: auto;
-  gap: 20px;
-  padding: 10px 14px;
+  gap: 8px;                      /* boxes ke beech gap chhota */
+  padding: 8px 10px;             /* overall padding compact */
   background: #fff;
   border-bottom: 1px solid var(--line);
   scrollbar-width: none;
@@ -305,34 +305,34 @@
 .bt-cat-scroll::-webkit-scrollbar {
   display: none;
 }
+
+/* Each category as a small box */
 .bt-cat-item {
   flex: 0 0 auto;
-  border: none;
-  background: none;
-  font-size: 12px;
-  font-weight: 400;
+  border: 1px solid var(--line);
+  background: #f9f9f9;
+  font-size: 11px;               /* ✅ smaller text */
+  font-weight: 500;
   color: #444;
-  padding: 0;
+  padding: 6px 10px;             /* ✅ smaller box */
   cursor: pointer;
-  position: relative;
-  transition: color 0.2s ease;
+  border-radius: 6px;            /* thoda chhota radius */
+  transition: all 0.2s ease;
+  white-space: nowrap;
 }
 .bt-cat-item:hover {
+  background: #ffeff4;
+  border-color: #ff6b88;
   color: #ff6b88;
 }
 .bt-cat-item.is-active {
+  background: #ff6b88;
+  border-color: #ff6b88;
+  color: #fff;
   font-weight: 600;
-  color: #000;
 }
 .bt-cat-item.is-active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 3px;
-  background: #ff6b88;
-  border-radius: 2px;
+  content: none;
 }
 
 /* Hide on PC */
@@ -341,9 +341,82 @@
     display: none;
   }
 }
+
 /* Show only on mobile/tablet */
 @media (max-width: 1024px) {
   .bt-cat-scroll {
     display: flex;
   }
+}
+/* ------------------ MOBILE HEADER ENHANCEMENTS ------------------ */
+@media (max-width: 768px) {
+  .bt-header__bar {
+    grid-template-columns: auto auto; /* logo + cart */
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+  }
+
+  /* Logo text red (jaise screenshot me) */
+  .bt-logo__text {
+    display: inline-block;
+    font-size: 22px;
+    font-weight: 900;
+    color: #e63946;  /* 🔴 red brand */
+    margin-left: 6px;
+  }
+
+  /* Search bar neeche full width */
+  .bt-search--mobile {
+    display: block;
+    padding: 8px 12px 12px;
+    background: #fff;
+  }
+  .bt-search.is-mobile {
+    display: flex;
+    width: 100%;
+  }
+  .bt-search__input {
+    font-size: 14px;
+    padding: 10px;
+  }
+  .bt-search__btn {
+    font-size: 14px;
+    width: 70px;
+  }
+
+  /* Cart compact */
+  .bt-cart {
+    padding: 6px 10px;
+    background: none;
+    color: #444;
+  }
+  .bt-cart__badge {
+    top: -4px;
+    right: -4px;
+    background: #ffbd2b;
+    font-weight: 700;
+  }
+
+  /* Category scroll compact */
+  .bt-cat-scroll {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+  .bt-cat-item {
+    font-size: 12px;
+    padding: 5px 9px;
+    border-radius: 6px;
+  }
+}
+.bt-logo__text {
+  display: none;
+  font-family: 'Poppins','Nunito','Arial Rounded MT Bold', system-ui, sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: .3px;
+  color: var(--hdr-text);
+}
+.bt-logo__text--show {
+  display: inline-block;
 }

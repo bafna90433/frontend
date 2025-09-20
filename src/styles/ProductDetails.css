@@ -595,3 +595,10 @@ body {
     display: none;
   }
 }
+.description-content {
+  color: var(--text);
+  line-height: 1.6;
+  font-size: 0.9rem;
+  max-height: none !important;   /* crop hata diya */
+  overflow: visible !important;  /* pura text dikhne do */
+}
