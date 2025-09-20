@@ -1,4 +1,3 @@
-// src/components/Home.tsx
 import React, { useEffect, useState } from "react";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
@@ -42,7 +41,7 @@ const Home: React.FC = () => {
 
         const [catRes, prodRes, bannerRes] = await Promise.all([
           api.get("/categories"),
-          api.get("/products", { params: { limit: 100 } }), // ✅ limit added
+          api.get("/products"),
           api.get("/banners"),
         ]);
 
@@ -65,7 +64,7 @@ const Home: React.FC = () => {
         console.error("Fetch error:", err);
         setError(
           err.response?.data?.message ||
-            "⚠️ Failed to load products. Please try again later."
+            "Failed to load products. Please try again later."
         );
       } finally {
         setLoading(false);
@@ -85,28 +84,8 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      {/* 🔹 Banner slider */}
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* 🔹 Mobile Category Scroll */}
-      {categories.length > 0 && (
-        <div className="mobile-category-scroll">
-          {categories.map((cat) => (
-            <button
-              key={cat._id}
-              className="box-category"
-              onClick={() => {
-                const el = document.getElementById(`cat-${cat._id}`);
-                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-              }}
-            >
-              {cat.name}
-            </button>
-          ))}
-        </div>
-      )}
-
-      {/* 🔹 Content (loading skeleton vs data) */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
@@ -147,7 +126,7 @@ const Home: React.FC = () => {
                 ))}
                 {items.length === 0 && (
                   <div className="empty-category-message">
-                    🚫 No products in this category
+                    No products in this category
                   </div>
                 )}
               </div>
@@ -155,10 +134,9 @@ const Home: React.FC = () => {
           );
         })
       ) : (
-        <div className="empty-category-message">📦 No categories available</div>
+        <div className="empty-category-message">No categories available</div>
       )}
 
-      {/* Floating Checkout Button */}
       <div style={{ height: 72 }} />
       <FloatingCheckoutButton />
     </div>

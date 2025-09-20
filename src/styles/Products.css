@@ -6,13 +6,12 @@
   --shadow-1: 0 8px 20px rgba(18,38,63,0.04);
   --accent: #ff6b88;
   --muted: #8b99a9;
-  --thumb-bg: #f4fbff;
 }
 
 /* ---- Page container ---- */
 .products-page {
-  width: 100%;              /* ✅ full width */
-  max-width: 100%;          /* ✅ remove fixed max */
+  width: 100%;
+  max-width: 100%;
   margin: 20px auto;
   padding: 0 16px;
   box-sizing: border-box;
@@ -22,7 +21,7 @@
 .products-grid {
   display: grid;
   gap: var(--gap);
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* ✅ responsive full width */
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   width: 100%;
 }
 
@@ -43,24 +42,25 @@
   box-shadow: 0 14px 32px rgba(18,38,63,0.08);
 }
 
-/* Thumbnail */
+/* Thumbnail (no border, larger image) */
 .small-card-thumb {
-  background: var(--thumb-bg);
-  height: 160px;
+  background: transparent;
+  height: 220px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: none;
   width: 100%;
   cursor: pointer;
-  padding: 16px;
+  padding: 0;
   box-sizing: border-box;
 }
 .small-card-thumb img {
-  max-height: 100%;
-  max-width: 100%;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   display: block;
+  border: none;
+  border-radius: 0;
 }
 .small-card-noimg {
   width: 100px;
@@ -133,17 +133,18 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .small-card { min-height: 260px; }
-  .small-card-thumb { height: 150px; }
+  .small-card-thumb { height: 180px; }
 }
 
 /* Mobile (≤600px) */
 @media (max-width: 600px) {
-  .products-page { padding: 0 12px; }
+  .products-page { padding: 0 6px; }     /* ✅ less side padding */
   .products-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;                             /* ✅ reduced gap */
   }
   .small-card { min-height: 230px; }
-  .small-card-thumb { height: 130px; padding: 12px; }
+  .small-card-thumb { height: 160px; }
   .small-card-title { font-size: 14px; }
   .small-card-price { font-size: 15px; }
 }
@@ -152,6 +153,7 @@
 @media (max-width: 400px) {
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 6px; /* even smaller gap */
   }
 }
 
@@ -160,4 +162,63 @@
 .small-card a:focus, .small-card button:focus {
   box-shadow: 0 0 0 3px rgba(17,34,51,0.06);
   outline: none;
+}
+
+/* ✅ Override product image styling */
+.product-image {
+  width: 100% !important;
+  height: 220px !important;
+  object-fit: contain !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+/* ---- Quantity Selector: Design 1 (Minimalist & Clean) ---- */
+.qty-selector {
+  display: flex;
+  align-items: center;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  width: fit-content;
+}
+
+.qty-btn {
+  background: transparent;
+  color: #333;
+  border: none;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 400;
+  transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.qty-btn:hover {
+  background-color: #f0f0f0;
+}
+
+.qty-btn:first-of-type {
+  border-right: 1px solid #e0e0e0;
+  border-top-left-radius: 7px;
+  border-bottom-left-radius: 7px;
+}
+
+.qty-btn:last-of-type {
+  border-left: 1px solid #e0e0e0;
+  border-top-right-radius: 7px;
+  border-bottom-right-radius: 7px;
+}
+
+.qty-value {
+  padding: 0 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  min-width: 20px;
+  text-align: center;
 }

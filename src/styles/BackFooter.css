@@ -3,38 +3,53 @@
   bottom: 0;
   left: 0;
   width: 100%;
-  background: linear-gradient(90deg, #FF6B88, #FF4F70); /* subtle gradient */
-  padding: 14px 0;
-  text-align: center;
+  background: #fff; /* clean background */
+  padding: 8px 0;
   z-index: 100;
-  display: none; /* hidden on desktop */
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.08); /* top shadow */
-  border-top-left-radius: 12px;
-  border-top-right-radius: 12px;
-}
-
-.back-text {
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  text-decoration: none;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-  transition: all 0.25s ease;
-  display: inline-flex;
+  display: none; /* ✅ Default hidden on PC/Desktop */
+  justify-content: space-around;
   align-items: center;
-  gap: 6px;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
+  border-top: 1px solid #eee;
+  backdrop-filter: blur(6px); /* ✅ modern frosted effect */
 }
 
-.back-text:hover {
-  color: #f0f0f0;
-  transform: translateY(-1px); /* slight lift on hover */
+/* Each nav item */
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #666;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  gap: 4px;
 }
 
-/* ✅ Show only on mobile */
+.nav-item svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.nav-item:hover {
+  color: #FF6B88;
+}
+
+.nav-item:active svg {
+  transform: scale(1.1); /* subtle press animation */
+}
+
+.nav-item.active {
+  color: #FF4F70;
+  font-weight: 700;
+}
+
+/* ✅ Show only on mobile/tablet */
 @media (max-width: 768px) {
   .back-footer {
-    display: block;
+    display: flex;
   }
 }

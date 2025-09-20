@@ -38,7 +38,6 @@
   gap: 10px;
   text-decoration: none;
 }
-
 .bt-logo__img {
   height: 44px;       /* desktop size */
   width: auto;
@@ -46,7 +45,6 @@
   display: block;
   object-fit: contain;
 }
-
 .bt-logo__text {
   display: none;
   font-family: 'Poppins','Nunito','Arial Rounded MT Bold', system-ui, sans-serif;
@@ -55,7 +53,6 @@
   letter-spacing: .3px;
   color: var(--hdr-text);
 }
-
 .bt-logo__text--show {
   display: inline-block;
 }
@@ -252,17 +249,18 @@
     display:block; 
   }
 }
+
 @media (max-width: 600px){
   .bt-actions { gap: 10px; }
   .bt-logo__img { height: 32px; }
   .bt-logo__text { font-size: 22px; }
 }
+
 /* ------------------ MY ACCOUNT ------------------ */
 .bt-account {
   display: inline-flex;
   align-items: center;
 }
-
 .bt-account__button {
   background: #f1f1f1;
   color: #FF6B88;
@@ -277,9 +275,75 @@
   align-items: center;
   gap: 6px;
 }
-
+.bt-account__button .bt-ico {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
 .bt-account__button:hover {
   background: #FF6B88;   /* same as cart color */
   color: #fff;
   box-shadow: var(--shadow-1);
+}
+/* ✅ Hide My Account in mobile */
+@media (max-width: 768px) {
+  .bt-account {
+    display: none !important;
+  }
+}
+
+/* ------------------ CATEGORY SCROLL ------------------ */
+.bt-cat-scroll {
+  display: flex;
+  overflow-x: auto;
+  gap: 20px;
+  padding: 10px 14px;
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: none;
+}
+.bt-cat-scroll::-webkit-scrollbar {
+  display: none;
+}
+.bt-cat-item {
+  flex: 0 0 auto;
+  border: none;
+  background: none;
+  font-size: 12px;
+  font-weight: 400;
+  color: #444;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+}
+.bt-cat-item:hover {
+  color: #ff6b88;
+}
+.bt-cat-item.is-active {
+  font-weight: 600;
+  color: #000;
+}
+.bt-cat-item.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 3px;
+  background: #ff6b88;
+  border-radius: 2px;
+}
+
+/* Hide on PC */
+@media (min-width: 1025px) {
+  .bt-cat-scroll {
+    display: none;
+  }
+}
+/* Show only on mobile/tablet */
+@media (max-width: 1024px) {
+  .bt-cat-scroll {
+    display: flex;
+  }
 }

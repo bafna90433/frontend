@@ -5,8 +5,6 @@ import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
-// ✅ Local logo from /public/logo.webp
-//   (place your logo.webp in the public/ folder)
 const LOGO_IMG = "/logo.webp";
 
 type Suggestion = {
@@ -17,14 +15,17 @@ type Suggestion = {
   price?: number;
 };
 
-// IMAGE base detection (Vite env or fallback)
+type Category = {
+  _id: string;
+  name: string;
+};
+
 const IMAGE_BASE =
   (import.meta as any).env?.VITE_IMAGE_BASE_URL ||
   (import.meta as any).env?.VITE_MEDIA_URL ||
   MEDIA_URL ||
   "";
 
-// build thumbnail URL
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
@@ -71,13 +72,11 @@ const SearchForm = React.forwardRef(function SearchForm(
     setActiveIdx,
     navigate,
   } = props;
-
   return (
     <form
       className={`bt-search ${mobile ? "is-mobile" : ""}`}
       onSubmit={(e) => onSubmit(e)}
       role="search"
-      aria-label={mobile ? "Site search mobile" : "Site search"}
       ref={ref}
     >
       <input
@@ -87,17 +86,15 @@ const SearchForm = React.forwardRef(function SearchForm(
         onKeyDown={onKeyDown}
         className="bt-search__input"
         placeholder="Search products, SKUs…"
-        aria-label="Search products"
       />
-      <button className="bt-search__btn" type="submit" aria-label="Search">
+      <button className="bt-search__btn" type="submit">
         <svg viewBox="0 0 24 24" className="bt-ico">
-          <path d="M15.5 14h-.79l-.28-.27a6.471 6.471 0 0 0 1.57-4.23C16 6.01 13.31 3.32 10 3.32S4 6.01 4 9.5 6.69 15.68 10 15.68c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5Z" />
+          <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
         </svg>
         <span>Search</span>
       </button>
-
       {openSug && (
-        <div className="bt-suggest" role="listbox">
+        <div className="bt-suggest">
           {loadingSug && <div className="bt-suggest__loading">Searching…</div>}
           {!loadingSug && sug.length === 0 && (
             <div className="bt-suggest__empty">No matches</div>
@@ -107,8 +104,6 @@ const SearchForm = React.forwardRef(function SearchForm(
               {sug.map((p, idx) => (
                 <li
                   key={p._id}
-                  role="option"
-                  aria-selected={idx === activeIdx}
                   className={`bt-suggest__item ${
                     idx === activeIdx ? "is-active" : ""
                   }`}
@@ -173,7 +168,6 @@ const Header: React.FC = () => {
     }, 0);
   }, [cartItems]);
 
-  // search state
   const [q, setQ] = useState("");
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -181,16 +175,13 @@ const Header: React.FC = () => {
     setQ(qs);
   }, [location.search]);
 
-  // suggestions
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
-
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  // ---------- USER / AUTH ----------
   const parseUser = (): any | null => {
     try {
       const raw = localStorage.getItem("user");
@@ -200,9 +191,7 @@ const Header: React.FC = () => {
       return null;
     }
   };
-
   const [user, setUser] = useState<any | null>(() => parseUser());
-
   useEffect(() => {
     const onStorage = () => setUser(parseUser());
     window.addEventListener("storage", onStorage);
@@ -213,7 +202,6 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // ---------- FETCH SUGGESTIONS ----------
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -233,20 +221,17 @@ const Header: React.FC = () => {
           params: { search: needle, limit: 50 },
         });
         if (!alive) return;
-
         const arr: Suggestion[] = Array.isArray(res.data)
           ? res.data
           : Array.isArray((res.data as any)?.products)
           ? (res.data as any).products
           : [];
-
         const n = needle.toLowerCase();
         const filtered = arr.filter(
           (p) =>
             (p.name || "").toLowerCase().includes(n) ||
             (p.sku || "").toLowerCase().includes(n)
         );
-
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
@@ -267,7 +252,6 @@ const Header: React.FC = () => {
     };
   }, [q]);
 
-  // ---------- OUTSIDE CLICK CLOSE ----------
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -304,7 +288,9 @@ const Header: React.FC = () => {
         setOpenSug(false);
         const query =
           (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
-        navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+        navigate(
+          `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
+        );
       }
     } else if (e.key === "Escape") {
       setOpenSug(false);
@@ -312,10 +298,53 @@ const Header: React.FC = () => {
     }
   };
 
+  const [categories, setCategories] = useState<Category[]>([]);
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const res = await api.get("/categories");
+        if (res.status === 200) setCategories(res.data || []);
+      } catch (err) {
+        console.error("Failed to load categories", err);
+      }
+    }
+    fetchCategories();
+  }, []);
+
+  const params = new URLSearchParams(location.search);
+  const activeCategory = params.get("category");
+
+  // refs for each category button
+  const catRefs = useRef<{ [key: string]: HTMLButtonElement | null }>({});
+
+  // smooth scroll when active category changes
+  useEffect(() => {
+    if (activeCategory && catRefs.current[activeCategory]) {
+      catRefs.current[activeCategory]?.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+    if (!activeCategory && catRefs.current["all"]) {
+      catRefs.current["all"]?.scrollIntoView({
+        behavior: "smooth",
+        inline: "center",
+        block: "nearest",
+      });
+    }
+  }, [activeCategory]);
+
+  const formatName = (str: string) => {
+    if (!str) return "";
+    const lower = str.toLowerCase();
+    return lower.charAt(0).toUpperCase() + lower.slice(1);
+  };
+
   return (
     <header className="bt-header">
       <div className="bt-header__bar">
-        <Link to="/" className="bt-logo" aria-label="Go to homepage">
+        <Link to="/" className="bt-logo">
           <img
             src={LOGO_IMG}
             alt="BAFNA TOYS"
@@ -326,7 +355,6 @@ const Header: React.FC = () => {
           />
           <span className="bt-logo__text">Bafna Toys</span>
         </Link>
-
         <SearchForm
           ref={deskRef}
           q={q}
@@ -341,17 +369,17 @@ const Header: React.FC = () => {
           setActiveIdx={setActiveIdx}
           navigate={navigate}
         />
-
-        <nav className="bt-actions" aria-label="Primary">
+        <nav className="bt-actions">
           {user ? (
             <div className="bt-account">
               <button
                 className="bt-account__button"
                 onClick={() => navigate("/my-account")}
-                title="Go to My Account"
-                aria-label="My Account"
               >
-                My Account
+                <svg viewBox="0 0 24 24" className="bt-ico">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                </svg>
+                <span>My Account</span>
               </button>
             </div>
           ) : (
@@ -359,24 +387,15 @@ const Header: React.FC = () => {
               Login
             </Link>
           )}
-
-          <Link
-            className="bt-cart"
-            to="/cart"
-            aria-label={`Cart with ${cartCount} items`}
-          >
+          <Link className="bt-cart" to="/cart">
             <svg viewBox="0 0 24 24" className="bt-ico">
-              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
-                0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 
-                14h9.66c.75 0 1.41-.41 1.75-1.03L22 6H6.21l-.94-2H2v2h2l3.6 
-                7.59-1.35 2.45C5.52 16.37 6.48 18 8 18h12v-2H8l1.1-2z" />
+              <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
             </svg>
             {cartCount > 0 && <span className="bt-cart__badge">{cartCount}</span>}
             <span className="bt-cart__text">Cart</span>
           </Link>
         </nav>
       </div>
-
       <div className="bt-search--mobile">
         <SearchForm
           ref={mobRef}
@@ -394,6 +413,31 @@ const Header: React.FC = () => {
           navigate={navigate}
         />
       </div>
+      {categories.length > 0 && (
+        <div className="bt-cat-scroll">
+          <button
+            ref={(el) => (catRefs.current["all"] = el)}
+            className={`bt-cat-item ${!activeCategory ? "is-active" : ""}`}
+            onClick={() => navigate("/products")}
+          >
+            All
+          </button>
+          {categories.map((cat) => (
+            <button
+              key={cat._id}
+              ref={(el) => (catRefs.current[cat._id] = el)}
+              className={`bt-cat-item ${
+                activeCategory === cat._id ? "is-active" : ""
+              }`}
+              onClick={() =>
+                navigate(`/products?category=${encodeURIComponent(cat._id)}`)
+              }
+            >
+              {formatName(cat.name)}
+            </button>
+          ))}
+        </div>
+      )}
     </header>
   );
 };

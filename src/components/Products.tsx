@@ -1,5 +1,5 @@
 // src/components/Products.tsx
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
@@ -46,9 +46,14 @@ const cleanProduct = (raw: any): Product => {
 const Products: React.FC = () => {
   const location = useLocation();
 
-  const [displayed, setDisplayed] = useState<Product[]>([]);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // ✅ Params from URL
+  const params = new URLSearchParams(location.search);
+  const categoryId = params.get("category");
+  const searchTerm = params.get("search") || params.get("q") || "";
 
   useEffect(() => {
     let alive = true;
@@ -59,7 +64,14 @@ const Products: React.FC = () => {
       setError(null);
 
       try {
-        const res = await api.get("/products", { signal: controller.signal });
+        const res = await api.get("/products", {
+          signal: controller.signal,
+          // agar backend category/search filter support karta hai
+          params: {
+            ...(categoryId ? { category: categoryId } : {}),
+            ...(searchTerm ? { search: searchTerm } : {}),
+          },
+        });
 
         if (!alive) return;
 
@@ -69,12 +81,15 @@ const Products: React.FC = () => {
         else if (res.data?.docs) arr = res.data.docs;
 
         const cleaned = arr.map(cleanProduct);
-
-        setDisplayed(cleaned);
+        setAllProducts(cleaned);
       } catch (err: any) {
         if (controller.signal.aborted) return;
-        setError(err?.response?.data?.message || err?.message || "Failed to load products");
-        setDisplayed([]);
+        setError(
+          err?.response?.data?.message ||
+            err?.message ||
+            "Failed to load products"
+        );
+        setAllProducts([]);
       } finally {
         if (alive) setLoading(false);
       }
@@ -85,7 +100,31 @@ const Products: React.FC = () => {
       alive = false;
       controller.abort();
     };
-  }, [location.search]);
+  }, [location.search, categoryId, searchTerm]);
+
+  // ✅ Fallback frontend filter (agar backend ignore kare to bhi chalega)
+  const displayed = useMemo(() => {
+    let filtered = [...allProducts];
+
+    if (categoryId) {
+      filtered = filtered.filter((p) => {
+        if (!p.category) return false;
+        if (typeof p.category === "string") return p.category === categoryId;
+        return p.category._id === categoryId;
+      });
+    }
+
+    if (searchTerm) {
+      const n = searchTerm.toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.name.toLowerCase().includes(n) ||
+          (p.sku || "").toLowerCase().includes(n)
+      );
+    }
+
+    return filtered;
+  }, [allProducts, categoryId, searchTerm]);
 
   return (
     <div className="products-page container" style={{ padding: "24px" }}>
