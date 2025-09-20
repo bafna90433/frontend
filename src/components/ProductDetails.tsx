@@ -1,14 +1,13 @@
-// src/components/ProductDetails.tsx
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../utils/api';
-import '../styles/ProductDetails.css';
-import BulkPricingTable, { Tier } from './BulkPricingTable';
-import { FiShoppingCart } from 'react-icons/fi';
-import { FaBoxOpen, FaTag } from 'react-icons/fa';
-import { useShop } from '../context/ShopContext';
-import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
-import { getImageUrl } from '../utils/image';
+import React, { useEffect, useState, useRef } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import "../styles/ProductDetails.css";
+import BulkPricingTable, { Tier } from "./BulkPricingTable";
+import { FiShoppingCart } from "react-icons/fi";
+import { FaBoxOpen, FaTag } from "react-icons/fa";
+import { useShop } from "../context/ShopContext";
+import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
+import { getImageUrl } from "../utils/image";
 
 interface BulkTier {
   inner: string;
@@ -58,8 +57,8 @@ const ProductDetails: React.FC = () => {
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
       } catch (err) {
-        console.error('Failed loading product', err);
-        setError('Failed to load product. Please try again later.');
+        console.error("Failed loading product", err);
+        setError("Failed to load product. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -67,7 +66,7 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Handle touch events for swipe
+  // Handle swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -79,11 +78,8 @@ const ProductDetails: React.FC = () => {
     const diffX = touchStartX.current - touchEndX.current;
     const swipeThreshold = 50;
     if (Math.abs(diffX) > swipeThreshold) {
-      if (diffX > 0) {
-        setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1);
-      } else {
-        setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
-      }
+      if (diffX > 0) goNext();
+      else goPrev();
     }
   };
 
@@ -93,14 +89,14 @@ const ProductDetails: React.FC = () => {
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ Main Image (optimized)
-  let baseImage = '';
+  // ✅ Main Image
+  let baseImage = "";
   if (product.images && product.images.length > 0) {
-    baseImage = product.images[selectedImage] || product.image || '';
+    baseImage = product.images[selectedImage] || product.image || "";
   } else {
-    baseImage = product.image || '';
+    baseImage = product.image || "";
   }
-  const imageUrl = getImageUrl(baseImage, 800); // 🔥 request optimized 800px wide image
+  const imageUrl = getImageUrl(baseImage, 800, 800); // optimized
 
   // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -134,8 +130,17 @@ const ProductDetails: React.FC = () => {
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
     if (window.innerWidth < 768) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  const goNext = () => {
+    if (!product?.images) return;
+    setSelectedImage((prev) => (prev === product.images!.length - 1 ? 0 : prev + 1));
+  };
+  const goPrev = () => {
+    if (!product?.images) return;
+    setSelectedImage((prev) => (prev === 0 ? product.images!.length - 1 : prev - 1));
   };
 
   return (
@@ -156,8 +161,16 @@ const ProductDetails: React.FC = () => {
               className="main-image"
               width="800"
               height="800"
-              loading="lazy"
+              loading="eager"          // ✅ Fix LCP
+              fetchpriority="high"     // ✅ Fix LCP
             />
+
+            {product.images && product.images.length > 1 && (
+              <div className="slider-nav">
+                <button className="slider-btn" onClick={goPrev}>‹</button>
+                <button className="slider-btn" onClick={goNext}>›</button>
+              </div>
+            )}
 
             {isApproved && product.price && (
               <div className="discount-badge">
@@ -168,20 +181,31 @@ const ProductDetails: React.FC = () => {
           </div>
 
           {product.images && product.images.length > 1 && (
-            <div className="thumbnail-container">
-              {product.images.map((img, i) => (
-                <img
-                  key={i}
-                  src={getImageUrl(img, 150)} // 🔥 optimized thumbnail
-                  alt={`${product.name} thumbnail ${i + 1}`}
-                  className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
-                  width="150"
-                  height="150"
-                  loading="lazy"
-                  onClick={() => handleSelectImage(i)}
-                />
-              ))}
-            </div>
+            <>
+              <div className="thumbnail-container">
+                {product.images.map((img, i) => (
+                  <img
+                    key={i}
+                    src={getImageUrl(img, 150, 150)}
+                    alt={`${product.name} thumbnail ${i + 1}`}
+                    className={`thumbnail ${selectedImage === i ? "active" : ""}`}
+                    width="150"
+                    height="150"
+                    loading="lazy"
+                    onClick={() => handleSelectImage(i)}
+                  />
+                ))}
+              </div>
+              <div className="slider-dots">
+                {product.images.map((_, i) => (
+                  <span
+                    key={i}
+                    className={`dot ${selectedImage === i ? "active" : ""}`}
+                    onClick={() => handleSelectImage(i)}
+                  />
+                ))}
+              </div>
+            </>
           )}
         </div>
 
@@ -234,11 +258,8 @@ const ProductDetails: React.FC = () => {
                   <button
                     onClick={() => {
                       const newQty = productInCart.quantity - 1;
-                      if (newQty <= 0) {
-                        removeFromCart(product._id);
-                      } else {
-                        setCartItemQuantity(productInCart, newQty);
-                      }
+                      if (newQty <= 0) removeFromCart(product._id);
+                      else setCartItemQuantity(productInCart, newQty);
                     }}
                     className="quantity-button"
                   >
@@ -246,9 +267,7 @@ const ProductDetails: React.FC = () => {
                   </button>
                   <span className="quantity-display">{productInCart.quantity}</span>
                   <button
-                    onClick={() =>
-                      setCartItemQuantity(productInCart, productInCart.quantity + 1)
-                    }
+                    onClick={() => setCartItemQuantity(productInCart, productInCart.quantity + 1)}
                     className="quantity-button"
                   >
                     +
@@ -289,7 +308,7 @@ const ProductDetails: React.FC = () => {
                         },
                         quantity
                       );
-                      navigate('/cart');
+                      navigate("/cart");
                     }}
                   >
                     🛒 Buy Now
@@ -301,15 +320,15 @@ const ProductDetails: React.FC = () => {
 
           {/* Product Description */}
           {product.description && (
-            <div className="description-section" style={{ marginTop: '1.5rem' }}>
+            <div className="description-section" style={{ marginTop: "1.5rem" }}>
               <div className="section-header">
-                <h3 className="section-title">📋 Product Description</h3>
+                <h3 className="section-title">🎨 Product Description</h3>
               </div>
               <div className="description-content expanded">
                 <ul className="description-list">
                   {product.description
-                    .split('\n')
-                    .filter((line) => line.trim() !== '')
+                    .split("\n")
+                    .filter((line) => line.trim() !== "")
                     .map((line, idx) => (
                       <li key={idx}>{line}</li>
                     ))}

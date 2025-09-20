@@ -5,6 +5,8 @@ import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
+// ✅ Local logo from /public/logo.webp
+//   (place your logo.webp in the public/ folder)
 const LOGO_IMG = "/logo.webp";
 
 type Suggestion = {
@@ -73,9 +75,7 @@ const SearchForm = React.forwardRef(function SearchForm(
   return (
     <form
       className={`bt-search ${mobile ? "is-mobile" : ""}`}
-      onSubmit={(e) => {
-        onSubmit(e);
-      }}
+      onSubmit={(e) => onSubmit(e)}
       role="search"
       aria-label={mobile ? "Site search mobile" : "Site search"}
       ref={ref}
@@ -99,7 +99,9 @@ const SearchForm = React.forwardRef(function SearchForm(
       {openSug && (
         <div className="bt-suggest" role="listbox">
           {loadingSug && <div className="bt-suggest__loading">Searching…</div>}
-          {!loadingSug && sug.length === 0 && <div className="bt-suggest__empty">No matches</div>}
+          {!loadingSug && sug.length === 0 && (
+            <div className="bt-suggest__empty">No matches</div>
+          )}
           {!loadingSug && sug.length > 0 && (
             <ul className="bt-suggest__list">
               {sug.map((p, idx) => (
@@ -107,7 +109,9 @@ const SearchForm = React.forwardRef(function SearchForm(
                   key={p._id}
                   role="option"
                   aria-selected={idx === activeIdx}
-                  className={`bt-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
+                  className={`bt-suggest__item ${
+                    idx === activeIdx ? "is-active" : ""
+                  }`}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -116,7 +120,14 @@ const SearchForm = React.forwardRef(function SearchForm(
                   }}
                 >
                   {getThumb(p) ? (
-                    <img src={getThumb(p)!} alt="" className="bt-suggest__thumb" />
+                    <img
+                      src={getThumb(p)!}
+                      alt=""
+                      className="bt-suggest__thumb"
+                      width="40"
+                      height="40"
+                      loading="lazy"
+                    />
                   ) : (
                     <div className="bt-suggest__thumb bt-suggest__thumb--ph" />
                   )}
@@ -135,7 +146,9 @@ const SearchForm = React.forwardRef(function SearchForm(
             onClick={() => {
               const query = q.trim();
               setOpenSug(false);
-              navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+              navigate(
+                `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
+              );
             }}
           >
             See all results
@@ -177,7 +190,7 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  // ---------- USER / AUTH UI ----------
+  // ---------- USER / AUTH ----------
   const parseUser = (): any | null => {
     try {
       const raw = localStorage.getItem("user");
@@ -190,7 +203,6 @@ const Header: React.FC = () => {
 
   const [user, setUser] = useState<any | null>(() => parseUser());
 
-  // update user on storage events (and on custom dispatchEvent("storage") from LoginOTP)
   useEffect(() => {
     const onStorage = () => setUser(parseUser());
     window.addEventListener("storage", onStorage);
@@ -201,7 +213,7 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // ---------- SUGGESTIONS FETCH ----------
+  // ---------- FETCH SUGGESTIONS ----------
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -217,8 +229,9 @@ const Header: React.FC = () => {
       }
       setLoadingSug(true);
       try {
-        // use shared api instance (works in prod because baseURL is set there)
-        const res = await api.get("/products", { params: { search: needle, limit: 50 } });
+        const res = await api.get("/products", {
+          params: { search: needle, limit: 50 },
+        });
         if (!alive) return;
 
         const arr: Suggestion[] = Array.isArray(res.data)
@@ -229,7 +242,9 @@ const Header: React.FC = () => {
 
         const n = needle.toLowerCase();
         const filtered = arr.filter(
-          (p) => (p.name || "").toLowerCase().includes(n) || (p.sku || "").toLowerCase().includes(n)
+          (p) =>
+            (p.name || "").toLowerCase().includes(n) ||
+            (p.sku || "").toLowerCase().includes(n)
         );
 
         setSug(filtered.slice(0, 8));
@@ -252,7 +267,7 @@ const Header: React.FC = () => {
     };
   }, [q]);
 
-  // outside click closes suggestions
+  // ---------- OUTSIDE CLICK CLOSE ----------
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -287,7 +302,8 @@ const Header: React.FC = () => {
         navigate(`/product/${sug[activeIdx]._id}`);
       } else {
         setOpenSug(false);
-        const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
+        const query =
+          (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
         navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
       }
     } else if (e.key === "Escape") {
@@ -300,7 +316,14 @@ const Header: React.FC = () => {
     <header className="bt-header">
       <div className="bt-header__bar">
         <Link to="/" className="bt-logo" aria-label="Go to homepage">
-          <img src={LOGO_IMG} alt="BAFNA TOYS" className="bt-logo__img" />
+          <img
+            src={LOGO_IMG}
+            alt="BAFNA TOYS"
+            className="bt-logo__img"
+            width="150"
+            height="40"
+            fetchpriority="high"
+          />
           <span className="bt-logo__text">Bafna Toys</span>
         </Link>
 
@@ -320,7 +343,6 @@ const Header: React.FC = () => {
         />
 
         <nav className="bt-actions" aria-label="Primary">
-          {/* if logged in show My Account; otherwise show Login */}
           {user ? (
             <div className="bt-account">
               <button
@@ -338,7 +360,11 @@ const Header: React.FC = () => {
             </Link>
           )}
 
-          <Link className="bt-cart" to="/cart" aria-label={`Cart with ${cartCount} items`}>
+          <Link
+            className="bt-cart"
+            to="/cart"
+            aria-label={`Cart with ${cartCount} items`}
+          >
             <svg viewBox="0 0 24 24" className="bt-ico">
               <path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zm10 
                 0c-1.1 0-1.99.9-1.99 2S15.9 22 17 22s2-.9 2-2-.9-2-2-2zM7.17 
