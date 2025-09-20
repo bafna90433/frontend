@@ -5,7 +5,7 @@ import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
 import "../styles/Header.css";
 
-const LOGO_IMG = "/logo.png";
+const LOGO_IMG = "/logo.webp";
 
 type Suggestion = {
   _id: string;

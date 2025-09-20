@@ -106,20 +106,7 @@ body {
 }
 
 .discount-badge {
-  position: absolute;
-  top: 12px;
-  right: 12px;
-  background-color: var(--danger);
-  color: white;
-  padding: 0.4rem 0.8rem;
-  border-radius: 5px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  animation: pulse 2s infinite;
+  display: none !important; /* hidden always */
 }
 
 .discount-icon {
@@ -151,48 +138,8 @@ body {
   margin-top: 0.75rem;
 }
 
-.price-row {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 0.4rem;
-}
-
-.original-price {
-  font-size: 1rem;
-  color: #a0aec0;
-  text-decoration: line-through;
-}
-
 .current-price {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.current-price.discounted {
-  color: var(--danger);
-}
-
-.discount-percentage {
-  background-color: #fed7d7;
-  color: var(--danger);
-  padding: 0.2rem 0.6rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-}
-
-.discount-percentage.mobile {
-  margin-left: auto;
-}
-
-.percentage-icon {
-  font-size: 0.7rem;
+  display: none !important; /* hide current price */
 }
 
 /* Description */
@@ -215,27 +162,6 @@ body {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-}
-
-.toggle-description {
-  background: none;
-  border: none;
-  color: var(--accent);
-  font-weight: 500;
-  cursor: pointer;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 0.2rem;
-  padding: 0.2rem;
-}
-
-.toggle-description:hover {
-  text-decoration: underline;
-}
-
-.toggle-icon {
-  font-size: 0.85rem;
 }
 
 .description-content {
@@ -281,6 +207,29 @@ body {
   margin-top: 0.75rem;
 }
 
+.bulk-table {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.bulk-table th,
+.bulk-table td {
+  padding: 0.8rem 0.6rem;
+  text-align: center;
+  border: 1px solid #e0e0e0;
+}
+
+.bulk-table th {
+  background-color: #f5f5f5;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.85rem;
+}
+
 /* Quantity Section */
 .quantity-section {
   border-bottom: 1px solid var(--border);
@@ -323,8 +272,7 @@ body {
 }
 
 .total-pieces {
-  color: var(--text-light);
-  font-size: 0.85rem;
+  display: none !important; /* hidden always */
 }
 
 /* Action Buttons */
@@ -356,8 +304,6 @@ body {
 
 .add-to-cart-button:hover {
   background-color: #1b5e20;
-  box-shadow: 0 4px 8px rgba(38, 166, 91, 0.4);
-  transform: translateY(-2px);
 }
 
 .buy-now-button {
@@ -375,60 +321,18 @@ body {
   justify-content: center;
   gap: 0.4rem;
   width: 100%;
-  box-shadow: 0 2px 4px rgba(255, 152, 0, 0.3);
 }
 
 .buy-now-button:hover {
   background-color: #e59400;
-  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.4);
-  transform: translateY(-2px);
-}
-
-.cart-icon {
-  font-size: 1.1rem;
-}
-
-/* Bulk Table */
-.bulk-table {
-  width: 100%;
-  border-collapse: collapse;
-  background-color: white;
-  border-radius: 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-.bulk-table th,
-.bulk-table td {
-  padding: 0.8rem 0.6rem;
-  text-align: center;
-  border: 1px solid #e0e0e0;
-}
-
-.bulk-table th {
-  background-color: #f5f5f5;
-  font-weight: 600;
-  color: #333;
-  font-size: 0.85rem;
-}
-
-.bulk-table tr:hover {
-  background-color: #f9f9f9;
-}
-
-.bulk-table tr.highlight {
-  background-color: #f0f7ff;
-  font-weight: 500;
 }
 
 /* Loading & Error */
 .loading-container {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 200px;
-  gap: 1rem;
 }
 
 .error-message {
@@ -439,130 +343,8 @@ body {
   font-size: 1.1rem;
   background-color: #fff5f5;
   border-radius: 8px;
-  max-width: 100%;
   margin: 1.5rem auto;
 }
-
-/* Animations */
-@keyframes pulse {
-  0%, 100% {
-    box-shadow: 0 0 2px 0 rgba(229, 62, 62, 0.7);
-  }
-  50% {
-    box-shadow: 0 0 8px 2px rgba(229, 62, 62, 1);
-  }
-}
-
-/* Desktop Styles */
-@media (min-width: 768px) {
-  .product-details-container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
-    padding: 2rem 1.5rem;
-  }
-  .product-title {
-    font-size: 2rem;
-    margin-bottom: 0.75rem;
-  }
-  .current-price {
-    font-size: 1.8rem;
-  }
-  .action-buttons-row {
-    flex-direction: row;
-    gap: 1rem;
-  }
-  .add-to-cart-button,
-  .buy-now-button {
-    padding: 1rem 1.5rem;
-    font-size: 1.1rem;
-  }
-  .thumbnail {
-    width: 80px;
-    height: 80px;
-  }
-  .discount-percentage.mobile {
-    margin-left: 0;
-  }
-  .pieces-info {
-    margin-left: 0;
-  }
-  .bulk-table th,
-  .bulk-table td {
-    padding: 1rem;
-  }
-}
-
-/* Large Screens */
-@media (min-width: 1024px) {
-  .product-details-container {
-    max-width: 1100px;
-  }
-}
-
-/* Dark Mode (Optional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #e2e8f0;
-    --accent: #4299e1;
-    --danger: #fc8181;
-    --success: #9ae6b4;
-    --warning: #f6ad55;
-    --light-bg: #1a202c;
-    --border: #2d3748;
-    --text: #cbd5e0;
-    --text-light: #a0aec0;
-    --background: #2d3748;
-    --shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
-  }
-  .main-image-container,
-  .bulk-table,
-  .quantity-button {
-    background-color: #4a5568;
-    border-color: #718096;
-  }
-  .bulk-table th {
-    background-color: #2d3748;
-    color: #e2e8f0;
-  }
-}
-/* ----- your existing CSS stays exactly the same (omitted here for brevity) ----- */
-
-/* ================== HIDE THESE ELEMENTS (PC + Mobile) ================== */
-/* 1) Green “Save ₹…” badge on the image */
-.discount-badge {
-  display: none !important;
-}
-
-/* 2) “% OFF” pill near the price */
-.discount-percentage {
-  display: none !important;
-}
-
-/* 3) “Total: … pieces” line under quantity */
-.total-pieces {
-  display: none !important;
-}
-/* Save ₹… badge hide */
-.discount-badge {
-  display: none !important;
-}
-
-/* % OFF pill hide */
-.discount-percentage {
-  display: none !important;
-}
-
-/* Total pieces hide */
-.total-pieces {
-  display: none !important;
-}
-
-/* Current price hide */
-.current-price {
-  display: none !important;
-}
-/* Add to your ProductDetails.css file */
 
 /* Swipe indicators for mobile */
 .swipe-indicators {
@@ -589,9 +371,31 @@ body {
   transform: scale(1.2);
 }
 
-/* Hide swipe indicators on desktop */
 @media (min-width: 768px) {
-  .swipe-indicators {
-    display: none;
+  .product-details-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem 1.5rem;
+  }
+  .product-title {
+    font-size: 2rem;
+  }
+  .current-price {
+    font-size: 1.8rem;
+  }
+  .action-buttons-row {
+    flex-direction: row;
+    gap: 1rem;
+  }
+  .thumbnail {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .product-details-container {
+    max-width: 1100px;
   }
 }
