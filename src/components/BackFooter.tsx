@@ -1,19 +1,24 @@
 import React from "react";
 import { useNavigate, useLocation } from "react-router-dom";
-import "../styles/BackFooter.css";   // ✅ correct path
+import "../styles/BackFooter.css";
 
 const BackFooter: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Home page pe Back button mat dikhana
-  if (location.pathname === "/") return null;
-
   return (
     <div className="back-footer">
-      <span className="back-text" onClick={() => navigate(-1)}>
-        ⬅ Back
+      {/* Home button - Always visible */}
+      <span className="home-text" onClick={() => navigate("/")}>
+        🏠 Home
       </span>
+
+      {/* Back button - Home page par hide */}
+      {location.pathname !== "/" && (
+        <span className="back-text" onClick={() => navigate(-1)}>
+          ⬅ Back
+        </span>
+      )}
     </div>
   );
 };

@@ -86,22 +86,6 @@ const Home: React.FC = () => {
     <div className="home-container">
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* 🔹 Mobile Category Scroll */}
-      <div className="mobile-category-scroll">
-        {categories.map((cat) => (
-          <div
-            key={cat._id}
-            className="box-category"
-            onClick={() => {
-              const el = document.getElementById(`cat-${cat._id}`);
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }}
-          >
-            {cat.name}
-          </div>
-        ))}
-      </div>
-
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
