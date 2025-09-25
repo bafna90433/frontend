@@ -9,7 +9,10 @@ const FloatingCheckoutButton: React.FC = () => {
   const { cartItems } = useShop();
 
   // ✅ User check
-  const user = JSON.parse(localStorage.getItem("user") || "null");
+  const user = React.useMemo(
+    () => JSON.parse(localStorage.getItem("user") || "null"),
+    []
+  );
   const isApproved = user?.isApproved === true;
   const isAdmin = user?.role === "admin";
   const isLoggedIn = !!user;
@@ -30,11 +33,13 @@ const FloatingCheckoutButton: React.FC = () => {
   return (
     <button
       className="floating-checkout-btn"
+      aria-label="Floating Checkout Button"
       onClick={() =>
         isApproved ? navigate("/checkout") : navigate("/login")
       }
     >
-      <FiShoppingCart className="checkout-icon" />
+      <FiShoppingCart className="checkout-icon" aria-hidden="true" />
+
       <span className="checkout-text">
         {isApproved
           ? "Proceed to Checkout"
@@ -43,11 +48,16 @@ const FloatingCheckoutButton: React.FC = () => {
           : "Login to Checkout"}
       </span>
 
-      <span className="checkout-badge">{cartCount}</span>
+      {/* ✅ Quantity badge */}
+      <span className="checkout-badge" aria-label={`Cart items: ${cartCount}`}>
+        {cartCount}
+      </span>
 
       {/* ✅ Admin only → show cart total */}
       {isApproved && isAdmin && (
-        <span className="checkout-total">₹{cartTotal.toLocaleString()}</span>
+        <span className="checkout-total">
+          ₹{cartTotal.toLocaleString("en-IN")}
+        </span>
       )}
     </button>
   );

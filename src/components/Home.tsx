@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
@@ -31,8 +31,37 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const userRole: "admin" | "customer" = "customer";
+  // ✅ active demos prevent repeat during one cycle
+  const activeDemos = useRef<Record<string, boolean>>({});
 
+  const runScrollDemo = (id: string) => {
+    const container = document.getElementById(`scroll-${id}`);
+    if (!container || activeDemos.current[id]) return;
+
+    activeDemos.current[id] = true;
+
+    // 🔹 Calculate product width
+    const firstProduct = container.querySelector<HTMLElement>(".product-link");
+    const productWidth = firstProduct ? firstProduct.offsetWidth + 16 : 200; // +16 = gap
+    const productCount = container.children.length;
+
+    // 🔹 Scroll 30 products worth OR max available
+    const distance = Math.min(
+      productWidth * 10,
+      container.scrollWidth - container.clientWidth
+    );
+
+    const duration = 2500; // smooth timing
+
+    container.scrollBy({ left: distance, behavior: "smooth" });
+
+    setTimeout(() => {
+      container.scrollBy({ left: -distance, behavior: "smooth" });
+      activeDemos.current[id] = false; // reset for repeat
+    }, duration);
+  };
+
+  // ✅ Fetch categories/products/banners
   useEffect(() => {
     async function fetchData() {
       try {
@@ -73,6 +102,32 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
+  // ✅ repeat demo when category comes into view
+  useEffect(() => {
+    if (!loading && categories.length > 0) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const id = entry.target.getAttribute("data-id");
+              if (id) {
+                runScrollDemo(id);
+              }
+            }
+          });
+        },
+        { threshold: 0.4 } // trigger when 40% visible
+      );
+
+      categories.forEach((cat) => {
+        const el = document.getElementById(`scroll-${cat._id}`);
+        if (el) observer.observe(el);
+      });
+
+      return () => observer.disconnect();
+    }
+  }, [loading, categories]);
+
   if (error) {
     return (
       <ErrorMessage
@@ -84,8 +139,10 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
+      {/* ✅ Banner */}
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
+      {/* ✅ Loading Skeleton */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
@@ -118,17 +175,26 @@ const Home: React.FC = () => {
           return (
             <div key={cat._id} id={`cat-${cat._id}`} className="category-block">
               <h2 className="category-title">{cat.name}</h2>
-              <div className="product-scroll">
-                {items.map((product) => (
-                  <div key={product._id} className="product-link">
-                    <ProductCard product={product} userRole={userRole} />
-                  </div>
-                ))}
-                {items.length === 0 && (
-                  <div className="empty-category-message">
-                    No products in this category
-                  </div>
-                )}
+
+              <div className="product-scroll-wrapper">
+                <div
+                  id={`scroll-${cat._id}`}
+                  data-id={cat._id}
+                  className="product-scroll"
+                >
+                  {items.map((product) => (
+                    <div key={product._id} className="product-link">
+                      <ProductCard product={product} userRole="customer" />
+                    </div>
+                  ))}
+                  {items.length === 0 && (
+                    <div className="empty-category-message">
+                      No products in this category
+                    </div>
+                  )}
+                </div>
+                {/* 🔹 Scroll hint */}
+                <div className="scroll-indicator">← Scroll →</div>
               </div>
             </div>
           );
@@ -137,7 +203,6 @@ const Home: React.FC = () => {
         <div className="empty-category-message">No categories available</div>
       )}
 
-      <div style={{ height: 72 }} />
       <FloatingCheckoutButton />
     </div>
   );

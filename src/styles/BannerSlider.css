@@ -53,3 +53,17 @@
     max-height: 300px;
   }
 }
+/* Blur-up effect */
+.blur-up {
+  filter: blur(10px);
+  transition: filter 0.4s ease;
+}
+.blur-up:not([src=""]) {
+  filter: blur(0);
+}
+.banner-img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+}

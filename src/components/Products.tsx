@@ -66,7 +66,6 @@ const Products: React.FC = () => {
       try {
         const res = await api.get("/products", {
           signal: controller.signal,
-          // agar backend category/search filter support karta hai
           params: {
             ...(categoryId ? { category: categoryId } : {}),
             ...(searchTerm ? { search: searchTerm } : {}),
@@ -102,7 +101,7 @@ const Products: React.FC = () => {
     };
   }, [location.search, categoryId, searchTerm]);
 
-  // ✅ Fallback frontend filter (agar backend ignore kare to bhi chalega)
+  // ✅ Fallback frontend filter (if backend ignores search/category)
   const displayed = useMemo(() => {
     let filtered = [...allProducts];
 
@@ -139,8 +138,14 @@ const Products: React.FC = () => {
             <div className="empty">No products found.</div>
           ) : (
             <div className="products-grid">
-              {displayed.map((p) => (
-                <ProductCard key={p._id} product={p} userRole="customer" />
+              {displayed.map((p, idx) => (
+                // ✅ Pass index to ProductCard for LCP optimization
+                <ProductCard
+                  key={p._id}
+                  product={p}
+                  userRole="customer"
+                  index={idx}
+                />
               ))}
             </div>
           )}

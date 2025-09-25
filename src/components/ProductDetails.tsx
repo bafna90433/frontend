@@ -34,6 +34,7 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
+  const [imgLoaded, setImgLoaded] = useState(false); // ✅ image load state
 
   // Swipe detection
   const touchStartX = useRef(0);
@@ -52,6 +53,7 @@ const ProductDetails: React.FC = () => {
     setError(null);
     setProduct(null);
     setSelectedImage(0);
+    setImgLoaded(false);
 
     const fetchProduct = async () => {
       try {
@@ -84,6 +86,7 @@ const ProductDetails: React.FC = () => {
       } else {
         setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
       }
+      setImgLoaded(false); // ✅ reset blur when switching
     }
   };
 
@@ -100,7 +103,7 @@ const ProductDetails: React.FC = () => {
   } else {
     baseImage = product.image || '';
   }
-  const imageUrl = getImageUrl(baseImage, 800); // 🔥 request optimized 800px wide image
+  const imageUrl = getImageUrl(baseImage, 800);
 
   // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -133,6 +136,7 @@ const ProductDetails: React.FC = () => {
 
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
+    setImgLoaded(false); // ✅ blur again when changing image
     if (window.innerWidth < 768) {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -150,13 +154,18 @@ const ProductDetails: React.FC = () => {
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
+            {!imgLoaded && (
+              <div className="skeleton" style={{ width: "800px", height: "800px", borderRadius: "8px" }} />
+            )}
             <img
               src={imageUrl}
               alt={product.name}
-              className="main-image"
+              className={`main-image blur-up ${imgLoaded ? "loaded" : ""}`}
               width="800"
               height="800"
-              loading="lazy"
+              loading="eager"        // ✅ no lazy for LCP
+              fetchPriority="high"   // ✅ prioritize for LCP
+              onLoad={() => setImgLoaded(true)}
             />
 
             {isApproved && product.price && (
@@ -172,7 +181,7 @@ const ProductDetails: React.FC = () => {
               {product.images.map((img, i) => (
                 <img
                   key={i}
-                  src={getImageUrl(img, 150)} // 🔥 optimized thumbnail
+                  src={getImageUrl(img, 150)}
                   alt={`${product.name} thumbnail ${i + 1}`}
                   className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
                   width="150"

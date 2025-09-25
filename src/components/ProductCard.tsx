@@ -1,7 +1,7 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
-import '../styles/ProductCard.css';
-import { useShop } from '../context/ShopContext';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import "../styles/ProductCard.css";
+import { useShop } from "../context/ShopContext";
 
 interface BulkTier {
   inner: number;
@@ -23,7 +23,8 @@ interface Product {
 
 interface ProductCardProps {
   product: Product;
-  userRole: 'admin' | 'customer';
+  userRole: "admin" | "customer";
+  index?: number;
 }
 
 // ✅ API and Image Base
@@ -36,23 +37,27 @@ const IMAGE_BASE_URL =
 const getOptimizedImageUrl = (url: string, width = 400) => {
   if (!url) return "";
 
-  // Cloudinary case
   if (url.includes("res.cloudinary.com")) {
     return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
   }
 
-  // Normal server path
   if (url.startsWith("http")) return url;
   if (url.includes("/uploads/")) return `${API_BASE}${url}`;
 
   return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  userRole,
+  index = 0,
+}) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
-  // ✅ Check user approval
+  // ✅ Track image loading state
+  const [imgLoaded, setImgLoaded] = useState(false);
+
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
 
@@ -93,7 +98,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
-  // ✅ Optimized Image URL
   const imageFile = product.images?.[0] ?? null;
   const imageSrc = imageFile ? getOptimizedImageUrl(imageFile, 400) : null;
 
@@ -104,14 +108,25 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
         onClick={() => navigate(`/product/${product._id}`)}
       >
         {imageSrc ? (
-          <img
-            src={imageSrc}
-            alt={product.name}
-            className="product-image"
-            width="400"
-            height="400"
-            loading="lazy"
-          />
+          <>
+            {/* ✅ Skeleton placeholder until image loads */}
+            {!imgLoaded && (
+              <div
+                className="skeleton"
+                style={{ width: 400, height: 400, borderRadius: "8px" }}
+              />
+            )}
+            <img
+              src={imageSrc}
+              alt={product.name}
+              className={`product-image blur-up ${imgLoaded ? "loaded" : ""}`}
+              width="400"
+              height="400"
+              loading={index === 0 ? undefined : "lazy"}
+              fetchPriority={index === 0 ? "high" : "auto"}
+              onLoad={() => setImgLoaded(true)} // ✅ mark loaded
+            />
+          </>
         ) : (
           <div className="no-image">No Image</div>
         )}
@@ -141,7 +156,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
           </div>
         )}
 
-        {/* ✅ Price only if user is approved */}
         {isApproved ? (
           <div className="packing-section">
             <h4 className="packing-title">
@@ -163,9 +177,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, userRole }) => {
             </ul>
           </div>
         ) : (
-          <p className="locked-message">
-            🔒 Prices visible after admin approval
-          </p>
+          <p className="locked-message">🔒 Prices visible after admin approval</p>
         )}
 
         <div className="cart-controls">

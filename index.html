@@ -3,11 +3,32 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Toys Frontend</title>
+    <title>BafnaToys - Wholesaler</title>
+
+    <!-- ✅ Preconnect to Google Fonts (faster DNS + TLS) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- ✅ Preload + async load Google Fonts -->
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap" 
+          as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap">
+    </noscript>
+
+    <!-- ✅ Preload Vite CSS bundle to avoid render-blocking -->
+    <link rel="preload" href="/assets/index-SHLwgO7Y.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+      <link rel="stylesheet" href="/assets/index-SHLwgO7Y.css">
+    </noscript>
+
+    <!-- ✅ Favicons / manifest (SEO + PWA optional) -->
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="theme-color" content="#ffffff" />
   </head>
   <body>
     <div id="root"></div>
-    <!-- Vite entry point -->
+    <!-- ✅ Vite entry point -->
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
