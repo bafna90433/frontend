@@ -184,7 +184,7 @@
   .packing-section { order: 2; margin-bottom: 12px; }                /* 4: packing */
   .cart-controls { order: 3; margin-top: auto; }                     /* 5: add to cart */
 
-  .product-sku, .product-category { font-size: px; padding: 2px 6px; }
+  .product-sku, .product-category { font-size: 10px; padding: 2px 6px; }
   .tax-field { font-size: 0.7rem; padding: 2px 5px; }
   .packing-title { font-size: 12px; margin-bottom: 8px; }
   .pricing-list li { font-size: 10px; margin-bottom: 6px; }

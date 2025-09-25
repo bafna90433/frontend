@@ -13,8 +13,13 @@
     "@mui/icons-material": "^7.2.0",
     "@mui/material": "^7.2.0",
     "axios": "^1.11.0",
+    "file-saver": "^2.0.5",
     "firebase": "^12.0.0",
     "framer-motion": "^12.23.12",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
+    "jspdf-autotable": "^5.0.2",
+    "jszip": "^3.10.1",
     "lodash.memoize": "^4.1.2",
     "memoize-one": "^6.0.0",
     "react": "^18.2.0",
@@ -30,6 +35,8 @@
     "swiper": "^11.2.10"
   },
   "devDependencies": {
+    "@types/file-saver": "^2.0.7",
+    "@types/jszip": "^3.4.0",
     "@types/lodash": "^4.17.20",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",

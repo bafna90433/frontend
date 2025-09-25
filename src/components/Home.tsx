@@ -47,11 +47,11 @@ const Home: React.FC = () => {
 
     // 🔹 Scroll 30 products worth OR max available
     const distance = Math.min(
-      productWidth * 10,
+      productWidth * 4,
       container.scrollWidth - container.clientWidth
     );
 
-    const duration = 2500; // smooth timing
+    const duration = 1500; // smooth timing
 
     container.scrollBy({ left: distance, behavior: "smooth" });
 
