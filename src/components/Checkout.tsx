@@ -44,10 +44,8 @@ interface OrderData {
   customerId: string;
 }
 
-const generateInvoicePDF = (
-  orderData: OrderData,
-  user: User | null
-): boolean => {
+/* ✅ FIXED generateInvoicePDF */
+const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
     alert("Popup blocked! Please allow popups to view and print your invoice.");
@@ -66,123 +64,37 @@ const generateInvoicePDF = (
     <head>
       <title>Invoice - ${orderData.orderNumber}</title>
       <style>
-        body {
-          font-family: 'Arial', sans-serif;
-          margin: 0;
-          padding: 20px;
-          color: #333;
-          background: white;
-        }
-        .invoice-container {
-          max-width: 800px;
-          margin: 0 auto;
-          border: 2px solid #e0e0e0;
-          border-radius: 10px;
-          padding: 30px;
-          background: #fff;
-        }
-        .header {
-          text-align: center;
-          border-bottom: 2px solid #2c5aa0;
-          padding-bottom: 20px;
-          margin-bottom: 30px;
-        }
-        .header img {
-          max-height: 60px;
-          margin-bottom: 10px;
-        }
-        .company-name {
-          font-size: 28px;
-          font-weight: bold;
-          color: #2c5aa0;
-          margin-bottom: 5px;
-        }
-        .invoice-title {
-          font-size: 24px;
-          margin: 10px 0;
-          color: #333;
-        }
-        .invoice-details {
-          display: flex;
-          justify-content: space-between;
-          margin-bottom: 30px;
-          flex-wrap: wrap;
-        }
-        .detail-section {
-          flex: 1;
-          min-width: 250px;
-          margin-bottom: 15px;
-        }
-        .detail-section h3 {
-          border-bottom: 1px solid #ddd;
-          padding-bottom: 5px;
-          margin-bottom: 10px;
-          color: #2c5aa0;
-        }
-        .items-table {
-          width: 100%;
-          border-collapse: collapse;
-          margin: 20px 0;
-        }
-        .items-table th {
-          background: #2c5aa0;
-          color: white;
-          padding: 12px;
-          text-align: left;
-        }
-        .items-table td {
-          padding: 12px;
-          border-bottom: 1px solid #ddd;
-        }
-        .items-table tr:nth-child(even) {
-          background: #f9f9f9;
-        }
-        .total-section {
-          text-align: right;
-          margin-top: 20px;
-          font-size: 18px;
-        }
-        .grand-total {
-          font-size: 22px;
-          font-weight: bold;
-          color: #2c5aa0;
-          border-top: 2px solid #2c5aa0;
-          padding-top: 10px;
-        }
-        .invoice-buttons {
-          margin-top: 20px;
-          text-align: center;
-        }
-        .print-btn, .download-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          margin: 10px;
-          padding: 10px 20px;
-          border-radius: 4px;
-          font-size: 16px;
-          font-weight: bold;
-          cursor: pointer;
-          border: none;
-        }
-        .print-btn {
-          background: #2c5aa0;
-          color: white;
-        }
-        .download-btn {
-          background: #28a745;
-          color: white;
-        }
-        .footer {
-          text-align: center;
-          margin-top: 40px;
-          padding-top: 20px;
-          border-top: 1px solid #ddd;
-          color: #666;
-          font-size: 14px;
-        }
+        body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; color: #333; background: white; }
+        .invoice-container { max-width: 800px; margin: 0 auto; border: 2px solid #e0e0e0; border-radius: 10px; padding: 30px; background: #fff; }
+        .header { text-align: center; border-bottom: 2px solid #2c5aa0; padding-bottom: 20px; margin-bottom: 30px; }
+        .header img { max-height: 60px; margin-bottom: 10px; }
+        .invoice-title { font-size: 24px; margin: 10px 0; color: #333; }
+        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }
+        .detail-section { flex: 1; min-width: 250px; margin-bottom: 15px; }
+        .detail-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #2c5aa0; }
+
+        /* ✅ Table Styling with Header/Footer repeat */
+        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
+        .items-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; }
+        .items-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .items-table tr:nth-child(even) { background: #f9f9f9; }
+        thead { display: table-header-group; }  
+        tfoot { display: table-footer-group; }  
+
+        .total-section { text-align: right; margin-top: 20px; font-size: 18px; }
+        .grand-total { font-size: 22px; font-weight: bold; color: #2c5aa0; border-top: 2px solid #2c5aa0; padding-top: 10px; }
+        .invoice-buttons { margin-top: 20px; text-align: center; }
+        .print-btn, .download-btn { margin: 10px; padding: 10px 20px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; }
+        .print-btn { background: #2c5aa0; color: white; }
+        .download-btn { background: #28a745; color: white; }
+        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px; }
+
+        /* ✅ Page Break Fix */
         @media print {
           .invoice-buttons { display: none; }
+          .invoice-container, .items-table, .items-table tr, .items-table td, .items-table th {
+            page-break-inside: avoid !important;
+          }
         }
       </style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -190,9 +102,15 @@ const generateInvoicePDF = (
         function printInvoice() { window.print(); }
         function downloadAsPDF() {
           const element = document.querySelector('.invoice-container');
-          html2pdf()
-            .from(element)
-            .save('Invoice-${orderData.orderNumber}.pdf');
+          const opt = {
+            margin: [10, 10, 10, 10],
+            filename: 'Invoice-${orderData.orderNumber}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+          };
+          html2pdf().set(opt).from(element).save();
         }
       </script>
     </head>
@@ -200,7 +118,7 @@ const generateInvoicePDF = (
       <div class="invoice-container">
         <div class="header">
           <img src="logo.webp" alt="Company Logo" />
-          <div>wholesaler</div>
+          <div>Bafna Toys Wholesaler</div>
           <div>1-12, Sundapalayam Rd, Coimbatore, Kalikkanaicken Palayam, Tamil Nadu 641007</div>
           <div>Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com</div>
         </div>
@@ -211,20 +129,14 @@ const generateInvoicePDF = (
             <div><strong>${user?.name || "Customer"}</strong></div>
             <div>${user?.email || ""}</div>
             <div>${user?.phone || ""}</div>
-            <div>${
-              user?.address
-                ? `${user.address.street}, ${user.address.city}`
-                : ""
-            }</div>
+            <div>${user?.address ? `${user.address.street}, ${user.address.city}` : ""}</div>
           </div>
           <div class="detail-section">
             <h3>Invoice Details:</h3>
             <div><strong>Invoice No:</strong> ${orderData.orderNumber}</div>
             <div><strong>Date:</strong> ${currentDate}</div>
             <div><strong>Order Type:</strong> Regular</div>
-            <div><strong>Payment Method:</strong> ${
-              orderData.paymentMethod || "COD"
-            }</div>
+            <div><strong>Payment Method:</strong> ${orderData.paymentMethod || "COD"}</div>
           </div>
         </div>
         <table class="items-table">
@@ -237,25 +149,20 @@ const generateInvoicePDF = (
             </tr>
           </thead>
           <tbody>
-            ${orderData.items
-              .map(
-                (item) => `
-                  <tr>
-                    <td>${item.name}</td>
-                    <td>${item.qty} pcs (${item.inners} inners)</td>
-                    <td>${item.price.toFixed(2)}</td>
-                    <td>${(item.qty * item.price).toFixed(2)}</td>
-                  </tr>
-                `
-              )
-              .join("")}
+            ${orderData.items.map(
+              (item) => `
+              <tr>
+                <td>${item.name}</td>
+                <td>${item.qty} pcs (${item.inners} inners)</td>
+                <td>${item.price.toFixed(2)}</td>
+                <td>${(item.qty * item.price).toFixed(2)}</td>
+              </tr>`
+            ).join("")}
           </tbody>
         </table>
         <div class="total-section">
           <div class="grand-total">
-            Grand Total: ₹${orderData.total.toLocaleString("en-IN", {
-              minimumFractionDigits: 2,
-            })}
+            Grand Total: ₹${orderData.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
         </div>
         <div class="footer">
@@ -265,12 +172,8 @@ const generateInvoicePDF = (
         </div>
       </div>
       <div class="invoice-buttons">
-        <button class="print-btn" onclick="printInvoice()">
-          🖨️ Print Invoice
-        </button>
-        <button class="download-btn" onclick="downloadAsPDF()">
-          📄 Download as PDF
-        </button>
+        <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
+        <button class="download-btn" onclick="downloadAsPDF()">📄 Download as PDF</button>
       </div>
     </body>
     </html>
@@ -281,36 +184,28 @@ const generateInvoicePDF = (
   return true;
 };
 
+/* ✅ Helper function for line total */
 const getItemTotalPrice = (item: Item): number => {
-  const sortedTiers = [...(item.bulkPricing || [])].sort(
-    (a, b) => a.inner - b.inner
-  );
+  const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
   const inners = item.quantity || 0;
-
   const activeTier =
     sortedTiers.length > 0
-      ? sortedTiers.reduce(
-          (prev, tier) => (inners >= tier.inner ? tier : prev),
-          sortedTiers[0]
-        )
+      ? sortedTiers.reduce((prev, tier) => (inners >= tier.inner ? tier : prev), sortedTiers[0])
       : null;
-
   if (!activeTier) return 0;
-
   const piecesPerInner =
     item.innerQty && item.innerQty > 0
       ? item.innerQty
       : activeTier.qty > 0 && activeTier.inner > 0
       ? activeTier.qty / activeTier.inner
       : 1;
-
   const totalPieces = inners * piecesPerInner;
   return totalPieces * activeTier.price;
 };
 
+/* ✅ Checkout Component */
 const Checkout: React.FC = () => {
-  const { cartItems, setCartItemQuantity, clearCart, removeFromCart } =
-    useShop();
+  const { cartItems, setCartItemQuantity, clearCart, removeFromCart } = useShop();
   const navigate = useNavigate();
 
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -319,20 +214,11 @@ const Checkout: React.FC = () => {
   const [orderDetails, setOrderDetails] = useState<OrderData | null>(null);
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
-
-  const user: User | null = JSON.parse(
-    localStorage.getItem("user") || "null"
-  );
+  const user: User | null = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved === true;
 
-  const totalInners = cartItems.reduce(
-    (sum, item) => sum + (item.quantity || 0),
-    0
-  );
-  const grandTotal = cartItems.reduce(
-    (sum, item) => sum + getItemTotalPrice(item),
-    0
-  );
+  const totalInners = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
+  const grandTotal = cartItems.reduce((sum, item) => sum + getItemTotalPrice(item), 0);
 
   const handleViewInvoice = () => {
     if (!orderDetails) return;
@@ -346,33 +232,24 @@ const Checkout: React.FC = () => {
       return;
     }
     const user = JSON.parse(raw);
-
     if (!cartItems.length) {
       alert("Cart is empty.");
       return;
     }
 
     const items = cartItems.map((item: Item) => {
-      const sortedTiers = [...(item.bulkPricing || [])].sort(
-        (a, b) => a.inner - b.inner
-      );
+      const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
       const activeTier =
         sortedTiers.length > 0
-          ? sortedTiers.reduce(
-              (prev, tier) => (item.quantity! >= tier.inner ? tier : prev),
-              sortedTiers[0]
-            )
+          ? sortedTiers.reduce((prev, tier) => (item.quantity! >= tier.inner ? tier : prev), sortedTiers[0])
           : null;
-
       const piecesPerInner =
         item.innerQty && item.innerQty > 0
           ? item.innerQty
           : activeTier && activeTier.inner > 0
           ? activeTier.qty / activeTier.inner
           : 1;
-
       const totalPieces = (item.quantity || 0) * piecesPerInner;
-
       return {
         productId: item._id,
         name: item.name,
@@ -384,43 +261,21 @@ const Checkout: React.FC = () => {
       };
     });
 
-    const payload = {
-      customerId: user._id,
-      items,
-      total: grandTotal,
-      paymentMethod: "COD",
-    };
+    const payload = { customerId: user._id, items, total: grandTotal, paymentMethod: "COD" };
 
     try {
       setPlacing(true);
       const { data } = await api.post("/orders", payload);
-      const orderNumber =
-        data?.order?.orderNumber ||
-        data?.orderNumber ||
-        data?.order?.orderNumber;
+      const orderNumber = data?.order?.orderNumber || data?.orderNumber;
       if (!orderNumber) throw new Error("Order number not returned");
 
       setOrderNumber(orderNumber);
-
-      const completeOrderDetails: OrderData = {
-        orderNumber: orderNumber,
-        items: items,
-        total: grandTotal,
-        paymentMethod: "COD",
-        date: new Date().toISOString(),
-        customerId: user._id,
-      };
-
-      setOrderDetails(completeOrderDetails);
+      setOrderDetails({ orderNumber, items, total: grandTotal, paymentMethod: "COD", date: new Date().toISOString(), customerId: user._id });
       setOrderPlaced(true);
       clearCart();
     } catch (err: any) {
       console.error("Order place error:", err);
-      alert(
-        err?.response?.data?.message ||
-          err?.message ||
-          "Could not place order. Please try again."
-      );
+      alert(err?.response?.data?.message || err?.message || "Could not place order. Please try again.");
     } finally {
       setPlacing(false);
     }
@@ -434,64 +289,12 @@ const Checkout: React.FC = () => {
     return (
       <div className="checkout-success">
         <h2>Order placed successfully!</h2>
-        <p>
-          Thank you for your purchase.
-          <br />
-          <b>Your Order Number: {orderNumber}</b>
-        </p>
-        <div
-          className="invoice-actions"
-          style={{ marginTop: "30px", textAlign: "center" }}
-        >
+        <p>Thank you for your purchase.<br /><b>Your Order Number: {orderNumber}</b></p>
+        <div className="invoice-actions" style={{ marginTop: "30px", textAlign: "center" }}>
           <h3>Invoice Options</h3>
-          <div
-            style={{
-              display: "flex",
-              gap: "15px",
-              justifyContent: "center",
-              flexWrap: "wrap",
-            }}
-          >
-            <button
-              onClick={handleViewInvoice}
-              className="modern-btn"
-              style={{ background: "#2c5aa0" }}
-            >
-              📄 View/Print Invoice
-            </button>
-            <button
-              onClick={() => navigate("/orders")}
-              className="modern-btn"
-              style={{ background: "#6c757d" }}
-            >
-              📋 View All Orders
-            </button>
-          </div>
-        </div>
-        <div
-          className="invoice-preview"
-          style={{
-            marginTop: "30px",
-            textAlign: "left",
-            border: "1px solid #ddd",
-            padding: "20px",
-            borderRadius: "5px",
-            background: "#f9f9f9",
-            maxWidth: "600px",
-            margin: "0 auto",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-            <strong>Invoice #:</strong> {orderDetails?.orderNumber}
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-            <strong>Date:</strong> {new Date(orderDetails?.date).toLocaleDateString()}
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-            <strong>Total Items:</strong> {orderDetails?.items.length}
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "15px" }}>
-            <strong>Grand Total:</strong> ₹{orderDetails?.total.toLocaleString()}
+          <div style={{ display: "flex", gap: "15px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={handleViewInvoice} className="modern-btn" style={{ background: "#2c5aa0" }}>📄 View / Print / Download Invoice</button>
+            <button onClick={() => navigate("/orders")} className="modern-btn" style={{ background: "#6c757d" }}>📋 View All Orders</button>
           </div>
         </div>
       </div>
@@ -503,81 +306,42 @@ const Checkout: React.FC = () => {
       <div className="checkout-left">
         <h2>Your Order</h2>
         {cartItems.map((item: Item) => {
-          const sortedTiers = [...(item.bulkPricing || [])].sort(
-            (a, b) => a.inner - b.inner
-          );
+          const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
           const inners = item.quantity || 0;
-
           const imgSrc = item.image?.startsWith("http")
             ? item.image
             : item.image?.includes("/uploads/")
             ? `${MEDIA_URL}${item.image}`
             : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
-
           const activeTier =
             sortedTiers.length > 0
-              ? sortedTiers.reduce(
-                  (prev, tier) => (inners >= tier.inner ? tier : prev),
-                  sortedTiers[0]
-                )
+              ? sortedTiers.reduce((prev, tier) => (inners >= tier.inner ? tier : prev), sortedTiers[0])
               : null;
 
           return (
             <div key={item._id} className="checkout-item">
               <div className="checkout-image-wrapper">
-                <img
-                  src={imgSrc}
-                  alt={item.name}
-                  className="checkout-item-big-img"
-                  onError={(e) =>
-                    ((e.target as HTMLImageElement).src = "/placeholder.png")
-                  }
-                />
+                <img src={imgSrc} alt={item.name} className="checkout-item-big-img" onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")} />
               </div>
               <div className="checkout-item-info">
                 <div className="checkout-item-name">
                   {item.name}
-                  <button
-                    className="checkout-remove-btn"
-                    onClick={() => removeFromCart(item._id)}
-                    title="Remove from cart"
-                  >
-                    🗑
-                  </button>
+                  <button className="checkout-remove-btn" onClick={() => removeFromCart(item._id)} title="Remove from cart"></button>
                 </div>
                 <div className="checkout-item-qty fancy-qty">
-                  <button
-                    className="qty-btn"
-                    onClick={() =>
-                      setCartItemQuantity(item, Math.max(1, item.quantity! - 1))
-                    }
-                  >
-                    –
-                  </button>
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity! - 1))}>–</button>
                   <span className="qty-value">{inners}</span>
-                  <button
-                    className="qty-btn"
-                    onClick={() => setCartItemQuantity(item, item.quantity! + 1)}
-                  >
-                    +
-                  </button>
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, item.quantity! + 1)}>+</button>
                 </div>
                 <div className="checkout-item-total">Total Inners: {inners}</div>
                 <div className="packing-section">
-                  <h4 className="packing-title">
-                    <span className="packing-icon">P</span> Packing & Pricing
-                  </h4>
+                  <h4 className="packing-title"><span className="packing-icon">P</span> Packing & Pricing</h4>
                   <ul className="pricing-list">
                     {sortedTiers.map((tier) => {
-                      const highlight =
-                        activeTier && tier.inner === activeTier.inner;
+                      const highlight = activeTier && tier.inner === activeTier.inner;
                       return (
-                        <li
-                          key={tier.inner}
-                          className={highlight ? "active-tier-row" : ""}
-                        >
-                          {tier.inner} inner ({tier.qty} pcs)
-                          {isApproved ? ` ₹${tier.price}/pc` : " 🔒"}
+                        <li key={tier.inner} className={highlight ? "active-tier-row" : ""}>
+                          {tier.inner} inner ({tier.qty} pcs) {isApproved ? ` ₹${tier.price}/pc` : " 🔒"}
                         </li>
                       );
                     })}
@@ -596,23 +360,11 @@ const Checkout: React.FC = () => {
       <div className="checkout-right checkout-card">
         <h2 className="checkout-title">Complete Your Order</h2>
         <div className="checkout-summary">
-          <p>
-            <b>Total Items:</b> {cartItems.length}
-          </p>
-          <p>
-            <b>Total Inners:</b> {totalInners}
-          </p>
-          {isApproved && (
-            <p>
-              <b>Grand Total:</b> ₹{grandTotal.toLocaleString()}
-            </p>
-          )}
+          <p><b>Total Items:</b> {cartItems.length}</p>
+          <p><b>Total Inners:</b> {totalInners}</p>
+          {isApproved && <p><b>Grand Total:</b> ₹{grandTotal.toLocaleString()}</p>}
         </div>
-        <button
-          className="checkout-placeorder modern-btn"
-          onClick={handlePlaceOrder}
-          disabled={placing || !cartItems.length}
-        >
+        <button className="checkout-placeorder modern-btn" onClick={handlePlaceOrder} disabled={placing || !cartItems.length}>
           {placing ? "Placing Order..." : "✅ Place Order"}
         </button>
       </div>
