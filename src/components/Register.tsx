@@ -69,7 +69,7 @@ const Register: React.FC = () => {
 
   const sendOtp = async () => {
     if (!validateForm()) {
-      Swal.fire("Warning", "⚠️ Please fill all fields", "warning");
+      Swal.fire("Warning", "⚠️ Please fix the errors before sending OTP", "warning");
       return;
     }
     try {
