@@ -1,131 +1,137 @@
-/* =============================
-   Register.css – Modern & Clean
-   ============================= */
+:root {
+  --primary: #6a11cb;
+  --secondary: #2575fc;
+  --primary-hover: #4a0d8f;
+  --error: #e74c3c;
+  --success: #28a745;
+  --text: #2c3e50;
+  --border: #ddd;
+  --background: rgba(255, 255, 255, 0.9);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  --radius: 14px;
+  --transition: all 0.3s ease;
+  --gradient: linear-gradient(135deg, var(--primary), var(--secondary));
+}
 
+/* Page Background */
+.register-page {
+  min-height: 100vh;
+  background: var(--gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Blurred circles */
+.register-page::before,
+.register-page::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  filter: blur(80px);
+  z-index: 0;
+}
+.register-page::before {
+  width: 220px;
+  height: 220px;
+  top: -60px;
+  right: -80px;
+}
+.register-page::after {
+  width: 260px;
+  height: 260px;
+  bottom: -80px;
+  left: -100px;
+}
+
+/* Container */
 .register-container {
-  max-width: 480px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  animation: fadeIn 0.5s ease-in-out;
+  max-width: 400px;
+  width: 100%;
+  padding: 1.6rem;
+  background: var(--background);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: relative;
+  z-index: 1;
+  animation: fadeInUp 0.6s ease;
 }
 
 /* Title */
 .register-container h2 {
   text-align: center;
-  color: #1e293b;
-  margin-bottom: 1.5rem;
-  font-size: 1.9rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
+  font-size: 1.3rem;   /* smaller font */
+  font-weight: 600;    /* lighter bold */
+  margin-bottom: 1.2rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* Input Fields */
 .register-container input {
   width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 1rem;
-  border: 1px solid #d1d5db;
+  padding: 10px 12px;
+  margin-bottom: 0.8rem;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  font-size: 1rem;
-  background: #f9fafb;
-  transition: all 0.25s ease;
-  box-sizing: border-box;
+  font-size: 0.85rem;  /* smaller input text */
+  transition: var(--transition);
+  background: #fff;
 }
 
 .register-container input:focus {
-  border-color: #3b82f6;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  border-color: var(--primary);
+  box-shadow: 0 0 6px rgba(106, 17, 203, 0.25);
   outline: none;
 }
 
-/* File Upload */
-.register-container input[type="file"] {
-  padding: 14px;
-  border: 2px dashed #cbd5e1;
-  background: #f8fafc;
-  text-align: center;
-  cursor: pointer;
-  transition: background 0.25s ease;
-}
-
-.register-container input[type="file"]:hover {
-  background: #f1f5f9;
-}
-
-/* OTP Field */
+/* OTP input */
 .register-container .otp {
-  letter-spacing: 10px;
-  font-size: 1.3rem;
   text-align: center;
-  padding: 14px 10px;
-  background: #fdfdfd;
-  font-weight: 600;
+  font-size: 1rem;  /* smaller OTP */
+  letter-spacing: 6px;
+  font-weight: 500;
+}
+
+/* File Upload */
+.file-input-container label {
+  font-size: 0.8rem;   /* smaller label */
+  font-weight: 500;    /* reduced boldness */
+  color: var(--text);
 }
 
 /* Buttons */
 .register-container button {
   width: 100%;
-  padding: 14px;
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
+  padding: 10px;
+  font-size: 0.9rem;   /* smaller button text */
   font-weight: 600;
+  border-radius: 10px;
+  border: none;
   cursor: pointer;
-  transition: all 0.3s ease;
+  background: var(--gradient);
+  color: white;
   margin-top: 0.5rem;
+  transition: var(--transition);
 }
 
 .register-container button:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
   transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 6px 14px rgba(37, 117, 252, 0.3);
 }
 
-.register-container button:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-/* Error Text */
+/* Error */
 .error {
-  color: #dc2626;
-  font-size: 0.85rem;
-  margin: -0.5rem 0 0.8rem 0;
-  font-weight: 500;
-}
-
-/* Divider */
-.divider {
-  text-align: center;
-  margin: 1.8rem 0 1rem;
-  position: relative;
-}
-
-.divider span {
-  background: #fff;
-  padding: 0 10px;
-  color: #64748b;
-  font-size: 0.9rem;
-  position: relative;
-  z-index: 1;
-}
-
-.divider::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 0;
-  height: 1px;
-  width: 100%;
-  background: #e2e8f0;
-  z-index: 0;
+  font-size: 0.75rem;  /* smaller error text */
+  color: var(--error);
+  margin: -0.3rem 0 0.6rem;
 }
 
 /* Loader */
@@ -145,33 +151,31 @@
 }
 
 .loader {
-  border: 6px solid #f3f3f3;
-  border-top: 6px solid #2563eb;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid var(--secondary);
   border-radius: 50%;
-  width: 54px;
-  height: 54px;
+  width: 40px;
+  height: 40px;
   animation: spin 1s linear infinite;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* Animations */
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(12px); }
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+/* Mobile */
+@media (max-width: 480px) {
   .register-container {
-    margin: 1rem;
-    padding: 1.5rem;
+    padding: 1.2rem;
   }
   .register-container h2 {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
   }
 }

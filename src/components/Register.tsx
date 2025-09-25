@@ -1,19 +1,15 @@
 import React, { useState, ChangeEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2"; // ✅ Import SweetAlert2
+import Swal from "sweetalert2"; 
 import "../styles/Register.css";
 
 const RAW = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
 const API_BASE = RAW.endsWith("/api") ? RAW : `${RAW}/api`;
 
-export const Register: React.FC = () => {
+const Register: React.FC = () => {
   const [form, setForm] = useState({
-    firmName: "",
     shopName: "",
-    state: "",
-    city: "",
-    zip: "",
     otpMobile: "",
     whatsapp: "",
     visitingCard: null as File | null,
@@ -32,11 +28,7 @@ export const Register: React.FC = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!form.firmName.trim()) newErrors.firmName = "Firm Name is required";
     if (!form.shopName.trim()) newErrors.shopName = "Shop Name is required";
-    if (!form.state.trim()) newErrors.state = "State is required";
-    if (!form.city.trim()) newErrors.city = "City is required";
-    if (!form.zip.trim()) newErrors.zip = "Pin Code is required";
 
     const phone = normalizeTo10(form.otpMobile);
     if (phone.length !== 10) newErrors.otpMobile = "Enter a valid 10-digit mobile number";
@@ -77,7 +69,7 @@ export const Register: React.FC = () => {
 
   const sendOtp = async () => {
     if (!validateForm()) {
-      Swal.fire("Warning", "⚠️ Please fix the errors before sending OTP", "warning");
+      Swal.fire("Warning", "⚠️ Please fill all fields", "warning");
       return;
     }
     try {
@@ -156,80 +148,76 @@ export const Register: React.FC = () => {
         return;
       }
 
-      Swal.fire("Error", "❌ Registration failed. Please try again later.", "error");
+      Swal.fire("Error", "❌ This number is already registered with BafnaToys. Try logging in", "error");
     }
   };
 
   return (
-    <div className="register-container">
-      <h2>Register</h2>
+    <div className="register-page">
+      <div className="register-container">
+        <h2>Register</h2>
 
-      <input name="firmName" placeholder="Firm Name" value={form.firmName} onChange={handleChange} />
-      {errors.firmName && <div className="error">{errors.firmName}</div>}
+        <input
+          name="shopName"
+          placeholder="Shop Name"
+          value={form.shopName}
+          onChange={handleChange}
+        />
+        {errors.shopName && <div className="error">{errors.shopName}</div>}
 
-      <input name="shopName" placeholder="Shop Name" value={form.shopName} onChange={handleChange} />
-      {errors.shopName && <div className="error">{errors.shopName}</div>}
+        <input
+          name="otpMobile"
+          placeholder="Enter your 10-digit mobile number to receive OTP"
+          value={form.otpMobile}
+          onChange={handleChange}
+          type="tel"
+        />
+        {errors.otpMobile && <div className="error">{errors.otpMobile}</div>}
 
-      <input name="state" placeholder="State" value={form.state} onChange={handleChange} />
-      {errors.state && <div className="error">{errors.state}</div>}
+        <input
+          name="whatsapp"
+          placeholder="Enter your WhatsApp number for more details"
+          value={form.whatsapp}
+          onChange={handleChange}
+          type="tel"
+        />
 
-      <input name="city" placeholder="City" value={form.city} onChange={handleChange} />
-      {errors.city && <div className="error">{errors.city}</div>}
-
-      <input name="zip" placeholder="Pin Code" value={form.zip} onChange={handleChange} />
-      {errors.zip && <div className="error">{errors.zip}</div>}
-
-      <input
-        name="otpMobile"
-        placeholder="Enter Mobile (10 digits)"
-        value={form.otpMobile}
-        onChange={handleChange}
-        type="tel"
-      />
-      {errors.otpMobile && <div className="error">{errors.otpMobile}</div>}
-
-      <input
-        name="whatsapp"
-        placeholder="WhatsApp Number"
-        value={form.whatsapp}
-        onChange={handleChange}
-        type="tel"
-      />
-
-      <div className="file-input-container">
-        <label>Visiting Card (Required) *</label>
-        <input name="visitingCard" type="file" onChange={handleChange} accept="image/*" />
-        {errors.visitingCard && <div className="error">{errors.visitingCard}</div>}
-      </div>
-
-      {!otpSent ? (
-        <button onClick={sendOtp}>Send OTP</button>
-      ) : (
-        <>
-          <input
-            placeholder="Enter OTP"
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="otp"
-            type="text"
-          />
-          <button onClick={verifyAndRegister}>Verify & Register</button>
-        </>
-      )}
-
-      <div style={{ marginTop: "16px", textAlign: "center" }}>
-        <span>Already registered? </span>
-        <Link to="/login" style={{ textDecoration: "underline", color: "#007bff" }}>
-          Login
-        </Link>
-      </div>
-
-      {loading && (
-        <div className="loader-overlay">
-          <div className="loader"></div>
-          <p>⏳ Please wait, verifying & submitting registration...</p>
+        <div className="file-input-container">
+          <label>Visiting Card (Required) *</label>
+          <input name="visitingCard" type="file" onChange={handleChange} accept="image/*" />
+          {errors.visitingCard && <div className="error">{errors.visitingCard}</div>}
         </div>
-      )}
+
+        {!otpSent ? (
+          <button onClick={sendOtp}>Send OTP</button>
+        ) : (
+          <>
+            <input
+              placeholder="Enter OTP"
+              value={otp}
+              onChange={(e) => setOtp(e.target.value)}
+              className="otp"
+              type="text"
+            />
+            <button onClick={verifyAndRegister}>Verify & Register</button>
+          </>
+        )}
+
+        {/* ✅ Bottom text */}
+        <div style={{ marginTop: "16px", textAlign: "center" }}>
+          <span>Already have an account? </span>
+          <Link to="/login" style={{ textDecoration: "underline", color: "#007bff", fontWeight: 600 }}>
+            Login Now
+          </Link>
+        </div>
+
+        {loading && (
+          <div className="loader-overlay">
+            <div className="loader"></div>
+            <p>⏳ Please wait, verifying & submitting registration...</p>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

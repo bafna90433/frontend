@@ -1,6 +1,6 @@
 // src/App.tsx
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ShopProvider } from "./context/ShopContext";
 
 import Header from "./components/Header";
@@ -10,50 +10,64 @@ import Cart from "./components/Cart";
 import Wishlist from "./components/Wishlist";
 import Checkout from "./components/Checkout";
 import BottomNav from "./components/BottomNav";
-import BackFooter from "./components/BackFooter";  // ✅ added
+import BackFooter from "./components/BackFooter";
 
-// auth / account
-import Register from "./components/Register";   // ✅ fixed (was { Register })
+import Register from "./components/Register";
 import MyAccount from "./components/MyAccount";
 import LoginOTP from "./components/LoginOTP";
 import EditProfile from "./components/EditProfile";
 import Orders from "./components/Orders";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-// products listing / search results
 import Products from "./components/Products";
-
-// floating WhatsApp
 import WhatsAppButton from "./components/WhatsAppButton";
-
-// Manage addresses
 import ManageAddresses from "./components/ManageAddresses";
+
+// ✅ Wrapper for auth check
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const location = useLocation();
+  const user = localStorage.getItem("user");
+
+  const isAuthPage = location.pathname === "/register" || location.pathname === "/login";
+
+  // Agar user login nahi hai to hamesha register pe bhejna
+  if (!user && !isAuthPage) {
+    return <Navigate to="/register" replace />;
+  }
+
+  return (
+    <>
+      {/* ✅ Header sirf login hone ke baad show hoga */}
+      {user && <Header />}
+      <main style={{ paddingBottom: user ? "60px" : "0" }}>{children}</main>
+      {user && (
+        <>
+          <BottomNav />
+          <BackFooter />
+          <WhatsAppButton />
+        </>
+      )}
+    </>
+  );
+};
 
 const App: React.FC = () => {
   return (
     <ShopProvider>
       <Router>
-        <Header />
-
-        {/* leave bottom padding so content doesn't sit under BottomNav */}
-        <main style={{ paddingBottom: "60px" }}>
+        <LayoutWrapper>
           <Routes>
-            <Route path="/" element={<Home />} />
+            {/* Auth pages → Always open */}
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={<LoginOTP />} />
 
-            {/* products */}
+            {/* Normal pages → Only when logged in */}
+            <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetails />} />
-
-            {/* cart / checkout */}
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/checkout" element={<Checkout />} />
 
-            {/* auth */}
-            <Route path="/register" element={<Register />} /> {/* ✅ fixed */}
-            <Route path="/login" element={<LoginOTP />} />
-
-            {/* protected */}
             <Route
               path="/my-account"
               element={
@@ -87,14 +101,10 @@ const App: React.FC = () => {
               }
             />
 
-            {/* fallback */}
+            {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </main>
-
-        <BottomNav />
-        <BackFooter />  {/* ✅ Back button text at bottom */}
-        <WhatsAppButton />
+        </LayoutWrapper>
       </Router>
     </ShopProvider>
   );
