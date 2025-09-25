@@ -1,3 +1,4 @@
+// src/components/Checkout.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
@@ -17,13 +18,9 @@ interface Item {
 
 interface User {
   _id: string;
-  name?: string;
-  email?: string;
-  phone?: string;
-  address?: {
-    street: string;
-    city: string;
-  };
+  shopName?: string;
+  otpMobile?: string;
+  whatsapp?: string;
   isApproved?: boolean;
 }
 
@@ -39,12 +36,11 @@ interface OrderData {
     image: string;
   }>;
   total: number;
-  paymentMethod: string;
   date: string;
   customerId: string;
 }
 
-/* ✅ FIXED generateInvoicePDF */
+/* ✅ Generate Invoice PDF */
 const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) {
@@ -73,7 +69,11 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         .detail-section { flex: 1; min-width: 250px; margin-bottom: 15px; }
         .detail-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #2c5aa0; }
 
-        /* ✅ Table Styling with Header/Footer repeat */
+        /* ✅ neat tables */
+        .info-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .info-table td { padding: 4px 6px; vertical-align: top; }
+        .info-table td:first-child { width: 120px; font-weight: bold; }
+
         .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
         .items-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; }
         .items-table td { padding: 10px; border-bottom: 1px solid #ddd; }
@@ -89,7 +89,6 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         .download-btn { background: #28a745; color: white; }
         .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px; }
 
-        /* ✅ Page Break Fix */
         @media print {
           .invoice-buttons { display: none; }
           .invoice-container, .items-table, .items-table tr, .items-table td, .items-table th {
@@ -97,22 +96,6 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
           }
         }
       </style>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-      <script>
-        function printInvoice() { window.print(); }
-        function downloadAsPDF() {
-          const element = document.querySelector('.invoice-container');
-          const opt = {
-            margin: [10, 10, 10, 10],
-            filename: 'Invoice-${orderData.orderNumber}.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-          };
-          html2pdf().set(opt).from(element).save();
-        }
-      </script>
     </head>
     <body>
       <div class="invoice-container">
@@ -126,17 +109,19 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         <div class="invoice-details">
           <div class="detail-section">
             <h3>Bill To:</h3>
-            <div><strong>${user?.name || "Customer"}</strong></div>
-            <div>${user?.email || ""}</div>
-            <div>${user?.phone || ""}</div>
-            <div>${user?.address ? `${user.address.street}, ${user.address.city}` : ""}</div>
+            <table class="info-table">
+              <tr><td>Shop Name</td><td>: ${user?.shopName || "Customer"}</td></tr>
+              <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
+              <tr><td>WhatsApp</td><td>: ${user?.whatsapp || "-"}</td></tr>
+            </table>
           </div>
           <div class="detail-section">
             <h3>Invoice Details:</h3>
-            <div><strong>Invoice No:</strong> ${orderData.orderNumber}</div>
-            <div><strong>Date:</strong> ${currentDate}</div>
-            <div><strong>Order Type:</strong> Regular</div>
-            <div><strong>Payment Method:</strong> ${orderData.paymentMethod || "COD"}</div>
+            <table class="info-table">
+              <tr><td>Invoice No</td><td>: ${orderData.orderNumber}</td></tr>
+              <tr><td>Date</td><td>: ${currentDate}</td></tr>
+              <tr><td>Order Type</td><td>: Regular</td></tr>
+            </table>
           </div>
         </div>
         <table class="items-table">
@@ -172,8 +157,8 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         </div>
       </div>
       <div class="invoice-buttons">
-        <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
-        <button class="download-btn" onclick="downloadAsPDF()">📄 Download as PDF</button>
+        <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
+        <button class="download-btn" onclick="alert('Use print -> Save as PDF')">📄 Download as PDF</button>
       </div>
     </body>
     </html>
@@ -184,7 +169,7 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
   return true;
 };
 
-/* ✅ Helper function for line total */
+/* ✅ Helper for Line Total */
 const getItemTotalPrice = (item: Item): number => {
   const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
   const inners = item.quantity || 0;
@@ -261,7 +246,7 @@ const Checkout: React.FC = () => {
       };
     });
 
-    const payload = { customerId: user._id, items, total: grandTotal, paymentMethod: "COD" };
+    const payload = { customerId: user._id, items, total: grandTotal };
 
     try {
       setPlacing(true);
@@ -270,7 +255,13 @@ const Checkout: React.FC = () => {
       if (!orderNumber) throw new Error("Order number not returned");
 
       setOrderNumber(orderNumber);
-      setOrderDetails({ orderNumber, items, total: grandTotal, paymentMethod: "COD", date: new Date().toISOString(), customerId: user._id });
+      setOrderDetails({
+        orderNumber,
+        items,
+        total: grandTotal,
+        date: new Date().toISOString(),
+        customerId: user._id,
+      });
       setOrderPlaced(true);
       clearCart();
     } catch (err: any) {
@@ -289,12 +280,19 @@ const Checkout: React.FC = () => {
     return (
       <div className="checkout-success">
         <h2>Order placed successfully!</h2>
-        <p>Thank you for your purchase.<br /><b>Your Order Number: {orderNumber}</b></p>
+        <p>
+          Thank you, <b>{user?.shopName}</b>! <br />
+          <b>Your Order Number: {orderNumber}</b>
+        </p>
         <div className="invoice-actions" style={{ marginTop: "30px", textAlign: "center" }}>
           <h3>Invoice Options</h3>
           <div style={{ display: "flex", gap: "15px", justifyContent: "center", flexWrap: "wrap" }}>
-            <button onClick={handleViewInvoice} className="modern-btn" style={{ background: "#2c5aa0" }}>📄 View / Print / Download Invoice</button>
-            <button onClick={() => navigate("/orders")} className="modern-btn" style={{ background: "#6c757d" }}>📋 View All Orders</button>
+            <button onClick={handleViewInvoice} className="modern-btn" style={{ background: "#2c5aa0" }}>
+              📄 View / Print / Download Invoice
+            </button>
+            <button onClick={() => navigate("/orders")} className="modern-btn" style={{ background: "#6c757d" }}>
+              📋 View All Orders
+            </button>
           </div>
         </div>
       </div>
@@ -321,21 +319,36 @@ const Checkout: React.FC = () => {
           return (
             <div key={item._id} className="checkout-item">
               <div className="checkout-image-wrapper">
-                <img src={imgSrc} alt={item.name} className="checkout-item-big-img" onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")} />
+                <img
+                  src={imgSrc}
+                  alt={item.name}
+                  className="checkout-item-big-img"
+                  onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")}
+                />
               </div>
               <div className="checkout-item-info">
                 <div className="checkout-item-name">
                   {item.name}
-                  <button className="checkout-remove-btn" onClick={() => removeFromCart(item._id)} title="Remove from cart"></button>
+                  <button
+                    className="checkout-remove-btn"
+                    onClick={() => removeFromCart(item._id)}
+                    title="Remove from cart"
+                  ></button>
                 </div>
                 <div className="checkout-item-qty fancy-qty">
-                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity! - 1))}>–</button>
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity! - 1))}>
+                    –
+                  </button>
                   <span className="qty-value">{inners}</span>
-                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, item.quantity! + 1)}>+</button>
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, item.quantity! + 1)}>
+                    +
+                  </button>
                 </div>
                 <div className="checkout-item-total">Total Inners: {inners}</div>
                 <div className="packing-section">
-                  <h4 className="packing-title"><span className="packing-icon">P</span> Packing & Pricing</h4>
+                  <h4 className="packing-title">
+                    <span className="packing-icon">P</span> Packing & Pricing
+                  </h4>
                   <ul className="pricing-list">
                     {sortedTiers.map((tier) => {
                       const highlight = activeTier && tier.inner === activeTier.inner;
@@ -364,7 +377,11 @@ const Checkout: React.FC = () => {
           <p><b>Total Inners:</b> {totalInners}</p>
           {isApproved && <p><b>Grand Total:</b> ₹{grandTotal.toLocaleString()}</p>}
         </div>
-        <button className="checkout-placeorder modern-btn" onClick={handlePlaceOrder} disabled={placing || !cartItems.length}>
+        <button
+          className="checkout-placeorder modern-btn"
+          onClick={handlePlaceOrder}
+          disabled={placing || !cartItems.length}
+        >
           {placing ? "Placing Order..." : "✅ Place Order"}
         </button>
       </div>

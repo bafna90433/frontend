@@ -1,3 +1,4 @@
+// src/components/MyAccount.tsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/MainLayout";
@@ -7,14 +8,12 @@ const API_BASE = "http://localhost:5000";
 
 type User = {
   _id: string;
-  firmName?: string;
   shopName?: string;
-  state?: string;
   city?: string;
   zip?: string | number;
   otpMobile?: string;
-  whatsapp?: string;
-  visitingCardUrl?: string;
+  whatsapp: string;          // ✅ required now
+  visitingCardUrl: string;   // ✅ required now
   isApproved?: boolean;
 };
 
@@ -106,18 +105,13 @@ const MyAccount: React.FC = () => {
               <div className="account-card account-info">
                 <h2>Business Details</h2>
                 <div className="account-row">
-                  <span className="account-label">Firm Name</span>
-                  <span className="account-value">{user.firmName || "Not provided"}</span>
-                </div>
-                <div className="account-row">
                   <span className="account-label">Shop Name</span>
                   <span className="account-value">{user.shopName || "Not provided"}</span>
                 </div>
                 <div className="account-row">
                   <span className="account-label">Location</span>
                   <span className="account-value">
-                    {user.city || "City not specified"},{" "}
-                    {user.state || "State not specified"}{" "}
+                    {user.city || "City not specified"}{" "}
                     {user.zip ? `- ${user.zip}` : ""}
                   </span>
                 </div>
@@ -131,7 +125,7 @@ const MyAccount: React.FC = () => {
                 </div>
                 <div className="account-row">
                   <span className="account-label">WhatsApp</span>
-                  <span className="account-value">{user.whatsapp || "Not provided"}</span>
+                  <span className="account-value">{user.whatsapp}</span>
                 </div>
               </div>
 
@@ -166,18 +160,13 @@ const MyAccount: React.FC = () => {
                 <div className="account-card">
                   <h2>Business Details</h2>
                   <div className="account-row">
-                    <span className="account-label">Firm Name</span>
-                    <span className="account-value">{user.firmName || "Not provided"}</span>
-                  </div>
-                  <div className="account-row">
                     <span className="account-label">Shop Name</span>
                     <span className="account-value">{user.shopName || "Not provided"}</span>
                   </div>
                   <div className="account-row">
                     <span className="account-label">Location</span>
                     <span className="account-value">
-                      {user.city || "City not specified"},{" "}
-                      {user.state || "State not specified"}{" "}
+                      {user.city || "City not specified"}{" "}
                       {user.zip ? `- ${user.zip}` : ""}
                     </span>
                   </div>
@@ -193,7 +182,7 @@ const MyAccount: React.FC = () => {
                   </div>
                   <div className="account-row">
                     <span className="account-label">WhatsApp</span>
-                    <span className="account-value">{user.whatsapp || "Not provided"}</span>
+                    <span className="account-value">{user.whatsapp}</span>
                   </div>
                 </div>
               )}
