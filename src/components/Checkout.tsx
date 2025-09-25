@@ -69,10 +69,10 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         .detail-section { flex: 1; min-width: 250px; margin-bottom: 15px; }
         .detail-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #2c5aa0; }
 
-        /* ✅ neat tables */
-        .info-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .info-table td { padding: 4px 6px; vertical-align: top; }
-        .info-table td:first-child { width: 120px; font-weight: bold; }
+        /* ✅ Bill To neat table */
+        .billto-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        .billto-table td { padding: 4px 6px; vertical-align: top; }
+        .billto-table td:first-child { width: 120px; font-weight: bold; }
 
         .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
         .items-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; }
@@ -96,6 +96,22 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
           }
         }
       </style>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+      <script>
+        function printInvoice() { window.print(); }
+        function downloadAsPDF() {
+          const element = document.querySelector('.invoice-container');
+          const opt = {
+            margin: [10, 10, 10, 10],
+            filename: 'Invoice-${orderData.orderNumber}.pdf',
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak: { mode: ['css', 'legacy'] }
+          };
+          html2pdf().set(opt).from(element).save();
+        }
+      </script>
     </head>
     <body>
       <div class="invoice-container">
@@ -109,7 +125,7 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         <div class="invoice-details">
           <div class="detail-section">
             <h3>Bill To:</h3>
-            <table class="info-table">
+            <table class="billto-table">
               <tr><td>Shop Name</td><td>: ${user?.shopName || "Customer"}</td></tr>
               <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
               <tr><td>WhatsApp</td><td>: ${user?.whatsapp || "-"}</td></tr>
@@ -117,11 +133,9 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
           </div>
           <div class="detail-section">
             <h3>Invoice Details:</h3>
-            <table class="info-table">
-              <tr><td>Invoice No</td><td>: ${orderData.orderNumber}</td></tr>
-              <tr><td>Date</td><td>: ${currentDate}</td></tr>
-              <tr><td>Order Type</td><td>: Regular</td></tr>
-            </table>
+            <div><strong>Invoice No:</strong> ${orderData.orderNumber}</div>
+            <div><strong>Date:</strong> ${currentDate}</div>
+            <div><strong>Order Type:</strong> Regular</div>
           </div>
         </div>
         <table class="items-table">
@@ -157,8 +171,8 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
         </div>
       </div>
       <div class="invoice-buttons">
-        <button class="print-btn" onclick="window.print()">🖨️ Print Invoice</button>
-        <button class="download-btn" onclick="alert('Use print -> Save as PDF')">📄 Download as PDF</button>
+        <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
+        <button class="download-btn" onclick="downloadAsPDF()">📄 Download as PDF</button>
       </div>
     </body>
     </html>
