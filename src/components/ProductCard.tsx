@@ -36,14 +36,11 @@ const IMAGE_BASE_URL =
 // ✅ Helper for Cloudinary Optimization
 const getOptimizedImageUrl = (url: string, width = 400) => {
   if (!url) return "";
-
   if (url.includes("res.cloudinary.com")) {
     return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
   }
-
   if (url.startsWith("http")) return url;
   if (url.includes("/uploads/")) return `${API_BASE}${url}`;
-
   return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
 };
 
@@ -103,28 +100,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="product-card-item">
+      {/* ✅ Image Section */}
       <div
         className="product-image-container"
         onClick={() => navigate(`/product/${product._id}`)}
       >
         {imageSrc ? (
           <>
-            {/* ✅ Skeleton placeholder until image loads */}
             {!imgLoaded && (
-              <div
-                className="skeleton"
-                style={{ width: 400, height: 400, borderRadius: "8px" }}
-              />
+              <div className="skeleton" style={{ aspectRatio: "1/1", borderRadius: "8px" }} />
             )}
             <img
               src={imageSrc}
-              alt={product.name}
+              alt={`${product.name} ${product.sku || ""}`}
               className={`product-image blur-up ${imgLoaded ? "loaded" : ""}`}
               width="400"
               height="400"
               loading={index === 0 ? undefined : "lazy"}
               fetchPriority={index === 0 ? "high" : "auto"}
-              onLoad={() => setImgLoaded(true)} // ✅ mark loaded
+              onLoad={() => setImgLoaded(true)}
             />
           </>
         ) : (
@@ -132,6 +126,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
         )}
       </div>
 
+      {/* ✅ Product Info */}
       <div className="product-details">
         <h3 className="product-name">{product.name}</h3>
 
@@ -156,11 +151,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
+        {/* ✅ Pricing Section */}
         {isApproved ? (
           <div className="packing-section">
-            <h4 className="packing-title">
-              <span className="packing-icon">P</span> Packing & Pricing
-            </h4>
+            <h4 className="packing-title">📦 Packing & Pricing</h4>
             <ul className="pricing-list">
               {sortedTiers.map((tier) => (
                 <li
@@ -171,15 +165,20 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       : ""
                   }
                 >
-                  {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
+                  {tier.inner} inner ({tier.qty} pcs) –{" "}
+                  <b>₹{tier.price}/pc</b>{" "}
+                  {activeTier?.inner === tier.inner && " ✅"}
                 </li>
               ))}
             </ul>
           </div>
         ) : (
-          <p className="locked-message">🔒 Prices visible after admin approval</p>
+          <p className="locked-message">
+            🔒 Prices visible after admin approval
+          </p>
         )}
 
+        {/* ✅ Cart Section */}
         <div className="cart-controls">
           {innerCount === 0 ? (
             <button onClick={handleAdd} className="add-to-cart-btn">
@@ -188,13 +187,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
           ) : (
             <div className="quantity-selector-wrapper">
               <div className="quantity-selector">
-                <button onClick={decrease} className="qty-btn">
-                  -
-                </button>
+                <button onClick={decrease} className="qty-btn">-</button>
                 <span className="qty-count">{innerCount}</span>
-                <button onClick={increase} className="qty-btn">
-                  +
-                </button>
+                <button onClick={increase} className="qty-btn">+</button>
               </div>
               {userRole === "admin" && isApproved && (
                 <div className="admin-total-price">

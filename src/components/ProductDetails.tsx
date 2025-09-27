@@ -1,14 +1,13 @@
-// src/components/ProductDetails.tsx
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import api from '../utils/api';
-import '../styles/ProductDetails.css';
-import BulkPricingTable, { Tier } from './BulkPricingTable';
-import { FiShoppingCart } from 'react-icons/fi';
-import { FaBoxOpen, FaTag } from 'react-icons/fa';
-import { useShop } from '../context/ShopContext';
-import FloatingCheckoutButton from '../components/FloatingCheckoutButton';
-import { getImageUrl } from '../utils/image';
+import React, { useEffect, useState, useRef, Suspense } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import api from "../utils/api";
+import "../styles/ProductDetails.css";
+import BulkPricingTable, { Tier } from "./BulkPricingTable";
+import { FiShoppingCart } from "react-icons/fi";
+import { FaBoxOpen, FaTag } from "react-icons/fa";
+import { useShop } from "../context/ShopContext";
+import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
+import { getImageUrl } from "../utils/image";
 
 interface BulkTier {
   inner: string;
@@ -34,9 +33,8 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [imgLoaded, setImgLoaded] = useState(false); // ✅ image load state
+  const [imgLoaded, setImgLoaded] = useState(false);
 
-  // Swipe detection
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
@@ -44,7 +42,6 @@ const ProductDetails: React.FC = () => {
   const { cartItems, addToCart, setCartItemQuantity, removeFromCart } = useShop();
   const navigate = useNavigate();
 
-  // ✅ user approval check
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
 
@@ -60,8 +57,8 @@ const ProductDetails: React.FC = () => {
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
       } catch (err) {
-        console.error('Failed loading product', err);
-        setError('Failed to load product. Please try again later.');
+        console.error("Failed loading product", err);
+        setError("Failed to load product. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -69,7 +66,6 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Handle touch events for swipe
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -82,39 +78,50 @@ const ProductDetails: React.FC = () => {
     const swipeThreshold = 50;
     if (Math.abs(diffX) > swipeThreshold) {
       if (diffX > 0) {
-        setSelectedImage(prev => prev === product.images!.length - 1 ? 0 : prev + 1);
+        setSelectedImage((prev) =>
+          prev === product.images!.length - 1 ? 0 : prev + 1
+        );
       } else {
-        setSelectedImage(prev => prev === 0 ? product.images!.length - 1 : prev - 1);
+        setSelectedImage((prev) =>
+          prev === 0 ? product.images!.length - 1 : prev - 1
+        );
       }
-      setImgLoaded(false); // ✅ reset blur when switching
+      setImgLoaded(false);
     }
   };
 
-  if (loading) return <div className="loading-container"><p>Loading product details…</p></div>;
+  if (loading)
+    return (
+      <div className="loading-container">
+        <p>Loading product details…</p>
+      </div>
+    );
   if (error) return <div className="error-message">{error}</div>;
   if (!product) return <div className="error-message">Product not found</div>;
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  // ✅ Main Image (optimized)
-  let baseImage = '';
+  let baseImage = "";
   if (product.images && product.images.length > 0) {
-    baseImage = product.images[selectedImage] || product.image || '';
+    baseImage = product.images[selectedImage] || product.image || "";
   } else {
-    baseImage = product.image || '';
+    baseImage = product.image || "";
   }
   const imageUrl = getImageUrl(baseImage, 800);
 
-  // Bulk pricing logic
   const sortedTiers = Array.isArray(product.bulkPricing)
-    ? [...product.bulkPricing].sort((a, b) => parseInt(a.inner) - parseInt(b.inner))
+    ? [...product.bulkPricing].sort(
+        (a, b) => parseInt(a.inner) - parseInt(b.inner)
+      )
     : [];
 
   const activeTier =
     sortedTiers.length > 0
       ? sortedTiers.reduce(
           (prev, tier) =>
-            (productInCart?.quantity || quantity) >= parseInt(tier.inner) ? tier : prev,
+            (productInCart?.quantity || quantity) >= parseInt(tier.inner)
+              ? tier
+              : prev,
           sortedTiers[0]
         )
       : undefined;
@@ -136,16 +143,16 @@ const ProductDetails: React.FC = () => {
 
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
-    setImgLoaded(false); // ✅ blur again when changing image
+    setImgLoaded(false);
     if (window.innerWidth < 768) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   return (
     <>
       <div className="product-details-container">
-        {/* Product Gallery */}
+        {/* ✅ Product Gallery */}
         <div className="product-gallery">
           <div
             className="main-image-container"
@@ -155,18 +162,29 @@ const ProductDetails: React.FC = () => {
             onTouchEnd={handleTouchEnd}
           >
             {!imgLoaded && (
-              <div className="skeleton" style={{ width: "800px", height: "800px", borderRadius: "8px" }} />
+              <img
+                src={getImageUrl(baseImage, 30)} // low-res blur-up
+                alt="preview"
+                className="main-image low-quality"
+                width="30"
+                height="30"
+              />
             )}
-            <img
-              src={imageUrl}
-              alt={product.name}
-              className={`main-image blur-up ${imgLoaded ? "loaded" : ""}`}
-              width="800"
-              height="800"
-              loading="eager"        // ✅ no lazy for LCP
-              fetchPriority="high"   // ✅ prioritize for LCP
-              onLoad={() => setImgLoaded(true)}
-            />
+
+            <picture>
+              <source srcSet={getImageUrl(baseImage, 800)} type="image/webp" />
+              <img
+                src={imageUrl}
+                alt={product.name}
+                className={`main-image blur-up ${imgLoaded ? "loaded" : ""}`}
+                width="800"
+                height="800"
+                loading="eager"
+                fetchPriority="high"
+                decoding="async"
+                onLoad={() => setImgLoaded(true)}
+              />
+            </picture>
 
             {isApproved && product.price && (
               <div className="discount-badge">
@@ -176,17 +194,26 @@ const ProductDetails: React.FC = () => {
             )}
           </div>
 
+          {/* ✅ Thumbnails */}
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
               {product.images.map((img, i) => (
                 <img
                   key={i}
                   src={getImageUrl(img, 150)}
+                  srcSet={`${getImageUrl(img, 150)} 150w, ${getImageUrl(
+                    img,
+                    300
+                  )} 300w`}
+                  sizes="(max-width: 768px) 150px, 300px"
                   alt={`${product.name} thumbnail ${i + 1}`}
-                  className={`thumbnail ${selectedImage === i ? 'active' : ''}`}
+                  className={`thumbnail ${
+                    selectedImage === i ? "active" : ""
+                  }`}
                   width="150"
                   height="150"
                   loading="lazy"
+                  decoding="async"
                   onClick={() => handleSelectImage(i)}
                 />
               ))}
@@ -194,7 +221,7 @@ const ProductDetails: React.FC = () => {
           )}
         </div>
 
-        {/* Product Info */}
+        {/* ✅ Product Info */}
         <div className="product-info">
           <div className="product-header">
             <h1 className="product-title">{product.name}</h1>
@@ -202,12 +229,14 @@ const ProductDetails: React.FC = () => {
               {isApproved ? (
                 <span className="current-price">₹{unitPrice.toFixed(2)}</span>
               ) : (
-                <span className="locked-message">🔒 Price visible after admin approval</span>
+                <span className="locked-message">
+                  🔒 Price visible after admin approval
+                </span>
               )}
             </div>
           </div>
 
-          {/* Bulk Pricing */}
+          {/* ✅ Bulk Pricing */}
           <div className="bulk-pricing-section">
             <div className="section-header">
               <h3 className="section-title">📊 Bulk Pricing</h3>
@@ -227,14 +256,18 @@ const ProductDetails: React.FC = () => {
                   />
                 </div>
               ) : (
-                <div className="no-bulk-pricing">No bulk pricing tiers available.</div>
+                <div className="no-bulk-pricing">
+                  No bulk pricing tiers available.
+                </div>
               )
             ) : (
-              <p className="locked-message">🔒 Bulk pricing available after admin approval</p>
+              <p className="locked-message">
+                🔒 Bulk pricing available after admin approval
+              </p>
             )}
           </div>
 
-          {/* Quantity Section */}
+          {/* ✅ Quantity Section */}
           {isApproved && (
             <div className="quantity-section">
               <h3 className="section-title">🔢 Quantity (Inners)</h3>
@@ -253,10 +286,15 @@ const ProductDetails: React.FC = () => {
                   >
                     −
                   </button>
-                  <span className="quantity-display">{productInCart.quantity}</span>
+                  <span className="quantity-display">
+                    {productInCart.quantity}
+                  </span>
                   <button
                     onClick={() =>
-                      setCartItemQuantity(productInCart, productInCart.quantity + 1)
+                      setCartItemQuantity(
+                        productInCart,
+                        productInCart.quantity + 1
+                      )
                     }
                     className="quantity-button"
                   >
@@ -298,7 +336,7 @@ const ProductDetails: React.FC = () => {
                         },
                         quantity
                       );
-                      navigate('/cart');
+                      navigate("/cart");
                     }}
                   >
                     🛒 Buy Now
@@ -308,23 +346,28 @@ const ProductDetails: React.FC = () => {
             </div>
           )}
 
-          {/* Product Description */}
+          {/* ✅ Product Description Lazy Load */}
           {product.description && (
-            <div className="description-section" style={{ marginTop: '1.5rem' }}>
-              <div className="section-header">
-                <h3 className="section-title">📋 Product Description</h3>
+            <Suspense fallback={<p>Loading description…</p>}>
+              <div
+                className="description-section"
+                style={{ marginTop: "1.5rem" }}
+              >
+                <div className="section-header">
+                  <h3 className="section-title">📋 Product Description</h3>
+                </div>
+                <div className="description-content expanded">
+                  <ul className="description-list">
+                    {product.description
+                      .split("\n")
+                      .filter((line) => line.trim() !== "")
+                      .map((line, idx) => (
+                        <li key={idx}>{line}</li>
+                      ))}
+                  </ul>
+                </div>
               </div>
-              <div className="description-content expanded">
-                <ul className="description-list">
-                  {product.description
-                    .split('\n')
-                    .filter((line) => line.trim() !== '')
-                    .map((line, idx) => (
-                      <li key={idx}>{line}</li>
-                    ))}
-                </ul>
-              </div>
-            </div>
+            </Suspense>
           )}
         </div>
       </div>

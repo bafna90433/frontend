@@ -5,16 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>BafnaToys - Wholesaler</title>
 
-    <!-- ✅ Preconnect for faster font loading -->
+    <!-- ✅ Preconnect -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
-    <!-- ✅ Google Fonts preload -->
+    <!-- ✅ Async font load -->
     <link
       rel="preload"
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
       as="style"
-      onload="this.onload=null;this.rel='stylesheet'"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
+      media="print"
+      onload="this.media='all'"
     />
     <noscript>
       <link
@@ -23,16 +28,14 @@
       />
     </noscript>
 
-    <!-- ✅ Preload Vite CSS bundle (replace filename after build) -->
+    <!-- ✅ Preload vite CSS bundle -->
     <link
       rel="preload"
       href="/assets/index.css"
       as="style"
       onload="this.onload=null;this.rel='stylesheet'"
     />
-    <noscript>
-      <link rel="stylesheet" href="/assets/index.css" />
-    </noscript>
+    <noscript><link rel="stylesheet" href="/assets/index.css" /></noscript>
 
     <!-- ✅ Favicons -->
     <link rel="icon" href="/favicon.webp" type="image/webp" />
@@ -40,7 +43,7 @@
   </head>
   <body>
     <div id="root">
-      <!-- ✅ Fallback content for SEO + FCP -->
+      <!-- ✅ SEO + FCP fallback -->
       <noscript>
         <p style="text-align:center; padding:20px; font-size:18px;">
           Please enable JavaScript to view BafnaToys.
