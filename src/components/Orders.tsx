@@ -88,33 +88,93 @@ const generateInvoice = (order: Order) => {
     <head>
       <title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title>
       <style>
-        body { font-family: Arial, sans-serif; margin: 0; padding: 20px; background: #fff; color: #333; }
-        .invoice-container { max-width: 800px; margin: 0 auto; border: 2px solid #e0e0e0; border-radius: 10px; padding: 30px; background: #fff; }
-        .header { text-align: center; border-bottom: 2px solid #2c5aa0; padding-bottom: 20px; margin-bottom: 30px; }
-        .header img { max-height: 60px; margin-bottom: 10px; }
-        .invoice-title { font-size: 24px; margin: 10px 0; color: #333; text-align: center; }
-        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }
-        .detail-section { flex: 1; min-width: 250px; margin-bottom: 15px; }
-        .detail-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #2c5aa0; }
+        body {
+          font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+          margin: 0; padding: 20px;
+          background: #f5f7fa; color: #333;
+        }
+        .invoice-container {
+          max-width: 850px; margin: 0 auto;
+          background: #fff; padding: 35px;
+          border-radius: 10px;
+          border: 1px solid #ddd;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+        }
+        .header { text-align: center; margin-bottom: 25px; }
+        .header img { max-height: 70px; margin-bottom: 8px; }
+        .company-info { font-size: 13px; color: #555; line-height: 1.5; }
+
+        .invoice-title {
+          text-align: center;
+          font-size: 26px; font-weight: 700;
+          margin: 15px 0 30px; color: #2c5aa0;
+          text-transform: uppercase;
+          border-bottom: 3px solid #2c5aa0;
+          padding-bottom: 10px;
+        }
+
+        .invoice-details {
+          display: flex; justify-content: space-between;
+          flex-wrap: wrap; margin-bottom: 25px;
+        }
+        .detail-section {
+          flex: 1; min-width: 240px; margin-bottom: 15px;
+          font-size: 14px;
+        }
+        .detail-section h3 {
+          font-size: 15px; margin-bottom: 8px;
+          color: #2c5aa0; border-bottom: 1px solid #ddd;
+          padding-bottom: 4px;
+        }
         .billto-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .billto-table td { padding: 4px 6px; vertical-align: top; }
-        .billto-table td:first-child { width: 120px; font-weight: bold; }
-        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-        .items-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; }
-        .items-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .billto-table td { padding: 3px 6px; vertical-align: top; }
+        .billto-table td:first-child { width: 120px; font-weight: 600; color: #444; }
+
+        .items-table {
+          width: 100%; border-collapse: collapse; margin: 20px 0;
+          font-size: 14px;
+        }
+        .items-table th {
+          background: #2c5aa0; color: #fff;
+          padding: 10px; text-align: left;
+          font-size: 14px; font-weight: 600;
+        }
+        .items-table td {
+          padding: 10px; border-bottom: 1px solid #eee;
+        }
         .items-table tr:nth-child(even) { background: #f9f9f9; }
+
         thead { display: table-header-group; }
         tfoot { display: table-footer-group; }
-        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px; }
-        .invoice-buttons { margin-top: 20px; text-align: center; }
-        .print-btn, .download-btn { margin: 10px; padding: 10px 20px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; }
+        .grand-total td {
+          font-weight: 700; font-size: 15px;
+          border-top: 2px solid #2c5aa0;
+          padding-top: 10px;
+        }
+        .grand-total td:last-child {
+          color: #2c5aa0; font-size: 16px;
+        }
+
+        .footer {
+          margin-top: 40px; text-align: center;
+          font-size: 13px; color: #555;
+        }
+        .footer strong { color: #2c5aa0; }
+
+        .invoice-buttons {
+          margin-top: 25px; text-align: center;
+        }
+        .print-btn, .download-btn {
+          margin: 8px; padding: 10px 22px;
+          border-radius: 5px; font-size: 15px; font-weight: 600;
+          cursor: pointer; border: none;
+        }
         .print-btn { background: #2c5aa0; color: white; }
         .download-btn { background: #28a745; color: white; }
+
         @media print {
           .invoice-buttons { display: none; }
-          .invoice-container, .items-table, .items-table tr, .items-table td, .items-table th {
-            page-break-inside: avoid !important;
-          }
+          body { background: #fff; }
         }
       </style>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
@@ -138,14 +198,16 @@ const generateInvoice = (order: Order) => {
       <div class="invoice-container">
         <div class="header">
           <img src="logo.webp" alt="BafnaToys Logo" />
-          <div><b>Bafna Toys Wholesaler</b></div>
-          <div>1-12, Sundapalayam Rd, Coimbatore, Tamil Nadu 641007</div>
-          <div>Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com</div>
+          <div class="company-info">
+            1-12, Sundapalayam Rd, Coimbatore, Tamil Nadu 641007 <br/>
+            Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com
+          </div>
         </div>
-        <h1 class="invoice-title">TAX INVOICE</h1>
+        <h1 class="invoice-title">Pro Forma Invoice</h1>
+
         <div class="invoice-details">
           <div class="detail-section">
-            <h3>Bill To:</h3>
+            <h3>Bill To</h3>
             <table class="billto-table">
               <tr><td>Shop Name</td><td>: ${user?.shopName || "-"}</td></tr>
               <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
@@ -153,12 +215,15 @@ const generateInvoice = (order: Order) => {
             </table>
           </div>
           <div class="detail-section">
-            <h3>Invoice Details:</h3>
-            <div><strong>Invoice No:</strong> ${order.orderNumber || order._id.slice(-6)}</div>
-            <div><strong>Date:</strong> ${currentDate}</div>
-            <div><strong>Status:</strong> ${order.status}</div>
+            <h3>Invoice Details</h3>
+            <table class="billto-table">
+              <tr><td>Invoice No</td><td>: ${order.orderNumber || order._id.slice(-6)}</td></tr>
+              <tr><td>Date</td><td>: ${currentDate}</td></tr>
+              <tr><td>Status</td><td>: ${order.status}</td></tr>
+            </table>
           </div>
         </div>
+
         <table class="items-table">
           <thead>
             <tr>
@@ -172,31 +237,28 @@ const generateInvoice = (order: Order) => {
             ${order.items?.map(it => `
               <tr>
                 <td>${it.name}</td>
-                <td>${it.qty} pcs (${toInners(it)} inners)</td>
+                <td>${it.qty} pcs (${toInners(it)} ${toInners(it) === 1 ? "inner" : "inners"})</td>
                 <td>${it.price.toFixed(2)}</td>
                 <td>${(it.qty * it.price).toFixed(2)}</td>
               </tr>`).join("")}
           </tbody>
           <tfoot>
-            <tr>
-              <td colspan="3" style="text-align:right; font-weight:bold; padding:10px; border-top:2px solid #2c5aa0;">
-                Grand Total
-              </td>
-              <td style="font-weight:bold; font-size:16px; border-top:2px solid #2c5aa0; color:#2c5aa0;">
-                ₹${order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
-              </td>
+            <tr class="grand-total">
+              <td colspan="3" style="text-align:right;">Grand Total</td>
+              <td>₹${order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
             </tr>
           </tfoot>
         </table>
+
         <div class="footer">
-          <p>Thank you for shopping with BafnaToys!</p>
-          <p>Terms & Conditions: Goods once sold will not be taken back. Subject to jurisdiction.</p>
-          <p>This is a computer generated invoice.</p>
+          <p><strong>Thank you for choosing BafnaToys!</strong><br/>
+          We appreciate your business and look forward to serving you again.</p>
         </div>
       </div>
+
       <div class="invoice-buttons">
         <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
-        <button class="download-btn" onclick="downloadAsPDF()">📄 Download as PDF</button>
+        <button class="download-btn" onclick="downloadAsPDF()">📄 Download PDF</button>
       </div>
     </body>
     </html>
@@ -205,6 +267,7 @@ const generateInvoice = (order: Order) => {
   printWindow.document.write(content);
   printWindow.document.close();
 };
+
 
 /* -------------------- Orders Component -------------------- */
 const Orders: React.FC = () => {

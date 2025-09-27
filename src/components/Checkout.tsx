@@ -60,37 +60,87 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
     <head>
       <title>Invoice - ${orderData.orderNumber}</title>
       <style>
-        body { font-family: 'Arial', sans-serif; margin: 0; padding: 20px; color: #333; background: white; }
-        .invoice-container { max-width: 800px; margin: 0 auto; border: 2px solid #e0e0e0; border-radius: 10px; padding: 30px; background: #fff; }
-        .header { text-align: center; border-bottom: 2px solid #2c5aa0; padding-bottom: 20px; margin-bottom: 30px; }
-        .header img { max-height: 60px; margin-bottom: 10px; }
-        .invoice-title { font-size: 24px; margin: 10px 0; color: #333; }
-        .invoice-details { display: flex; justify-content: space-between; margin-bottom: 30px; flex-wrap: wrap; }
-        .detail-section { flex: 1; min-width: 250px; margin-bottom: 15px; }
-        .detail-section h3 { border-bottom: 1px solid #ddd; padding-bottom: 5px; margin-bottom: 10px; color: #2c5aa0; }
-
-        /* ✅ Bill To neat table */
-        .billto-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        body {
+          font-family: 'Segoe UI', Arial, sans-serif;
+          margin: 0; padding: 20px;
+          background: #f4f6f9; color: #333;
+        }
+        .invoice-container {
+          max-width: 850px; margin: 0 auto;
+          border-radius: 10px; padding: 35px;
+          background: #fff; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .header {
+          text-align: center;
+          border-bottom: 3px solid #2c5aa0;
+          padding-bottom: 20px; margin-bottom: 30px;
+        }
+        .header img { max-height: 65px; margin-bottom: 10px; }
+        .company-info { font-size: 14px; color: #555; line-height: 1.5; }
+        .invoice-title {
+          font-size: 26px; color: #2c5aa0;
+          text-transform: uppercase; font-weight: bold;
+          margin: 25px 0; text-align: center;
+        }
+        .invoice-details {
+          display: flex; justify-content: space-between;
+          flex-wrap: wrap; margin-bottom: 25px;
+        }
+        .detail-section {
+          flex: 1; min-width: 260px; margin-bottom: 15px;
+        }
+        .detail-section h3 {
+          font-size: 16px; color: #2c5aa0;
+          margin-bottom: 8px; border-bottom: 1px solid #ddd;
+          padding-bottom: 5px;
+        }
+        .billto-table {
+          width: 100%; border-collapse: collapse; font-size: 14px;
+        }
         .billto-table td { padding: 4px 6px; vertical-align: top; }
-        .billto-table td:first-child { width: 120px; font-weight: bold; }
+        .billto-table td:first-child { width: 130px; font-weight: 600; }
 
-        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px; }
-        .items-table th { background: #2c5aa0; color: white; padding: 10px; text-align: left; }
-        .items-table td { padding: 10px; border-bottom: 1px solid #ddd; }
+        .items-table {
+          width: 100%; border-collapse: collapse; margin: 20px 0; font-size: 14px;
+        }
+        .items-table th {
+          background: #2c5aa0; color: white;
+          padding: 10px; text-align: left; font-size: 14px;
+        }
+        .items-table td { padding: 10px; border-bottom: 1px solid #eee; }
         .items-table tr:nth-child(even) { background: #f9f9f9; }
-        thead { display: table-header-group; }  
-        tfoot { display: table-footer-group; }  
+        thead { display: table-header-group; }
+        tfoot { display: table-footer-group; }
 
-        .total-section { text-align: right; margin-top: 20px; font-size: 18px; }
-        .grand-total { font-size: 22px; font-weight: bold; color: #2c5aa0; border-top: 2px solid #2c5aa0; padding-top: 10px; }
+        .total-section { text-align: right; margin-top: 20px; }
+        .grand-total {
+          font-size: 20px; font-weight: bold;
+          color: #2c5aa0; border-top: 2px solid #2c5aa0;
+          padding-top: 10px; display: inline-block;
+        }
+
+        .footer {
+          margin-top: 40px; padding-top: 15px;
+          border-top: 1px solid #ccc;
+          font-size: 13px; color: #555;
+          text-align: center; line-height: 1.5;
+        }
+        .footer strong { color: #2c5aa0; }
+
         .invoice-buttons { margin-top: 20px; text-align: center; }
-        .print-btn, .download-btn { margin: 10px; padding: 10px 20px; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; border: none; }
+        .print-btn, .download-btn {
+          margin: 10px; padding: 10px 20px; border-radius: 5px;
+          font-size: 15px; font-weight: 600; cursor: pointer; border: none;
+          transition: 0.3s ease;
+        }
         .print-btn { background: #2c5aa0; color: white; }
+        .print-btn:hover { background: #244a82; }
         .download-btn { background: #28a745; color: white; }
-        .footer { text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 14px; }
+        .download-btn:hover { background: #1e7e34; }
 
         @media print {
           .invoice-buttons { display: none; }
+          body { background: #fff; }
           .invoice-container, .items-table, .items-table tr, .items-table td, .items-table th {
             page-break-inside: avoid !important;
           }
@@ -116,15 +166,17 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
     <body>
       <div class="invoice-container">
         <div class="header">
-          <img src="logo.webp" alt="Company Logo" />
-          <div>Bafna Toys Wholesaler</div>
-          <div>1-12, Sundapalayam Rd, Coimbatore, Kalikkanaicken Palayam, Tamil Nadu 641007</div>
-          <div>Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com</div>
+          <img src="logo.webp" alt="BafnaToys Logo" />
+          <div class="company-info">
+            1-12, Sundapalayam Rd, Coimbatore, Kalikkanaicken Palayam, Tamil Nadu 641007 <br/>
+            Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com
+          </div>
         </div>
-        <h1 class="invoice-title">TAX INVOICE</h1>
+        <h1 class="invoice-title">Pro Forma Invoice</h1>
+
         <div class="invoice-details">
           <div class="detail-section">
-            <h3>Bill To:</h3>
+            <h3>Bill To</h3>
             <table class="billto-table">
               <tr><td>Shop Name</td><td>: ${user?.shopName || "Customer"}</td></tr>
               <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
@@ -132,12 +184,15 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
             </table>
           </div>
           <div class="detail-section">
-            <h3>Invoice Details:</h3>
-            <div><strong>Invoice No:</strong> ${orderData.orderNumber}</div>
-            <div><strong>Date:</strong> ${currentDate}</div>
-            <div><strong>Order Type:</strong> Regular</div>
+            <h3>Invoice Details</h3>
+            <table class="billto-table">
+              <tr><td>Invoice No</td><td>: ${orderData.orderNumber}</td></tr>
+              <tr><td>Date</td><td>: ${currentDate}</td></tr>
+              <tr><td>Status</td><td>: ${orderData.status || "Pending"}</td></tr>
+            </table>
           </div>
         </div>
+
         <table class="items-table">
           <thead>
             <tr>
@@ -148,28 +203,31 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
             </tr>
           </thead>
           <tbody>
-            ${orderData.items.map(
-              (item) => `
-              <tr>
-                <td>${item.name}</td>
-                <td>${item.qty} pcs (${item.inners} inners)</td>
-                <td>${item.price.toFixed(2)}</td>
-                <td>${(item.qty * item.price).toFixed(2)}</td>
-              </tr>`
-            ).join("")}
+            ${orderData.items.map(item => {
+              const pcsLabel = item.qty === 1 ? "pc" : "pcs";
+              const innerLabel = item.inners === 1 ? "inner" : "inners";
+              return `
+                <tr>
+                  <td>${item.name}</td>
+                  <td>${item.qty} ${pcsLabel} (${item.inners} ${innerLabel})</td>
+                  <td>${item.price.toFixed(2)}</td>
+                  <td>${(item.qty * item.price).toFixed(2)}</td>
+                </tr>`;
+            }).join("")}
           </tbody>
         </table>
+
         <div class="total-section">
           <div class="grand-total">
             Grand Total: ₹${orderData.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}
           </div>
         </div>
+
         <div class="footer">
-          <p>Thank you for your business!</p>
-          <p>Terms & Conditions: Goods once sold will not be taken back. Subject to jurisdiction.</p>
-          <p>This is a computer generated invoice.</p>
+          <p><strong>Thank you for shopping with BafnaToys!</strong><br/>This is a computer-generated invoice.</p>
         </div>
       </div>
+
       <div class="invoice-buttons">
         <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
         <button class="download-btn" onclick="downloadAsPDF()">📄 Download as PDF</button>
@@ -182,6 +240,7 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
   printWindow.document.close();
   return true;
 };
+
 
 /* ✅ Helper for Line Total */
 const getItemTotalPrice = (item: Item): number => {
