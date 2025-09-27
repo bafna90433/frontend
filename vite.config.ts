@@ -1,15 +1,14 @@
+// vite.config.ts
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 
 export default defineConfig(({ mode }) => ({
+  base: "/", // ✅ ensure root deploy ke liye sahi hai
   plugins: [
     react(),
     ...(mode === "production"
-      ? [
-          viteCompression({ algorithm: "brotliCompress" }),
-          viteCompression({ algorithm: "gzip" }), // ✅ Gzip fallback
-        ]
+      ? [viteCompression({ algorithm: "brotliCompress" })]
       : []),
   ],
   build: {
