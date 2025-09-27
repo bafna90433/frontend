@@ -1,3 +1,4 @@
+// src/components/ProductCard.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ProductCard.css";
@@ -36,11 +37,14 @@ const IMAGE_BASE_URL =
 // ✅ Helper for Cloudinary Optimization
 const getOptimizedImageUrl = (url: string, width = 400) => {
   if (!url) return "";
+
   if (url.includes("res.cloudinary.com")) {
     return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
   }
+
   if (url.startsWith("http")) return url;
   if (url.includes("/uploads/")) return `${API_BASE}${url}`;
+
   return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
 };
 
@@ -108,11 +112,14 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {imageSrc ? (
           <>
             {!imgLoaded && (
-              <div className="skeleton" style={{ aspectRatio: "1/1", borderRadius: "8px" }} />
+              <div
+                className="skeleton"
+                style={{ width: 400, height: 400, borderRadius: "8px" }}
+              />
             )}
             <img
               src={imageSrc}
-              alt={`${product.name} ${product.sku || ""}`}
+              alt={product.name}
               className={`product-image blur-up ${imgLoaded ? "loaded" : ""}`}
               width="400"
               height="400"
@@ -151,10 +158,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        {/* ✅ Pricing Section */}
+        {/* ✅ Packing & Pricing Section */}
         {isApproved ? (
           <div className="packing-section">
-            <h4 className="packing-title">📦 Packing & Pricing</h4>
+            <h4 className="packing-title">
+              <span className="packing-icon">P</span> Packing & Pricing
+            </h4>
             <ul className="pricing-list">
               {sortedTiers.map((tier) => (
                 <li
@@ -165,9 +174,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                       : ""
                   }
                 >
-                  {tier.inner} inner ({tier.qty} pcs) –{" "}
-                  <b>₹{tier.price}/pc</b>{" "}
-                  {activeTier?.inner === tier.inner && " ✅"}
+                  {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
                 </li>
               ))}
             </ul>
@@ -187,9 +194,13 @@ const ProductCard: React.FC<ProductCardProps> = ({
           ) : (
             <div className="quantity-selector-wrapper">
               <div className="quantity-selector">
-                <button onClick={decrease} className="qty-btn">-</button>
+                <button onClick={decrease} className="qty-btn">
+                  -
+                </button>
                 <span className="qty-count">{innerCount}</span>
-                <button onClick={increase} className="qty-btn">+</button>
+                <button onClick={increase} className="qty-btn">
+                  +
+                </button>
               </div>
               {userRole === "admin" && isApproved && (
                 <div className="admin-total-price">
