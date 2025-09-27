@@ -6,7 +6,10 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     ...(mode === "production"
-      ? [viteCompression({ algorithm: "brotliCompress" })]
+      ? [
+          viteCompression({ algorithm: "brotliCompress" }),
+          viteCompression({ algorithm: "gzip" }), // ✅ Gzip fallback
+        ]
       : []),
   ],
   build: {
