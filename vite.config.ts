@@ -1,15 +1,35 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import viteCompression from "vite-plugin-compression";
 
-export default defineConfig({
-  plugins: [react()],
+export default defineConfig(({ mode }) => ({
+  plugins: [
+    react(),
+    ...(mode === "production"
+      ? [
+          viteCompression({ algorithm: "brotliCompress" }),
+          viteCompression({ algorithm: "gzip" }), // ✅ Gzip fallback
+        ]
+      : []),
+  ],
   build: {
     outDir: "dist",
+    target: "esnext",
+    minify: "esbuild",
+    sourcemap: false,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ["react", "react-dom"],
+          vendor: ["axios", "react-router-dom"],
+        },
+      },
+    },
   },
   server: {
     port: 3000,
   },
   preview: {
-    port: 5000, // Railway preview port
-  }
-});
+    port: 5000,
+  },
+}));
