@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import "../styles/Products.css";
+import CategorySEO from "./CategorySEO"; // ✅ Import SEO component
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -22,7 +23,7 @@ type Product = {
   [k: string]: any;
 };
 
-// ✅ Normalize product object (backend variations handle)
+// ✅ Normalize product object
 const cleanProduct = (raw: any): Product => ({
   _id: String(raw._id ?? raw.id ?? ""),
   name: raw.name ?? raw.title ?? "Untitled",
@@ -112,9 +113,44 @@ const Products: React.FC = () => {
     return filtered;
   }, [allProducts, categoryId, searchTerm]);
 
+  // ✅ Category name for SEO
+  const categoryName =
+    typeof displayed[0]?.category === "object"
+      ? displayed[0]?.category?.name
+      : typeof displayed[0]?.category === "string"
+      ? displayed[0]?.category
+      : "";
+
+  // ✅ Dynamic SEO meta tags
+  const seoTitle = categoryName
+    ? `Wholesale ${categoryName} Supplier in India | Bafna Toys`
+    : searchTerm
+    ? `Search results for "${searchTerm}" | Bafna Toys`
+    : "Wholesale Toys Supplier | Bafna Toys";
+
+  const seoDescription = categoryName
+    ? `Buy bulk ${categoryName.toLowerCase()} wholesale from Bafna Toys, Coimbatore. Best quality ${categoryName.toLowerCase()} for shops & distributors across India.`
+    : searchTerm
+    ? `Showing results for "${searchTerm}" at Bafna Toys. Wholesale toys supplier for shops and distributors in India.`
+    : "Bafna Toys is a wholesale toy supplier in Coimbatore, India. Buy bulk toys including dolls, friction cars, pullback series & more at wholesale prices.";
+
+  const seoKeywords = categoryName
+    ? `wholesale ${categoryName}, bulk ${categoryName}, ${categoryName} supplier India, Bafna Toys`
+    : "wholesale toys, bulk toy supplier India, Bafna Toys distributor";
+
+  const seoUrl = `https://bafnatoys.com${location.pathname}${location.search}`;
+
   return (
     <div className="products-page container" style={{ padding: "24px" }}>
-      <h1 className="page-title">Products</h1>
+      {/* ✅ SEO Injection */}
+      <CategorySEO
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        url={seoUrl}
+      />
+
+      <h1 className="page-title">{categoryName || "Products"}</h1>
 
       {loading && <div className="loader">Loading products…</div>}
       {error && <div className="error">Error: {error}</div>}

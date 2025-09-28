@@ -56,7 +56,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
-  // ✅ Track image loading state
   const [imgLoaded, setImgLoaded] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -123,8 +122,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
               className={`product-image blur-up ${imgLoaded ? "loaded" : ""}`}
               width="400"
               height="400"
-              loading={index === 0 ? undefined : "lazy"}
+              loading={index === 0 ? "eager" : "lazy"}
               fetchPriority={index === 0 ? "high" : "auto"}
+              decoding="async"
               onLoad={() => setImgLoaded(true)}
             />
           </>

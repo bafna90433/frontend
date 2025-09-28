@@ -8,6 +8,7 @@ import { FaBoxOpen, FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import { getImageUrl } from "../utils/image";
+import ProductSEO from "./ProductSEO"; // ✅ SEO Component
 
 interface BulkTier {
   inner: string;
@@ -149,8 +150,20 @@ const ProductDetails: React.FC = () => {
     }
   };
 
+  // ✅ SEO setup
+  const productUrl = `https://bafnatoys.com/product/${product._id}`;
+
   return (
     <>
+      {/* ✅ SEO Meta Tags */}
+      <ProductSEO
+        name={product.name}
+        description={product.description}
+        price={product.price}
+        image={imageUrl}
+        url={productUrl}
+      />
+
       <div className="product-details-container">
         {/* ✅ Product Gallery */}
         <div className="product-gallery">
