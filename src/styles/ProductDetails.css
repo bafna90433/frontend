@@ -500,32 +500,6 @@ body {
   }
 }
 
-/* Dark Mode (Optional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --primary: #e2e8f0;
-    --accent: #4299e1;
-    --danger: #fc8181;
-    --success: #9ae6b4;
-    --warning: #f6ad55;
-    --light-bg: #1a202c;
-    --border: #2d3748;
-    --text: #cbd5e0;
-    --text-light: #a0aec0;
-    --background: #2d3748;
-    --shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
-  }
-  .main-image-container,
-  .bulk-table,
-  .quantity-button {
-    background-color: #4a5568;
-    border-color: #718096;
-  }
-  .bulk-table th {
-    background-color: #2d3748;
-    color: #e2e8f0;
-  }
-}
 /* ----- your existing CSS stays exactly the same (omitted here for brevity) ----- */
 
 /* ================== HIDE THESE ELEMENTS (PC + Mobile) ================== */
@@ -616,4 +590,18 @@ body {
 }
 .blur-up.loaded {
   filter: blur(0);
+}
+/* Force light mode always */
+:root {
+  --primary: #2d3748;
+  --accent: #4a90e2;
+  --danger: #e53e3e;
+  --success: #2e7d32;
+  --warning: #ff9800;
+  --light-bg: #f5faff;
+  --border: #eaeaea;
+  --text: #4a5568;
+  --text-light: #718096;
+  --background: #fff;
+  --shadow: 0 12px 35px rgba(0, 0, 0, 0.08);
 }
