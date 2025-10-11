@@ -251,3 +251,36 @@
 .blur-up.loaded {
   filter: blur(0);
 }
+.product-tax-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.product-tax-fields .tax-field {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+  text-transform: uppercase;
+}
+
+.product-tax-fields .tax-field::after {
+  content: "•"; /* bullet separator */
+  margin-left: 8px;
+  color: #999;
+}
+
+.product-tax-fields .tax-field:last-child::after {
+  content: "";
+}
+.category-title-bottom {
+  text-align: center;
+  margin-top: 32px;
+  font-weight: 700;
+  color: #00a7a7;
+  letter-spacing: 1px;
+  border-top: 2px solid #f3f3f3;
+  padding-top: 12px;
+  font-size: 1.4rem;
+}

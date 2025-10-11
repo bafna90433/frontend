@@ -1,10 +1,9 @@
-// src/components/Products.tsx
 import React, { useEffect, useState, useMemo } from "react";
 import { useLocation } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import "../styles/Products.css";
-import CategorySEO from "./CategorySEO"; // ✅ Import SEO component
+import CategorySEO from "./CategorySEO"; // ✅ SEO component
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -121,6 +120,12 @@ const Products: React.FC = () => {
       ? displayed[0]?.category
       : "";
 
+  // ✅ Decide heading position
+  const bottomHeadingCategories = ["pullback series"];
+  const isBottomHeading = bottomHeadingCategories.some((cat) =>
+    categoryName?.toLowerCase().includes(cat)
+  );
+
   // ✅ Dynamic SEO meta tags
   const seoTitle = categoryName
     ? `Wholesale ${categoryName} Supplier in India | Bafna Toys`
@@ -150,7 +155,8 @@ const Products: React.FC = () => {
         url={seoUrl}
       />
 
-      <h1 className="page-title">{categoryName || "Products"}</h1>
+      {/* 👇 Conditionally show heading top */}
+      {!isBottomHeading && <h1 className="page-title">{categoryName || "Products"}</h1>}
 
       {loading && <div className="loader">Loading products…</div>}
       {error && <div className="error">Error: {error}</div>}
@@ -165,6 +171,11 @@ const Products: React.FC = () => {
             ))}
           </div>
         )
+      )}
+
+      {/* 👇 Conditionally show heading bottom */}
+      {isBottomHeading && (
+        <h1 className="page-title category-title-bottom">{categoryName || "Products"}</h1>
       )}
     </div>
   );
