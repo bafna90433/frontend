@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useRef, Suspense } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
 import BulkPricingTable, { Tier } from "./BulkPricingTable";
-import { FiShoppingCart } from "react-icons/fi";
-import { FaBoxOpen, FaTag } from "react-icons/fa";
+import { FiShoppingCart, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { FaBoxOpen } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import { getImageUrl } from "../utils/image";
-import ProductSEO from "./ProductSEO"; // ✅ SEO Component
+import ProductSEO from "./ProductSEO";
+import ProductCard from "./ProductCard"; // ✅ import added
 
 interface BulkTier {
   inner: string;
@@ -25,6 +26,9 @@ interface Product {
   bulkPricing: BulkTier[];
   description?: string;
   innerQty?: number;
+  relatedProducts?: Product[];
+  sku?: string;
+  category?: { _id: string; name: string };
 }
 
 const ProductDetails: React.FC = () => {
@@ -35,6 +39,7 @@ const ProductDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -45,6 +50,8 @@ const ProductDetails: React.FC = () => {
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
+
+  const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
 
   useEffect(() => {
     setLoading(true);
@@ -58,7 +65,7 @@ const ProductDetails: React.FC = () => {
         const res = await api.get(`/products/${id}`);
         setProduct(res.data);
       } catch (err) {
-        console.error("Failed loading product", err);
+        console.error("❌ Failed loading product", err);
         setError("Failed to load product. Please try again later.");
       } finally {
         setLoading(false);
@@ -67,6 +74,7 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
+  // Swipe gestures
   const handleTouchStart = (e: React.TouchEvent) => {
     touchStartX.current = e.touches[0].clientX;
   };
@@ -97,17 +105,17 @@ const ProductDetails: React.FC = () => {
         <p>Loading product details…</p>
       </div>
     );
+
   if (error) return <div className="error-message">{error}</div>;
   if (!product) return <div className="error-message">Product not found</div>;
 
   const productInCart = cartItems.find((item) => item._id === product._id);
 
-  let baseImage = "";
-  if (product.images && product.images.length > 0) {
-    baseImage = product.images[selectedImage] || product.image || "";
-  } else {
-    baseImage = product.image || "";
-  }
+  const baseImage =
+    product.images && product.images.length > 0
+      ? product.images[selectedImage] || product.image || ""
+      : product.image || "";
+
   const imageUrl = getImageUrl(baseImage, 800);
 
   const sortedTiers = Array.isArray(product.bulkPricing)
@@ -150,12 +158,10 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  // ✅ SEO setup
   const productUrl = `https://bafnatoys.com/product/${product._id}`;
 
   return (
     <>
-      {/* ✅ SEO Meta Tags */}
       <ProductSEO
         name={product.name}
         description={product.description}
@@ -165,10 +171,10 @@ const ProductDetails: React.FC = () => {
       />
 
       <div className="product-details-container">
-        {/* ✅ Product Gallery */}
+        {/* ===== Left: Gallery ===== */}
         <div className="product-gallery">
           <div
-            className="main-image-container"
+            className="main-image-wrapper"
             ref={imageContainerRef}
             onTouchStart={handleTouchStart}
             onTouchMove={handleTouchMove}
@@ -176,57 +182,48 @@ const ProductDetails: React.FC = () => {
           >
             {!imgLoaded && (
               <img
-                src={getImageUrl(baseImage, 30)} // low-res blur-up
+                src={getImageUrl(baseImage, 30)}
                 alt="preview"
                 className="main-image low-quality"
                 width="30"
                 height="30"
               />
             )}
-
-            <picture>
-              <source srcSet={getImageUrl(baseImage, 800)} type="image/webp" />
-              <img
-                src={imageUrl}
-                alt={product.name}
-                className={`main-image blur-up ${imgLoaded ? "loaded" : ""}`}
-                width="800"
-                height="800"
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                onLoad={() => setImgLoaded(true)}
-              />
-            </picture>
-
-            {isApproved && product.price && (
-              <div className="discount-badge">
-                <FaTag className="discount-icon" />
-                ₹{unitPrice.toFixed(2)}
+            <img
+              src={imageUrl}
+              alt={product.name}
+              className={`main-image blur-up ${imgLoaded ? "loaded" : ""}`}
+              width="800"
+              height="800"
+              loading="eager"
+              onLoad={() => setImgLoaded(true)}
+            />
+            {product.images && product.images.length > 1 && (
+              <div className="swipe-indicators">
+                {product.images.map((_, i) => (
+                  <div
+                    key={i}
+                    className={`swipe-dot ${
+                      selectedImage === i ? "active" : ""
+                    }`}
+                  />
+                ))}
               </div>
             )}
           </div>
 
-          {/* ✅ Thumbnails */}
           {product.images && product.images.length > 1 && (
             <div className="thumbnail-container">
               {product.images.map((img, i) => (
                 <img
                   key={i}
                   src={getImageUrl(img, 150)}
-                  srcSet={`${getImageUrl(img, 150)} 150w, ${getImageUrl(
-                    img,
-                    300
-                  )} 300w`}
-                  sizes="(max-width: 768px) 150px, 300px"
                   alt={`${product.name} thumbnail ${i + 1}`}
                   className={`thumbnail ${
                     selectedImage === i ? "active" : ""
                   }`}
                   width="150"
                   height="150"
-                  loading="lazy"
-                  decoding="async"
                   onClick={() => handleSelectImage(i)}
                 />
               ))}
@@ -234,142 +231,129 @@ const ProductDetails: React.FC = () => {
           )}
         </div>
 
-        {/* ✅ Product Info */}
-        <div className="product-info">
-          <div className="product-header">
-            <h1 className="product-title">{product.name}</h1>
-            <div className="price-section">
-              {isApproved ? (
-                <span className="current-price">₹{unitPrice.toFixed(2)}</span>
-              ) : (
-                <span className="locked-message">
-                  🔒 Price visible after admin approval
-                </span>
-              )}
-            </div>
-          </div>
-
-          {/* ✅ Bulk Pricing */}
-          <div className="bulk-pricing-section">
-            <div className="section-header">
-              <h3 className="section-title">📊 Bulk Pricing</h3>
-              <div className="pieces-info">
-                <FaBoxOpen className="box-icon" />
-                {piecesPerInner} pieces per inner
+        {/* ===== Right: Info ===== */}
+        <div className="product-info-panel">
+          <div className="product-info-content">
+            <div className="product-header">
+              <h1 className="product-title">{product.name}</h1>
+              <div className="price-section">
+                {isApproved ? (
+                  <span className="current-price">
+                    ₹{unitPrice.toFixed(2)}
+                  </span>
+                ) : (
+                  <span className="locked-message">
+                    🔒 Price visible after admin approval
+                  </span>
+                )}
               </div>
             </div>
 
-            {isApproved ? (
-              tiersForTable.length > 0 ? (
-                <div className="table-responsive">
-                  <BulkPricingTable
-                    innerQty={piecesPerInner}
-                    tiers={tiersForTable}
-                    selectedInner={productInCart?.quantity || quantity}
-                  />
+            {/* ==== Bulk Pricing ==== */}
+            <div className="bulk-pricing-section">
+              <div className="section-header">
+                <h3 className="section-title">📊 Bulk Pricing</h3>
+                <div className="pieces-info">
+                  <FaBoxOpen className="box-icon" />
+                  {piecesPerInner} pieces per inner
                 </div>
-              ) : (
-                <div className="no-bulk-pricing">
-                  No bulk pricing tiers available.
-                </div>
-              )
-            ) : (
-              <p className="locked-message">
-                🔒 Bulk pricing available after admin approval
-              </p>
-            )}
-          </div>
+              </div>
 
-          {/* ✅ Quantity Section */}
-          {isApproved && (
-            <div className="quantity-section">
-              <h3 className="section-title">🔢 Quantity (Inners)</h3>
-              {productInCart ? (
-                <div className="quantity-controls">
-                  <button
-                    onClick={() => {
-                      const newQty = productInCart.quantity - 1;
-                      if (newQty <= 0) {
-                        removeFromCart(product._id);
-                      } else {
-                        setCartItemQuantity(productInCart, newQty);
-                      }
-                    }}
-                    className="quantity-button"
-                  >
-                    −
-                  </button>
-                  <span className="quantity-display">
-                    {productInCart.quantity}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCartItemQuantity(
-                        productInCart,
-                        productInCart.quantity + 1
-                      )
-                    }
-                    className="quantity-button"
-                  >
-                    +
-                  </button>
-                </div>
+              {isApproved ? (
+                tiersForTable.length > 0 ? (
+                  <div className="table-responsive">
+                    <BulkPricingTable
+                      innerQty={piecesPerInner}
+                      tiers={tiersForTable}
+                      selectedInner={productInCart?.quantity || quantity}
+                    />
+                  </div>
+                ) : (
+                  <div className="no-bulk-pricing">
+                    No bulk pricing available.
+                  </div>
+                )
               ) : (
-                <div className="action-buttons-row">
-                  <button
-                    className="add-to-cart-button"
-                    onClick={() => {
-                      addToCart(
-                        {
-                          ...product,
-                          bulkPricing: product.bulkPricing.map((t) => ({
-                            inner: parseInt(t.inner),
-                            qty: t.qty,
-                            price: t.price,
-                          })),
-                        },
-                        quantity
-                      );
-                    }}
-                  >
-                    <FiShoppingCart className="cart-icon" />
-                    Add to Cart
-                  </button>
-                  <button
-                    className="buy-now-button"
-                    onClick={() => {
-                      addToCart(
-                        {
-                          ...product,
-                          bulkPricing: product.bulkPricing.map((t) => ({
-                            inner: parseInt(t.inner),
-                            qty: t.qty,
-                            price: t.price,
-                          })),
-                        },
-                        quantity
-                      );
-                      navigate("/cart");
-                    }}
-                  >
-                    🛒 Buy Now
-                  </button>
-                </div>
+                <p className="locked-message">
+                  🔒 Bulk pricing available after admin approval
+                </p>
               )}
             </div>
-          )}
 
-          {/* ✅ Product Description Lazy Load */}
-          {product.description && (
-            <Suspense fallback={<p>Loading description…</p>}>
-              <div
-                className="description-section"
-                style={{ marginTop: "1.5rem" }}
-              >
-                <div className="section-header">
-                  <h3 className="section-title">📋 Product Description</h3>
+            {/* ==== Quantity Section ==== */}
+            {isApproved && (
+              <div className="quantity-section">
+                <h3 className="section-title">🔢 Quantity (Inners)</h3>
+                {productInCart ? (
+                  <div className="quantity-controls">
+                    <button
+                      onClick={() => {
+                        const newQty = productInCart.quantity - 1;
+                        if (newQty <= 0) {
+                          removeFromCart(product._id);
+                        } else {
+                          setCartItemQuantity(productInCart, newQty);
+                        }
+                      }}
+                      className="quantity-button"
+                    >
+                      −
+                    </button>
+                    <span className="quantity-display">
+                      {productInCart.quantity}
+                    </span>
+                    <button
+                      onClick={() =>
+                        setCartItemQuantity(
+                          productInCart,
+                          productInCart.quantity + 1
+                        )
+                      }
+                      className="quantity-button"
+                    >
+                      +
+                    </button>
+                  </div>
+                ) : (
+                  <div className="action-buttons-row">
+                    <button
+                      className="add-to-cart-button"
+                      onClick={() => addToCart(product, quantity)}
+                    >
+                      <FiShoppingCart className="cart-icon" />
+                      Add to Cart
+                    </button>
+                    <button
+                      className="buy-now-button"
+                      onClick={() => {
+                        addToCart(product, quantity);
+                        navigate("/cart");
+                      }}
+                    >
+                      🛒 Buy Now
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ==== Description ==== */}
+            {product.description && (
+              <div className="description-accordion">
+                <div
+                  className="description-toggle-header"
+                  onClick={toggleDescription}
+                >
+                  <h3 className="description-title">Description</h3>
+                  <span className="toggle-icon">
+                    {isDescriptionExpanded ? <FiChevronUp /> : <FiChevronDown />}
+                  </span>
                 </div>
-                <div className="description-content expanded">
+                <div
+                  className={`description-content ${
+                    isDescriptionExpanded ? "expanded" : ""
+                  }`}
+                >
                   <ul className="description-list">
                     {product.description
                       .split("\n")
@@ -380,10 +364,79 @@ const ProductDetails: React.FC = () => {
                   </ul>
                 </div>
               </div>
-            </Suspense>
-          )}
+            )}
+          </div>
         </div>
       </div>
+
+      {/* ==== Related Products ==== */}
+      {product.relatedProducts && product.relatedProducts.length > 0 && (
+        <div className="related-products-wrapper">
+          <h3 className="section-title">🧸 Related Products</h3>
+          <div className="related-products-scroll">
+            {product.relatedProducts.map((rel, i) => (
+              <div key={rel._id} className="related-product-item">
+                <ProductCard product={rel} userRole="customer" index={i} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ==== Sticky Mobile Bottom ==== */}
+      {isApproved && (
+        <div className="mobile-sticky-actions">
+          {productInCart ? (
+            <div className="quantity-controls">
+              <button
+                onClick={() => {
+                  const newQty = productInCart.quantity - 1;
+                  if (newQty <= 0) {
+                    removeFromCart(product._id);
+                  } else {
+                    setCartItemQuantity(productInCart, newQty);
+                  }
+                }}
+                className="quantity-button"
+              >
+                −
+              </button>
+              <span className="quantity-display">
+                {productInCart.quantity} in cart
+              </span>
+              <button
+                onClick={() =>
+                  setCartItemQuantity(
+                    productInCart,
+                    productInCart.quantity + 1
+                  )
+                }
+                className="quantity-button"
+              >
+                +
+              </button>
+            </div>
+          ) : (
+            <>
+              <button
+                className="add-to-cart-button"
+                onClick={() => addToCart(product, quantity)}
+              >
+                Add to cart
+              </button>
+              <button
+                className="buy-now-button"
+                onClick={() => {
+                  addToCart(product, quantity);
+                  navigate("/cart");
+                }}
+              >
+                Buy now
+              </button>
+            </>
+          )}
+        </div>
+      )}
 
       <div style={{ height: 84 }} />
       <FloatingCheckoutButton />

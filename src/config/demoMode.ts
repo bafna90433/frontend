@@ -1,0 +1,1 @@
+export const DEMO_MODE = true; // 🔹 Fake price ke liye true rakho, real ke liye false

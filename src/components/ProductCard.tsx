@@ -13,6 +13,7 @@ interface BulkTier {
 interface Product {
   _id: string;
   name: string;
+  slug?: string;
   sku?: string;
   images?: string[];
   price: number;
@@ -28,13 +29,9 @@ interface ProductCardProps {
   index?: number;
 }
 
-// ✅ API and Image Base
-const API_BASE =
-  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
-const IMAGE_BASE_URL =
-  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
-// ✅ Helper for Cloudinary Optimization
 const getOptimizedImageUrl = (url: string, width = 400) => {
   if (!url) return "";
 
@@ -55,8 +52,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
 }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
-
   const [imgLoaded, setImgLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
@@ -65,145 +62,184 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const innerCount = cartItem?.quantity ?? 0;
 
   const sortedTiers = [...product.bulkPricing].sort((a, b) => a.inner - b.inner);
+  const activeTier: BulkTier | undefined = sortedTiers.length > 0
+    ? sortedTiers.reduce(
+        (prev, tier) => (innerCount >= tier.inner ? tier : prev),
+        sortedTiers[0]
+      )
+    : undefined;
 
-  const activeTier: BulkTier | undefined =
-    sortedTiers.length > 0
-      ? sortedTiers.reduce(
-          (prev, tier) => (innerCount >= tier.inner ? tier : prev),
-          sortedTiers[0]
-        )
-      : undefined;
-
-  const piecesPerInner =
-    product.innerQty && product.innerQty > 0
-      ? product.innerQty
-      : sortedTiers.length > 0 && sortedTiers[0].qty > 0
-      ? sortedTiers[0].qty / sortedTiers[0].inner
-      : 1;
+  const piecesPerInner = product.innerQty && product.innerQty > 0
+    ? product.innerQty
+    : sortedTiers.length > 0 && sortedTiers[0].qty > 0
+    ? sortedTiers[0].qty / sortedTiers[0].inner
+    : 1;
 
   const totalPieces = innerCount * piecesPerInner;
-  const totalPrice =
-    totalPieces * (activeTier ? activeTier.price : product.price);
+  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
 
   const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCartItemQuantity(product, 1);
   };
+
   const increase = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCartItemQuantity(product, innerCount + 1);
   };
+
   const decrease = (e: React.MouseEvent) => {
     e.stopPropagation();
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
   const imageFile = product.images?.[0] ?? null;
-  const imageSrc = imageFile ? getOptimizedImageUrl(imageFile, 400) : null;
+  const imageSrc = imageFile && !imageError ? getOptimizedImageUrl(imageFile, 400) : null;
+
+  const handleNavigate = () => {
+    const path = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
+    navigate(path);
+  };
+
+  const handleImageError = () => {
+    setImageError(true);
+    setImgLoaded(true);
+  };
 
   return (
-    <div className="product-card-item">
-      {/* ✅ Image Section */}
-      <div
-        className="product-image-container"
-        onClick={() => navigate(`/product/${product._id}`)}
-      >
+    <div className="product-card">
+      {/* Image Section */}
+      <div className="product-card__image-container" onClick={handleNavigate}>
         {imageSrc ? (
           <>
             {!imgLoaded && (
-              <div
-                className="skeleton"
-                style={{ width: 400, height: 400, borderRadius: "8px" }}
-              />
+              <div className="product-card__skeleton" />
             )}
             <img
               src={imageSrc}
               alt={product.name}
-              className={`product-image blur-up ${imgLoaded ? "loaded" : ""}`}
+              className={`product-card__image ${imgLoaded ? "product-card__image--loaded" : ""}`}
               width="400"
               height="400"
               loading={index === 0 ? "eager" : "lazy"}
-              fetchPriority={index === 0 ? "high" : "auto"}
               decoding="async"
               onLoad={() => setImgLoaded(true)}
+              onError={handleImageError}
             />
           </>
         ) : (
-          <div className="no-image">No Image</div>
+          <div className="product-card__no-image">
+            <span className="product-card__no-image-icon">📷</span>
+            No Image Available
+          </div>
         )}
+        
+        {/* Quick Action Overlay */}
+        <div className="product-card__overlay">
+          <button className="product-card__quick-view" onClick={handleNavigate}>
+            Quick View
+          </button>
+        </div>
       </div>
 
-      {/* ✅ Product Info */}
-      <div className="product-details">
-        <h3 className="product-name">{product.name}</h3>
+      {/* Product Info */}
+      <div className="product-card__content">
+        <div className="product-card__header" onClick={handleNavigate}>
+          <h3 className="product-card__title">{product.name}</h3>
+          
+          <div className="product-card__meta">
+            {product.sku && (
+              <span className="product-card__sku">SKU: {product.sku}</span>
+            )}
+            {product.category && (
+              <span className="product-card__category">
+                {typeof product.category === "string" 
+                  ? product.category 
+                  : product.category?.name}
+              </span>
+            )}
+          </div>
 
-        <div className="product-meta">
-          {product.sku && <span className="product-sku">SKU: {product.sku}</span>}
-          {product.category && (
-            <span className="product-category">
-              {typeof product.category === "string"
-                ? product.category
-                : product.category?.name}
-            </span>
+          {product.taxFields && product.taxFields.length > 0 && (
+            <div className="product-card__tax-badges">
+              {product.taxFields.map((tax, idx) => (
+                <span key={idx} className="product-card__tax-badge">
+                  {tax}
+                </span>
+              ))}
+            </div>
           )}
         </div>
 
-        {product.taxFields && product.taxFields.length > 0 && (
-          <div className="product-tax-fields">
-            {product.taxFields.map((tax, idx) => (
-              <span key={idx} className="tax-field">
-                {tax}
-              </span>
-            ))}
-          </div>
-        )}
-
-        {/* ✅ Packing & Pricing Section */}
+        {/* Pricing & Bulk Information */}
         {isApproved ? (
-          <div className="packing-section">
-            <h4 className="packing-title">
-              <span className="packing-icon">P</span> Packing & Pricing
-            </h4>
-            <ul className="pricing-list">
+          <div className="product-card__pricing">
+            <div className="product-card__pricing-header">
+              <span className="product-card__pricing-icon">📦</span>
+              <span>Bulk Pricing</span>
+            </div>
+            
+            <div className="product-card__tiers">
               {sortedTiers.map((tier) => (
-                <li
+                <div
                   key={tier.inner}
-                  className={
-                    activeTier && tier.inner === activeTier.inner
-                      ? "active-tier-row"
+                  className={`product-card__tier ${
+                    activeTier && tier.inner === activeTier.inner 
+                      ? "product-card__tier--active" 
                       : ""
-                  }
+                  }`}
                 >
-                  {tier.inner} inner ({tier.qty} pcs) ₹{tier.price}/pc
-                </li>
+                  <span className="product-card__tier-info">
+                    {tier.inner} inner ({tier.qty} pcs)
+                  </span>
+                  <span className="product-card__tier-price">
+                    ₹{tier.price}/pc
+                  </span>
+                </div>
               ))}
-            </ul>
+            </div>
           </div>
         ) : (
-          <p className="locked-message">
-            🔒 Prices visible after admin approval
-          </p>
+          <div className="product-card__approval-message">
+            <span className="product-card__lock-icon">🔒</span>
+            Prices visible after admin approval
+          </div>
         )}
 
-        {/* ✅ Cart Section */}
-        <div className="cart-controls">
+        {/* Cart Controls */}
+        <div className="product-card__actions">
           {innerCount === 0 ? (
-            <button onClick={handleAdd} className="add-to-cart-btn">
+            <button 
+              onClick={handleAdd} 
+              className="product-card__add-btn"
+              disabled={!isApproved}
+            >
               ADD TO CART
             </button>
           ) : (
-            <div className="quantity-selector-wrapper">
-              <div className="quantity-selector">
-                <button onClick={decrease} className="qty-btn">
-                  -
+            <div className="product-card__quantity-controls">
+              <div className="product-card__quantity-selector">
+                <button 
+                  onClick={decrease} 
+                  className="product-card__quantity-btn"
+                  aria-label="Decrease quantity"
+                >
+                  −
                 </button>
-                <span className="qty-count">{innerCount}</span>
-                <button onClick={increase} className="qty-btn">
+                <span className="product-card__quantity-count">
+                  {innerCount}
+                </span>
+                <button 
+                  onClick={increase} 
+                  className="product-card__quantity-btn"
+                  aria-label="Increase quantity"
+                >
                   +
                 </button>
               </div>
+              
               {userRole === "admin" && isApproved && (
-                <div className="admin-total-price">
+                <div className="product-card__total-price">
                   Total: ₹{totalPrice.toLocaleString()}
                 </div>
               )}

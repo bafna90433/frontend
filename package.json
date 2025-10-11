@@ -27,6 +27,7 @@
     "react-helmet": "^6.1.0",
     "react-helmet-async": "^2.0.5",
     "react-icons": "^5.5.0",
+    "react-image-zooom": "^1.5.5",
     "react-responsive": "^10.0.1",
     "react-router-dom": "^6.30.1",
     "react-slick": "^0.30.3",

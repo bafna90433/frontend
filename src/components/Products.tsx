@@ -145,6 +145,26 @@ const Products: React.FC = () => {
 
   const seoUrl = `https://bafnatoys.com${location.pathname}${location.search}`;
 
+  // ✅ Structured data for SEO (Google rich results)
+  const productListSchema = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    itemListElement: displayed.map((p, i) => ({
+      "@type": "Product",
+      position: i + 1,
+      name: p.name,
+      image: Array.isArray(p.images) ? p.images[0] : p.images,
+      description: p.description || `${p.name} available at wholesale prices.`,
+      offers: {
+        "@type": "Offer",
+        priceCurrency: "INR",
+        price: p.price || 0,
+        availability: "https://schema.org/InStock",
+        url: `https://bafnatoys.com/product/${p._id}`,
+      },
+    })),
+  };
+
   return (
     <div className="products-page container" style={{ padding: "24px" }}>
       {/* ✅ SEO Injection */}
@@ -153,6 +173,7 @@ const Products: React.FC = () => {
         description={seoDescription}
         keywords={seoKeywords}
         url={seoUrl}
+        jsonLd={productListSchema}
       />
 
       {/* 👇 Conditionally show heading top */}
