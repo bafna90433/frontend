@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import "../styles/Products.css";
-import CategorySEO from "./CategorySEO"; // ✅ SEO component
+import CategorySEO from "./CategorySEO";
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -22,7 +22,6 @@ type Product = {
   [k: string]: any;
 };
 
-// ✅ Normalize product object
 const cleanProduct = (raw: any): Product => ({
   _id: String(raw._id ?? raw.id ?? ""),
   name: raw.name ?? raw.title ?? "Untitled",
@@ -48,7 +47,6 @@ const Products: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ URL params
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
@@ -92,7 +90,6 @@ const Products: React.FC = () => {
     };
   }, [location.search, categoryId, searchTerm]);
 
-  // ✅ Client-side filtering fallback
   const displayed = useMemo(() => {
     let filtered = [...allProducts];
 
@@ -112,7 +109,6 @@ const Products: React.FC = () => {
     return filtered;
   }, [allProducts, categoryId, searchTerm]);
 
-  // ✅ Category name for SEO
   const categoryName =
     typeof displayed[0]?.category === "object"
       ? displayed[0]?.category?.name
@@ -120,13 +116,11 @@ const Products: React.FC = () => {
       ? displayed[0]?.category
       : "";
 
-  // ✅ Decide heading position
   const bottomHeadingCategories = ["pullback series"];
   const isBottomHeading = bottomHeadingCategories.some((cat) =>
     categoryName?.toLowerCase().includes(cat)
   );
 
-  // ✅ Dynamic SEO meta tags
   const seoTitle = categoryName
     ? `Wholesale ${categoryName} Supplier in India | Bafna Toys`
     : searchTerm
@@ -145,7 +139,6 @@ const Products: React.FC = () => {
 
   const seoUrl = `https://bafnatoys.com${location.pathname}${location.search}`;
 
-  // ✅ Structured data for SEO (Google rich results)
   const productListSchema = {
     "@context": "https://schema.org",
     "@type": "ItemList",
@@ -167,7 +160,6 @@ const Products: React.FC = () => {
 
   return (
     <div className="products-page container" style={{ padding: "24px" }}>
-      {/* ✅ SEO Injection */}
       <CategorySEO
         title={seoTitle}
         description={seoDescription}
@@ -176,7 +168,6 @@ const Products: React.FC = () => {
         jsonLd={productListSchema}
       />
 
-      {/* 👇 Conditionally show heading top */}
       {!isBottomHeading && <h1 className="page-title">{categoryName || "Products"}</h1>}
 
       {loading && <div className="loader">Loading products…</div>}
@@ -194,7 +185,6 @@ const Products: React.FC = () => {
         )
       )}
 
-      {/* 👇 Conditionally show heading bottom */}
       {isBottomHeading && (
         <h1 className="page-title category-title-bottom">{categoryName || "Products"}</h1>
       )}

@@ -1,62 +1,115 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import { vibrate } from "../utils/vibrate"; // ✅ import vibration helper
 import "../styles/BottomNav.css";
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
 
-  // ✅ Agar current path "/" nahi hai to nav hide karo
-  if (location.pathname !== "/") {
+  // ✅ Show nav only on specific pages
+  const allowedPaths = ["/", "/cart", "/my-account", "/orders"];
+  if (!allowedPaths.includes(location.pathname)) {
     return null;
   }
 
   const navItems = [
     {
-      label: "Orders",
-      to: "/orders",
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
-             stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
-             strokeLinejoin="round" viewBox="0 0 24 24" className="nav-icon">
-          <line x1="8" y1="6" x2="21" y2="6" />
-          <line x1="8" y1="12" x2="21" y2="12" />
-          <line x1="8" y1="18" x2="21" y2="18" />
-          <circle cx="3" cy="6" r="1.5" />
-          <circle cx="3" cy="12" r="1.5" />
-          <circle cx="3" cy="18" r="1.5" />
-        </svg>
-      )
-    },
-    {
       label: "Shop",
       to: "/",
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
-             stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
-             strokeLinejoin="round" viewBox="0 0 24 24" className="nav-icon">
-          <path d="M3 9l9-7 9 7" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="nav-icon"
+          viewBox="0 0 24 24"
+        >
+          <path d="M3 9h18v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+          <path d="M3 9 L12 2 L21 9" />
           <path d="M9 22V12h6v10" />
         </svg>
-      )
+      ),
+      vibration: 60,
     },
     {
-      label: "My Account",
+      label: "Orders",
+      to: "/orders",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="nav-icon"
+          viewBox="0 0 24 24"
+        >
+          <rect x="3" y="3" width="7" height="7" />
+          <rect x="14" y="3" width="7" height="7" />
+          <rect x="14" y="14" width="7" height="7" />
+          <rect x="3" y="14" width="7" height="7" />
+        </svg>
+      ),
+      vibration: [50, 30, 50],
+    },
+    {
+      label: "Cart",
+      to: "/cart",
+      icon: (
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="nav-icon"
+          viewBox="0 0 24 24"
+        >
+          <circle cx="9" cy="21" r="1" />
+          <circle cx="20" cy="21" r="1" />
+          <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+        </svg>
+      ),
+      vibration: 80,
+    },
+    {
+      label: "Account",
       to: "/my-account",
       icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none"
-             stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"
-             strokeLinejoin="round" viewBox="0 0 24 24" className="nav-icon">
-          <path d="M20 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M4 21v-2a4 4 0 0 1 3-3.87" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="nav-icon"
+          viewBox="0 0 24 24"
+        >
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
         </svg>
-      )
+      ),
+      vibration: 100,
     },
   ];
 
   const isActivePath = (path: string) => {
     if (path === "/") return location.pathname === "/";
-    return location.pathname === path || location.pathname.startsWith(path + "/");
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -67,6 +120,7 @@ const BottomNav: React.FC = () => {
           <Link
             key={item.to}
             to={item.to}
+            onClick={() => vibrate(item.vibration)} // ✅ vibration added here
             className={`bottom-nav-item${isActive ? " active" : ""}`}
             aria-current={isActive ? "page" : undefined}
           >

@@ -1,55 +1,75 @@
-.back-footer {
+.back-header-container {
+  display: none; /* 🔹 Default: PC pe hide */
   position: fixed;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  background: #fff; /* clean background */
-  padding: 8px 0;
-  z-index: 100;
-  display: none; /* ✅ Default hidden on PC/Desktop */
-  justify-content: space-around;
-  align-items: center;
-  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.08);
-  border-top: 1px solid #eee;
-  backdrop-filter: blur(6px); /* ✅ modern frosted effect */
+  top: 145px;
+  left: 15px;
+  z-index: 998;
 }
 
-/* Each nav item */
-.nav-item {
+.back-button {
+  background: #ffffff;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 30px;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
   display: flex;
-  flex-direction: column;
   align-items: center;
-  font-size: 12px;
-  font-weight: 600;
-  color: #666;
-  text-decoration: none;
-  transition: all 0.25s ease;
-  gap: 4px;
+  gap: 6px;
+  transition: all 0.3s ease;
 }
 
-.nav-item svg {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  transition: transform 0.2s ease;
+.back-button svg {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
-.nav-item:hover {
-  color: #FF6B88;
+.back-button:hover {
+  color: #6354f2;
+  border-color: #6354f2;
+  background: #f3f1ff;
+  transform: translateX(-3px);
+  box-shadow: 0 4px 12px rgba(99, 84, 242, 0.2);
 }
 
-.nav-item:active svg {
-  transform: scale(1.1); /* subtle press animation */
+.back-button:active {
+  transform: translateX(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-.nav-item.active {
-  color: #FF4F70;
-  font-weight: 700;
-}
-
-/* ✅ Show only on mobile/tablet */
+/* 🔹 Sirf mobile pe dikhao - 768px se kam screens */
 @media (max-width: 768px) {
-  .back-footer {
-    display: flex;
+  .back-header-container {
+    display: block; /* Mobile pe show karo */
+    top: 140px;
+    left: 12px;
+  }
+  
+  .back-button {
+    font-size: 13px;
+    padding: 6px 12px;
+    gap: 5px;
+  }
+  
+  .back-button svg {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+/* Extra small mobile devices */
+@media (max-width: 480px) {
+  .back-header-container {
+    top: 135px;
+    left: 10px;
+  }
+  
+  .back-button {
+    font-size: 12px;
+    padding: 5px 10px;
   }
 }

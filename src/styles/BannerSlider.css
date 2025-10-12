@@ -1,59 +1,34 @@
-/* Main container with top spacing */
-.banner-slider-container {
+.banner-slider-row {
   width: 100%;
-  margin: 20px auto 0; /* 30px top margin to push it down */
+  margin: 20px auto;
   overflow: hidden;
+  padding: 10px 0;
 }
 
-/* Individual slide styling */
-.slide-item {
-  padding: 0 10px; /* Gap between slides */
+.banner-slide {
+  padding: 0 8px;
   box-sizing: border-box;
 }
 
-/* Image styling */
-.banner-img {
-  width: 100%;
-  height: auto;
-  max-height: 450px;
-  object-fit: cover;
+.banner-link {
   display: block;
-  border-radius: 10px; /* Professional subtle rounded corners */
-  transition: transform 0.3s ease;
+  text-decoration: none;
 }
 
-/* Optional hover effect */
-.banner-img:hover {
-  transform: scale(1.01);
+.banner-row-img {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  border-radius: 10px;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Dots customization */
-.slick-dots {
-  bottom: 15px;
+.banner-row-img:hover {
+  transform: scale(1.03);
+  opacity: 0.95;
 }
 
-.slick-dots li button:before {
-  color: white;
-  opacity: 0.5;
-  font-size: 10px;
-}
-
-.slick-dots li.slick-active button:before {
-  color: white;
-  opacity: 1;
-}
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .banner-slider-container {
-    margin: 20px auto 0; /* Slightly less space on mobile */
-  }
-  
-  .banner-img {
-    max-height: 300px;
-  }
-}
-/* Blur-up effect */
 .blur-up {
   filter: blur(10px);
   transition: filter 0.4s ease;
@@ -61,9 +36,9 @@
 .blur-up:not([src=""]) {
   filter: blur(0);
 }
-.banner-img {
-  width: 100%;
-  height: auto;
-  object-fit: cover;
-  border-radius: 8px;
+
+@media (max-width: 768px) {
+  .banner-row-img {
+    height: 210px;
+  }
 }

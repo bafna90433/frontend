@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
+import CategoryNav from "./CategoryNav"; // 👈 horizontal category menu
 import "../styles/Home.css";
 import { Skeleton } from "@mui/material";
 import ErrorMessage from "./ErrorMessage";
@@ -24,14 +25,19 @@ interface Product {
   taxFields?: string[];
 }
 
+interface Banner {
+  _id: string;
+  imageUrl: string;
+  link?: string;
+}
+
 const Home: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [banners, setBanners] = useState<string[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ active demos prevent repeat during one cycle
   const activeDemos = useRef<Record<string, boolean>>({});
 
   const runScrollDemo = (id: string) => {
@@ -39,29 +45,22 @@ const Home: React.FC = () => {
     if (!container || activeDemos.current[id]) return;
 
     activeDemos.current[id] = true;
-
-    // 🔹 Calculate product width
     const firstProduct = container.querySelector<HTMLElement>(".product-link");
-    const productWidth = firstProduct ? firstProduct.offsetWidth + 16 : 200; // +16 = gap
-    const productCount = container.children.length;
-
-    // 🔹 Scroll 30 products worth OR max available
+    const productWidth = firstProduct ? firstProduct.offsetWidth + 16 : 200;
     const distance = Math.min(
       productWidth * 4,
       container.scrollWidth - container.clientWidth
     );
 
-    const duration = 1500; // smooth timing
-
+    const duration = 1500;
     container.scrollBy({ left: distance, behavior: "smooth" });
-
     setTimeout(() => {
       container.scrollBy({ left: -distance, behavior: "smooth" });
-      activeDemos.current[id] = false; // reset for repeat
+      activeDemos.current[id] = false;
     }, duration);
   };
 
-  // ✅ Fetch categories/products/banners
+  // ✅ Fetch all
   useEffect(() => {
     async function fetchData() {
       try {
@@ -81,11 +80,7 @@ const Home: React.FC = () => {
         ) {
           setCategories(catRes.data || []);
           setProducts(prodRes.data || []);
-          setBanners(
-            (bannerRes.data || [])
-              .map((b: any) => b.imageUrl || b.url || b.image)
-              .filter(Boolean)
-          );
+          setBanners(bannerRes.data || []); // ✅ Full banner object (imageUrl + link)
         } else {
           throw new Error("Failed to fetch data");
         }
@@ -93,7 +88,7 @@ const Home: React.FC = () => {
         console.error("Fetch error:", err);
         setError(
           err.response?.data?.message ||
-            "Failed to load products. Please try again later."
+            "Failed to load data. Please try again later."
         );
       } finally {
         setLoading(false);
@@ -102,7 +97,7 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  // ✅ repeat demo when category comes into view
+  // ✅ Intersection scroll animation
   useEffect(() => {
     if (!loading && categories.length > 0) {
       const observer = new IntersectionObserver(
@@ -110,13 +105,11 @@ const Home: React.FC = () => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               const id = entry.target.getAttribute("data-id");
-              if (id) {
-                runScrollDemo(id);
-              }
+              if (id) runScrollDemo(id);
             }
           });
         },
-        { threshold: 0.4 } // trigger when 40% visible
+        { threshold: 0.4 }
       );
 
       categories.forEach((cat) => {
@@ -129,20 +122,18 @@ const Home: React.FC = () => {
   }, [loading, categories]);
 
   if (error) {
-    return (
-      <ErrorMessage
-        message={error}
-        onRetry={() => window.location.reload()}
-      />
-    );
+    return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
     <div className="home-container">
-      {/* ✅ Banner */}
+      {/* ✅ Category navigation strip */}
+      <CategoryNav />
+
+      {/* ✅ Banner Slider */}
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* ✅ Loading Skeleton */}
+      {/* ✅ Loading skeleton */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
@@ -159,10 +150,7 @@ const Home: React.FC = () => {
                   variant="rectangular"
                   width={140}
                   height={180}
-                  sx={{
-                    marginRight: "0.8rem",
-                    borderRadius: "8px",
-                  }}
+                  sx={{ marginRight: "0.8rem", borderRadius: "8px" }}
                 />
               ))}
             </div>
@@ -171,11 +159,9 @@ const Home: React.FC = () => {
       ) : categories.length > 0 ? (
         categories.map((cat) => {
           const items = products.filter((p) => p.category?._id === cat._id);
-
           return (
             <div key={cat._id} id={`cat-${cat._id}`} className="category-block">
               <h2 className="category-title">{cat.name}</h2>
-
               <div className="product-scroll-wrapper">
                 <div
                   id={`scroll-${cat._id}`}
@@ -193,7 +179,6 @@ const Home: React.FC = () => {
                     </div>
                   )}
                 </div>
-                {/* 🔹 Scroll hint */}
                 <div className="scroll-indicator">← Scroll →</div>
               </div>
             </div>

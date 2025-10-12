@@ -1,15 +1,8 @@
+// src/components/Header.tsx - Professional Icons Version
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
-import { 
-  FiSearch, 
-  FiUser, 
-  FiShoppingCart, 
-  FiMenu,
-  FiX,
-  FiChevronDown
-} from "react-icons/fi";
 import "../styles/Header.css";
 
 const LOGO_IMG = "/logo.webp";
@@ -20,12 +13,6 @@ type Suggestion = {
   sku?: string;
   images?: string[];
   price?: number;
-};
-
-type Category = {
-  _id: string;
-  name: string;
-  subcategories?: Category[];
 };
 
 const IMAGE_BASE =
@@ -80,118 +67,110 @@ const SearchForm = React.forwardRef(function SearchForm(
     setActiveIdx,
     navigate,
   } = props;
-
+  
   return (
     <form
-      className={`header-search ${mobile ? "header-search--mobile" : ""}`}
-      onSubmit={onSubmit}
+      className={`bt-search ${mobile ? "is-mobile" : ""}`}
+      onSubmit={(e) => onSubmit(e)}
       role="search"
       ref={ref}
     >
-      <div className="header-search__container">
-        <FiSearch className="header-search__icon" />
+      <div className="bt-search__wrapper">
+        <svg className="bt-search__icon" viewBox="0 0 24 24">
+          <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => sug.length > 0 && setOpenSug(true)}
           onKeyDown={onKeyDown}
-          className="header-search__input"
-          placeholder="Search products, SKUs..."
-          aria-label="Search products"
+          className="bt-search__input"
+          placeholder="Search toys, games, SKUs…"
         />
-        <button className="header-search__button" type="submit">
-          Search
-        </button>
       </div>
-      
+      <button className="bt-search__btn" type="submit">
+        Search
+      </button>
+     
       {openSug && (
-        <div className="header-search__suggestions">
+        <div className="bt-suggest">
           {loadingSug && (
-            <div className="header-search__loading">
-              <div className="header-search__spinner"></div>
-              Searching...
+            <div className="bt-suggest__loading">
+              <div className="bt-spinner"></div>
+              Searching…
             </div>
           )}
-          
-          {!loadingSug && sug.length === 0 && q.trim() && (
-            <div className="header-search__empty">
-              No products found for "{q}"
+          {!loadingSug && sug.length === 0 && (
+            <div className="bt-suggest__empty">
+              <svg viewBox="0 0 24 24" className="bt-suggest__empty-icon">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+              No products found
             </div>
           )}
-          
           {!loadingSug && sug.length > 0 && (
-            <>
-              <div className="header-search__suggestions-list">
-                {sug.map((p, idx) => (
-                  <div
-                    key={p._id}
-                    className={`header-search__suggestion-item ${
-                      idx === activeIdx ? "header-search__suggestion-item--active" : ""
-                    }`}
-                    onMouseEnter={() => setActiveIdx(idx)}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      setOpenSug(false);
-                      navigate(`/product/${p._id}`);
-                    }}
-                  >
-                    <div className="header-search__suggestion-image">
-                      {getThumb(p) ? (
-                        <img
-                          src={getThumb(p)!}
-                          alt={p.name}
-                          width="48"
-                          height="48"
-                          loading="lazy"
-                        />
-                      ) : (
-                        <div className="header-search__suggestion-placeholder">
-                          <FiShoppingCart />
-                        </div>
-                      )}
-                    </div>
-                    <div className="header-search__suggestion-content">
-                      <div className="header-search__suggestion-name">
-                        {p.name}
-                      </div>
-                      {p.sku && (
-                        <div className="header-search__suggestion-sku">
-                          SKU: {p.sku}
-                        </div>
-                      )}
-                      {p.price && (
-                        <div className="header-search__suggestion-price">
-                          ₹{p.price}
-                        </div>
-                      )}
-                    </div>
+            <ul className="bt-suggest__list">
+              {sug.map((p, idx) => (
+                <li
+                  key={p._id}
+                  className={`bt-suggest__item ${
+                    idx === activeIdx ? "is-active" : ""
+                  }`}
+                  onMouseEnter={() => setActiveIdx(idx)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    setOpenSug(false);
+                    navigate(`/product/${p._id}`);
+                  }}
+                >
+                  {getThumb(p) ? (
+                    <img
+                      src={getThumb(p)!}
+                      alt=""
+                      className="bt-suggest__thumb"
+                      width="48"
+                      height="48"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="bt-suggest__thumb bt-suggest__thumb--ph" />
+                  )}
+                  <div className="bt-suggest__meta">
+                    <div className="bt-suggest__name">{p.name}</div>
+                    {p.sku && <div className="bt-suggest__sku">SKU: {p.sku}</div>}
+                    {p.price && (
+                      <div className="bt-suggest__price">₹{p.price.toFixed(2)}</div>
+                    )}
                   </div>
-                ))}
-              </div>
-              
-              <button
-                className="header-search__view-all"
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  const query = q.trim();
-                  setOpenSug(false);
-                  navigate(
-                    `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
-                  );
-                }}
-              >
-                View all results for "{q}"
-              </button>
-            </>
+                  <svg className="bt-suggest__arrow" viewBox="0 0 24 24">
+                    <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+                  </svg>
+                </li>
+              ))}
+            </ul>
           )}
+          <button
+            className="bt-suggest__more"
+            type="button"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              const query = q.trim();
+              setOpenSug(false);
+              navigate(
+                `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
+              );
+            }}
+          >
+            View all results
+            <svg viewBox="0 0 24 24">
+              <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+            </svg>
+          </button>
         </div>
       )}
     </form>
   );
 });
-
-SearchForm.displayName = "SearchForm";
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -207,18 +186,19 @@ const Header: React.FC = () => {
   }, [cartItems]);
 
   const [q, setQ] = useState("");
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const qs = params.get("search") || params.get("q") || "";
+    setQ(qs);
+  }, [location.search]);
+
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
   const [activeIdx, setActiveIdx] = useState(-1);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-  
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
-  const mobileMenuRef = useRef<HTMLDivElement>(null);
 
-  // Parse user from localStorage
   const parseUser = (): any | null => {
     try {
       const raw = localStorage.getItem("user");
@@ -228,10 +208,7 @@ const Header: React.FC = () => {
       return null;
     }
   };
-
   const [user, setUser] = useState<any | null>(() => parseUser());
-  const [categories, setCategories] = useState<Category[]>([]);
-
   useEffect(() => {
     const onStorage = () => setUser(parseUser());
     window.addEventListener("storage", onStorage);
@@ -242,24 +219,9 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // Fetch categories
-  useEffect(() => {
-    async function fetchCategories() {
-      try {
-        const res = await api.get("/categories");
-        if (res.status === 200) setCategories(res.data || []);
-      } catch (err) {
-        console.error("Failed to load categories", err);
-      }
-    }
-    fetchCategories();
-  }, []);
-
-  // Search suggestions
   useEffect(() => {
     let t: any;
     let alive = true;
-
     const run = async () => {
       const needle = q.trim();
       if (needle.length < 2) {
@@ -270,27 +232,23 @@ const Header: React.FC = () => {
         }
         return;
       }
-
       setLoadingSug(true);
       try {
         const res = await api.get("/products", {
           params: { search: needle, limit: 50 },
         });
-
         if (!alive) return;
         const arr: Suggestion[] = Array.isArray(res.data)
           ? res.data
           : Array.isArray((res.data as any)?.products)
           ? (res.data as any).products
           : [];
-
         const n = needle.toLowerCase();
         const filtered = arr.filter(
           (p) =>
             (p.name || "").toLowerCase().includes(n) ||
             (p.sku || "").toLowerCase().includes(n)
         );
-
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
@@ -304,7 +262,6 @@ const Header: React.FC = () => {
         if (alive) setLoadingSug(false);
       }
     };
-
     t = setTimeout(run, 200);
     return () => {
       alive = false;
@@ -312,7 +269,6 @@ const Header: React.FC = () => {
     };
   }, [q]);
 
-  // Close suggestions when clicking outside
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -326,18 +282,6 @@ const Header: React.FC = () => {
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  // Close mobile menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
-        setMobileMenuOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const query = q.trim();
@@ -347,69 +291,63 @@ const Header: React.FC = () => {
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!openSug || (!sug.length && !loadingSug)) return;
-    
-    switch (e.key) {
-      case "ArrowDown":
-        e.preventDefault();
-        setActiveIdx((i) => (i + 1 >= sug.length ? 0 : i + 1));
-        break;
-      case "ArrowUp":
-        e.preventDefault();
-        setActiveIdx((i) => (i - 1 < 0 ? sug.length - 1 : i - 1));
-        break;
-      case "Enter":
-        if (activeIdx >= 0 && sug[activeIdx]) {
-          setOpenSug(false);
-          navigate(`/product/${sug[activeIdx]._id}`);
-        } else {
-          setOpenSug(false);
-          const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
-          navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
-        }
-        break;
-      case "Escape":
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => (i + 1 >= sug.length ? 0 : i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => (i - 1 < 0 ? sug.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      if (activeIdx >= 0 && sug[activeIdx]) {
         setOpenSug(false);
-        setActiveIdx(-1);
-        break;
+        navigate(`/product/${sug[activeIdx]._id}`);
+      } else {
+        setOpenSug(false);
+        const query =
+          (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
+        navigate(
+          `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
+        );
+      }
+    } else if (e.key === "Escape") {
+      setOpenSug(false);
+      setActiveIdx(-1);
     }
   };
 
-  const params = new URLSearchParams(location.search);
-  const activeCategory = params.get("category");
+  const [scrolled, setScrolled] = useState(false);
 
-  const formatName = (str: string) => {
-    if (!str) return "";
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-  };
+  useEffect(() => {
+    const handleScroll = () => {
+      const isScrolled = window.scrollY > 20;
+      setScrolled(isScrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
-    <header className="header">
-      {/* Top Bar */}
-      <div className="header__top-bar">
-        <div className="header__container">
-          <div className="header__logo-section">
-            <button 
-              className="header__menu-toggle"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              aria-label="Toggle menu"
-            >
-              {mobileMenuOpen ? <FiX /> : <FiMenu />}
-            </button>
-            
-            <Link to="/" className="header__logo">
+    <header className={`bt-header ${scrolled ? 'bt-header--scrolled' : ''}`}>
+      {/* Main Header */}
+      <div className="bt-header__main">
+        <div className="bt-header__container">
+          {/* Logo */}
+          <Link to="/" className="bt-logo">
+            <div className="bt-logo__wrapper">
               <img
                 src={LOGO_IMG}
-                alt="Bafna Toys"
-                className="header__logo-image"
+                alt="BAFNA TOYS"
+                className="bt-logo__img"
                 width="160"
                 height="45"
+                fetchpriority="high"
               />
-              <span className="header__logo-text">Bafna Toys</span>
-            </Link>
-          </div>
+            </div>
+          </Link>
 
-          {/* Desktop Search */}
-          <div className="header__search-section">
+          {/* Desktop Search - Full Width */}
+          <div className="bt-search__desktop-wrapper">
             <SearchForm
               ref={deskRef}
               q={q}
@@ -426,40 +364,58 @@ const Header: React.FC = () => {
             />
           </div>
 
-          {/* Desktop Actions */}
-          <div className="header__actions">
+          {/* Actions */}
+          <nav className="bt-actions">
             {user ? (
-              <div className="header__account">
+              <div className="bt-account">
                 <button
-                  className="header__account-button"
+                  className="bt-account__button"
                   onClick={() => navigate("/my-account")}
                 >
-                  <FiUser className="header__account-icon" />
-                  <span className="header__account-text">Account</span>
+                  {/* Professional User Account Icon */}
+                  <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z" />
+                  </svg>
+                  <span>Account</span>
                 </button>
               </div>
             ) : (
-              <Link className="header__login" to="/login">
-                <FiUser />
+              <Link className="bt-link bt-link--login" to="/login">
+                {/* Professional Login Icon */}
+                <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
+                  <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
+                </svg>
                 <span>Login</span>
               </Link>
             )}
+           
+            {/* My Orders - Hide in mobile view */}
+            {user && (
+              <Link className="bt-link bt-link--orders bt-actions__orders-mobile-hide" to="/orders">
+                {/* Professional Orders Icon */}
+                <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
+                  <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-1.23c0-.62.28-1.2.76-1.58C7.47 15.06 9.64 14 12 14s4.53 1.06 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
+                </svg>
+                <span>My Orders</span>
+              </Link>
+            )}
 
-            <Link className="header__cart" to="/cart">
-              <div className="header__cart-icon-wrapper">
-                <FiShoppingCart className="header__cart-icon" />
-                {cartCount > 0 && (
-                  <span className="header__cart-badge">{cartCount}</span>
-                )}
+            {/* Cart with Professional Shopping Bag Icon */}
+            <Link className="bt-cart" to="/cart">
+              <div className="bt-cart__icon">
+                <svg viewBox="0 0 24 24" className="bt-cart__svg" fill="currentColor">
+                  <path d="M19 6h-2c0-2.76-2.24-5-5-5S7 3.24 7 6H5c-1.1 0-1.99.9-1.99 2L3 20c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-3c1.66 0 3 1.34 3 3H9c0-1.66 1.34-3 3-3zm0 10c-2.76 0-5-2.24-5-5h2c0 1.66 1.34 3 3 3s3-1.34 3-3h2c0 2.76-2.24 5-5 5z"/>
+                </svg>
+                {cartCount > 0 && <span className="bt-cart__badge">{cartCount}</span>}
               </div>
-              <span className="header__cart-text">Cart</span>
+              <span className="bt-cart__text">Cart</span>
             </Link>
-          </div>
+          </nav>
         </div>
       </div>
 
       {/* Mobile Search */}
-      <div className="header__mobile-search">
+      <div className="bt-search--mobile">
         <SearchForm
           ref={mobRef}
           mobile
@@ -476,96 +432,6 @@ const Header: React.FC = () => {
           navigate={navigate}
         />
       </div>
-
-      {/* Navigation */}
-      <nav className="header__navigation">
-        <div className="header__container">
-          <div className="header__categories">
-            <button
-              className="header__categories-toggle"
-              onClick={() => setCategoriesOpen(!categoriesOpen)}
-            >
-              <span>All Categories</span>
-              <FiChevronDown className={`header__categories-arrow ${categoriesOpen ? 'header__categories-arrow--open' : ''}`} />
-            </button>
-
-            <div className="header__nav-links">
-              <Link to="/products" className="header__nav-link">
-                All Products
-              </Link>
-              {categories.slice(0, 6).map((category) => (
-                <Link
-                  key={category._id}
-                  to={`/products?category=${encodeURIComponent(category._id)}`}
-                  className={`header__nav-link ${
-                    activeCategory === category._id ? "header__nav-link--active" : ""
-                  }`}
-                >
-                  {formatName(category.name)}
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Mobile Menu */}
-      {mobileMenuOpen && (
-        <div className="header__mobile-menu" ref={mobileMenuRef}>
-          <div className="header__mobile-menu-content">
-            <div className="header__mobile-menu-section">
-              <h3>Categories</h3>
-              <Link 
-                to="/products" 
-                className="header__mobile-menu-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                All Products
-              </Link>
-              {categories.map((category) => (
-                <Link
-                  key={category._id}
-                  to={`/products?category=${encodeURIComponent(category._id)}`}
-                  className={`header__mobile-menu-link ${
-                    activeCategory === category._id ? "header__mobile-menu-link--active" : ""
-                  }`}
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  {formatName(category.name)}
-                </Link>
-              ))}
-            </div>
-
-            <div className="header__mobile-menu-section">
-              <h3>Account</h3>
-              {user ? (
-                <Link 
-                  to="/my-account" 
-                  className="header__mobile-menu-link"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  My Account
-                </Link>
-              ) : (
-                <Link 
-                  to="/login" 
-                  className="header__mobile-menu-link"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Login
-                </Link>
-              )}
-              <Link 
-                to="/cart" 
-                className="header__mobile-menu-link"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Cart ({cartCount})
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
     </header>
   );
 };
