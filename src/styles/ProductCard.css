@@ -452,30 +452,3 @@
   outline: 2px solid #3b82f6;
   outline-offset: 2px;
 }
-/* ============================== */
-/* 🔥 Tactile Button Animation    */
-/* ============================== */
-.product-card__quantity-btn,
-.product-card__add-btn {
-  transition: transform 0.1s ease, box-shadow 0.2s ease;
-  will-change: transform;
-}
-
-.product-card__quantity-btn:active,
-.product-card__add-btn:active {
-  transform: scale(0.92);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-/* Small bounce animation */
-@keyframes tapBounce {
-  0% { transform: scale(1); }
-  30% { transform: scale(0.9); }
-  60% { transform: scale(1.05); }
-  100% { transform: scale(1); }
-}
-
-.product-card__quantity-btn.clicked,
-.product-card__add-btn.clicked {
-  animation: tapBounce 0.25s ease;
-}

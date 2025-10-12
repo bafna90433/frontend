@@ -1,12 +1,11 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { vibrate } from "../utils/vibrate"; // ✅ import vibration helper
 import "../styles/BottomNav.css";
 
 const BottomNav: React.FC = () => {
   const location = useLocation();
 
-  // ✅ Show nav only on specific pages
+  // ✅ Hide on all pages except home, cart, account, orders
   const allowedPaths = ["/", "/cart", "/my-account", "/orders"];
   if (!allowedPaths.includes(location.pathname)) {
     return null;
@@ -34,7 +33,6 @@ const BottomNav: React.FC = () => {
           <path d="M9 22V12h6v10" />
         </svg>
       ),
-      vibration: 60,
     },
     {
       label: "Orders",
@@ -58,7 +56,6 @@ const BottomNav: React.FC = () => {
           <rect x="3" y="14" width="7" height="7" />
         </svg>
       ),
-      vibration: [50, 30, 50],
     },
     {
       label: "Cart",
@@ -81,7 +78,6 @@ const BottomNav: React.FC = () => {
           <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
         </svg>
       ),
-      vibration: 80,
     },
     {
       label: "Account",
@@ -103,7 +99,6 @@ const BottomNav: React.FC = () => {
           <circle cx="12" cy="7" r="4" />
         </svg>
       ),
-      vibration: 100,
     },
   ];
 
@@ -120,7 +115,6 @@ const BottomNav: React.FC = () => {
           <Link
             key={item.to}
             to={item.to}
-            onClick={() => vibrate(item.vibration)} // ✅ vibration added here
             className={`bottom-nav-item${isActive ? " active" : ""}`}
             aria-current={isActive ? "page" : undefined}
           >

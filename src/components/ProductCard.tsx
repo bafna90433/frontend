@@ -3,7 +3,6 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/ProductCard.css";
 import { useShop } from "../context/ShopContext";
-import { vibrate } from "../utils/vibrate"; // ✅ vibration helper import
 
 interface BulkTier {
   inner: number;
@@ -30,18 +29,19 @@ interface ProductCardProps {
   index?: number;
 }
 
-const API_BASE =
-  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
-const IMAGE_BASE_URL =
-  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const getOptimizedImageUrl = (url: string, width = 400) => {
   if (!url) return "";
+
   if (url.includes("res.cloudinary.com")) {
     return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
   }
+
   if (url.startsWith("http")) return url;
   if (url.includes("/uploads/")) return `${API_BASE}${url}`;
+
   return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
 };
 
@@ -62,62 +62,42 @@ const ProductCard: React.FC<ProductCardProps> = ({
   const innerCount = cartItem?.quantity ?? 0;
 
   const sortedTiers = [...product.bulkPricing].sort((a, b) => a.inner - b.inner);
-  const activeTier: BulkTier | undefined =
-    sortedTiers.length > 0
-      ? sortedTiers.reduce(
-          (prev, tier) => (innerCount >= tier.inner ? tier : prev),
-          sortedTiers[0]
-        )
-      : undefined;
+  const activeTier: BulkTier | undefined = sortedTiers.length > 0
+    ? sortedTiers.reduce(
+        (prev, tier) => (innerCount >= tier.inner ? tier : prev),
+        sortedTiers[0]
+      )
+    : undefined;
 
-  const piecesPerInner =
-    product.innerQty && product.innerQty > 0
-      ? product.innerQty
-      : sortedTiers.length > 0 && sortedTiers[0].qty > 0
-      ? sortedTiers[0].qty / sortedTiers[0].inner
-      : 1;
+  const piecesPerInner = product.innerQty && product.innerQty > 0
+    ? product.innerQty
+    : sortedTiers.length > 0 && sortedTiers[0].qty > 0
+    ? sortedTiers[0].qty / sortedTiers[0].inner
+    : 1;
 
   const totalPieces = innerCount * piecesPerInner;
-  const totalPrice =
-    totalPieces * (activeTier ? activeTier.price : product.price);
+  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
 
-  // 🌀 Animation helper
-  const animateClick = (e: React.MouseEvent<HTMLButtonElement>) => {
-    const btn = e.currentTarget;
-    btn.classList.add("clicked");
-    setTimeout(() => btn.classList.remove("clicked"), 250);
-  };
-
-  // ✅ Vibrate + Animation Actions
-  const handleAdd = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleAdd = (e: React.MouseEvent) => {
     e.stopPropagation();
-    vibrate(80);
-    animateClick(e);
     setCartItemQuantity(product, 1);
   };
 
-  const increase = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const increase = (e: React.MouseEvent) => {
     e.stopPropagation();
-    vibrate(60);
-    animateClick(e);
     setCartItemQuantity(product, innerCount + 1);
   };
 
-  const decrease = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const decrease = (e: React.MouseEvent) => {
     e.stopPropagation();
-    vibrate([40, 30, 40]);
-    animateClick(e);
     setCartItemQuantity(product, Math.max(0, innerCount - 1));
   };
 
   const imageFile = product.images?.[0] ?? null;
-  const imageSrc =
-    imageFile && !imageError ? getOptimizedImageUrl(imageFile, 400) : null;
+  const imageSrc = imageFile && !imageError ? getOptimizedImageUrl(imageFile, 400) : null;
 
   const handleNavigate = () => {
-    const path = product.slug
-      ? `/product/${product.slug}`
-      : `/product/${product._id}`;
+    const path = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
     navigate(path);
   };
 
@@ -128,17 +108,17 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   return (
     <div className="product-card">
-      {/* 🖼️ Image Section */}
+      {/* Image Section */}
       <div className="product-card__image-container" onClick={handleNavigate}>
         {imageSrc ? (
           <>
-            {!imgLoaded && <div className="product-card__skeleton" />}
+            {!imgLoaded && (
+              <div className="product-card__skeleton" />
+            )}
             <img
               src={imageSrc}
               alt={product.name}
-              className={`product-card__image ${
-                imgLoaded ? "product-card__image--loaded" : ""
-              }`}
+              className={`product-card__image ${imgLoaded ? "product-card__image--loaded" : ""}`}
               width="400"
               height="400"
               loading={index === 0 ? "eager" : "lazy"}
@@ -153,8 +133,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
             No Image Available
           </div>
         )}
-
-        {/* Overlay */}
+        
+        {/* Quick Action Overlay */}
         <div className="product-card__overlay">
           <button className="product-card__quick-view" onClick={handleNavigate}>
             Quick View
@@ -162,19 +142,19 @@ const ProductCard: React.FC<ProductCardProps> = ({
         </div>
       </div>
 
-      {/* 📄 Product Info */}
+      {/* Product Info */}
       <div className="product-card__content">
         <div className="product-card__header" onClick={handleNavigate}>
           <h3 className="product-card__title">{product.name}</h3>
-
+          
           <div className="product-card__meta">
             {product.sku && (
               <span className="product-card__sku">SKU: {product.sku}</span>
             )}
             {product.category && (
               <span className="product-card__category">
-                {typeof product.category === "string"
-                  ? product.category
+                {typeof product.category === "string" 
+                  ? product.category 
                   : product.category?.name}
               </span>
             )}
@@ -191,21 +171,21 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* 💰 Pricing Info */}
+        {/* Pricing & Bulk Information */}
         {isApproved ? (
           <div className="product-card__pricing">
             <div className="product-card__pricing-header">
               <span className="product-card__pricing-icon">📦</span>
               <span>Bulk Pricing</span>
             </div>
-
+            
             <div className="product-card__tiers">
               {sortedTiers.map((tier) => (
                 <div
                   key={tier.inner}
                   className={`product-card__tier ${
-                    activeTier && tier.inner === activeTier.inner
-                      ? "product-card__tier--active"
+                    activeTier && tier.inner === activeTier.inner 
+                      ? "product-card__tier--active" 
                       : ""
                   }`}
                 >
@@ -226,11 +206,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
           </div>
         )}
 
-        {/* 🛒 Cart Controls */}
+        {/* Cart Controls */}
         <div className="product-card__actions">
           {innerCount === 0 ? (
-            <button
-              onClick={handleAdd}
+            <button 
+              onClick={handleAdd} 
               className="product-card__add-btn"
               disabled={!isApproved}
             >
@@ -239,8 +219,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
           ) : (
             <div className="product-card__quantity-controls">
               <div className="product-card__quantity-selector">
-                <button
-                  onClick={decrease}
+                <button 
+                  onClick={decrease} 
                   className="product-card__quantity-btn"
                   aria-label="Decrease quantity"
                 >
@@ -249,15 +229,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
                 <span className="product-card__quantity-count">
                   {innerCount}
                 </span>
-                <button
-                  onClick={increase}
+                <button 
+                  onClick={increase} 
                   className="product-card__quantity-btn"
                   aria-label="Increase quantity"
                 >
                   +
                 </button>
               </div>
-
+              
               {userRole === "admin" && isApproved && (
                 <div className="product-card__total-price">
                   Total: ₹{totalPrice.toLocaleString()}
@@ -271,4 +251,4 @@ const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-export default ProductCard;
+export default ProductCard;   
