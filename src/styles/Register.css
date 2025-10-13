@@ -179,3 +179,36 @@
     font-size: 1.1rem;
   }
 }
+/* ========== OTP BOX DESIGN ========== */
+.otp-box-container {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.otp-box {
+  width: 45px;
+  height: 50px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 600;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  background: #fff;
+  outline: none;
+}
+
+.otp-box:focus {
+  border-color: var(--secondary);
+  box-shadow: 0 0 8px rgba(37, 117, 252, 0.4);
+}
+
+@media (max-width: 480px) {
+  .otp-box {
+    width: 40px;
+    height: 45px;
+    font-size: 1.1rem;
+  }
+}

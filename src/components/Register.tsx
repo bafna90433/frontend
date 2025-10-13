@@ -198,20 +198,42 @@ const Register: React.FC = () => {
           <button onClick={sendOtp}>Send OTP</button>
         ) : (
           <>
-         <input
-  placeholder="Enter 6-digit OTP"
-  value={otp}
-  onChange={(e) => {
-    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
-    setOtp(digitsOnly);
-  }}
-  className="otp"
-  type="tel"
-  inputMode="numeric"
-  pattern="[0-9]*"
-  maxLength={6}
-  autoFocus
-/>
+         {/* ✅ 6 Separate OTP Boxes */}
+<div className="otp-box-container">
+  {Array.from({ length: 6 }).map((_, i) => (
+    <input
+      key={i}
+      type="tel"
+      inputMode="numeric"
+      pattern="[0-9]*"
+      maxLength={1}
+      className="otp-box"
+      value={otp[i] || ""}
+      autoFocus={i === 0}
+      onChange={(e) => {
+        const val = e.target.value.replace(/\D/g, "");
+        if (!val && i > 0) {
+          const boxes = document.querySelectorAll<HTMLInputElement>(".otp-box");
+          boxes[i - 1].focus();
+        } else if (val && i < 5) {
+          const boxes = document.querySelectorAll<HTMLInputElement>(".otp-box");
+          boxes[i + 1].focus();
+        }
+
+        const newOtp = otp.split("");
+        newOtp[i] = val;
+        setOtp(newOtp.join(""));
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Backspace" && !otp[i] && i > 0) {
+          const boxes = document.querySelectorAll<HTMLInputElement>(".otp-box");
+          boxes[i - 1].focus();
+        }
+      }}
+    />
+  ))}
+</div>
+
             <button onClick={verifyAndRegister}>Verify & Register</button>
           </>
         )}
