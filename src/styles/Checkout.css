@@ -312,13 +312,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  display: none;
-}
-.product-line-total{
-	display: none;
-}
-.pricing-list{
-	display: none;
 }
 .clean-payments b {
   font-size: 14px;
