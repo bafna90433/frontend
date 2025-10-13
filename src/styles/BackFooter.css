@@ -1,5 +1,5 @@
 .back-header-container {
-  display: none; /* 🔹 Default: PC pe hide */
+   /* 🔹 Default: PC pe hide */
   position: fixed;
   top: 145px;
   left: 15px;
