@@ -166,21 +166,27 @@ const Register: React.FC = () => {
         {errors.shopName && <div className="error">{errors.shopName}</div>}
 
         <input
-          name="otpMobile"
-          placeholder="Enter your 10-digit mobile number to receive OTP"
-          value={form.otpMobile}
-          onChange={handleChange}
-          type="tel"
-        />
-        {errors.otpMobile && <div className="error">{errors.otpMobile}</div>}
+  name="otpMobile"
+  placeholder="Enter your 10-digit mobile number to receive OTP"
+  value={form.otpMobile}
+  onChange={handleChange}
+  type="tel"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={10}
+/>
 
-        <input
-          name="whatsapp"
-          placeholder="Enter your WhatsApp number for more details"
-          value={form.whatsapp}
-          onChange={handleChange}
-          type="tel"
-        />
+<input
+  name="whatsapp"
+  placeholder="Enter your WhatsApp number for more details"
+  value={form.whatsapp}
+  onChange={handleChange}
+  type="tel"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={10}
+/>
+
 
         <div className="file-input-container">
           <label>Visiting Card (Required) *</label>
@@ -192,13 +198,20 @@ const Register: React.FC = () => {
           <button onClick={sendOtp}>Send OTP</button>
         ) : (
           <>
-            <input
-              placeholder="Enter OTP"
-              value={otp}
-              onChange={(e) => setOtp(e.target.value)}
-              className="otp"
-              type="text"
-            />
+         <input
+  placeholder="Enter 6-digit OTP"
+  value={otp}
+  onChange={(e) => {
+    const digitsOnly = e.target.value.replace(/\D/g, "").slice(0, 6);
+    setOtp(digitsOnly);
+  }}
+  className="otp"
+  type="tel"
+  inputMode="numeric"
+  pattern="[0-9]*"
+  maxLength={6}
+  autoFocus
+/>
             <button onClick={verifyAndRegister}>Verify & Register</button>
           </>
         )}
