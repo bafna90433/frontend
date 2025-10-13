@@ -54,6 +54,10 @@ const LoginOTP: React.FC = () => {
         setOtpSent(true);
         setCountdown(30);
         showMessage("OTP sent to your mobile", "success");
+        setTimeout(() => {
+          const otpInput = document.getElementById("otp");
+          otpInput?.focus();
+        }, 500);
       } else {
         showMessage("Failed to send OTP", "error");
       }
@@ -143,11 +147,14 @@ const LoginOTP: React.FC = () => {
             <input
               id="mobile"
               type="tel"
+              inputMode="numeric"
+              pattern="[0-9]*"
               placeholder="Enter 10-digit mobile number"
               value={mobile}
               onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
               disabled={otpSent || isLoading}
               maxLength={10}
+              autoFocus
             />
           </div>
         </div>
@@ -160,7 +167,9 @@ const LoginOTP: React.FC = () => {
               <FiLock className="input-icon" />
               <input
                 id="otp"
-                type="text"
+                type="tel"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Enter 6-digit OTP"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
