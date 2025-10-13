@@ -241,6 +241,7 @@ const generateInvoicePDF = (orderData: OrderData, user: User | null): boolean =>
   return true;
 };
 
+
 /* ✅ Helper for Line Total */
 const getItemTotalPrice = (item: Item): number => {
   const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
@@ -345,200 +346,117 @@ const Checkout: React.FC = () => {
   };
 
   if (cartItems.length === 0 && !orderPlaced) {
-    return (
-      <div className="checkout-empty-state">
-        <div className="empty-icon">🛒</div>
-        <h2>Your cart is empty</h2>
-        <p>Add some products to get started</p>
-        <button className="browse-btn" onClick={() => navigate("/products")}>
-          Browse Products
-        </button>
-      </div>
-    );
+    return <div className="checkout-empty">No items in cart.</div>;
   }
 
   if (orderPlaced) {
     return (
-      <div className="order-success">
-        <div className="success-animation">
-          <div className="success-icon">✓</div>
-        </div>
-        <h1>Order Confirmed!</h1>
-        <p className="success-message">
-          Thank you, <span className="customer-name">{user?.shopName}</span>! Your order has been successfully placed.
+      <div className="checkout-success">
+        <h2>Order placed successfully!</h2>
+        <p>
+          Thank you, <b>{user?.shopName}</b>! <br />
+          <b>Your Order Number: {orderNumber}</b>
         </p>
-        <div className="order-number">
-          Order Number: <span className="order-id">{orderNumber}</span>
-        </div>
-        
-        <div className="success-actions">
-          <button onClick={handleViewInvoice} className="action-btn primary">
-            📄 View / Print Invoice
-          </button>
-          <button onClick={() => navigate("/orders")} className="action-btn secondary">
-            📋 View All Orders
-          </button>
-          <button onClick={() => navigate("/products")} className="action-btn outline">
-            🛍️ Continue Shopping
-          </button>
+        <div className="invoice-actions" style={{ marginTop: "30px", textAlign: "center" }}>
+          <h3>Invoice Options</h3>
+          <div style={{ display: "flex", gap: "15px", justifyContent: "center", flexWrap: "wrap" }}>
+            <button onClick={handleViewInvoice} className="modern-btn" style={{ background: "#2c5aa0" }}>
+              📄 View / Print / Download Invoice
+            </button>
+            <button onClick={() => navigate("/orders")} className="modern-btn" style={{ background: "#6c757d" }}>
+              📋 View All Orders
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="modern-checkout">
-      <div className="checkout-header">
-        <h1>Checkout</h1>
-        <div className="checkout-steps">
-          <div className="step active">1. Review Order</div>
-          <div className="step">2. Confirmation</div>
-          <div className="step">3. Complete</div>
-        </div>
+    <div className="checkout-wrapper two-column">
+      <div className="checkout-left">
+        <h2>Your Order</h2>
+        {cartItems.map((item: Item) => {
+          const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
+          const inners = item.quantity || 0;
+          const imgSrc = item.image?.startsWith("http")
+            ? item.image
+            : item.image?.includes("/uploads/")
+            ? `${MEDIA_URL}${item.image}`
+            : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
+          const activeTier =
+            sortedTiers.length > 0
+              ? sortedTiers.reduce((prev, tier) => (inners >= tier.inner ? tier : prev), sortedTiers[0])
+              : null;
+
+          return (
+            <div key={item._id} className="checkout-item">
+              <div className="checkout-image-wrapper">
+                <img
+                  src={imgSrc}
+                  alt={item.name}
+                  className="checkout-item-big-img"
+                  onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")}
+                />
+              </div>
+              <div className="checkout-item-info">
+                <div className="checkout-item-name">
+                  {item.name}
+                  <button
+                    className="checkout-remove-btn"
+                    onClick={() => removeFromCart(item._id)}
+                    title="Remove from cart"
+                  ></button>
+                </div>
+                <div className="checkout-item-qty fancy-qty">
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity! - 1))}>
+                    –
+                  </button>
+                  <span className="qty-value">{inners}</span>
+                  <button className="qty-btn" onClick={() => setCartItemQuantity(item, item.quantity! + 1)}>
+                    +
+                  </button>
+                </div>
+                <div className="checkout-item-total">Total Inners: {inners}</div>
+                <div className="packing-section">
+                  <h4 className="packing-title">
+                    <span className="packing-icon">P</span> Packing & Pricing
+                  </h4>
+                  <ul className="pricing-list">
+                    {sortedTiers.map((tier) => {
+                      const highlight = activeTier && tier.inner === activeTier.inner;
+                      return (
+                        <li key={tier.inner} className={highlight ? "active-tier-row" : ""}>
+                          {tier.inner} inner ({tier.qty} pcs) {isApproved ? ` ₹${tier.price}/pc` : " 🔒"}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+                {isApproved && (
+                  <div className="product-line-total">
+                    <b>Line Total:</b> ₹{getItemTotalPrice(item).toLocaleString()}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
-
-      <div className="checkout-layout">
-        {/* Order Summary Section */}
-        <div className="order-summary-section">
-          <div className="section-header">
-            <h2>Order Summary</h2>
-            <span className="item-count">{cartItems.length} items</span>
-          </div>
-
-          <div className="order-items">
-            {cartItems.map((item: Item) => {
-              const sortedTiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
-              const inners = item.quantity || 0;
-              const imgSrc = item.image?.startsWith("http")
-                ? item.image
-                : item.image?.includes("/uploads/")
-                ? `${MEDIA_URL}${item.image}`
-                : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
-              const activeTier =
-                sortedTiers.length > 0
-                  ? sortedTiers.reduce((prev, tier) => (inners >= tier.inner ? tier : prev), sortedTiers[0])
-                  : null;
-
-              return (
-                <div key={item._id} className="order-item-card">
-                  <div className="item-image">
-                    <img
-                      src={imgSrc}
-                      alt={item.name}
-                      onError={(e) => ((e.target as HTMLImageElement).src = "/placeholder.png")}
-                    />
-                  </div>
-                  
-                  <div className="item-details">
-                    <div className="item-header">
-                      <h3 className="item-name">{item.name}</h3>
-                      <button
-                        className="remove-item"
-                        onClick={() => removeFromCart(item._id)}
-                        title="Remove item"
-                      >
-                        ×
-                      </button>
-                    </div>
-
-                    <div className="quantity-controls">
-                      <span className="quantity-label">Quantity (Inners):</span>
-                      <div className="quantity-buttons">
-                        <button 
-                          className="qty-btn decrease"
-                          onClick={() => setCartItemQuantity(item, Math.max(1, item.quantity! - 1))}
-                        >
-                          −
-                        </button>
-                        <span className="quantity-value">{inners}</span>
-                        <button 
-                          className="qty-btn increase"
-                          onClick={() => setCartItemQuantity(item, item.quantity! + 1)}
-                        >
-                          +
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="pricing-info">
-                      <div className="pricing-tiers">
-                        <h4>Available Pricing Tiers</h4>
-                        <div className="tiers-list">
-                          {sortedTiers.map((tier) => {
-                            const highlight = activeTier && tier.inner === activeTier.inner;
-                            return (
-                              <div key={tier.inner} className={`tier-item ${highlight ? 'active' : ''}`}>
-                                <span className="tier-range">{tier.inner} inner ({tier.qty} pcs)</span>
-                                {isApproved ? (
-                                  <span className="tier-price">₹{tier.price}/pc</span>
-                                ) : (
-                                  <span className="tier-locked">🔒</span>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {isApproved && (
-                        <div className="line-total">
-                          Line Total: <strong>₹{getItemTotalPrice(item).toLocaleString()}</strong>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <div className="checkout-right checkout-card">
+        <h2 className="checkout-title">Complete Your Order</h2>
+        <div className="checkout-summary">
+          <p><b>Total Items:</b> {cartItems.length}</p>
+          <p><b>Total Inners:</b> {totalInners}</p>
+          {isApproved && <p><b>Grand Total:</b> ₹{grandTotal.toLocaleString()}</p>}
         </div>
-
-        {/* Order Summary Card */}
-        <div className="summary-card">
-          <div className="card-header">
-            <h2>Order Total</h2>
-          </div>
-          
-          <div className="summary-details">
-            <div className="summary-row">
-              <span>Items</span>
-              <span>{cartItems.length}</span>
-            </div>
-            <div className="summary-row">
-              <span>Total Inners</span>
-              <span>{totalInners}</span>
-            </div>
-            {isApproved && (
-              <>
-                <div className="summary-divider"></div>
-                <div className="summary-row total">
-                  <span>Grand Total</span>
-                  <span>₹{grandTotal.toLocaleString()}</span>
-                </div>
-              </>
-            )}
-          </div>
-
-          <button
-            className="place-order-btn"
-            onClick={handlePlaceOrder}
-            disabled={placing || !cartItems.length}
-          >
-            {placing ? (
-              <>
-                <div className="spinner"></div>
-                Processing...
-              </>
-            ) : (
-              `🛒 Place Order`
-            )}
-          </button>
-
-          <div className="security-notice">
-            <div className="lock-icon">🔒</div>
-            <p>Your order is secure and encrypted</p>
-          </div>
-        </div>
+        <button
+          className="checkout-placeorder modern-btn"
+          onClick={handlePlaceOrder}
+          disabled={placing || !cartItems.length}
+        >
+          {placing ? "Placing Order..." : "✅ Place Order"}
+        </button>
       </div>
     </div>
   );

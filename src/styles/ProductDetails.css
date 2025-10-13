@@ -547,3 +547,11 @@ body {
   background: #ddd;
   border-radius: 5px;
 }
+.bulk-pricing-section{
+display: none;
+}.current-price {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #ff6b88;
+    display: none;
+}
