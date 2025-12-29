@@ -400,3 +400,113 @@
     padding-top: 1rem;
   }
 }
+/* Add these styles to your existing Cart.css */
+
+.min-qty-indicator {
+  font-size: 12px;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin: 4px 0;
+  display: inline-block;
+  font-weight: 500;
+}
+
+.quantity-warning {
+  font-size: 11px;
+  color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+  padding: 3px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+  display: inline-block;
+}
+
+.min-qty-badge {
+  font-size: 10px;
+  color: #059669;
+  background: rgba(5, 150, 105, 0.1);
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-top: 4px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.summary-row.min-requirement {
+  border-bottom: 1px dashed #e5e7eb;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+}
+
+.summary-row.min-requirement span:last-child {
+  color: #059669;
+  font-weight: 600;
+}
+
+.checkout-disabled {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checkout-disabled .checkout-btn.disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.quantity-btn[title]:hover::after {
+  content: attr(title);
+  position: absolute;
+  background: #1f2937;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+  transform: translateY(-100%);
+  margin-top: -8px;
+}
+
+/* Update existing styles for better minimum quantity indication */
+.quantity-controls .quantity-btn {
+  transition: all 0.2s ease;
+}
+
+.quantity-controls .quantity-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.quantity-controls .quantity-btn:hover:not(:disabled) {
+  background: #3b82f6;
+  color: white;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .min-qty-indicator {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+  }
+  
+  .quantity-warning {
+    background: rgba(220, 38, 38, 0.2);
+    color: #fca5a5;
+  }
+  
+  .min-qty-badge {
+    background: rgba(5, 150, 105, 0.2);
+    color: #34d399;
+  }
+  
+  .checkout-disabled .checkout-btn.disabled {
+    background: #374151;
+    color: #6b7280;
+  }
+}

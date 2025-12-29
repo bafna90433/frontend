@@ -1,14 +1,17 @@
-// src/components/ProductCard.tsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/ProductCard.css";
 import { useShop } from "../context/ShopContext";
-
-interface BulkTier {
-  inner: number;
-  qty: number;
-  price: number;
-}
+import { 
+  ShoppingCart, 
+  Lock, 
+  Zap, 
+  Tag, 
+  Box, 
+  Plus, 
+  Minus,
+  Info 
+} from "lucide-react";
+import "../styles/ProductCard.css";
 
 interface Product {
   _id: string;
@@ -17,10 +20,11 @@ interface Product {
   sku?: string;
   images?: string[];
   price: number;
-  innerQty?: number;
-  bulkPricing: BulkTier[];
+  mrp?: number;
+  tagline?: string;
+  packSize?: string;
   category?: { _id: string; name: string } | string;
-  taxFields?: string[];
+  stock?: number;
 }
 
 interface ProductCardProps {
@@ -29,226 +33,159 @@ interface ProductCardProps {
   index?: number;
 }
 
-const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
-const getOptimizedImageUrl = (url: string, width = 400) => {
+const getOptimizedImageUrl = (url: string, width = 300) => {
   if (!url) return "";
-
-  if (url.includes("res.cloudinary.com")) {
-    return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
-  }
-
+  if (url.includes("res.cloudinary.com")) return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
   if (url.startsWith("http")) return url;
-  if (url.includes("/uploads/")) return `${API_BASE}${url}`;
-
   return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({
-  product,
-  userRole,
-  index = 0,
-}) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
-
+  
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved;
 
   const cartItem = cartItems.find((item) => item._id === product._id);
-  const innerCount = cartItem?.quantity ?? 0;
+  const itemCount = cartItem?.quantity ?? 0;
 
-  const sortedTiers = [...product.bulkPricing].sort((a, b) => a.inner - b.inner);
-  const activeTier: BulkTier | undefined = sortedTiers.length > 0
-    ? sortedTiers.reduce(
-        (prev, tier) => (innerCount >= tier.inner ? tier : prev),
-        sortedTiers[0]
-      )
-    : undefined;
+  // --- NEW LOGIC: Calculate Minimum Quantity ---
+  const minQty = product.price < 60 ? 3 : 2;
 
-  const piecesPerInner = product.innerQty && product.innerQty > 0
-    ? product.innerQty
-    : sortedTiers.length > 0 && sortedTiers[0].qty > 0
-    ? sortedTiers[0].qty / sortedTiers[0].inner
-    : 1;
+  const handleNavigate = () => navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
 
-  const totalPieces = innerCount * piecesPerInner;
-  const totalPrice = totalPieces * (activeTier ? activeTier.price : product.price);
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product, 1);
+  const actions = {
+    // Starts with the minimum quantity instead of 1
+    add: (e: React.MouseEvent) => { 
+      e.stopPropagation(); 
+      setCartItemQuantity(product, minQty); 
+    },
+    inc: (e: React.MouseEvent) => { 
+      e.stopPropagation(); 
+      setCartItemQuantity(product, itemCount + 1); 
+    },
+    // If decrementing would go below minimum, remove from cart (set to 0)
+    dec: (e: React.MouseEvent) => { 
+      e.stopPropagation(); 
+      const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
+      setCartItemQuantity(product, nextQty); 
+    }
   };
 
-  const increase = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product, innerCount + 1);
-  };
+  const categoryName = typeof product.category === "object" ? product.category?.name : product.category;
 
-  const decrease = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setCartItemQuantity(product, Math.max(0, innerCount - 1));
-  };
-
-  const imageFile = product.images?.[0] ?? null;
-  const imageSrc = imageFile && !imageError ? getOptimizedImageUrl(imageFile, 400) : null;
-
-  const handleNavigate = () => {
-    const path = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
-    navigate(path);
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
-    setImgLoaded(true);
-  };
+  const discountPercent = product.mrp && product.mrp > product.price 
+    ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
+    : 0;
 
   return (
-    <div className="product-card">
-      {/* Image Section */}
-      <div className="product-card__image-container" onClick={handleNavigate}>
-        {imageSrc ? (
-          <>
-            {!imgLoaded && (
-              <div className="product-card__skeleton" />
-            )}
-            <img
-              src={imageSrc}
-              alt={product.name}
-              className={`product-card__image ${imgLoaded ? "product-card__image--loaded" : ""}`}
-              width="400"
-              height="400"
-              loading={index === 0 ? "eager" : "lazy"}
-              decoding="async"
-              onLoad={() => setImgLoaded(true)}
-              onError={handleImageError}
-            />
-          </>
-        ) : (
-          <div className="product-card__no-image">
-            <span className="product-card__no-image-icon">📷</span>
-            No Image Available
-          </div>
-        )}
-        
-        {/* Quick Action Overlay */}
-        <div className="product-card__overlay">
-          <button className="product-card__quick-view" onClick={handleNavigate}>
-            Quick View
-          </button>
-        </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="product-card__content">
-        <div className="product-card__header" onClick={handleNavigate}>
-          <h3 className="product-card__title">{product.name}</h3>
-          
-          <div className="product-card__meta">
-            {product.sku && (
-              <span className="product-card__sku">SKU: {product.sku}</span>
-            )}
-            {product.category && (
-              <span className="product-card__category">
-                {typeof product.category === "string" 
-                  ? product.category 
-                  : product.category?.name}
-              </span>
-            )}
-          </div>
-
-          {product.taxFields && product.taxFields.length > 0 && (
-            <div className="product-card__tax-badges">
-              {product.taxFields.map((tax, idx) => (
-                <span key={idx} className="product-card__tax-badge">
-                  {tax}
-                </span>
-              ))}
-            </div>
+    <div className="pc-wrapper">
+      <div className="pc-card">
+        <div className="pc-badge-container">
+          {product.stock !== undefined && product.stock <= 10 && product.stock > 0 && (
+            <span className="pc-badge pc-badge--low"><Zap size={10} /> Limited</span>
+          )}
+          {discountPercent > 0 && isApproved && (
+            <span className="pc-badge pc-badge--discount">{discountPercent}% OFF</span>
           )}
         </div>
 
-        {/* Pricing & Bulk Information */}
-        {isApproved ? (
-          <div className="product-card__pricing">
-            <div className="product-card__pricing-header">
-              <span className="product-card__pricing-icon">📦</span>
-              <span>Bulk Pricing</span>
-            </div>
-            
-            <div className="product-card__tiers">
-              {sortedTiers.map((tier) => (
-                <div
-                  key={tier.inner}
-                  className={`product-card__tier ${
-                    activeTier && tier.inner === activeTier.inner 
-                      ? "product-card__tier--active" 
-                      : ""
-                  }`}
-                >
-                  <span className="product-card__tier-info">
-                    {tier.inner} inner ({tier.qty} pcs)
-                  </span>
-                  <span className="product-card__tier-price">
-                    ₹{tier.price}/pc
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="product-card__approval-message">
-            <span className="product-card__lock-icon">🔒</span>
-            Prices visible after admin approval
-          </div>
-        )}
+        <div className="pc-image-box" onClick={handleNavigate}>
+          {!imgLoaded && <div className="pc-skeleton" />}
+          <img
+            src={getOptimizedImageUrl(product.images?.[0] || "", 300)}
+            alt={product.name}
+            className={`pc-img ${imgLoaded ? "pc-img--loaded" : ""}`}
+            loading={index < 4 ? "eager" : "lazy"}
+            onLoad={() => setImgLoaded(true)}
+          />
+        </div>
 
-        {/* Cart Controls */}
-        <div className="product-card__actions">
-          {innerCount === 0 ? (
-            <button 
-              onClick={handleAdd} 
-              className="product-card__add-btn"
-              disabled={!isApproved}
-            >
-              ADD TO CART
-            </button>
-          ) : (
-            <div className="product-card__quantity-controls">
-              <div className="product-card__quantity-selector">
-                <button 
-                  onClick={decrease} 
-                  className="product-card__quantity-btn"
-                  aria-label="Decrease quantity"
-                >
-                  −
+        <div className="pc-body">
+          <div className="pc-meta">
+            <span className="pc-cat">{categoryName || "Toys"}</span>
+            {product.sku && <span className="pc-sku">#{product.sku.slice(0, 8)}</span>}
+          </div>
+
+          <h3 className="pc-title" onClick={handleNavigate} title={product.name}>
+            {product.name}
+          </h3>
+
+          {(product.tagline || product.packSize) && (
+            <div className="pc-specs">
+              {product.tagline && <span className="pc-spec-item"><Tag size={10} /> {product.tagline}</span>}
+              {product.packSize && <span className="pc-spec-item"><Box size={10} /> {product.packSize}</span>}
+            </div>
+          )}
+
+          {/* Pricing Area */}
+          <div className="pc-price-box">
+            {isApproved ? (
+              <div className="pc-pricing">
+                <div className="pc-main-price">
+                  <span className="pc-currency">₹</span>
+                  <span className="pc-amount">{product.price.toLocaleString()}</span>
+                  
+                  {product.mrp && product.mrp > product.price && (
+                    <span className="pc-mrp-wrapper">
+                      <span className="pc-mrp-label">MRP: </span>
+                      <span className="pc-mrp-value">₹{product.mrp.toLocaleString()}</span>
+                    </span>
+                  )}
+                </div>
+                
+                {/* Visual hint for Minimum Order */}
+                {itemCount === 0 && (
+                   <div className="pc-min-qty-info">
+                     <Info size={10} /> Min. Qty: {minQty}
+                   </div>
+                )}
+
+                {itemCount > 0 && (
+                  <div className="pc-total-tag">Total: ₹{(itemCount * product.price).toLocaleString()}</div>
+                )}
+              </div>
+            ) : (
+              <div className="pc-locked"><Lock size={12} /> Login for Price</div>
+            )}
+          </div>
+
+          <div className="pc-footer">
+            {!isApproved ? (
+               <button className="pc-btn-locked" onClick={handleNavigate}>View Details</button>
+            ) : itemCount === 0 ? (
+              <button 
+                className="pc-add-btn" 
+                onClick={actions.add}
+                disabled={product.stock === 0}
+              >
+                {product.stock === 0 ? "Out of Stock" : <><ShoppingCart size={16} /> Add (Min {minQty})</>}
+              </button>
+            ) : (
+              <div className="pc-stepper">
+                <button onClick={actions.dec} className="pc-step-btn">
+                  {/* Show Trash icon or Minus depending on if it's at Min Qty */}
+                  <Minus size={14} />
                 </button>
-                <span className="product-card__quantity-count">
-                  {innerCount}
-                </span>
+                <span className="pc-step-count">{itemCount}</span>
                 <button 
-                  onClick={increase} 
-                  className="product-card__quantity-btn"
-                  aria-label="Increase quantity"
+                  onClick={actions.inc} 
+                  className="pc-step-btn"
+                  disabled={product.stock !== undefined && itemCount >= product.stock}
                 >
-                  +
+                  <Plus size={14} />
                 </button>
               </div>
-              
-              {userRole === "admin" && isApproved && (
-                <div className="product-card__total-price">
-                  Total: ₹{totalPrice.toLocaleString()}
-                </div>
-              )}
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 };
 
-export default ProductCard;   
+export default ProductCard;

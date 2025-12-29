@@ -21,6 +21,7 @@
     "jspdf-autotable": "^5.0.2",
     "jszip": "^3.10.1",
     "lodash.memoize": "^4.1.2",
+    "lucide-react": "^0.562.0",
     "memoize-one": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

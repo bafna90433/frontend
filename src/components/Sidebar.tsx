@@ -1,5 +1,6 @@
 import React from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
+import { User, Package, Edit, MapPin, LogOut } from "lucide-react"; // ✅ Icons imported
 import "../styles/Sidebar.css";
 
 const Sidebar: React.FC = () => {
@@ -13,15 +14,15 @@ const Sidebar: React.FC = () => {
   };
 
   const navItems = [
-    { label: "My Account", path: "/my-account" },
-    { label: "Orders", path: "/orders" },
-    { label: "Edit Profile", path: "/edit-profile" },
-    { label: "Manage Addresses", path: "/addresses" },
+    { label: "My Account", path: "/my-account", icon: <User size={20} /> },
+    { label: "Orders", path: "/orders", icon: <Package size={20} /> },
+    { label: "Edit Profile", path: "/edit-profile", icon: <Edit size={20} /> },
+    { label: "Manage Addresses", path: "/addresses", icon: <MapPin size={20} /> }, // ✅ Added here
   ];
 
   return (
     <aside className="sidebar">
-      <h2 className="sidebar__title">Namaste</h2>
+      <h2 className="sidebar__title">Namaste 🙏</h2>
       <nav>
         <ul className="sidebar__nav">
           {navItems.map((item) => (
@@ -32,10 +33,12 @@ const Sidebar: React.FC = () => {
               }`}
             >
               <Link to={item.path} className="sidebar__link">
+                <span className="sidebar__icon">{item.icon}</span>
                 {item.label}
               </Link>
             </li>
           ))}
+          
           <li
             className="sidebar__item sidebar__logout"
             onClick={handleLogout}
@@ -47,6 +50,7 @@ const Sidebar: React.FC = () => {
               }
             }}
           >
+            <span className="sidebar__icon"><LogOut size={20} /></span>
             Logout
           </li>
         </ul>

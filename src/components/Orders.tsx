@@ -1,4 +1,5 @@
 // src/components/Orders.tsx
+
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
@@ -24,6 +25,15 @@ type Order = {
   total: number;
   paymentMethod?: string;
   estimatedDelivery?: string;
+  shippingAddress?: string | {
+    fullName?: string;
+    street?: string;
+    area?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    phone?: string;
+  };
 };
 
 const SHOW_TOTAL = false;
@@ -58,8 +68,8 @@ const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
   }
 };
 
-// ✅ toInners function
-const toInners = (it: OrderItem) => {
+// ✅ toPackets function (पहले toInners था)
+const toPackets = (it: OrderItem) => {
   if (it.inners && it.inners > 0) return it.inners;
   const perInner =
     it.innerQty && it.innerQty > 0
@@ -82,6 +92,17 @@ const generateInvoice = (order: Order) => {
     day: "numeric",
   });
 
+  // Format shipping address properly
+  let shippingAddressStr = "-";
+  if (order.shippingAddress) {
+    if (typeof order.shippingAddress === "string") {
+      shippingAddressStr = order.shippingAddress;
+    } else if (typeof order.shippingAddress === "object") {
+      const addr = order.shippingAddress;
+      shippingAddressStr = `${addr.fullName || ""}, ${addr.street || ""}, ${addr.area || ""}, ${addr.city || ""}, ${addr.state || ""} - ${addr.pincode || ""}`;
+    }
+  }
+
   const content = `
     <!DOCTYPE html>
     <html>
@@ -102,7 +123,28 @@ const generateInvoice = (order: Order) => {
         }
         .header { text-align: center; margin-bottom: 25px; }
         .header img { max-height: 70px; margin-bottom: 8px; }
-        .company-info { font-size: 13px; color: #555; line-height: 1.5; }
+        
+        .company-name {
+          font-size: 24px;
+          font-weight: 700;
+          color: #2c5aa0;
+          margin-bottom: 5px;
+          text-transform: uppercase;
+        }
+        
+        .company-info { 
+          font-size: 13px; 
+          color: #555; 
+          line-height: 1.5;
+          margin-bottom: 10px;
+        }
+        
+        .company-address {
+          font-size: 12px;
+          color: #666;
+          font-style: italic;
+          margin-top: 5px;
+        }
 
         .invoice-title {
           text-align: center;
@@ -198,6 +240,7 @@ const generateInvoice = (order: Order) => {
       <div class="invoice-container">
         <div class="header">
           <img src="logo.webp" alt="BafnaToys Logo" />
+          <div class="company-name">BafnaToys</div>
           <div class="company-info">
             1-12, Sundapalayam Rd, Coimbatore, Tamil Nadu 641007 <br/>
             Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com
@@ -210,6 +253,7 @@ const generateInvoice = (order: Order) => {
             <h3>Bill To</h3>
             <table class="billto-table">
               <tr><td>Shop Name</td><td>: ${user?.shopName || "-"}</td></tr>
+              <tr><td>Address</td><td>: ${shippingAddressStr}</td></tr>
               <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
               <tr><td>WhatsApp</td><td>: ${user?.whatsapp || "-"}</td></tr>
             </table>
@@ -237,7 +281,7 @@ const generateInvoice = (order: Order) => {
             ${order.items?.map(it => `
               <tr>
                 <td>${it.name}</td>
-                <td>${it.qty} pcs (${toInners(it)} ${toInners(it) === 1 ? "inner" : "inners"})</td>
+                <td>${it.qty} pcs (${toPackets(it)} ${toPackets(it) === 1 ? "packet" : "packets"})</td>
                 <td>${it.price.toFixed(2)}</td>
                 <td>${(it.qty * it.price).toFixed(2)}</td>
               </tr>`).join("")}
@@ -268,7 +312,6 @@ const generateInvoice = (order: Order) => {
   printWindow.document.close();
 };
 
-
 /* -------------------- Orders Component -------------------- */
 const Orders: React.FC = () => {
   const { apiBase, imageBase } = useBases();
@@ -287,32 +330,60 @@ const Orders: React.FC = () => {
   useEffect(() => {
     const fetchOrders = async () => {
       try {
-        const raw = localStorage.getItem("user");
-        if (!raw) {
+        setLoading(true);
+        setError(null);
+        
+        const userStr = localStorage.getItem("user");
+        if (!userStr) {
           setError("Please login to view your orders.");
           setLoading(false);
           return;
         }
-        const user = JSON.parse(raw);
+        
+        const user = JSON.parse(userStr);
+        const token = localStorage.getItem("token");
+        
+        if (!user?._id) {
+          setError("Invalid user data. Please login again.");
+          setLoading(false);
+          return;
+        }
+
+        console.log("Fetching orders for user:", user._id);
+        
         const url = `${apiBase}/orders`;
-        const { data } = await axios.get<Order[]>(url, {
+        const response = await axios.get(url, {
           params: { customerId: user._id },
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
-        setOrders(
-          Array.isArray(data)
-            ? data.sort(
-                (a, b) =>
-                  new Date(b.createdAt || 0).getTime() -
-                  new Date(a.createdAt || 0).getTime()
-              )
-            : []
-        );
-      } catch {
-        setError("Could not fetch orders. Please try again later.");
+
+        console.log("Orders API response:", response.data);
+
+        if (response.data && Array.isArray(response.data)) {
+          const sortedOrders = response.data.sort(
+            (a: Order, b: Order) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime()
+          );
+          setOrders(sortedOrders);
+        } else {
+          setOrders([]);
+        }
+      } catch (err: any) {
+        console.error("Error fetching orders:", err);
+        
+        if (err.response?.status === 401) {
+          setError("Your session has expired. Please login again.");
+        } else if (err.response?.status === 404) {
+          setOrders([]); // No orders found
+        } else {
+          setError("Could not fetch orders. Please try again later.");
+        }
       } finally {
         setLoading(false);
       }
     };
+    
     fetchOrders();
   }, [apiBase]);
 
@@ -391,6 +462,19 @@ const Orders: React.FC = () => {
     );
   };
 
+  // Format shipping address for display
+  const formatShippingAddress = (address: Order["shippingAddress"]) => {
+    if (!address) return "Not specified";
+    
+    if (typeof address === "string") {
+      return address;
+    }
+    
+    // If address is an object
+    const addr = address as any;
+    return `${addr.fullName || ""}, ${addr.street || ""}, ${addr.area || ""}, ${addr.city || ""}, ${addr.state || ""} - ${addr.pincode || ""}`.trim();
+  };
+
   return (
     <MainLayout>
       <div className="orders-container">
@@ -421,9 +505,17 @@ const Orders: React.FC = () => {
         </div>
 
         {loading ? (
-          <div className="loading-state"><p>Loading your orders...</p></div>
+          <div className="loading-state">
+            <p>Loading your orders...</p>
+          </div>
         ) : error ? (
-          <div className="error-state"><h3>Unable to load orders</h3><p>{error}</p></div>
+          <div className="error-state">
+            <h3>Unable to load orders</h3>
+            <p>{error}</p>
+            <button onClick={() => window.location.reload()}>
+              Try Again
+            </button>
+          </div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
             <h3>No orders found</h3>
@@ -432,6 +524,9 @@ const Orders: React.FC = () => {
                 ? "You haven't placed any orders yet."
                 : `You don't have any ${statusFilter} orders.`}
             </p>
+            <button onClick={() => window.location.href = "/"}>
+              Start Shopping
+            </button>
           </div>
         ) : (
           <div className="orders-list">
@@ -454,15 +549,23 @@ const Orders: React.FC = () => {
                     <div className="items-preview">
                       {order.items?.slice(0, 3).map((item, i) => (
                         <div key={i} className="item-preview">
-                          <img src={resolveImage(item.image)} alt={item.name} />
+                          <img 
+                            src={resolveImage(item.image)} 
+                            alt={item.name} 
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = "/placeholder-product.png";
+                            }}
+                          />
                           <span>{item.name}</span>
                         </div>
                       ))}
                     </div>
                     <div className="order-totals">
                       <div className="order-total">
-                        <span>Total Inners:</span>
-                        <strong>{order.items?.reduce((sum, it) => sum + toInners(it), 0)}</strong>
+                        <span>Total Packets:</span>
+                        <strong>
+                          {order.items?.reduce((sum, it) => sum + toPackets(it), 0) || 0}
+                        </strong>
                       </div>
                     </div>
                   </div>
@@ -473,16 +576,27 @@ const Orders: React.FC = () => {
                     <OrderProgress status={order.status} />
                     <div className="details-grid">
                       <div className="items-list">
-                        <h4>Order Items ({order.items?.length})</h4>
+                        <h4>Order Items ({order.items?.length || 0})</h4>
                         <div className="items-container">
                           {order.items?.map((item, i) => (
                             <div key={i} className="item-detail">
                               <div className="item-image">
-                                <img src={resolveImage(item.image)} alt={item.name} />
+                                <img 
+                                  src={resolveImage(item.image)} 
+                                  alt={item.name}
+                                  onError={(e) => {
+                                    (e.target as HTMLImageElement).src = "/placeholder-product.png";
+                                  }}
+                                />
                               </div>
                               <div className="item-info">
                                 <h5>{item.name}</h5>
-                                <div className="item-specs"><span>{toInners(item)} inners</span></div>
+                                <div className="item-specs">
+                                  <span>{item.qty} pcs ({toPackets(item)} packets)</span>
+                                </div>
+                                <div className="item-price">
+                                  ₹{item.price.toFixed(2)} per piece
+                                </div>
                               </div>
                             </div>
                           ))}
@@ -490,11 +604,39 @@ const Orders: React.FC = () => {
                       </div>
                       <div className="order-summary-card">
                         <h4>Order Summary</h4>
-                        <div className="summary-row"><span>Order Number</span><span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span></div>
-                        <div className="summary-row"><span>Order Date</span><span>{formatDate(order.createdAt)}</span></div>
-                        <div className="summary-row"><span>Payment Method</span><span>{order.paymentMethod || "Not specified"}</span></div>
                         <div className="summary-row">
-                          <button className="invoice-btn" onClick={() => generateInvoice(order)}>📄 View Invoice</button>
+                          <span>Order Number</span>
+                          <span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span>
+                        </div>
+                        <div className="summary-row">
+                          <span>Order Date</span>
+                          <span>{formatDate(order.createdAt)}</span>
+                        </div>
+                        <div className="summary-row">
+                          <span>Status</span>
+                          <StatusBadge status={order.status} />
+                        </div>
+                        <div className="summary-row">
+                          <span>Payment Method</span>
+                          <span>{order.paymentMethod || "Not specified"}</span>
+                        </div>
+                        <div className="summary-row">
+                          <span>Shipping Address</span>
+                          <span className="shipping-address">
+                            {formatShippingAddress(order.shippingAddress)}
+                          </span>
+                        </div>
+                        <div className="summary-row">
+                          <span>Total Amount</span>
+                          <span className="total-amount">₹{order.total.toFixed(2)}</span>
+                        </div>
+                        <div className="summary-row">
+                          <button 
+                            className="invoice-btn" 
+                            onClick={() => generateInvoice(order)}
+                          >
+                            📄 View Invoice
+                          </button>
                         </div>
                       </div>
                     </div>

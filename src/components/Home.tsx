@@ -1,8 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom"; // 👈 Import Link for navigation
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import CategoryNav from "./CategoryNav"; // 👈 horizontal category menu
+import CategoryNav from "./CategoryNav";
 import "../styles/Home.css";
 import { Skeleton } from "@mui/material";
 import ErrorMessage from "./ErrorMessage";
@@ -80,7 +81,7 @@ const Home: React.FC = () => {
         ) {
           setCategories(catRes.data || []);
           setProducts(prodRes.data || []);
-          setBanners(bannerRes.data || []); // ✅ Full banner object (imageUrl + link)
+          setBanners(bannerRes.data || []);
         } else {
           throw new Error("Failed to fetch data");
         }
@@ -189,6 +190,22 @@ const Home: React.FC = () => {
       )}
 
       <FloatingCheckoutButton />
+
+      {/* ✅ NEW FOOTER SECTION ADDED HERE */}
+      <footer className="home-footer">
+        <div className="footer-links-container">
+            <h3>Quick Links</h3>
+            <ul className="footer-links">
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+            </ul>
+        </div>
+        <div className="footer-copyright">
+            <p>© {new Date().getFullYear()} Bafna Toys. All rights reserved.</p>
+        </div>
+      </footer>
     </div>
   );
 };

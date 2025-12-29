@@ -283,3 +283,47 @@
     display: none;
   }
 }
+/* Home.css ke end me ye add karein */
+
+.home-footer {
+  background-color: #222;
+  color: #fff;
+  padding: 40px 20px 80px 20px; /* Bottom padding extra diya hai taaki Floating button cover na kare */
+  margin-top: 40px;
+  text-align: center;
+}
+
+.footer-links-container h3 {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+  color: #f1c40f; /* Gold color accent */
+}
+
+.footer-links {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.footer-links li a {
+  color: #ddd;
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.3s ease;
+}
+
+.footer-links li a:hover {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.footer-copyright {
+  border-top: 1px solid #444;
+  padding-top: 20px;
+  font-size: 0.85rem;
+  color: #aaa;
+}

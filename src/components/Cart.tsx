@@ -7,25 +7,23 @@ interface CartProps {}
 
 const IMAGE_BASE_URL = "http://localhost:5000/uploads/";
 
+// Helper function to calculate minimum quantity based on price
+const getMinimumQuantity = (price: number): number => {
+  return price < 60 ? 3 : 2;
+};
+
 function getItemValues(item: any) {
-  const innerCount = item.quantity || 0;
-  const piecesPerInner =
-    item.innerQty && item.innerQty > 0
-      ? item.innerQty
-      : item.bulkPricing?.[0]?.qty > 0 && item.bulkPricing?.[0]?.inner > 0
-      ? item.bulkPricing[0].qty / item.bulkPricing[0].inner
-      : 1;
+  const packetCount = item.quantity || 0; // Changed from innerCount to packetCount
+  const minQty = getMinimumQuantity(item.price);
+  const unitPrice = item.price;
+  const totalPrice = packetCount * unitPrice;
 
-  const tiers = [...(item.bulkPricing || [])].sort((a, b) => a.inner - b.inner);
-  const activeTier = tiers.reduce(
-    (match, tier) => (innerCount >= tier.inner ? tier : match),
-    tiers[0] || { inner: 0, price: item.price }
-  );
-  const unitPrice = activeTier.price || item.price;
-  const totalPieces = innerCount * piecesPerInner;
-  const totalPrice = totalPieces * unitPrice;
-
-  return { innerCount, piecesPerInner, tiers, unitPrice, totalPieces, totalPrice };
+  return { 
+    packetCount, // Changed from innerCount
+    unitPrice, 
+    totalPrice,
+    minQty 
+  };
 }
 
 const Cart: React.FC<CartProps> = () => {
@@ -35,7 +33,6 @@ const Cart: React.FC<CartProps> = () => {
   // ✅ user role / approval
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const isApproved = user?.isApproved === true;
-  const isAdmin = user?.role === "admin";
 
   if (cartItems.length === 0) {
     return (
@@ -50,8 +47,8 @@ const Cart: React.FC<CartProps> = () => {
     );
   }
 
-  // sum of inner units across all items
-  const totalInnerCount = cartItems.reduce(
+  // sum of packets across all items
+  const totalPacketCount = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0
   );
@@ -60,6 +57,26 @@ const Cart: React.FC<CartProps> = () => {
     (sum, item) => sum + getItemValues(item).totalPrice,
     0
   );
+
+  // Function to handle quantity decrease with minimum quantity check
+  const handleDecrease = (item: any) => {
+    const { minQty } = getItemValues(item);
+    const currentQty = item.quantity || 0;
+    
+    // If at minimum quantity, block further decrease
+    if (currentQty <= minQty) {
+      return; // Do nothing - button should be disabled
+    }
+    
+    // Decrease by 1
+    setCartItemQuantity(item, currentQty - 1);
+  };
+
+  // Function to handle quantity increase
+  const handleIncrease = (item: any) => {
+    const currentQty = item.quantity || 0;
+    setCartItemQuantity(item, currentQty + 1);
+  };
 
   return (
     <div className="cart-container">
@@ -74,10 +91,9 @@ const Cart: React.FC<CartProps> = () => {
         <div className="cart-items">
           {cartItems.map((item: any) => {
             const {
-              innerCount,
-              piecesPerInner,
-              tiers,
+              packetCount,
               unitPrice,
+              minQty
             } = getItemValues(item);
 
             const imgSrc = item.image?.startsWith("http")
@@ -115,16 +131,21 @@ const Cart: React.FC<CartProps> = () => {
                     <button
                       className="remove-btn"
                       onClick={() => removeFromCart(item._id)}
-                      title="Remove"
+                      title="Remove item from cart"
                     >
                       ×
                     </button>
                   </div>
 
-                  {/* per-piece price */}
+                  {/* Minimum quantity indicator */}
+                  <div className="min-qty-indicator">
+                    Minimum Quantity: {minQty} {minQty === 1 ? 'packet' : 'packets'}
+                  </div>
+
+                  {/* per-packet price */}
                   {isApproved ? (
                     <div className="product-price">
-                      ₹{unitPrice.toLocaleString()} <span className="unit">(per pc)</span>
+                      ₹{unitPrice.toLocaleString()} <span className="unit">(per packet)</span>
                     </div>
                   ) : (
                     <div className="locked-message">🔒 Price after admin approval</div>
@@ -134,47 +155,44 @@ const Cart: React.FC<CartProps> = () => {
                   <div className="quantity-controls">
                     <button
                       className="quantity-btn"
-                      onClick={() =>
-                        setCartItemQuantity(item, Math.max(1, item.quantity - 1))
-                      }
+                      onClick={() => handleDecrease(item)}
+                      disabled={packetCount <= minQty}
+                      title={packetCount <= minQty ? `Minimum quantity is ${minQty} packets` : "Decrease quantity"}
                     >
                       –
                     </button>
                     <span className="quantity">{item.quantity}</span>
                     <button
                       className="quantity-btn"
-                      onClick={() => setCartItemQuantity(item, item.quantity + 1)}
+                      onClick={() => handleIncrease(item)}
+                      disabled={item.stock !== undefined && packetCount >= item.stock}
                     >
                       +
                     </button>
                   </div>
 
-                  {/* bulk pricing list */}
-                  {isApproved && (
-                    <div className="bulk-pricing-list">
-                      {tiers.map((tier: any, i: number) => {
-                        const rowQty = tier.qty ?? tier.inner * piecesPerInner;
-                        const nextInner = tiers[i + 1]?.inner ?? Infinity;
-                        const isActive =
-                          innerCount >= tier.inner && innerCount < nextInner;
+                  {/* Quantity warning */}
+                  {packetCount < minQty && (
+                    <div className="quantity-warning">
+                      ⚠️ Minimum order is {minQty} packets
+                    </div>
+                  )}
 
-                        return (
-                          <div
-                            key={i}
-                            className={`bulk-pricing-item${isActive ? " highlight" : ""}`}
-                          >
-                            ₹{tier.price.toLocaleString()} / {tier.inner} inner / {rowQty} nos
-                          </div>
-                        );
-                      })}
+                  {/* Total for this item */}
+                  {isApproved && (
+                    <div className="item-total-price">
+                      Item Total: ₹{(packetCount * unitPrice).toLocaleString()}
                     </div>
                   )}
                 </div>
 
-                {/* TOTAL: innerCount only */}
+                {/* Quantity display */}
                 <div className="product-total">
-                  <span>Total</span>
-                  <div className="total-inners">{innerCount}</div>
+                  <span>Quantity</span>
+                  <div className="total-packets">{packetCount} packets</div> {/* Changed */}
+                  <div className="min-qty-badge">
+                    Min: {minQty}
+                  </div>
                 </div>
               </div>
             );
@@ -184,22 +202,53 @@ const Cart: React.FC<CartProps> = () => {
         {/* Order Summary */}
         <div className="cart-summary">
           <h3>Order Summary</h3>
+          
+          {/* Show minimum quantity requirement summary */}
+          <div className="summary-row min-requirement">
+            <span>Minimum Quantity Requirement</span>
+            <span>Applied ✓</span>
+          </div>
+          
           <div className="summary-row total">
-            <span>Total Inners</span>
-            <span>{totalInnerCount}</span>
+            <span>Total Items</span>
+            <span>{totalPacketCount} packets</span> {/* Changed */}
           </div>
 
           {/* ✅ Only approved users (customer + admin) see money totals */}
           {isApproved && (
-            <div className="summary-row subtotal">
-              <span>Subtotal</span>
-              <span>₹{subtotal.toLocaleString()}</span>
-            </div>
+            <>
+              <div className="summary-row subtotal">
+                <span>Subtotal</span>
+                <span>₹{subtotal.toLocaleString()}</span>
+              </div>
+              <div className="summary-row grand-total">
+                <span>Grand Total</span>
+                <span>₹{subtotal.toLocaleString()}</span>
+              </div>
+            </>
           )}
 
-          <button className="checkout-btn" onClick={() => navigate("/checkout")}>
-            Proceed to Checkout
-          </button>
+          {/* Check if all items meet minimum quantity */}
+          {cartItems.some((item: any) => {
+            const { packetCount, minQty } = getItemValues(item);
+            return packetCount < minQty;
+          }) ? (
+            <div className="checkout-disabled">
+              ⚠️ Some items are below minimum quantity
+              <button 
+                className="checkout-btn disabled" 
+                disabled
+                title="Adjust quantities to meet minimum requirements"
+              >
+                Proceed to Checkout
+              </button>
+            </div>
+          ) : (
+            <button className="checkout-btn" onClick={() => navigate("/checkout")}>
+              Proceed to Checkout
+            </button>
+          )}
+          
           <button className="continue-shopping-btn" onClick={() => navigate("/")}>
             Continue Shopping
           </button>

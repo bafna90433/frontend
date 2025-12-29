@@ -1,7 +1,9 @@
-"node_modules/"  
-"node_modules/"  
-node_modules/ 
+# Dependencies
 node_modules/
+
+# Build output
 dist/
+
+# Environment files
 .env
 *.env
