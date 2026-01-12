@@ -1,48 +1,207 @@
-.floating-checkout-btn {
+/* =========================================
+   1. PC VIEW (Desktop Default) - LEFT SIDE
+   ========================================= */
+.floating-checkout-container {
   position: fixed;
-  left: 16px; /* Always on left side */
-  bottom: calc(72px + env(safe-area-inset-bottom)); /* Above bottom nav */
-  z-index: 9999;
+  z-index: 1000;
+  
+  /* PC Alignment: Left Side */
+  bottom: 30px;
+  left: 30px;        /* Left Side */
+  right: auto;       /* Right hataya */
+  transform: none;
+  
+  width: 360px;
+  background: #fef7ff;
+  border-radius: 28px;
+  cursor: pointer;
+  
+  /* Animation */
+  animation: slideUpPC 0.5s cubic-bezier(0.2, 0, 0, 1);
+  
+  /* Shadow & Border */
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 4px 8px rgba(0, 0, 0, 0.08),
+    0 24px 48px rgba(103, 80, 164, 0.12);
+  border: 1px solid rgba(103, 80, 164, 0.1);
+  overflow: hidden;
+}
 
-  display: inline-flex;
+@keyframes slideUpPC {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Internal Styling (Common) --- */
+
+.checkout-progress-container {
+  padding: 16px 20px 12px;
+  background: linear-gradient(180deg, #f3edf7 0%, #fef7ff 100%);
+}
+
+.progress-bar-bg {
+  height: 5px;
+  background: #e6e1e5;
+  border-radius: 3px;
+  overflow: hidden;
+  position: relative;
+  margin-bottom: 8px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: #6750a4;
+  border-radius: 3px;
+  transition: width 0.6s ease;
+}
+
+.progress-message {
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: #6750a4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.message-success { color: #0d9263; display: flex; align-items: center; gap: 6px; }
+.message-remaining { color: #c9a227; display: flex; align-items: center; gap: 6px; }
+
+.checkout-main-area {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: #fef7ff;
+}
+
+.checkout-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.checkout-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.item-count-badge {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  background: #6750a4;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bag-icon { color: white; font-size: 20px; }
+
+.count-number {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4d4f;
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #fef7ff;
+}
+
+.price-details { display: flex; flex-direction: column; }
+.total-label { font-size: 12px; color: #49454f; line-height: 1; margin-bottom: 2px; }
+.total-amount { font-size: 20px; font-weight: 700; color: #1c1b1f; line-height: 1; }
+
+.shipping-note {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #79747e;
+  margin-top: 4px;
+}
+
+.checkout-action {
+  padding: 10px 20px;
+  background: #6750a4;
+  border-radius: 100px;
+  display: flex;
   align-items: center;
   gap: 8px;
-
-  padding: 10px 16px;
-  border: none;
-  border-radius: 999px;
-  background: #2f6feb;
-  color: #fff;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.18);
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition: background 0.2s;
 }
+.checkout-action:hover { background: #503e82; }
+.action-label { color: white; font-size: 14px; font-weight: 600; }
+.arrow-icon { color: white; }
 
-.floating-checkout-btn:hover {
-  background: #1a5ad9;
-}
+/* =========================================
+   2. MOBILE VIEW (Small Screens) - CENTERED
+   ========================================= */
+@media (max-width: 768px) {
+  .floating-checkout-container {
+    /* Mobile Alignment: Center Bottom */
+    left: 50%;
+    right: auto;
+    bottom: 80px;
+    transform: translateX(-50%); /* Wapas Center kar diya */
+    
+    /* Mobile Size: Compact */
+    width: 92%;
+    max-width: 400px;
+    border-radius: 20px;
+    
+    animation: slideUpMobile 0.4s cubic-bezier(0.2, 0, 0, 1);
+  }
 
-.floating-checkout-btn:active {
-  transform: scale(0.97);
-}
+  @keyframes slideUpMobile {
+    from { opacity: 0; transform: translate(-50%, 20px); }
+    to { opacity: 1; transform: translate(-50%, 0); }
+  }
 
-.checkout-icon {
-  font-size: 18px;
-}
+  /* Compact Design Elements for Mobile */
+  .checkout-main-area {
+    padding: 10px 16px;
+    height: 60px;
+  }
 
-.checkout-text {
-  white-space: nowrap;
-  line-height: 1;
-}
-
-.checkout-badge {
-  background: red;
-  color: #fff;
-  font-size: 12px;
-  font-weight: bold;
-  padding: 2px 6px;
-  border-radius: 999px;
-  margin-left: 6px;
+  .item-count-badge {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+  
+  .bag-icon { font-size: 16px; }
+  
+  /* Mobile pe 'Total' text hata diya, direct price dikhayenge */
+  .total-label { display: none; }
+  .total-amount { font-size: 18px; }
+  
+  /* Shipping note mobile pe hide karein space bachane ke liye */
+  .shipping-note { display: none; }
+  
+  .checkout-action {
+    padding: 8px 16px;
+  }
+  
+  .action-label { font-size: 13px; }
+  
+  /* Progress bar compact styles */
+  .checkout-progress-container {
+    padding: 10px 16px 5px;
+  }
+  
+  .progress-bar-bg { height: 3px; }
+  .progress-message { font-size: 11px; }
 }

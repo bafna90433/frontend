@@ -1,7 +1,8 @@
 import React from "react";
 import { useShop } from "../context/ShopContext";
 import { useNavigate } from "react-router-dom";
-import { FiTruck, FiInfo } from "react-icons/fi";
+// ✅ Changed icons to Lucide for consistency with Checkout
+import { Truck, Info, AlertCircle } from "lucide-react"; 
 import "../styles/Cart.css";
 
 interface CartProps {}
@@ -34,7 +35,7 @@ const Cart: React.FC<CartProps> = () => {
     setCartItemQuantity, 
     removeFromCart, 
     clearCart,
-    // ✅ New Values from Context
+    // ✅ Context Values
     cartTotal,
     shippingFee,
     finalTotal,
@@ -43,11 +44,7 @@ const Cart: React.FC<CartProps> = () => {
   
   const navigate = useNavigate();
 
-  // ✅ Only approved users see prices
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  // const isApproved = user?.isApproved === true;
-  // NOTE: Assuming you want prices visible to everyone now (as per earlier requests).
-  // If you want to hide prices for non-login, uncomment above line and use below:
+  // ✅ Always approved (since approval system is removed)
   const isApproved = true; 
 
   if (cartItems.length === 0) {
@@ -64,13 +61,13 @@ const Cart: React.FC<CartProps> = () => {
     );
   }
 
-  // Sum of packets across all items
+  // Sum of packets
   const totalPacketCount = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0
   );
 
-  // Calculate amount needed for free shipping
+  // ✅ FREE SHIPPING CALCULATION
   const neededForFree = freeShippingThreshold - cartTotal;
   const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
 
@@ -78,7 +75,7 @@ const Cart: React.FC<CartProps> = () => {
   const handleDecrease = (item: any) => {
     const { minQty } = getItemValues(item);
     const currentQty = item.quantity || 0;
-    if (currentQty <= minQty) return; // Block going below min
+    if (currentQty <= minQty) return;
     setCartItemQuantity(item, currentQty - 1);
   };
 
@@ -99,24 +96,32 @@ const Cart: React.FC<CartProps> = () => {
       <div className="cart-content">
         <div className="cart-items">
           
-          {/* ✅ Free Shipping Progress Bar */}
+          {/* ✅ Free Shipping Progress Bar (SAME AS CHECKOUT) */}
           {freeShippingThreshold > 0 && isApproved && (
-            <div className="shipping-progress-card">
-              {neededForFree > 0 ? (
-                <div className="shipping-message info">
-                   <FiInfo />
-                   <span>Add items worth <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping!</strong></span>
-                </div>
-              ) : (
-                <div className="shipping-message success">
-                   <FiTruck />
-                   <span>Yay! You've unlocked FREE Shipping!</span>
-                </div>
-              )}
-              <div className="progress-bar-bg">
-                 <div className="progress-bar-fill" style={{ 
-                     width: `${progressPercent}%`,
-                     backgroundColor: neededForFree > 0 ? '#0ea5e9' : '#16a34a' 
+            <div style={{
+                marginBottom: '20px', padding: '15px 20px', 
+                background: neededForFree > 0 ? '#eff6ff' : '#f0fdf4', 
+                borderRadius: '12px', border: neededForFree > 0 ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
+                boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
+            }}>
+              <div style={{
+                  display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', 
+                  fontSize: '15px', fontWeight: '600', 
+                  color: neededForFree > 0 ? '#1e40af' : '#15803d'
+              }}>
+                 <Truck size={20} />
+                 {neededForFree > 0 
+                   ? <span>Add <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping!</strong></span>
+                   : <span>🎉 Congratulations! You've unlocked <strong>FREE Shipping!</strong></span>
+                 }
+              </div>
+              <div style={{width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden'}}>
+                 <div style={{
+                    width: `${progressPercent}%`, 
+                    height: '100%', 
+                    background: neededForFree > 0 ? '#3b82f6' : '#22c55e',
+                    transition: 'width 0.5s ease',
+                    borderRadius: '4px'
                  }} />
               </div>
             </div>
@@ -133,7 +138,6 @@ const Cart: React.FC<CartProps> = () => {
 
             return (
               <div className="cart-item" key={item._id}>
-                {/* Image */}
                 <div className="product-image-container">
                   {item.image ? (
                     <img
@@ -148,7 +152,6 @@ const Cart: React.FC<CartProps> = () => {
                   )}
                 </div>
 
-                {/* Details */}
                 <div className="product-details">
                   <div className="product-title-row">
                     <h3 className="product-name" onClick={() => navigate(`/product/${item._id}`)}>
@@ -203,7 +206,6 @@ const Cart: React.FC<CartProps> = () => {
                   )}
                 </div>
 
-                {/* Total Packets Badge */}
                 <div className="product-total">
                   <span>Quantity</span>
                   <div className="total-packets">{packetCount} packets</div>
@@ -252,7 +254,7 @@ const Cart: React.FC<CartProps> = () => {
             </>
           )}
 
-          {/* Validation: Check if any item violates min qty */}
+          {/* Validation */}
           {cartItems.some((item: any) => {
             const { packetCount, minQty } = getItemValues(item);
             return packetCount < minQty;
