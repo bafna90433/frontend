@@ -31,7 +31,7 @@ import Orders from "./components/Orders";
 import ManageAddresses from "./components/ManageAddresses";
 import ProtectedRoute from "./components/ProtectedRoute";
 
-// ✅ Razorpay Required Legal Pages (ALL are in components folder)
+// ✅ Razorpay Required Legal Pages
 import PrivacyPolicy from "./components/PrivacyPolicy";
 import TermsConditions from "./components/TermsConditions";
 import ShippingDelivery from "./components/ShippingDelivery";
@@ -44,8 +44,10 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
   const location = useLocation();
   const user = localStorage.getItem("user");
 
-  // ✅ Pages that should be accessible WITHOUT login
+  // ✅ 1. Pages jo BINA LOGIN ke dikhni chahiye (Home, Products, etc.)
   const publicPaths = [
+    "/",                // Home ab public hai
+    "/products",        // Products browsing public hai
     "/register",
     "/login",
     "/privacy-policy",
@@ -54,30 +56,31 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
     "/cancellation-refund",
   ];
 
-  const isPublicPage = publicPaths.includes(location.pathname);
+  // Check karein ki kya current path public list mein hai
+  // OR agar path "/product/" se shuru hota hai (Dynamic details page)
+  const isPublicPage = 
+    publicPaths.includes(location.pathname) || 
+    location.pathname.startsWith("/product/");
 
-  // ❌ Agar login nahi hai aur public page nahi hai → register
+  // ❌ 2. Redirect Logic: Sirf tab redirect karo agar page public nahi hai aur user login nahi hai
+  // (Jaise: Checkout, My Account, Orders)
   if (!user && !isPublicPage) {
     return <Navigate to="/register" replace />;
   }
 
   return (
     <>
-      {/* Header sirf login ke baad */}
-      {user && <Header />}
+      {/* ✅ Header sabko dikhna chahiye taaki wo navigate kar sakein */}
+      <Header />
 
-      <main style={{ paddingBottom: user ? "60px" : "0" }}>
+      <main style={{ paddingBottom: "60px" }}>
         {children}
       </main>
 
-      {/* Footer / BottomNav sirf login ke baad */}
-      {user && (
-        <>
-          <BottomNav />
-          <BackFooter />
-          <WhatsAppButton />
-        </>
-      )}
+      {/* ✅ Footer / BottomNav bhi sabko dikhna chahiye */}
+      <BottomNav />
+      <BackFooter />
+      <WhatsAppButton />
     </>
   );
 };
@@ -92,22 +95,30 @@ const App: React.FC = () => {
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={<LoginOTP />} />
 
-            {/* 📜 Legal / Razorpay Mandatory Pages (Public) */}
+            {/* 📜 Legal Pages */}
             <Route path="/privacy-policy" element={<PrivacyPolicy />} />
             <Route path="/terms-conditions" element={<TermsConditions />} />
             <Route path="/shipping-delivery" element={<ShippingDelivery />} />
-            <Route
-              path="/cancellation-refund"
-              element={<CancellationRefund />}
-            />
+            <Route path="/cancellation-refund" element={<CancellationRefund />} />
 
-            {/* 🛍️ App Pages (Login required) */}
+            {/* 🛍️ Public App Pages (Ab bina login ke dikhenge) */}
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/product/:id" element={<ProductDetails />} />
+            
+            {/* ⚠️ Cart logic: Agar aap chahte hain cart sirf login wale dekhe, toh isse Protected mein daal de */}
             <Route path="/cart" element={<Cart />} />
             <Route path="/wishlist" element={<Wishlist />} />
-            <Route path="/checkout" element={<Checkout />} />
+
+            {/* 🔒 Protected Pages (Login Zaroori Hai) */}
+            <Route 
+              path="/checkout" 
+              element={
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              } 
+            />
 
             <Route
               path="/my-account"

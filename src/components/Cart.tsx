@@ -1,6 +1,7 @@
 import React from "react";
 import { useShop } from "../context/ShopContext";
 import { useNavigate } from "react-router-dom";
+import { FiTruck, FiInfo } from "react-icons/fi";
 import "../styles/Cart.css";
 
 interface CartProps {}
@@ -12,14 +13,15 @@ const getMinimumQuantity = (price: number): number => {
   return price < 60 ? 3 : 2;
 };
 
+// Values calculation helper
 function getItemValues(item: any) {
-  const packetCount = item.quantity || 0; // Changed from innerCount to packetCount
+  const packetCount = item.quantity || 0;
   const minQty = getMinimumQuantity(item.price);
   const unitPrice = item.price;
   const totalPrice = packetCount * unitPrice;
 
   return { 
-    packetCount, // Changed from innerCount
+    packetCount,
     unitPrice, 
     totalPrice,
     minQty 
@@ -27,52 +29,59 @@ function getItemValues(item: any) {
 }
 
 const Cart: React.FC<CartProps> = () => {
-  const { cartItems, setCartItemQuantity, removeFromCart, clearCart } = useShop();
+  const { 
+    cartItems, 
+    setCartItemQuantity, 
+    removeFromCart, 
+    clearCart,
+    // ✅ New Values from Context
+    cartTotal,
+    shippingFee,
+    finalTotal,
+    freeShippingThreshold
+  } = useShop();
+  
   const navigate = useNavigate();
 
-  // ✅ user role / approval
+  // ✅ Only approved users see prices
   const user = JSON.parse(localStorage.getItem("user") || "null");
-  const isApproved = user?.isApproved === true;
+  // const isApproved = user?.isApproved === true;
+  // NOTE: Assuming you want prices visible to everyone now (as per earlier requests).
+  // If you want to hide prices for non-login, uncomment above line and use below:
+  const isApproved = true; 
 
   if (cartItems.length === 0) {
     return (
       <div className="cart-empty-container">
         <div className="cart-empty">
           <h3>Your cart is empty</h3>
+          <p>Looks like you haven't added any toys yet.</p>
           <button className="continue-shopping-btn" onClick={() => navigate("/")}>
-            Continue Shopping
+            Start Shopping
           </button>
         </div>
       </div>
     );
   }
 
-  // sum of packets across all items
+  // Sum of packets across all items
   const totalPacketCount = cartItems.reduce(
     (sum, item) => sum + (item.quantity || 0),
     0
   );
 
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + getItemValues(item).totalPrice,
-    0
-  );
+  // Calculate amount needed for free shipping
+  const neededForFree = freeShippingThreshold - cartTotal;
+  const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
 
-  // Function to handle quantity decrease with minimum quantity check
+  // Quantity Handlers
   const handleDecrease = (item: any) => {
     const { minQty } = getItemValues(item);
     const currentQty = item.quantity || 0;
-    
-    // If at minimum quantity, block further decrease
-    if (currentQty <= minQty) {
-      return; // Do nothing - button should be disabled
-    }
-    
-    // Decrease by 1
+    if (currentQty <= minQty) return; // Block going below min
     setCartItemQuantity(item, currentQty - 1);
   };
 
-  // Function to handle quantity increase
   const handleIncrease = (item: any) => {
     const currentQty = item.quantity || 0;
     setCartItemQuantity(item, currentQty + 1);
@@ -89,12 +98,32 @@ const Cart: React.FC<CartProps> = () => {
 
       <div className="cart-content">
         <div className="cart-items">
+          
+          {/* ✅ Free Shipping Progress Bar */}
+          {freeShippingThreshold > 0 && isApproved && (
+            <div className="shipping-progress-card">
+              {neededForFree > 0 ? (
+                <div className="shipping-message info">
+                   <FiInfo />
+                   <span>Add items worth <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping!</strong></span>
+                </div>
+              ) : (
+                <div className="shipping-message success">
+                   <FiTruck />
+                   <span>Yay! You've unlocked FREE Shipping!</span>
+                </div>
+              )}
+              <div className="progress-bar-bg">
+                 <div className="progress-bar-fill" style={{ 
+                     width: `${progressPercent}%`,
+                     backgroundColor: neededForFree > 0 ? '#0ea5e9' : '#16a34a' 
+                 }} />
+              </div>
+            </div>
+          )}
+
           {cartItems.map((item: any) => {
-            const {
-              packetCount,
-              unitPrice,
-              minQty
-            } = getItemValues(item);
+            const { packetCount, unitPrice, minQty } = getItemValues(item);
 
             const imgSrc = item.image?.startsWith("http")
               ? item.image
@@ -104,7 +133,7 @@ const Cart: React.FC<CartProps> = () => {
 
             return (
               <div className="cart-item" key={item._id}>
-                {/* image */}
+                {/* Image */}
                 <div className="product-image-container">
                   {item.image ? (
                     <img
@@ -119,45 +148,35 @@ const Cart: React.FC<CartProps> = () => {
                   )}
                 </div>
 
-                {/* details */}
+                {/* Details */}
                 <div className="product-details">
                   <div className="product-title-row">
-                    <h3
-                      className="product-name"
-                      onClick={() => navigate(`/product/${item._id}`)}
-                    >
+                    <h3 className="product-name" onClick={() => navigate(`/product/${item._id}`)}>
                       {item.name}
                     </h3>
-                    <button
-                      className="remove-btn"
-                      onClick={() => removeFromCart(item._id)}
-                      title="Remove item from cart"
-                    >
+                    <button className="remove-btn" onClick={() => removeFromCart(item._id)} title="Remove item">
                       ×
                     </button>
                   </div>
 
-                  {/* Minimum quantity indicator */}
                   <div className="min-qty-indicator">
                     Minimum Quantity: {minQty} {minQty === 1 ? 'packet' : 'packets'}
                   </div>
 
-                  {/* per-packet price */}
                   {isApproved ? (
                     <div className="product-price">
                       ₹{unitPrice.toLocaleString()} <span className="unit">(per packet)</span>
                     </div>
                   ) : (
-                    <div className="locked-message">🔒 Price after admin approval</div>
+                    <div className="locked-message">🔒 Login to see price</div>
                   )}
 
-                  {/* qty controls */}
                   <div className="quantity-controls">
                     <button
                       className="quantity-btn"
                       onClick={() => handleDecrease(item)}
                       disabled={packetCount <= minQty}
-                      title={packetCount <= minQty ? `Minimum quantity is ${minQty} packets` : "Decrease quantity"}
+                      title={packetCount <= minQty ? `Minimum quantity is ${minQty}` : "Decrease"}
                     >
                       –
                     </button>
@@ -171,14 +190,12 @@ const Cart: React.FC<CartProps> = () => {
                     </button>
                   </div>
 
-                  {/* Quantity warning */}
                   {packetCount < minQty && (
                     <div className="quantity-warning">
                       ⚠️ Minimum order is {minQty} packets
                     </div>
                   )}
 
-                  {/* Total for this item */}
                   {isApproved && (
                     <div className="item-total-price">
                       Item Total: ₹{(packetCount * unitPrice).toLocaleString()}
@@ -186,13 +203,11 @@ const Cart: React.FC<CartProps> = () => {
                   )}
                 </div>
 
-                {/* Quantity display */}
+                {/* Total Packets Badge */}
                 <div className="product-total">
                   <span>Quantity</span>
-                  <div className="total-packets">{packetCount} packets</div> {/* Changed */}
-                  <div className="min-qty-badge">
-                    Min: {minQty}
-                  </div>
+                  <div className="total-packets">{packetCount} packets</div>
+                  <div className="min-qty-badge">Min: {minQty}</div>
                 </div>
               </div>
             );
@@ -203,43 +218,48 @@ const Cart: React.FC<CartProps> = () => {
         <div className="cart-summary">
           <h3>Order Summary</h3>
           
-          {/* Show minimum quantity requirement summary */}
           <div className="summary-row min-requirement">
-            <span>Minimum Quantity Requirement</span>
+            <span>Minimum Qty Check</span>
             <span>Applied ✓</span>
           </div>
           
           <div className="summary-row total">
             <span>Total Items</span>
-            <span>{totalPacketCount} packets</span> {/* Changed */}
+            <span>{totalPacketCount} packets</span>
           </div>
 
-          {/* ✅ Only approved users (customer + admin) see money totals */}
           {isApproved && (
             <>
               <div className="summary-row subtotal">
                 <span>Subtotal</span>
-                <span>₹{subtotal.toLocaleString()}</span>
+                <span>₹{cartTotal.toLocaleString()}</span>
               </div>
+              
+              {/* ✅ Shipping Row */}
+              <div className="summary-row shipping">
+                <span>Shipping Charges</span>
+                {shippingFee === 0 ? (
+                    <span className="free-shipping-text">FREE</span>
+                ) : (
+                    <span>₹{shippingFee.toLocaleString()}</span>
+                )}
+              </div>
+
               <div className="summary-row grand-total">
                 <span>Grand Total</span>
-                <span>₹{subtotal.toLocaleString()}</span>
+                <span>₹{finalTotal.toLocaleString()}</span>
               </div>
             </>
           )}
 
-          {/* Check if all items meet minimum quantity */}
+          {/* Validation: Check if any item violates min qty */}
           {cartItems.some((item: any) => {
             const { packetCount, minQty } = getItemValues(item);
             return packetCount < minQty;
           }) ? (
             <div className="checkout-disabled">
               ⚠️ Some items are below minimum quantity
-              <button 
-                className="checkout-btn disabled" 
-                disabled
-                title="Adjust quantities to meet minimum requirements"
-              >
+              <button className="checkout-btn disabled" disabled>
                 Proceed to Checkout
               </button>
             </div>

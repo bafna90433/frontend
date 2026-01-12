@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import { 
   ShoppingCart, 
-  Lock, 
   Zap, 
   Tag, 
   Box, 
@@ -47,13 +46,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
   
-  const user = JSON.parse(localStorage.getItem("user") || "null");
-  const isApproved = user?.isApproved;
-
+  // ✅ Removed user/isApproved check for UI visibility
+  
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
 
-  // --- NEW LOGIC: Calculate Minimum Quantity ---
+  // --- Logic: Calculate Minimum Quantity ---
   const minQty = product.price < 60 ? 3 : 2;
 
   const handleNavigate = () => navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
@@ -89,7 +87,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
           {product.stock !== undefined && product.stock <= 10 && product.stock > 0 && (
             <span className="pc-badge pc-badge--low"><Zap size={10} /> Limited</span>
           )}
-          {discountPercent > 0 && isApproved && (
+          {/* ✅ Discount badge ab sabko dikhega */}
+          {discountPercent > 0 && (
             <span className="pc-badge pc-badge--discount">{discountPercent}% OFF</span>
           )}
         </div>
@@ -122,42 +121,37 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             </div>
           )}
 
-          {/* Pricing Area */}
+          {/* Pricing Area - ✅ Price is always visible now */}
           <div className="pc-price-box">
-            {isApproved ? (
-              <div className="pc-pricing">
-                <div className="pc-main-price">
-                  <span className="pc-currency">₹</span>
-                  <span className="pc-amount">{product.price.toLocaleString()}</span>
-                  
-                  {product.mrp && product.mrp > product.price && (
-                    <span className="pc-mrp-wrapper">
-                      <span className="pc-mrp-label">MRP: </span>
-                      <span className="pc-mrp-value">₹{product.mrp.toLocaleString()}</span>
-                    </span>
-                  )}
-                </div>
+            <div className="pc-pricing">
+              <div className="pc-main-price">
+                <span className="pc-currency">₹</span>
+                <span className="pc-amount">{product.price.toLocaleString()}</span>
                 
-                {/* Visual hint for Minimum Order */}
-                {itemCount === 0 && (
-                   <div className="pc-min-qty-info">
-                     <Info size={10} /> Min. Qty: {minQty}
-                   </div>
-                )}
-
-                {itemCount > 0 && (
-                  <div className="pc-total-tag">Total: ₹{(itemCount * product.price).toLocaleString()}</div>
+                {product.mrp && product.mrp > product.price && (
+                  <span className="pc-mrp-wrapper">
+                    <span className="pc-mrp-label">MRP: </span>
+                    <span className="pc-mrp-value">₹{product.mrp.toLocaleString()}</span>
+                  </span>
                 )}
               </div>
-            ) : (
-              <div className="pc-locked"><Lock size={12} /> Login for Price</div>
-            )}
+              
+              {/* Visual hint for Minimum Order */}
+              {itemCount === 0 && (
+                  <div className="pc-min-qty-info">
+                    <Info size={10} /> Min. Qty: {minQty}
+                  </div>
+              )}
+
+              {itemCount > 0 && (
+                <div className="pc-total-tag">Total: ₹{(itemCount * product.price).toLocaleString()}</div>
+              )}
+            </div>
           </div>
 
           <div className="pc-footer">
-            {!isApproved ? (
-               <button className="pc-btn-locked" onClick={handleNavigate}>View Details</button>
-            ) : itemCount === 0 ? (
+            {/* ✅ Add to Cart Button Logic - No login check */}
+            {itemCount === 0 ? (
               <button 
                 className="pc-add-btn" 
                 onClick={actions.add}

@@ -1,348 +1,339 @@
-// src/components/Register.tsx
-import React, { useState, ChangeEvent } from "react";
+import React, { useState, ChangeEvent, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Swal from "sweetalert2"; 
-import "../styles/Register.css";
+import Swal from "sweetalert2";
+import { MapPin, Store, Smartphone, MessageCircle, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
+import "../styles/AuthStyles.css"; // ✅ IMPORTANT: Connects to shared CSS
 
 const RAW = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
 const API_BASE = RAW.endsWith("/api") ? RAW : `${RAW}/api`;
 
 const INDIAN_STATES = [
-  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
-  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
-  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
-  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat",
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh",
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab",
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh",
   "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry"
 ];
 
 const Register: React.FC = () => {
-  // ✅ 1. Main Form State
-  const [form, setForm] = useState({
-    shopName: "",
-    otpMobile: "",
-    whatsapp: "",
-    visitingCard: null as File | null,
-  });
-
-  // ✅ 2. Separate State for Address Fields
-  const [addr, setAddr] = useState({
-    street: "",
-    area: "",
-    city: "",
-    state: "",
-    pincode: ""
-  });
-
+  const [form, setForm] = useState({ shopName: "", otpMobile: "", whatsapp: "" });
+  const [addr, setAddr] = useState({ street: "", area: "", city: "", state: "", pincode: "" });
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
 
+  // --- Logic Helpers ---
   const normalizeTo10 = (raw: string) => {
     const digits = String(raw || "").replace(/\D/g, "");
     return digits.length > 10 ? digits.slice(-10) : digits;
   };
 
-  // ✅ 3. Validation Logic
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     if (!form.shopName.trim()) newErrors.shopName = "Shop Name is required";
-
-    // Address Validations
-    if (!addr.street.trim()) newErrors.street = "Shop No./Street is required";
+    if (!addr.street.trim()) newErrors.street = "Street Address is required";
     if (!addr.city.trim()) newErrors.city = "City is required";
     if (!addr.state.trim()) newErrors.state = "State is required";
     if (!addr.pincode.trim()) newErrors.pincode = "Pincode is required";
-    else if (addr.pincode.length !== 6) newErrors.pincode = "Invalid Pincode";
-
+    else if (addr.pincode.length !== 6) newErrors.pincode = "Invalid Pincode (6 digits)";
+    
     const phone = normalizeTo10(form.otpMobile);
-    if (phone.length !== 10) newErrors.otpMobile = "Enter a valid 10-digit mobile number";
-
-    if (!form.visitingCard) newErrors.visitingCard = "Visiting Card is required";
-    else if (form.visitingCard.size > 5 * 1024 * 1024) {
-      newErrors.visitingCard = "File size should be less than 5MB";
-    } else if (!form.visitingCard.type.startsWith("image/")) {
-      newErrors.visitingCard = "Please upload an image file";
-    }
+    if (phone.length !== 10) newErrors.otpMobile = "Valid Mobile Number required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle General Inputs
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const files = (e.target as HTMLInputElement).files;
-
-    if (name === "visitingCard" && files && files.length > 0) {
-      setForm((prev) => ({ ...prev, visitingCard: files[0] }));
-      if (errors.visitingCard) deleteError("visitingCard");
-    } else {
-      setForm((prev) => ({ ...prev, [name]: value }));
-      if (errors[name]) deleteError(name);
-    }
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) deleteError(name);
   };
 
-  // ✅ Handle Address Inputs
   const handleAddrChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    // Pincode numeric only check
     if (name === "pincode" && !/^\d*$/.test(value)) return;
-
     setAddr((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) deleteError(name);
   };
 
   const deleteError = (field: string) => {
-    setErrors((prev) => {
-      const newErrors = { ...prev };
-      delete newErrors[field];
-      return newErrors;
-    });
+    setErrors((prev) => { const newErrors = { ...prev }; delete newErrors[field]; return newErrors; });
+  };
+
+  // --- OTP Logic ---
+  const handleOtpChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value.replace(/\D/g, "");
+    if (!val && e.target.value !== "") return;
+    
+    const newOtp = otp.split("");
+    while (newOtp.length < 6) newOtp.push("");
+    newOtp[index] = val;
+    setOtp(newOtp.join("").slice(0, 6));
+
+    if (val && index < 5) otpRefs.current[index + 1]?.focus();
+  };
+
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
   };
 
   const sendOtp = async () => {
     if (!validateForm()) {
-      Swal.fire("Warning", "⚠️ Please fix the errors before sending OTP", "warning");
+      Swal.fire("Incomplete Details", "Please fill all required fields correctly.", "warning");
       return;
     }
     try {
+      setLoading(true);
       const phone = normalizeTo10(form.otpMobile);
       const res = await axios.post(`${API_BASE}/otp/send`, { phone });
+      setLoading(false);
+      
       if (res.data?.success) {
         setOtpSent(true);
-        Swal.fire("Success", "✅ OTP sent successfully! Check your SMS.", "success");
+        Swal.fire({ title: "OTP Sent!", text: "Check your SMS.", icon: "success", timer: 2000, showConfirmButton: false });
+        setTimeout(() => otpRefs.current[0]?.focus(), 500);
       } else {
         Swal.fire("Error", res.data?.message || "Failed to send OTP", "error");
       }
     } catch (err: any) {
-      Swal.fire("Error", "❌ Failed to send OTP. Try again.", "error");
+      setLoading(false);
+      Swal.fire("Error", "Failed to send OTP. Try again.", "error");
     }
   };
 
   const verifyAndRegister = async () => {
-    if (!validateForm()) {
-      Swal.fire("Warning", "⚠️ Please fix the errors before registering", "warning");
-      return;
-    }
+    if (!validateForm()) return;
+    if (otp.length !== 6) { Swal.fire("Error", "Enter a valid 6-digit OTP", "error"); return; }
+
     try {
       const phone = normalizeTo10(form.otpMobile);
       setLoading(true);
 
+      // 1. Verify OTP
       const verifyRes = await axios.post(`${API_BASE}/otp/verify`, { phone, otp });
       if (!verifyRes.data?.success) {
         setLoading(false);
-        Swal.fire("Error", "❌ Invalid OTP", "error");
+        Swal.fire("Invalid OTP", "The code is incorrect.", "error");
         return;
       }
 
-      // ✅ Combine Address with LABELS for Admin Panel
-      // This format allows Admin Panel to split by '\n' and show Bold Headings
-      const fullAddress = `Country: India
-State: ${addr.state}
-City: ${addr.city}
-Area: ${addr.area || "N/A"}
-Pin Code: ${addr.pincode}
-Address: ${addr.street}`;
-
+      // 2. Prepare Data
+      const fullAddress = `Country: India\nState: ${addr.state}\nCity: ${addr.city}\nArea: ${addr.area || "N/A"}\nPin Code: ${addr.pincode}\nAddress: ${addr.street}`;
       const formData = new FormData();
       formData.append("shopName", form.shopName);
       formData.append("otpMobile", phone);
       formData.append("whatsapp", form.whatsapp);
-      formData.append("address", fullAddress); // ✅ Sending Formatted String
+      formData.append("address", fullAddress);
       
-      if (form.visitingCard) {
-        formData.append("visitingCard", form.visitingCard);
-      }
-
-      const res = await axios.post(`${API_BASE}/registrations/register`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
+      // 3. Register
+      const res = await axios.post(`${API_BASE}/registrations/register`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       setLoading(false);
 
       if (res.data?.alreadyRegistered) {
-        Swal.fire("Notice", "⚠️ Number already registered. Please login.", "warning");
+        Swal.fire("Welcome Back", "Account exists. Redirecting to login...", "info");
         navigate("/login");
         return;
       }
 
-      Swal.fire("Success", "🎉 Registration submitted! Wait for approval.", "success");
-      navigate("/login");
+      const newUser = res.data?.user || { name: form.shopName, phone: phone, role: "customer", isApproved: true, _id: res.data?._id || "new-user-id" };
+      newUser.isApproved = true;
+      localStorage.setItem("user", JSON.stringify(newUser));
+      
+      Swal.fire({ title: "Success!", text: "Registration Complete.", icon: "success", timer: 2000, showConfirmButton: false });
+      setTimeout(() => { window.location.href = "/"; }, 1500);
 
     } catch (err: any) {
       setLoading(false);
-      console.error(err);
       Swal.fire("Error", err.response?.data?.message || "Registration failed", "error");
     }
   };
 
-  // 🎨 Styles for the Grid Layout
-  const gridStyle = {
-    display: "grid",
-    gridTemplateColumns: "1fr 1fr",
-    gap: "10px",
-  };
-
   return (
-    <div className="register-page">
-      <div className="register-container">
-        <h2>Register Shop</h2>
-
-        {/* Shop Name */}
-        <div className="form-group">
-            <label className="input-label">Shop Name *</label>
-            <input
-            name="shopName"
-            placeholder="Ex: My Kids Store"
-            value={form.shopName}
-            onChange={handleChange}
-            />
-            {errors.shopName && <div className="error">{errors.shopName}</div>}
-        </div>
-
-        {/* ✅ E-Commerce Style Address Section */}
-        <div className="address-section" style={{ marginBottom: "15px" }}>
-            <label className="input-label" style={{fontWeight: "bold", display: "block", marginBottom: "5px"}}>Shop Address</label>
-            
-            {/* Line 1 */}
-            <input
-                name="street"
-                placeholder="Shop No., Building Name, Street *"
-                value={addr.street}
-                onChange={handleAddrChange}
-                style={{marginBottom: "10px"}}
-            />
-            {errors.street && <div className="error">{errors.street}</div>}
-
-            {/* Line 2 */}
-            <input
-                name="area"
-                placeholder="Area / Colony / Landmark (Optional)"
-                value={addr.area}
-                onChange={handleAddrChange}
-                style={{marginBottom: "10px"}}
-            />
-
-            {/* City & Pincode Row */}
-            <div style={gridStyle}>
-                <div>
-                    <input
-                        name="city"
-                        placeholder="City / District *"
-                        value={addr.city}
-                        onChange={handleAddrChange}
-                    />
-                    {errors.city && <div className="error">{errors.city}</div>}
-                </div>
-                <div>
-                    <input
-                        name="pincode"
-                        placeholder="Pincode *"
-                        value={addr.pincode}
-                        onChange={handleAddrChange}
-                        maxLength={6}
-                    />
-                    {errors.pincode && <div className="error">{errors.pincode}</div>}
-                </div>
-            </div>
-
-            {/* State Dropdown */}
-            <select 
-                name="state" 
-                value={addr.state} 
-                onChange={handleAddrChange}
-                style={{width: "100%", padding: "10px", marginTop: "10px", borderRadius: "5px", border: "1px solid #ccc"}}
-            >
-                <option value="">Select State *</option>
-                {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
-            </select>
-            {errors.state && <div className="error">{errors.state}</div>}
-        </div>
-
-        {/* Mobile */}
-        <div className="form-group">
-             <label className="input-label">Mobile Number *</label>
-            <input
-            name="otpMobile"
-            placeholder="10-digit Mobile Number"
-            value={form.otpMobile}
-            onChange={handleChange}
-            type="tel"
-            maxLength={10}
-            />
-            {errors.otpMobile && <div className="error">{errors.otpMobile}</div>}
-        </div>
-
-        {/* Whatsapp */}
-        <div className="form-group">
-            <label className="input-label">WhatsApp Number</label>
-            <input
-            name="whatsapp"
-            placeholder="WhatsApp Number"
-            value={form.whatsapp}
-            onChange={handleChange}
-            type="tel"
-            maxLength={10}
-            />
-        </div>
-
-        {/* Visiting Card */}
-        <div className="file-input-container">
-          <label>Visiting Card (Required) *</label>
-          <input name="visitingCard" type="file" onChange={handleChange} accept="image/*" />
-          {errors.visitingCard && <div className="error">{errors.visitingCard}</div>}
-        </div>
-
-        {!otpSent ? (
-          <button onClick={sendOtp}>Send OTP</button>
-        ) : (
-          <>
-            <div className="otp-box-container">
-              {Array.from({ length: 6 }).map((_, i) => (
-                <input
-                  key={i}
-                  type="tel"
-                  maxLength={1}
-                  className="otp-box"
-                  value={otp[i] || ""}
-                  autoFocus={i === 0}
-                  onChange={(e) => {
-                    const val = e.target.value.replace(/\D/g, "");
-                    if (!val && i > 0) document.querySelectorAll<HTMLInputElement>(".otp-box")[i - 1].focus();
-                    else if (val && i < 5) document.querySelectorAll<HTMLInputElement>(".otp-box")[i + 1].focus();
-                    
-                    const newOtp = otp.split("");
-                    newOtp[i] = val;
-                    setOtp(newOtp.join(""));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Backspace" && !otp[i] && i > 0) document.querySelectorAll<HTMLInputElement>(".otp-box")[i - 1].focus();
-                  }}
-                />
-              ))}
-            </div>
-
-            <button onClick={verifyAndRegister}>Verify & Register</button>
-          </>
-        )}
-
-        <div style={{ marginTop: "16px", textAlign: "center" }}>
-          <span>Already have an account? </span>
-          <Link to="/login" style={{ textDecoration: "underline", color: "#007bff", fontWeight: 600 }}>
-            Login Now
-          </Link>
-        </div>
-
-        {loading && (
-          <div className="loader-overlay">
-            <div className="loader"></div>
-            <p>⏳ Verifying & Submitting...</p>
+    <div className="auth-layout">
+      {/* LEFT SIDE - BRANDING */}
+      <div className="auth-brand">
+        <div className="brand-content">
+          <div className="brand-header">
+            <Store size={32} color="#fff" />
+            <h1>ShopPartner</h1>
           </div>
-        )}
+          <h2>Join the Retail <br/> Revolution.</h2>
+          <p>Register your shop in seconds and start managing your inventory digitally.</p>
+          <div className="brand-badges">
+             <span className="brand-badge"><ShieldCheck size={16}/> Secure</span>
+             <span className="brand-badge"><ShoppingBag size={16}/> Easy Sales</span>
+          </div>
+        </div>
+        <div className="circle c1"></div>
+        <div className="circle c2"></div>
       </div>
+
+      {/* RIGHT SIDE - FORM */}
+      <div className="auth-form-container">
+        <div className="auth-card">
+          <div className="form-head">
+            <h3>Create Account</h3>
+            <p>Enter shop details to get started.</p>
+          </div>
+
+          {/* FORM INPUTS */}
+          <div className="form-group">
+            <label>Shop Name</label>
+            <div className="input-wrapper">
+              <Store size={18} className="input-icon" />
+              <input 
+                className={`auth-input ${errors.shopName ? "error" : ""}`} 
+                name="shopName" 
+                placeholder="Ex: Rahul General Store" 
+                value={form.shopName} 
+                onChange={handleChange} 
+              />
+            </div>
+            {errors.shopName && <small className="err-msg">{errors.shopName}</small>}
+          </div>
+
+          <div className="form-group">
+            <label>Mobile Number</label>
+            <div className="input-wrapper">
+              <Smartphone size={18} className="input-icon" />
+              <input 
+                className={`auth-input ${errors.otpMobile ? "error" : ""}`}
+                name="otpMobile" 
+                placeholder="10-digit Mobile" 
+                value={form.otpMobile} 
+                onChange={handleChange} 
+                type="tel" 
+                maxLength={10} 
+              />
+            </div>
+            {errors.otpMobile && <small className="err-msg">{errors.otpMobile}</small>}
+          </div>
+
+          <div className="form-group">
+             <label>WhatsApp (Optional)</label>
+             <div className="input-wrapper">
+                <MessageCircle size={18} className="input-icon" />
+                <input 
+                  className="auth-input" 
+                  name="whatsapp" 
+                  placeholder="WhatsApp Number" 
+                  value={form.whatsapp} 
+                  onChange={handleChange} 
+                  type="tel" 
+                  maxLength={10} 
+                />
+             </div>
+          </div>
+
+          <div className="divider">Shop Address</div>
+
+          <div className="form-group">
+            <div className="input-wrapper">
+              <MapPin size={18} className="input-icon" />
+              <input 
+                className={`auth-input ${errors.street ? "error" : ""}`}
+                name="street" 
+                placeholder="Shop No, Street, Building" 
+                value={addr.street} 
+                onChange={handleAddrChange} 
+              />
+            </div>
+            {errors.street && <small className="err-msg">{errors.street}</small>}
+          </div>
+
+          <div className="row">
+             <div className="col">
+                <input 
+                  className="auth-input plain-input" 
+                  name="area" 
+                  placeholder="Area / Colony" 
+                  value={addr.area} 
+                  onChange={handleAddrChange} 
+                />
+             </div>
+             <div className="col">
+                <input 
+                  className={`auth-input plain-input ${errors.city ? "error" : ""}`} 
+                  name="city" 
+                  placeholder="City *" 
+                  value={addr.city} 
+                  onChange={handleAddrChange} 
+                />
+             </div>
+          </div>
+
+          <div className="row" style={{ marginTop: "12px" }}>
+             <div className="col" style={{ flex: 2 }}>
+                <select 
+                  className={`auth-input plain-input ${errors.state ? "error" : ""}`} 
+                  name="state" 
+                  value={addr.state} 
+                  onChange={handleAddrChange}
+                >
+                  <option value="">Select State</option>
+                  {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                </select>
+             </div>
+             <div className="col">
+                <input 
+                  className={`auth-input plain-input ${errors.pincode ? "error" : ""}`} 
+                  name="pincode" 
+                  placeholder="Pin *" 
+                  value={addr.pincode} 
+                  onChange={handleAddrChange} 
+                  maxLength={6} 
+                />
+             </div>
+          </div>
+          {(errors.city || errors.state || errors.pincode) && <small className="err-msg">Check address fields</small>}
+
+          {/* BUTTONS / OTP */}
+          {!otpSent ? (
+            <button onClick={sendOtp} disabled={loading} className="auth-btn">
+              {loading ? "Processing..." : "Get OTP"} <ArrowRight size={18} />
+            </button>
+          ) : (
+            <div className="otp-area">
+              <label>Enter OTP Sent to {form.otpMobile}</label>
+              <div className="otp-inputs">
+                {Array.from({ length: 6 }).map((_, i) => (
+                  <input 
+                    key={i} 
+                    ref={(el) => (otpRefs.current[i] = el)} 
+                    type="tel" 
+                    maxLength={1} 
+                    className="otp-digit"
+                    value={otp[i] || ""} 
+                    onChange={(e) => handleOtpChange(i, e)} 
+                    onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  />
+                ))}
+              </div>
+              <button onClick={verifyAndRegister} disabled={loading} className="auth-btn verify">
+                 {loading ? "Verifying..." : "Verify & Register"}
+              </button>
+            </div>
+          )}
+
+          <div className="auth-link">
+            Already have an account? <Link to="/login">Login here</Link>
+          </div>
+        </div>
+      </div>
+
+      {loading && (
+        <div className="loader-overlay">
+          <div className="spinner"></div>
+        </div>
+      )}
     </div>
   );
 };
