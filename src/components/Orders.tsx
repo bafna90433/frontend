@@ -36,7 +36,6 @@ type Order = {
   };
 };
 
-const SHOW_TOTAL = false;
 const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
 
 const useBases = () => {
@@ -68,7 +67,7 @@ const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
   }
 };
 
-// ✅ toPackets function (पहले toInners था)
+// ✅ toPackets function
 const toPackets = (it: OrderItem) => {
   if (it.inners && it.inners > 0) return it.inners;
   const perInner =
@@ -137,13 +136,6 @@ const generateInvoice = (order: Order) => {
           color: #555; 
           line-height: 1.5;
           margin-bottom: 10px;
-        }
-        
-        .company-address {
-          font-size: 12px;
-          color: #666;
-          font-style: italic;
-          margin-top: 5px;
         }
 
         .invoice-title {
@@ -239,7 +231,7 @@ const generateInvoice = (order: Order) => {
     <body>
       <div class="invoice-container">
         <div class="header">
-          <img src="logo.webp" alt="BafnaToys Logo" />
+          <img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys Logo" />
           <div class="company-name">BafnaToys</div>
           <div class="company-info">
             1-12, Sundapalayam Rd, Coimbatore, Tamil Nadu 641007 <br/>

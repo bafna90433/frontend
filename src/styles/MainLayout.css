@@ -1,13 +1,35 @@
+/* src/styles/Layout.css - Cosmic Tech Theme */
+
+/* --- Variables --- */
 :root {
-  --bg: #f6f8fb;
-  --line: #e8eef5;
+  /* Light Mode Defaults (Clean & Professional) */
+  --bg: #f8fafc;           /* Light Slate/Cool Grey (Matches Home) */
+  --line: #e0e7ff;         /* Light Indigo Border */
+  
+  /* Sidebar Specifics (Light Mode) */
+  --sidebar-bg: #ffffff;   /* Clean White Sidebar to match Header */
+  --sidebar-text: #1e1b4b; /* Deep Navy Text */
+  --sidebar-border: #e0e7ff;
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --bg: #030014;           /* Deepest Cosmic Background */
+  --line: #1e1b4b;         /* Dark Indigo Border */
+  
+  /* Sidebar Specifics (Glassy Dark Mode) */
+  --sidebar-bg: #0f1026;   /* Glassy Dark Navy (Matches Cards/Header) */
+  --sidebar-text: #f8fafc; /* White Text */
+  --sidebar-border: #1e1b4b;
 }
 
 .app-shell {
   min-height: 100vh;
   background: var(--bg);
+  color: var(--sidebar-text); /* Syncs with theme text */
   display: flex;
   flex-direction: column;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Layout grid */
@@ -22,26 +44,42 @@
 .app-sidebar {
   min-height: 100vh;
   position: sticky;
-  top: 0;
-  border-right: 1px solid var(--line);
-  background: #0b1220;
-  color: #fff;
+  top: 0; /* Ensures it stays visible */
+  height: 100vh; /* Full viewport height */
+  overflow-y: auto; /* Independent scrolling */
+  border-right: 1px solid var(--sidebar-border);
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
   z-index: 5;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Sidebar Scrollbar (Subtle) */
+.app-sidebar::-webkit-scrollbar {
+  width: 5px;
+}
+.app-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.app-sidebar::-webkit-scrollbar-thumb {
+  background-color: var(--line);
+  border-radius: 4px;
 }
 
 /* Main content */
 .app-content {
   min-width: 0;
-  padding: 24px;
+  padding: 32px; /* Spacious professional padding */
+  padding-bottom: 60px;
 }
 
 /* ✅ Responsive */
 @media (max-width: 900px) {
   .app-body {
-    grid-template-columns: 1fr; /* Mobile me full width */
+    grid-template-columns: 1fr; /* Mobile full width */
   }
   .app-sidebar {
-    display: none; /* Mobile me sidebar bhi hide ho jayega */
+    display: none; /* Hide sidebar on mobile */
   }
   .app-content {
     padding: 16px;

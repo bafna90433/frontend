@@ -1,11 +1,42 @@
-/* --- CSS Variables for easy maintenance --- */
+/* --- CSS Variables & Theme Config (Cosmic Tech Edition) --- */
 :root {
-  --primary-color: #6354f2; /* Active/Hover color (Purple) */
-  --primary-hover-light: #e8e5ff; /* Light hover background */
-  --text-color: #444; /* Standard text color */
-  --text-color-light: #fff;
-  --bg-light: #fff; /* Container background */
-  --bg-item-default: #f5f5f5; /* Default button background */
+  /* Light Mode Defaults - Clean & Techy */
+  --nav-primary: #7c3aed;       /* Electric Violet (Matches Header Primary) */
+  --nav-bg: #ffffff;            /* Seamless with Header */
+  --nav-border: #e0e7ff;        /* Light Indigo Border */
+  
+  --item-bg: #f5f3ff;           /* Very Light Violet Tint (Not boring gray) */
+  --item-text: #64748b;         /* Slate Text */
+  
+  --item-hover-bg: #ede9fe;     /* Slightly darker violet tint */
+  --item-hover-text: #7c3aed;   /* Violet Text */
+  
+  /* Active State - Gradient like the buttons */
+  --item-active-bg: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
+  --item-active-text: #ffffff;
+  
+  --shadow-active: rgba(124, 58, 237, 0.3); /* Purple Glow */
+}
+
+/* --- DARK MODE OVERRIDES (Deep Space Look) --- */
+body.dark {
+  --nav-bg: #0f1026;            /* Matches Header Background */
+  --nav-border: #1e1b4b;        /* Dark Indigo Border */
+  
+  --item-bg: #1e1b4b;           /* Deep Indigo Pills */
+  --item-text: #94a3b8;         /* Muted Blue-Grey */
+  
+  --item-hover-bg: #2e1065;     /* Dark Violet Hover */
+  --item-hover-text: #a78bfa;   /* Light Violet Text */
+  
+  --item-active-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --item-active-text: #ffffff;
+  
+  --shadow-active: rgba(124, 58, 237, 0.5);
+}
+
+/* --- Layout Constants --- */
+:root {
   --border-radius-pill: 20px;
   --padding-x-desktop: 24px;
 }
@@ -13,20 +44,19 @@
 /* --- Main Container (NON-STICKY) --- */
 .category-nav-container {
   width: 100%;
-  background: var(--bg-light);
-  border-bottom: 1px solid #eee;
-  
-  /* REMOVED: position: sticky; */
-  /* REMOVED: top: 70px; */
+  background: var(--nav-bg);        
+  border-bottom: 1px solid var(--nav-border); 
   
   /* Ensures it sits in the normal document flow below the header */
-  position: relative; /* Default relative positioning */
-  z-index: 1; /* Lower Z-index since it's not overlapping anything */
+  position: relative; 
+  z-index: 1; 
 
   /* Hides the default scrollbar */
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 /* Hide scrollbar for Chrome, Safari, and newer Edge */
@@ -48,40 +78,42 @@
   flex-shrink: 0;
   
   /* Size and Shape */
-  padding: 6px 16px;
+  padding: 8px 18px; /* Slightly larger for touch targets */
   border-radius: var(--border-radius-pill);
   font-size: 14px;
   font-weight: 500;
   text-decoration: none;
   
-  /* Colors */
-  background: var(--bg-item-default);
-  color: var(--text-color);
+  /* Colors using Variables */
+  background: var(--item-bg);
+  color: var(--item-text);
   
   /* Animation */
   transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid transparent; 
 }
 
 /* Hover State */
 .category-item:hover {
-  background: var(--primary-hover-light);
-  color: var(--primary-color);
+  background: var(--item-hover-bg);
+  color: var(--item-hover-text);
   transform: translateY(-1px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* Active State */
 .category-item.active {
-  background: var(--primary-color);
-  color: var(--text-color-light);
+  background: var(--item-active-bg);
+  color: var(--item-active-text);
   font-weight: 600;
-  box-shadow: 0 4px 8px rgba(99, 84, 242, 0.3);
+  box-shadow: 0 4px 12px var(--shadow-active); /* Glowing effect */
+  border-color: transparent;
 }
 
 /* --- Mobile Responsiveness --- */
 @media (max-width: 768px) {
   .category-scroll {
-    gap: 15px;
+    gap: 12px;
     padding: 10px 16px;
   }
 }
@@ -93,7 +125,7 @@
   }
 
   .category-item {
-    padding: 5px 12px;
+    padding: 6px 14px;
     font-size: 13px;
   }
 }

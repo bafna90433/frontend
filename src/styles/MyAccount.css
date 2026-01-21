@@ -1,10 +1,70 @@
-/* src/styles/MyAccount.css */
+/* src/styles/MyAccount.css - Cosmic Tech Theme */
 
-/* ===== My Account Page - Clean Design ===== */
+/* --- Variables --- */
+:root {
+  /* Light Mode (Clean Tech) */
+  --acc-bg: #f8fafc;           /* Light Cool Grey/White */
+  --acc-card-bg: #ffffff;
+  --acc-border: #e0e7ff;       /* Light Indigo Border */
+  --acc-text: #1e1b4b;         /* Deep Navy */
+  --acc-text-muted: #64748b;   /* Slate */
+  
+  --acc-primary: #7c3aed;      /* Electric Violet */
+  --acc-primary-hover: #6d28d9;
+  
+  /* Status Colors */
+  --acc-success: #059669;
+  --acc-success-bg: #ecfdf5;
+  --acc-warning: #d97706;
+  --acc-warning-bg: #fffbeb;
+  --acc-danger: #dc2626;
+  --acc-danger-hover: #b91c1c;
+  
+  /* UI Elements */
+  --acc-icon-bg: rgba(124, 58, 237, 0.1); /* Violet Tint */
+  --acc-stat-bg: #f8fafc;
+  
+  /* Gradients */
+  --acc-btn-gradient: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --acc-btn-gradient-hover: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  
+  /* Shadows */
+  --acc-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --acc-shadow-hover: 0 10px 15px -3px rgba(124, 58, 237, 0.1);
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --acc-bg: #030014;           /* Deepest Cosmic Background */
+  --acc-card-bg: #0f1026;      /* Glassy Dark Navy */
+  --acc-border: #1e1b4b;       /* Dark Indigo Border */
+  --acc-text: #f8fafc;         /* White */
+  --acc-text-muted: #94a3b8;   /* Blue-Grey */
+  
+  --acc-primary: #a78bfa;      /* Light Violet */
+  --acc-primary-hover: #8b5cf6;
+  
+  --acc-success: #34d399;
+  --acc-success-bg: rgba(5, 150, 105, 0.15);
+  --acc-warning: #fbbf24;
+  --acc-warning-bg: rgba(245, 158, 11, 0.15);
+  --acc-danger: #f87171;
+  --acc-danger-hover: #ef4444;
+  
+  --acc-icon-bg: rgba(124, 58, 237, 0.2);
+  --acc-stat-bg: #1e1b4b;      /* Darker inner card */
+  
+  --acc-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+  --acc-shadow-hover: 0 10px 15px -3px rgba(124, 58, 237, 0.25);
+}
+
+/* ===== My Account Page - Layout ===== */
 .account-container {
   max-width: 1000px;
   margin: 0 auto;
-  padding: 24px;
+  padding: 40px 24px;
+  background-color: var(--acc-bg);
+  min-height: 80vh;
 }
 
 /* Header */
@@ -12,20 +72,21 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 32px;
+  margin-bottom: 40px;
   flex-wrap: wrap;
   gap: 20px;
 }
 
 .account-title {
   font-size: 32px;
-  font-weight: 700;
-  color: #111827;
+  font-weight: 800;
+  color: var(--acc-text);
   margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
 }
 
 .account-subtitle {
-  color: #6b7280;
+  color: var(--acc-text-muted);
   font-size: 16px;
   margin: 0;
 }
@@ -35,13 +96,13 @@
   gap: 12px;
 }
 
-/* Buttons */
+/* Buttons (Synced with Theme) */
 .btn-primary, .btn-outline {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   padding: 10px 20px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -50,39 +111,44 @@
 }
 
 .btn-primary {
-  background: #2c5aa0;
+  background: var(--acc-btn-gradient);
   color: white;
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.25);
 }
 
 .btn-primary:hover {
-  background: #1d3d6f;
+  background: var(--acc-btn-gradient-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(124, 58, 237, 0.4);
 }
 
 .btn-outline {
-  background: white;
-  color: #2c5aa0;
-  border: 1px solid #2c5aa0;
+  background: transparent;
+  color: var(--acc-primary);
+  border: 1px solid var(--acc-border);
 }
 
 .btn-outline:hover {
-  background: #f0f7ff;
+  background: var(--acc-icon-bg);
+  border-color: var(--acc-primary);
 }
 
 /* Status Banner */
 .status-banner {
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
   margin-bottom: 32px;
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .status-banner.approved {
-  background: #e8f7f2;
-  border: 1px solid #1f8a70;
+  background: var(--acc-success-bg);
+  border: 1px solid var(--acc-success);
 }
 
 .status-banner.pending {
-  background: #fff5e6;
-  border: 1px solid #f59e0b;
+  background: var(--acc-warning-bg);
+  border: 1px solid var(--acc-warning);
 }
 
 .status-content {
@@ -93,29 +159,29 @@
 }
 
 .status-banner.approved .status-content svg {
-  color: #1f8a70;
+  color: var(--acc-success);
 }
 
 .status-banner.pending .status-content svg {
-  color: #f59e0b;
+  color: var(--acc-warning);
 }
 
 .status-content h4 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 4px 0;
-  color: #111827;
+  color: var(--acc-text);
 }
 
 .status-content p {
   font-size: 14px;
-  color: #4b5563;
+  color: var(--acc-text-muted);
   margin: 0;
 }
 
 .status-note {
   font-size: 13px;
-  color: #6b7280;
+  color: var(--acc-text-muted);
   font-style: italic;
   padding-left: 36px;
 }
@@ -129,10 +195,17 @@
 }
 
 .info-section {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--acc-card-bg);
+  border: 1px solid var(--acc-border);
+  border-radius: 16px;
   padding: 24px;
+  transition: all 0.3s ease;
+  box-shadow: var(--acc-shadow);
+}
+
+.info-section:hover {
+  border-color: var(--acc-primary);
+  box-shadow: var(--acc-shadow-hover);
 }
 
 .section-header {
@@ -141,17 +214,17 @@
   gap: 12px;
   margin-bottom: 20px;
   padding-bottom: 16px;
-  border-bottom: 1px solid #f3f4f6;
+  border-bottom: 1px solid var(--acc-border);
 }
 
 .section-icon {
-  color: #2c5aa0;
+  color: var(--acc-primary);
 }
 
 .section-header h3 {
   font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  color: var(--acc-text);
   margin: 0;
 }
 
@@ -165,48 +238,50 @@
 .info-item {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
+  gap: 14px;
 }
 
 .info-item .info-icon {
-  width: 32px;
-  height: 32px;
-  background: #f0f7ff;
-  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  background: var(--acc-icon-bg);
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #2c5aa0;
+  color: var(--acc-primary);
   flex-shrink: 0;
 }
 
 .info-label {
   display: block;
-  font-size: 14px;
-  color: #6b7280;
+  font-size: 13px;
+  color: var(--acc-text-muted);
   margin-bottom: 4px;
+  font-weight: 500;
 }
 
 .info-value {
   display: block;
   font-size: 16px;
   font-weight: 600;
-  color: #111827;
+  color: var(--acc-text);
 }
 
 /* Stats Section */
 .stats-section {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--acc-card-bg);
+  border: 1px solid var(--acc-border);
+  border-radius: 16px;
   padding: 24px;
   margin-bottom: 32px;
+  box-shadow: var(--acc-shadow);
 }
 
 .stats-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  color: var(--acc-text);
   margin: 0 0 20px 0;
 }
 
@@ -219,41 +294,51 @@
 .stat-item {
   text-align: center;
   padding: 20px;
-  background: #f9fafb;
-  border-radius: 8px;
+  background: var(--acc-stat-bg);
+  border-radius: 12px;
+  border: 1px solid var(--acc-border);
+  transition: transform 0.2s ease;
+}
+
+.stat-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--acc-primary);
 }
 
 .stat-label {
   font-size: 14px;
-  color: #6b7280;
+  color: var(--acc-text-muted);
   margin-bottom: 8px;
+  font-weight: 500;
 }
 
 .stat-value {
-  font-size: 18px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--acc-text);
 }
 
 .stat-value.success {
-  color: #1f8a70;
+  color: var(--acc-success);
 }
 
 .stat-value.warning {
-  color: #f59e0b;
+  color: var(--acc-warning);
 }
 
 /* Action Section */
 .action-section {
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 12px;
+  background: var(--acc-card-bg);
+  border: 1px solid var(--acc-border);
+  border-radius: 16px;
   padding: 24px;
+  box-shadow: var(--acc-shadow);
 }
 
 .action-title {
   font-size: 18px;
-  font-weight: 600;
-  color: #111827;
+  font-weight: 700;
+  color: var(--acc-text);
   margin: 0 0 20px 0;
 }
 
@@ -268,7 +353,7 @@
   align-items: center;
   gap: 8px;
   padding: 12px 24px;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 14px;
   cursor: pointer;
@@ -277,43 +362,48 @@
 }
 
 .action-btn.primary {
-  background: #2c5aa0;
+  background: var(--acc-btn-gradient);
   color: white;
   border: none;
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.2);
 }
 
 .action-btn.primary:hover {
-  background: #1d3d6f;
+  background: var(--acc-btn-gradient-hover);
+  transform: translateY(-1px);
 }
 
 .action-btn.secondary {
-  background: #1f8a70;
+  background: var(--acc-success);
   color: white;
   border: none;
 }
 
 .action-btn.secondary:hover {
-  background: #166652;
+  background: #047857; 
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.2);
 }
 
 .action-btn.outline {
-  background: white;
-  color: #2c5aa0;
-  border: 1px solid #2c5aa0;
+  background: transparent;
+  color: var(--acc-primary);
+  border: 1px solid var(--acc-border);
 }
 
 .action-btn.outline:hover {
-  background: #f0f7ff;
+  background: var(--acc-icon-bg);
+  border-color: var(--acc-primary);
 }
 
 .action-btn.danger {
-  background: #ef4444;
-  color: white;
-  border: none;
+  background: transparent;
+  color: var(--acc-danger);
+  border: 1px solid var(--acc-danger);
 }
 
 .action-btn.danger:hover {
-  background: #dc2626;
+  background: var(--acc-danger);
+  color: white;
 }
 
 /* Loading State */
@@ -323,14 +413,14 @@
   align-items: center;
   justify-content: center;
   min-height: 400px;
-  color: #6b7280;
+  color: var(--acc-text-muted);
 }
 
 .loading-spinner {
   width: 48px;
   height: 48px;
-  border: 3px solid #e5e7eb;
-  border-top-color: #2c5aa0;
+  border: 4px solid var(--acc-border);
+  border-top-color: var(--acc-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -343,7 +433,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .account-container {
-    padding: 16px;
+    padding: 20px 16px;
   }
   
   .account-header {
@@ -380,15 +470,15 @@
 
 @media (max-width: 480px) {
   .account-title {
-    font-size: 28px;
+    font-size: 26px;
   }
   
   .info-section {
-    padding: 16px;
+    padding: 20px;
   }
   
   .stats-section,
   .action-section {
-    padding: 16px;
+    padding: 20px;
   }
 }

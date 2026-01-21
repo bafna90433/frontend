@@ -1,23 +1,62 @@
 /* ================================== */
-/* NEW FULL-WIDTH DESIGN            */
+/* PRODUCT DETAILS - COSMIC TECH THEME */
 /* ================================== */
 
 /* --- Base Variables & Setup --- */
 :root {
-  --primary: #1a202c;
-  --accent: #3182ce;
-  --danger: #e53e3e;
-  --success: #2f855a;
-  --warning: #dd6b20;
-  --light-bg: #f7fafc;
-  --border: #e2e8f0;
-  --text: #4a5568;
-  --text-light: #718096;
-  --background: #fff;
-  --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  /* Light Mode Palette (Clean Tech) */
+  --primary: #1e1b4b;          /* Deep Navy */
+  --accent: #7c3aed;           /* Electric Violet */
+  --danger: #dc2626;
+  --success: #059669;
+  --warning: #d97706;
+  
+  --pd-bg: #ffffff;             
+  --pd-sidebar-bg: #f8fafc;     /* Slight Cool Grey */
+  --pd-border: #e0e7ff;         /* Light Indigo Border */
+  
+  --pd-text: #334155;           /* Slate 700 */
+  --pd-text-light: #64748b;     /* Slate 500 */
+  
+  --pd-card-bg: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%); /* Matching Product Card */
+  
+  --pd-tag-bg: rgba(124, 58, 237, 0.1);  /* Violet Tint */
+  --pd-tag-text: #7c3aed;
+  
+  /* Shadows (Violet Tinted) */
+  --pd-shadow: 0 10px 15px -3px rgba(124, 58, 237, 0.05), 0 4px 6px -2px rgba(124, 58, 237, 0.05);
+  --pd-shadow-lg: 0 20px 25px -5px rgba(124, 58, 237, 0.1), 0 10px 10px -5px rgba(124, 58, 237, 0.04);
+
+  /* Sticky Bar Colors */
+  --sticky-bar-bg: #ffffff;
+  --sticky-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%); /* Gradient Button */
+  --sticky-btn-border: transparent;
+}
+
+/* --- DARK MODE OVERRIDES (Cosmic Deep Space) --- */
+body.dark {
+  --primary: #f8fafc;           /* White Text */
+  --accent: #a78bfa;            /* Light Violet */
+  
+  --pd-bg: #030014;             /* Deepest Cosmic Background */
+  --pd-sidebar-bg: #0f1026;     /* Glassy Dark Navy */
+  --pd-border: #1e1b4b;         /* Dark Indigo Border */
+  
+  --pd-text: #e2e8f0;
+  --pd-text-light: #94a3b8;
+  
+  --pd-card-bg: linear-gradient(135deg, #020617 0%, #0f1026 100%); /* Dark Gradient */
+  
+  --pd-tag-bg: rgba(124, 58, 237, 0.2); 
+  --pd-tag-text: #a78bfa;
+  
+  --pd-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+  --pd-shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
+
+  /* Sticky Bar Dark Mode */
+  --sticky-bar-bg: #0f1026;     
+  --sticky-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --sticky-btn-border: transparent;
 }
 
 * {
@@ -28,9 +67,10 @@
 
 body {
   font-family: "Inter", sans-serif;
-  background-color: var(--background);
+  background-color: var(--pd-bg);
   color: var(--primary);
   line-height: 1.6;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* --- Main Container: Full-Width Grid --- */
@@ -38,7 +78,7 @@ body {
   width: 100%;
   display: grid;
   grid-template-columns: 1fr; /* Mobile first: single column */
-  background-color: var(--background);
+  background-color: var(--pd-bg);
 }
 
 /* --- Product Gallery (Left Side) --- */
@@ -48,12 +88,13 @@ body {
 
 .main-image-wrapper {
   position: relative;
-  background-color: #fff;
+  background: var(--pd-card-bg);
   aspect-ratio: 1 / 1;
   width: 100%;
   overflow: hidden;
-  border-radius: 12px;
-  border: 1px solid var(--border);
+  border-radius: 16px;
+  border: 1px solid var(--pd-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .main-image {
@@ -61,6 +102,7 @@ body {
   height: 100%;
   object-fit: contain;
   transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.1));
 }
 
 .main-image:hover {
@@ -74,22 +116,23 @@ body {
   margin-top: 1rem;
   padding-bottom: 0.5rem;
   overflow-x: auto;
-  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  scrollbar-width: none; 
 }
 .thumbnail-container::-webkit-scrollbar {
-  display: none; /* Hide scrollbar for Chrome, Safari, etc. */
+  display: none; 
 }
 
 .thumbnail {
   width: 70px;
   height: 70px;
   object-fit: cover;
-  border: 2px solid var(--border);
-  border-radius: 8px;
+  border: 2px solid var(--pd-border);
+  border-radius: 12px;
   cursor: pointer;
   flex-shrink: 0;
   transition: all 0.2s ease-in-out;
   opacity: 0.7;
+  background: var(--pd-card-bg);
 }
 
 .thumbnail:hover {
@@ -100,27 +143,29 @@ body {
 .thumbnail.active {
   opacity: 1;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.4);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.3); /* Violet Glow */
+  transform: translateY(-2px);
 }
 
 /* --- Product Info Panel (Right Side) --- */
 .product-info-panel {
   padding: 1rem;
-  background-color: var(--light-bg);
-  border-top: 1px solid var(--border);
+  background-color: var(--pd-sidebar-bg);
+  border-top: 1px solid var(--pd-border);
+  transition: background-color 0.3s ease;
 }
 
 .product-info-content {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 1.5rem;
   max-width: 600px;
-  margin: 0 auto; /* Center content on mobile */
+  margin: 0 auto; 
 }
 
 .product-header {
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--pd-border);
 }
 
 .product-title {
@@ -135,15 +180,16 @@ body {
   font-size: 2rem;
   font-weight: 700;
   color: var(--primary);
+  letter-spacing: -0.5px;
 }
 
 .locked-message {
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--text-light);
-  background-color: #f7fafc;
+  color: var(--pd-text-light);
+  background-color: var(--pd-bg);
   padding: 0.5rem 1rem;
-  border: 1px solid var(--border);
+  border: 1px solid var(--pd-border);
   border-radius: 8px;
   display: inline-block;
 }
@@ -163,12 +209,12 @@ body {
 }
 
 .pieces-info {
-  background-color: #ebf8ff;
-  color: #3182ce;
+  background-color: var(--pd-tag-bg);
+  color: var(--pd-tag-text);
   padding: 0.3rem 0.8rem;
   border-radius: 20px;
   font-size: 0.8rem;
-  font-weight: 500;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -183,28 +229,41 @@ body {
 }
 
 .quantity-button {
-    background-color: #fff;
-    border: 1px solid var(--border);
-    color: var(--text);
-    width: 40px;
-    height: 40px;
-    font-size: 1.5rem;
-    border-radius: 15px;
-    cursor: pointer;
-    transition: all 0.2s;
+  background-color: var(--pd-bg);
+  border: 1px solid var(--pd-border);
+  color: var(--primary);
+  width: 44px;
+  height: 44px;
+  font-size: 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 .quantity-button:hover {
   background-color: var(--accent);
   color: white;
   border-color: var(--accent);
+  box-shadow: 0 4px 10px rgba(124, 58, 237, 0.3);
 }
 
 .quantity-display {
-    font-size: 30px;
-    font-weight: 700;
-    min-width: 50px;
-    text-align: center;
-    color: #ffffff;
+  font-size: 24px;
+  font-weight: 700;
+  min-width: 50px;
+  text-align: center;
+  color: var(--primary); 
+}
+
+/* Fix for white text on dark background in Sticky bar */
+.mobile-sticky-actions .quantity-display {
+   color: var(--primary);
+}
+body.dark .mobile-sticky-actions .quantity-display {
+  color: #fff;
 }
 
 .action-buttons-row {
@@ -220,48 +279,52 @@ body {
   padding: 1rem;
   font-size: 1.1rem;
   font-weight: 600;
-  border-radius: 10px;
+  border-radius: 12px;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  letter-spacing: 0.5px;
 }
 
+/* Matching Product Card Gradient Style */
 .add-to-cart-button {
-  background-color: #fff;
-  color: var(--success);
-  border: 2px solid var(--success);
+  background: linear-gradient(135deg, var(--accent) 0%, #2563eb 100%);
+  color: #ffffff;
+  border: none;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25);
 }
 
 .add-to-cart-button:hover {
-  background-color: var(--success);
-  color: #fff;
+  background: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
   transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(124, 58, 237, 0.4);
 }
 
 .buy-now-button {
-  background-color: var(--warning);
-  color: white;
-  border: 2px solid var(--warning);
-  display: none;
+  background-color: transparent;
+  color: var(--primary);
+  border: 2px solid var(--pd-border);
+  display: none; /* Kept hidden as per original */
 }
 
 .buy-now-button:hover {
-  background-color: #c05621;
-  border-color: #c05621;
-  transform: translateY(-2px);
+  background-color: var(--pd-border);
 }
 
 .cart-icon {
   font-size: 1.2rem;
 }
 
-/* ✅ NEW: Smaller heading on mobile */
+/* ✅ Smaller heading on mobile */
 @media (max-width: 899px) {
   .product-title {
-    font-size: 15px;
+    font-size: 18px;
+  }
+  .current-price {
+    font-size: 1.75rem;
   }
 }
 
@@ -297,7 +360,7 @@ body {
 
   .product-info-panel {
     border-top: none;
-    border-left: 1px solid var(--border);
+    border-left: 1px solid var(--pd-border);
     position: sticky;
     top: 0;
     height: 100vh;
@@ -374,7 +437,7 @@ body {
   margin: 2rem auto;
 }
 
-/* === KEEPING YOUR HIDE RULES === */
+/* === HIDDEN ELEMENTS === */
 .discount-badge,
 .discount-percentage,
 .total-pieces {
@@ -382,7 +445,7 @@ body {
 }
 
 /* ================================== */
-/* NEW DESCRIPTION ACCORDION STYLES   */
+/* DESCRIPTION ACCORDION STYLES       */
 /* ================================== */
 
 .description-section {
@@ -391,11 +454,12 @@ body {
 }
 
 .description-accordion {
-  border: 2px dashed var(--border);
-  border-radius: 20px;
+  border: 1px solid var(--pd-border); /* Solid clean border */
+  border-radius: 16px;
   padding: 1rem 1.5rem;
   margin-top: 1rem;
   transition: all 0.3s ease;
+  background-color: var(--pd-bg);
 }
 
 .description-toggle-header {
@@ -407,7 +471,7 @@ body {
 }
 
 .description-title {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-weight: 600;
   color: var(--primary);
   margin: 0;
@@ -420,14 +484,14 @@ body {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  border: 1.5px solid var(--text-light);
-  color: var(--text-light);
+  border: 1px solid var(--pd-border);
+  color: var(--pd-text-light);
   font-size: 1.2rem;
   transition: transform 0.3s ease, background-color 0.3s ease;
 }
 
 .description-toggle-header:hover .toggle-icon {
-  background-color: #e2e8f0;
+  background-color: var(--pd-border);
   color: var(--primary);
 }
 
@@ -436,7 +500,7 @@ body {
   overflow: hidden;
   transition: max-height 0.4s ease-out, padding-top 0.4s ease-out;
   padding-top: 0;
-  color: var(--text);
+  color: var(--pd-text);
   font-size: 0.95rem;
   line-height: 1.7;
 }
@@ -458,19 +522,20 @@ body {
 /* ================================== */
 
 .mobile-sticky-actions {
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    background-color: rgb(90 213 96);
-    border-top: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000;
-    border-radius: 10px;
-    height: 60px;
+   display: flex;
+   gap: 0.75rem;
+   padding: 0.75rem 1rem;
+   background-color: var(--sticky-bar-bg); 
+   border-top: 1px solid var(--pd-border);
+   box-shadow: 0 -4px 10px rgba(0,0,0,0.1); /* Floating shadow */
+   position: fixed;
+   bottom: 0;
+   left: 0;
+   width: 100%;
+   z-index: 1000;
+   border-radius: 16px 16px 0 0;
+   height: 80px; /* Taller for safe area */
+   align-items: center;
 }
 
 .mobile-sticky-actions .add-to-cart-button,
@@ -478,21 +543,22 @@ body {
   flex: 1;
   margin-top: 0;
   transform: none !important;
-  /* ✅ CHANGED: Slimmer buttons */
+  /* Slimmer buttons */
   padding: 0.8rem;
   font-size: 1rem;
 }
 
 .mobile-sticky-actions .add-to-cart-button {
-  background-color: #5ad560;
+  background: var(--sticky-btn-bg);
   color: #fff;
-  border-color: #5ad560;
+  border: none;
   border-radius: 12px;
-      font-size: 30px;
+  font-size: 16px; /* Reset size */
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.4);
 }
 .mobile-sticky-actions .add-to-cart-button:hover {
-  background-color: #4338ca;
-  border-color: #4338ca;
+  opacity: 0.9;
 }
 
 .mobile-sticky-actions .buy-now-button {
@@ -501,16 +567,13 @@ body {
   border-color: #1a202c;
   border-radius: 12px;
 }
-.mobile-sticky-actions .buy-now-button:hover {
-  background-color: #000;
-  border-color: #000;
-}
 
 .mobile-sticky-actions .quantity-controls {
-  width: 100%;
-  justify-content: space-between;
+  width: auto;
+  gap: 10px;
 }
 
+/* Visibility toggles */
 .quantity-section {
   display: none;
 }
@@ -526,10 +589,13 @@ body {
     display: block;
   }
 }
+
+/* Related Products Scroll */
 .related-products-wrapper {
   margin-top: 40px;
   padding: 20px;
-  background: #fafafa;
+  background: var(--pd-sidebar-bg); 
+  border-top: 1px solid var(--pd-border);
 }
 
 .related-products-scroll {
@@ -548,6 +614,6 @@ body {
   height: 8px;
 }
 .related-products-scroll::-webkit-scrollbar-thumb {
-  background: #ddd;
+  background: var(--pd-border);
   border-radius: 5px;
 }

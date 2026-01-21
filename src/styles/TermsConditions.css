@@ -1,31 +1,61 @@
+/* src/styles/Policy.css */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode */
+  --pol-bg: #ffffff;
+  --pol-title: #222222;
+  --pol-heading: #111111;
+  --pol-text: #333333;      /* List items / Main text */
+  --pol-text-muted: #555555; /* Paragraphs */
+  --pol-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --pol-border: 1px solid transparent; /* Layout stability */
+}
+
+/* Dark Mode Overrides */
+body.dark {
+  --pol-bg: #1e1e1e;        /* Dark card background */
+  --pol-title: #ffffff;
+  --pol-heading: #f1f5f9;   /* High contrast heading */
+  --pol-text: #e2e8f0;      /* Main text */
+  --pol-text-muted: #9ca3af; /* Softer text for paragraphs */
+  --pol-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  --pol-border: 1px solid #333333;
+}
+
 .policy-container {
   max-width: 850px;
   margin: 20px auto;
   padding: 20px;
-  background: #fff;
+  background: var(--pol-bg);
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--pol-shadow);
+  border: var(--pol-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
 .policy-container h1 {
   font-size: 26px;
   margin-bottom: 10px;
   font-weight: bold;
-  color: #222;
+  color: var(--pol-title);
+  transition: color 0.3s ease;
 }
 
 .policy-container p {
   font-size: 15px;
-  color: #555;
+  color: var(--pol-text-muted);
   line-height: 1.6;
   margin-bottom: 12px;
+  transition: color 0.3s ease;
 }
 
 .policy-container h3 {
   font-size: 18px;
-  color: #111;
+  color: var(--pol-heading);
   margin: 18px 0 8px;
   font-weight: 600;
+  transition: color 0.3s ease;
 }
 
 .policy-container ul {
@@ -34,14 +64,18 @@
 
 .policy-container ul li {
   font-size: 15px;
-  color: #333;
+  color: var(--pol-text);
   margin-bottom: 6px;
+  line-height: 1.5;
+  transition: color 0.3s ease;
 }
 
+/* Footer text inside policy (if any) */
 .footer-text {
   text-align: center;
   margin-top: 25px;
   font-size: 15px;
+  color: var(--pol-text-muted);
   opacity: 0.8;
 }
 

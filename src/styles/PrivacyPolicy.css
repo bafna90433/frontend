@@ -1,58 +1,124 @@
+/* src/styles/PrivacyPolicy.css */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode Defaults */
+  --pp-bg: #f6f8fb;         /* Page background */
+  --pp-card-bg: #ffffff;    /* Card background */
+  --pp-title: #222222;
+  --pp-heading: #111111;
+  --pp-text: #555555;       /* Paragraph text */
+  --pp-list: #333333;       /* List items */
+  --pp-footer: #666666;     /* Footer text */
+  --pp-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  --pp-border: 1px solid transparent;
+  --pp-link: #1f8a70;       /* Email link color */
+}
+
+/* Dark Mode Overrides */
+body.dark {
+  --pp-bg: #121212;
+  --pp-card-bg: #1e1e1e;
+  --pp-title: #ffffff;
+  --pp-heading: #f1f5f9;
+  --pp-text: #9ca3af;       /* Softer gray for reading */
+  --pp-list: #e2e8f0;
+  --pp-footer: #888888;
+  --pp-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+  --pp-border: 1px solid #333333;
+  --pp-link: #34d399;
+}
+
+/* --- Container Style --- */
 .policy-container {
   max-width: 850px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 40px auto;
+  padding: 30px;
+  background: var(--pp-card-bg);
+  border-radius: 12px;
+  box-shadow: var(--pp-shadow);
+  border: var(--pp-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
+/* --- Headings --- */
 .policy-container h1 {
-  font-size: 26px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: #222;
-}
-
-.policy-container p {
-  font-size: 15px;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 12px;
+  font-size: 28px;
+  margin-bottom: 20px;
+  font-weight: 800;
+  color: var(--pp-title);
+  text-align: center;
+  transition: color 0.3s ease;
 }
 
 .policy-container h3 {
   font-size: 18px;
-  color: #111;
-  margin: 18px 0 8px;
-  font-weight: 600;
+  color: var(--pp-heading);
+  margin: 24px 0 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: color 0.3s ease;
 }
 
+/* --- Paragraphs & Text --- */
+.policy-container p {
+  font-size: 15px;
+  color: var(--pp-text);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  transition: color 0.3s ease;
+}
+
+/* --- Lists --- */
 .policy-container ul {
-  padding-left: 18px;
+  padding-left: 20px;
+  margin-bottom: 16px;
 }
 
 .policy-container ul li {
   font-size: 15px;
-  color: #333;
-  margin-bottom: 6px;
+  color: var(--pp-list);
+  margin-bottom: 8px;
+  line-height: 1.5;
+  list-style-type: disc;
+  transition: color 0.3s ease;
 }
 
+/* --- Footer Section --- */
 .footer-text {
   text-align: center;
-  margin-top: 25px;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--pp-border);
   font-size: 15px;
-  opacity: 0.8;
+  color: var(--pp-footer);
 }
 
-/* Responsive */
+.footer-text strong {
+  color: var(--pp-link);
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-text strong:hover {
+  text-decoration: underline;
+}
+
+/* --- Responsive --- */
 @media (max-width: 600px) {
   .policy-container {
-    padding: 15px;
-    margin: 10px;
+    padding: 20px;
+    margin: 20px 15px;
   }
 
   .policy-container h1 {
-    font-size: 22px;
+    font-size: 24px;
+  }
+  
+  .policy-container h3 {
+    font-size: 17px;
   }
 }

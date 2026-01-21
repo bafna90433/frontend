@@ -1,3 +1,21 @@
+/* src/styles/BannerSlider.css */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode Defaults */
+  --banner-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  --banner-border: 1px solid transparent;
+}
+
+/* Dark Mode Overrides */
+body.dark {
+  /* Dark mode mein shadow thodi heavy honi chahiye taaki depth dikhe */
+  --banner-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
+  
+  /* Dark mode mein dark images background se alag dikhe isliye border zaroori hai */
+  --banner-border: 1px solid #333333;
+}
+
 .banner-slider-row {
   width: 100%;
   margin: 20px auto;
@@ -20,23 +38,36 @@
   height: 300px;
   object-fit: cover;
   border-radius: 10px;
-  transition: transform 0.4s ease, opacity 0.3s ease;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  
+  /* Use Variables for Theme Support */
+  box-shadow: var(--banner-shadow);
+  border: var(--banner-border);
+  
+  transition: transform 0.4s ease, opacity 0.3s ease, box-shadow 0.3s ease;
 }
 
 .banner-row-img:hover {
   transform: scale(1.03);
   opacity: 0.95;
+  /* Hover par shadow thodi aur badha sakte hain */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Dark mode specific hover fix */
+body.dark .banner-row-img:hover {
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
 }
 
 .blur-up {
   filter: blur(10px);
   transition: filter 0.4s ease;
 }
+
 .blur-up:not([src=""]) {
   filter: blur(0);
 }
 
+/* Responsive */
 @media (max-width: 768px) {
   .banner-row-img {
     height: 210px;

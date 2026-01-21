@@ -1,25 +1,64 @@
-/* ===== ROOT COLORS ===== */
+/* ===== ROOT COLORS & THEME VARIABLES ===== */
 :root {
-  --cat-1: #2563eb;    /* Deep blue */
-  --cat-2: #0d9488;    /* Teal */
-  --cat-3: #d97706;    /* Amber */
-  --cat-4: #4338ca;    /* Indigo */
-  --cat-5: #059669;    /* Emerald */
-  --cat-6: #7c3aed;    /* Violet */
-  --cat-7: #e11d48;    /* Rose */
-  --cat-text-light: #f8fafc;
-  --cat-bg: #ffffff;
-  --cat-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  --cat-border: #e2e8f0;
-  --cat-hover-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
-  --body-bg: #f6f8fb;
+  /* --- Functional Colors (Refined & Professional) --- */
+  --cat-1: #1e40af;    /* Navy Blue - Trustworthy */
+  --cat-2: #0f766e;    /* Deep Teal - Calm */
+  --cat-3: #c2410c;    /* Burnt Orange - Energetic but matte */
+  --cat-4: #4338ca;    /* Deep Indigo - Modern */
+  --cat-5: #15803d;    /* Forest Green - Success */
+  --cat-6: #7e22ce;    /* Royal Purple - Premium */
+  --cat-7: #be123c;    /* Crimson - Alert/Sale */
+  
+  --cat-text-light: #ffffff; /* Pure white for high contrast */
+  
+  /* --- Light Mode Defaults (Clean Corporate Look) --- */
+  --home-bg: #f8fafc;          /* Very light cool grey */
+  --home-card-bg: #ffffff;     /* Pure White */
+  --home-text-main: #1e293b;   /* Slate 800 - Softer than black */
+  --home-text-muted: #64748b;  /* Slate 500 - Professional grey */
+  --home-border: #e2e8f0;      /* Subtle border */
+  
+  --cat-shadow: 0 2px 4px rgba(15, 23, 42, 0.06);
+  --cat-hover-shadow: 0 8px 16px rgba(15, 23, 42, 0.12);
+  
+  /* Professional Gradient (Royal Blue to Indigo) */
+  --category-title-color: #1e3a8a;
+  --category-gradient-start: #1e3a8a;
+  --category-gradient-end: #3b82f6;
+  
+  /* Footer Defaults */
+  --footer-bg: #0f172a;        /* Deep Slate (almost black) */
+  --footer-text: #cbd5e1;      /* Light Grey */
+  --footer-border: #334155;
 }
 
-/* ===== BASE ===== */
+/* --- DARK MODE OVERRIDES (High Contrast & Modern) --- */
+body.dark {
+  --home-bg: #0b1120;          /* Deepest Navy/Black */
+  --home-card-bg: #1e293b;     /* Dark Slate Card */
+  --home-text-main: #f8fafc;   /* White text */
+  --home-text-muted: #94a3b8;  /* Muted Blue-Grey */
+  --home-border: #334155;      /* Dark border */
+  
+  --cat-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --cat-hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+  
+  --category-title-color: #60a5fa; 
+  --category-gradient-start: #60a5fa;
+  --category-gradient-end: #a78bfa; /* Soft Blue to Purple in Dark mode */
+
+  --footer-bg: #020617;
+  --footer-border: #1e293b;
+}
+
+/* ===== BASE LAYOUT (NO CHANGES BELOW) ===== */
 .home-container {
   width: 100%;
   margin: 0;
-  padding: 0 0 84px; /* safe space for floating button */
+  padding: 0 0 84px; 
+  background-color: var(--home-bg);
+  color: var(--home-text-main);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .banner-section {
@@ -46,8 +85,8 @@
   font-size: 26px;
   font-weight: 800;
   margin: 24px 16px 20px;
-  color: #4a90e2;
-  background: linear-gradient(90deg, #4a90e2, #50e3c2);
+  color: var(--category-title-color);
+  background: linear-gradient(90deg, var(--category-gradient-start), var(--category-gradient-end));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   position: relative;
@@ -55,16 +94,16 @@
   letter-spacing: 2px;
   font-family: 'Poppins', sans-serif;
   text-transform: capitalize;
-  border-bottom: 4px solid #50e3c2;
+  border-bottom: 4px solid var(--category-gradient-end);
   width: max-content;
   transition: all 0.3s ease;
 }
 
 .category-title:hover {
-  color: #50e3c2;
+  color: var(--category-gradient-end);
   background: none;
   -webkit-text-fill-color: initial;
-  border-bottom-color: #4a90e2;
+  border-bottom-color: var(--category-gradient-start);
   cursor: pointer;
 }
 
@@ -75,7 +114,7 @@
   bottom: 0;
   height: 4px;
   width: 0;
-  background: #4a90e2;
+  background: var(--category-gradient-start);
   transition: width 0.4s ease;
   border-radius: 2px;
 }
@@ -132,7 +171,7 @@
   margin-top: 8px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--home-text-main);
   text-align: center;
   padding: 0 4px;
 }
@@ -192,9 +231,9 @@
     scroll-snap-type: x mandatory;
     gap: 12px;
     padding: 10px 16px;
-    background: var(--cat-bg);
+    background: var(--home-card-bg); 
     margin-bottom: 20px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    border-bottom: 1px solid var(--home-border); 
     -webkit-overflow-scrolling: touch;
     touch-action: pan-x;
   }
@@ -219,7 +258,7 @@
     flex-shrink: 0;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
-    border: 1px solid var(--cat-border);
+    border: 1px solid rgba(255,255,255,0.1); 
     scroll-snap-align: center;
     white-space: nowrap;
   }
@@ -264,39 +303,37 @@
   gap: 4px;
 }
 
-/* Arrow animation */
 @keyframes bounceArrow {
   0%, 100% { transform: translateX(0); }
   50% { transform: translateX(-6px); }
 }
 
-/* Fadeout after showing */
 @keyframes fadeOut {
   0% { opacity: 1; }
   80% { opacity: 1; }
   100% { opacity: 0; }
 }
 
-/* Hide scroll hint on desktop */
 @media (min-width: 769px) {
   .scroll-indicator {
     display: none;
   }
 }
-/* Home.css ke end me ye add karein */
 
+/* ===== FOOTER ===== */
 .home-footer {
-  background-color: #222;
-  color: #fff;
-  padding: 40px 20px 80px 20px; /* Bottom padding extra diya hai taaki Floating button cover na kare */
+  background-color: var(--footer-bg);
+  color: var(--footer-text);
+  padding: 40px 20px 80px 20px; 
   margin-top: 40px;
   text-align: center;
+  border-top: 1px solid var(--home-border);
 }
 
 .footer-links-container h3 {
   font-size: 1.2rem;
   margin-bottom: 15px;
-  color: #f1c40f; /* Gold color accent */
+  color: #f1c40f; 
 }
 
 .footer-links {
@@ -310,20 +347,22 @@
 }
 
 .footer-links li a {
-  color: #ddd;
+  color: var(--footer-text);
   text-decoration: none;
   font-size: 0.95rem;
   transition: color 0.3s ease;
+  opacity: 0.8;
 }
 
 .footer-links li a:hover {
   color: #fff;
+  opacity: 1;
   text-decoration: underline;
 }
 
 .footer-copyright {
-  border-top: 1px solid #444;
+  border-top: 1px solid var(--footer-border);
   padding-top: 20px;
   font-size: 0.85rem;
-  color: #aaa;
+  color: var(--home-text-muted);
 }

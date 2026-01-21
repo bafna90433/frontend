@@ -1,3 +1,58 @@
+/* src/styles/FloatingCheckoutButton.css - Cosmic Tech Theme */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode (Clean Tech) */
+  --fc-bg: #ffffff;
+  --fc-progress-bg: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
+  --fc-bar-bg: #e0e7ff;
+  --fc-bar-fill: #7c3aed;      /* Electric Violet */
+  
+  --fc-text-primary: #1e1b4b;  /* Deep Navy */
+  --fc-text-secondary: #64748b;/* Slate */
+  --fc-text-muted: #94a3b8;
+  
+  --fc-badge-bg: #7c3aed;
+  --fc-badge-text: #ffffff;
+  --fc-badge-count-bg: #dc2626;
+  
+  --fc-border: #e0e7ff;
+  --fc-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.05),
+    0 4px 8px rgba(124, 58, 237, 0.08),
+    0 24px 48px rgba(124, 58, 237, 0.15);
+    
+  --fc-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --fc-btn-hover: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  --fc-btn-text: #ffffff;
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --fc-bg: #0f1026;            /* Glassy Dark Navy */
+  --fc-progress-bg: linear-gradient(180deg, #1e1b4b 0%, #0f1026 100%);
+  --fc-bar-bg: #1e1b4b;
+  --fc-bar-fill: #a78bfa;      /* Light Violet */
+  
+  --fc-text-primary: #f8fafc;  /* White */
+  --fc-text-secondary: #cbd5e1;
+  --fc-text-muted: #64748b;
+  
+  --fc-badge-bg: #a78bfa;
+  --fc-badge-text: #1e1b4b;    /* Dark text on light badge */
+  --fc-badge-count-bg: #f87171;
+  
+  --fc-border: #1e1b4b;
+  --fc-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.5),
+    0 4px 12px rgba(0, 0, 0, 0.6),
+    0 24px 48px rgba(0, 0, 0, 0.7);
+    
+  --fc-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --fc-btn-hover: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  --fc-btn-text: #ffffff;
+}
+
 /* =========================================
    1. PC VIEW (Desktop Default) - LEFT SIDE
    ========================================= */
@@ -7,25 +62,29 @@
   
   /* PC Alignment: Left Side */
   bottom: 30px;
-  left: 30px;        /* Left Side */
-  right: auto;       /* Right hataya */
+  left: 30px;
+  right: auto;
   transform: none;
   
   width: 360px;
-  background: #fef7ff;
-  border-radius: 28px;
+  background: var(--fc-bg);
+  border-radius: 20px;
   cursor: pointer;
   
   /* Animation */
   animation: slideUpPC 0.5s cubic-bezier(0.2, 0, 0, 1);
   
   /* Shadow & Border */
-  box-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.1),
-    0 4px 8px rgba(0, 0, 0, 0.08),
-    0 24px 48px rgba(103, 80, 164, 0.12);
-  border: 1px solid rgba(103, 80, 164, 0.1);
+  box-shadow: var(--fc-shadow);
+  border: 1px solid var(--fc-border);
   overflow: hidden;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px); /* Glassmorphism */
+}
+
+.floating-checkout-container:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--fc-shadow), 0 0 0 2px var(--fc-bar-fill);
 }
 
 @keyframes slideUpPC {
@@ -37,12 +96,13 @@
 
 .checkout-progress-container {
   padding: 16px 20px 12px;
-  background: linear-gradient(180deg, #f3edf7 0%, #fef7ff 100%);
+  background: var(--fc-progress-bg);
+  transition: background 0.3s ease;
 }
 
 .progress-bar-bg {
-  height: 5px;
-  background: #e6e1e5;
+  height: 6px;
+  background: var(--fc-bar-bg);
   border-radius: 3px;
   overflow: hidden;
   position: relative;
@@ -51,31 +111,36 @@
 
 .progress-bar-fill {
   height: 100%;
-  background: #6750a4;
+  background: var(--fc-bar-fill);
   border-radius: 3px;
   transition: width 0.6s ease;
+  box-shadow: 0 0 8px var(--fc-bar-fill); /* Glow effect */
 }
 
 .progress-message {
   text-align: center;
   font-size: 13px;
-  font-weight: 500;
-  color: #6750a4;
+  font-weight: 600;
+  color: var(--fc-bar-fill);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
 }
 
-.message-success { color: #0d9263; display: flex; align-items: center; gap: 6px; }
-.message-remaining { color: #c9a227; display: flex; align-items: center; gap: 6px; }
+.message-success { color: #059669; display: flex; align-items: center; gap: 6px; }
+.message-remaining { color: #d97706; display: flex; align-items: center; gap: 6px; }
+
+/* Dark mode success/warning text tweaks */
+body.dark .message-success { color: #34d399; }
+body.dark .message-remaining { color: #fbbf24; }
 
 .checkout-main-area {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background: #fef7ff;
+  background: var(--fc-bg);
 }
 
 .checkout-info {
@@ -94,21 +159,25 @@
   position: relative;
   width: 48px;
   height: 48px;
-  background: #6750a4;
-  border-radius: 16px;
+  background: var(--fc-badge-bg);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-.bag-icon { color: white; font-size: 20px; }
+.bag-icon { 
+  color: var(--fc-badge-text); 
+  font-size: 20px; 
+}
 
 .count-number {
   position: absolute;
-  top: -5px;
-  right: -5px;
-  background: #ff4d4f;
-  color: white;
+  top: -6px;
+  right: -6px;
+  background: var(--fc-badge-count-bg);
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
   width: 20px;
@@ -117,34 +186,54 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #fef7ff;
+  border: 2px solid var(--fc-bg);
 }
 
+body.dark .count-number {
+  color: #ffffff; 
+}
+
+
 .price-details { display: flex; flex-direction: column; }
-.total-label { font-size: 12px; color: #49454f; line-height: 1; margin-bottom: 2px; }
-.total-amount { font-size: 20px; font-weight: 700; color: #1c1b1f; line-height: 1; }
+.total-label { font-size: 11px; color: var(--fc-text-secondary); line-height: 1; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
+.total-amount { font-size: 20px; font-weight: 800; color: var(--fc-text-primary); line-height: 1; }
 
 .shipping-note {
   display: flex;
   align-items: center;
   gap: 4px;
-  font-size: 10px;
-  color: #79747e;
+  font-size: 11px;
+  color: var(--fc-text-muted);
   margin-top: 4px;
+  font-weight: 500;
 }
 
 .checkout-action {
-  padding: 10px 20px;
-  background: #6750a4;
-  border-radius: 100px;
+  padding: 12px 24px;
+  background: var(--fc-btn-bg);
+  border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: background 0.2s;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
 }
-.checkout-action:hover { background: #503e82; }
-.action-label { color: white; font-size: 14px; font-weight: 600; }
-.arrow-icon { color: white; }
+
+.checkout-action:hover { 
+  background: var(--fc-btn-hover); 
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
+}
+
+.action-label { 
+  color: var(--fc-btn-text); 
+  font-size: 14px; 
+  font-weight: 700; 
+}
+
+.arrow-icon { 
+  color: var(--fc-btn-text); 
+}
 
 /* =========================================
    2. MOBILE VIEW (Small Screens) - CENTERED
@@ -154,13 +243,13 @@
     /* Mobile Alignment: Center Bottom */
     left: 50%;
     right: auto;
-    bottom: 80px;
-    transform: translateX(-50%); /* Wapas Center kar diya */
+    bottom: 90px; /* Raised slightly */
+    transform: translateX(-50%);
     
     /* Mobile Size: Compact */
     width: 92%;
     max-width: 400px;
-    border-radius: 20px;
+    border-radius: 16px;
     
     animation: slideUpMobile 0.4s cubic-bezier(0.2, 0, 0, 1);
   }
@@ -172,36 +261,34 @@
 
   /* Compact Design Elements for Mobile */
   .checkout-main-area {
-    padding: 10px 16px;
-    height: 60px;
+    padding: 12px 16px;
+    height: auto;
   }
 
   .item-count-badge {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
     border-radius: 10px;
   }
   
-  .bag-icon { font-size: 16px; }
+  .bag-icon { font-size: 18px; }
   
-  /* Mobile pe 'Total' text hata diya, direct price dikhayenge */
   .total-label { display: none; }
   .total-amount { font-size: 18px; }
   
-  /* Shipping note mobile pe hide karein space bachane ke liye */
   .shipping-note { display: none; }
   
   .checkout-action {
-    padding: 8px 16px;
+    padding: 10px 20px;
   }
   
   .action-label { font-size: 13px; }
   
   /* Progress bar compact styles */
   .checkout-progress-container {
-    padding: 10px 16px 5px;
+    padding: 10px 16px 8px;
   }
   
-  .progress-bar-bg { height: 3px; }
+  .progress-bar-bg { height: 4px; }
   .progress-message { font-size: 11px; }
 }

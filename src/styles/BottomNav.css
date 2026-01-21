@@ -1,90 +1,128 @@
+/* src/styles/BottomNav.css - Cosmic Tech Theme */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode (Clean Tech) */
+  --bn-bg: #ffffff;
+  --bn-border: #e0e7ff;        /* Light Indigo */
+  --bn-inactive: #64748b;      /* Slate */
+  --bn-active: #7c3aed;        /* Electric Violet */
+  --bn-shadow: 0 -4px 20px rgba(124, 58, 237, 0.08); /* Violet tinted shadow */
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --bn-bg: #0f1026;            /* Glassy Dark Navy (Matches Header) */
+  --bn-border: #1e1b4b;        /* Dark Indigo Border */
+  --bn-inactive: #94a3b8;      /* Blue-Grey */
+  --bn-active: #a78bfa;        /* Light Violet */
+  --bn-shadow: 0 -4px 20px rgba(0, 0, 0, 0.6);
+}
+
 /* Hide on desktop */
 .bottom-nav {
   display: none;
 }
 
-/* Show on mobile only */
-@media (max-width: 786px) {
+/* Show on mobile/tablet (Synced with Sidebar breakpoint) */
+@media (max-width: 900px) {
   .bottom-nav {
     display: flex;
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    height: 65px;
-    background: #fff;
-    border-top: 1px solid #e5e5e5;
+    height: 70px; /* Slightly taller for modern touch targets */
+    
+    /* Use Variables */
+    background: var(--bn-bg);
+    border-top: 1px solid var(--bn-border);
+    box-shadow: var(--bn-shadow);
+    
     justify-content: space-around;
     align-items: center;
     z-index: 1200;
-    box-shadow: 0 -2px 15px rgba(99, 84, 242, 0.15);
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Inter', sans-serif;
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    padding-bottom: env(safe-area-inset-bottom); /* iPhone X+ safe area */
   }
 
   .bottom-nav-item {
     flex: 1;
     text-align: center;
-    color: #888888;
+    
+    /* Use Variable */
+    color: var(--bn-inactive);
+    
     text-decoration: none;
-    font-size: 11.5px;
+    font-size: 11px;
     font-weight: 600;
-    padding-top: 6px;
-    padding-bottom: 8px;
-    transition: color 0.3s ease, box-shadow 0.3s ease;
+    padding: 8px 0;
+    transition: all 0.2s ease;
     user-select: none;
     cursor: pointer;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     position: relative;
+    background: transparent;
+    border: none;
+    height: 100%;
   }
 
   .bottom-nav-item .icon {
-    stroke: #888888;
+    /* Use Variable */
+    stroke: currentColor;
     display: flex;
     justify-content: center;
     align-items: center;
+    transition: transform 0.2s ease;
   }
 
   .bottom-nav-item .nav-icon {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
   }
 
   .bottom-nav-item .label {
-    margin-top: 4px;
+    margin-top: 5px;
     font-size: 11px;
-    letter-spacing: 0.02em;
+    letter-spacing: 0.3px;
+    font-weight: 600;
   }
 
+  /* Active State */
   .bottom-nav-item.active {
-    color: #6354f2;
-    font-weight: 700;
+    color: var(--bn-active);
   }
 
   .bottom-nav-item.active .icon {
-    stroke: #6354f2;
+    stroke: var(--bn-active);
+    transform: translateY(-2px); /* Slight bounce up */
   }
 
+  /* Active Indicator Dot/Line */
   .bottom-nav-item.active::after {
     content: "";
     position: absolute;
-    bottom: 4px;
-    left: 30%;
-    right: 30%;
+    top: 0; /* Top indicator looks more modern */
+    left: 35%;
+    right: 35%;
     height: 3px;
-    border-radius: 2px;
-    background: #6354f2;
+    border-radius: 0 0 4px 4px;
+    background: var(--bn-active);
+    box-shadow: 0 2px 8px var(--bn-active); /* Glowing effect */
   }
 
+  /* Hover & Focus */
   .bottom-nav-item:hover,
   .bottom-nav-item:focus-visible {
-    color: #6354f2;
+    color: var(--bn-active);
     outline: none;
   }
 
-  .bottom-nav-item:hover .icon,
-  .bottom-nav-item:focus-visible .icon {
-    stroke: #6354f2;
+  .bottom-nav-item:hover .icon {
+    transform: translateY(-2px);
   }
 }

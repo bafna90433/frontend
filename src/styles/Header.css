@@ -1,23 +1,61 @@
-/* src/styles/Header.css - Professional Icons Version */
+/* src/styles/Header.css - Cosmic Tech Theme Version */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
-  --primary: #ff6b88;
-  --primary-dark: #ff4a6d;
-  --secondary: #667eea;
-  --accent: #ffbd2b;
-  --gradient: linear-gradient(135deg, #ff6b88 0%, #667eea 100%);
-  --gradient-dark: linear-gradient(135deg, #ff4a6d 0%, #5a67d8 100%);
-  --bg-light: #f8fafc;
-  --bg-white: #ffffff;
-  --text-dark: #1a202c;
-  --text-muted: #718096;
-  --border-light: #e2e8f0;
-  --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-  --shadow-md: 0 8px 25px rgba(0,0,0,0.1);
-  --shadow-lg: 0 15px 40px rgba(0,0,0,0.15);
+  /* --- Colors (Light Mode - Clean Tech) --- */
+  --primary: #7c3aed;       /* Electric Violet */
+  --primary-dark: #5b21b6;  /* Deep Violet */
+  --secondary: #3b82f6;     /* Bright Blue */
+  --accent: #d946ef;        /* Fuchsia Pop */
+  
+  --header-bg: #ffffff;
+  --header-text: #1e1b4b;   /* Deep Navy */
+  --header-text-muted: #64748b;
+  --header-border: #e0e7ff; /* Light Indigo */
+  
+  --search-bg: #f5f3ff;     /* Very light violet tint */
+  --search-bg-focus: #ffffff;
+  --search-border: #e0e7ff;
+  
+  --suggest-bg: #ffffff;
+  --suggest-hover: #f5f3ff;
+  
+  --cart-badge-bg: #d946ef; /* Fuchsia for high visibility */
+  --cart-badge-text: #ffffff;
+  --cart-badge-border: #ffffff;
+  
+  /* Gradients (Violet to Blue) */
+  --gradient: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
+  --gradient-dark: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  
+  /* Shadows (Purple tinted) */
+  --shadow-sm: 0 2px 4px rgba(124, 58, 237, 0.05);
+  --shadow-md: 0 8px 25px rgba(124, 58, 237, 0.12);
+  --shadow-lg: 0 15px 40px rgba(124, 58, 237, 0.15);
+  
   --radius: 12px;
   --radius-lg: 16px;
+}
+
+/* --- DARK MODE OVERRIDES (Cosmic Theme) --- */
+body.dark {
+  --header-bg: #0f1026;     /* Glassy Dark Purple/Navy */
+  --header-text: #f8fafc;
+  --header-text-muted: #94a3b8;
+  --header-border: #1e1b4b; /* Dark Indigo */
+  
+  --search-bg: #1e1b4b;     /* Deep Indigo */
+  --search-bg-focus: #0f1026;
+  --search-border: #312e81;
+  
+  --suggest-bg: #0f1026;
+  --suggest-hover: #1e1b4b;
+  
+  --cart-badge-border: #0f1026;
+  
+  --shadow-sm: 0 2px 4px rgba(0,0,0,0.4);
+  --shadow-md: 0 8px 25px rgba(0,0,0,0.6);
+  --shadow-lg: 0 15px 40px rgba(0,0,0,0.7);
 }
 
 * {
@@ -30,13 +68,19 @@ body {
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
+/* Header Container */
 .bt-header {
-  background: var(--bg-white);
+  background: var(--header-bg);
   box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+  border-bottom: 1px solid transparent;
+}
+
+body.dark .bt-header {
+  border-bottom: 1px solid var(--header-border);
 }
 
 .bt-header--scrolled {
@@ -116,7 +160,7 @@ body {
   left: 20px;
   width: 22px;
   height: 22px;
-  fill: var(--text-muted);
+  fill: var(--header-text-muted);
   z-index: 2;
   transition: fill 0.3s ease;
 }
@@ -128,20 +172,25 @@ body {
 .bt-search__input {
   width: 100%;
   padding: 16px 24px 16px 56px;
-  border: 2px solid var(--border-light);
+  border: 2px solid var(--search-border);
   border-radius: var(--radius);
-  background: var(--bg-light);
+  background: var(--search-bg);
   font-size: 13px;
   font-weight: 500;
   transition: all 0.3s ease;
   outline: none;
   height: 45px;
+  color: var(--header-text);
 }
 
 .bt-search__input:focus {
   border-color: var(--primary);
-  background: var(--bg-white);
-  box-shadow: 0 0 0 3px rgba(255, 107, 136, 0.1);
+  background: var(--search-bg-focus);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15); /* Violet Glow */
+}
+
+.bt-search__input::placeholder {
+  color: var(--header-text-muted);
 }
 
 .bt-search__btn {
@@ -171,10 +220,10 @@ body {
   top: calc(100% + 8px);
   left: 0;
   right: 0;
-  background: var(--bg-white);
+  background: var(--suggest-bg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--header-border);
   overflow: hidden;
   z-index: 1000;
   animation: slideDown 0.2s ease;
@@ -198,14 +247,14 @@ body {
   align-items: center;
   gap: 12px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--header-text-muted);
   font-size: 15px;
 }
 
 .bt-spinner {
   width: 20px;
   height: 20px;
-  border: 2px solid var(--border-light);
+  border: 2px solid var(--header-border);
   border-top: 2px solid var(--primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
@@ -219,7 +268,7 @@ body {
 .bt-suggest__empty-icon {
   width: 20px;
   height: 20px;
-  fill: var(--text-muted);
+  fill: var(--header-text-muted);
 }
 
 .bt-suggest__list {
@@ -233,7 +282,7 @@ body {
   align-items: center;
   gap: 16px;
   padding: 16px 20px;
-  border-bottom: 1px solid var(--border-light);
+  border-bottom: 1px solid var(--header-border);
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
@@ -245,7 +294,7 @@ body {
 
 .bt-suggest__item:hover,
 .bt-suggest__item.is-active {
-  background: var(--bg-light);
+  background: var(--suggest-hover);
 }
 
 .bt-suggest__thumb {
@@ -253,16 +302,16 @@ body {
   height: 50px;
   border-radius: 8px;
   object-fit: cover;
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--header-border);
 }
 
 .bt-suggest__thumb--ph {
-  background: var(--bg-light);
+  background: var(--search-bg);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 12px;
-  color: var(--text-muted);
+  color: var(--header-text-muted);
 }
 
 .bt-suggest__meta {
@@ -272,7 +321,7 @@ body {
 
 .bt-suggest__name {
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--header-text);
   margin-bottom: 4px;
   white-space: nowrap;
   overflow: hidden;
@@ -282,7 +331,7 @@ body {
 
 .bt-suggest__sku {
   font-size: 13px;
-  color: var(--text-muted);
+  color: var(--header-text-muted);
   margin-bottom: 2px;
 }
 
@@ -295,7 +344,7 @@ body {
 .bt-suggest__arrow {
   width: 18px;
   height: 18px;
-  fill: var(--text-muted);
+  fill: var(--header-text-muted);
   opacity: 0;
   transition: opacity 0.2s ease;
 }
@@ -307,7 +356,7 @@ body {
 .bt-suggest__more {
   width: 100%;
   padding: 18px;
-  background: var(--bg-light);
+  background: var(--search-bg);
   border: none;
   display: flex;
   align-items: center;
@@ -318,6 +367,7 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 15px;
+  border-top: 1px solid var(--header-border);
 }
 
 .bt-suggest__more:hover {
@@ -352,7 +402,7 @@ body {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: var(--text-dark);
+  color: var(--header-text);
   font-weight: 600;
   padding: 12px 18px;
   border-radius: var(--radius);
@@ -362,7 +412,7 @@ body {
 }
 
 .bt-link--login:hover {
-  background: var(--bg-light);
+  background: var(--suggest-hover);
   color: var(--primary);
   transform: translateY(-1px);
 }
@@ -380,12 +430,12 @@ body {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: var(--bg-light);
-  border: none;
+  background: var(--search-bg);
+  border: 1px solid transparent;
   padding: 12px 18px;
   border-radius: var(--radius);
   font-weight: 600;
-  color: var(--text-dark);
+  color: var(--header-text);
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 15px;
@@ -396,7 +446,8 @@ body {
   background: var(--primary);
   color: white;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(255, 107, 136, 0.3);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  border-color: var(--primary);
 }
 
 .bt-account__button .bt-ico {
@@ -414,7 +465,7 @@ body {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: var(--text-dark);
+  color: var(--header-text);
   font-weight: 600;
   padding: 12px 18px;
   border-radius: var(--radius);
@@ -424,7 +475,7 @@ body {
 }
 
 .bt-link--orders:hover {
-  background: var(--bg-light);
+  background: var(--suggest-hover);
   color: var(--secondary);
   transform: translateY(-1px);
 }
@@ -454,7 +505,7 @@ body {
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  color: var(--text-dark);
+  color: var(--header-text);
   font-weight: 600;
   padding: 12px 18px;
   border-radius: var(--radius);
@@ -464,7 +515,7 @@ body {
 }
 
 .bt-cart:hover {
-  background: var(--bg-light);
+  background: var(--suggest-hover);
   color: var(--primary);
   transform: translateY(-1px);
 }
@@ -490,8 +541,8 @@ body {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #3162F3;
-  color: #ffffff;
+  background: var(--cart-badge-bg);
+  color: var(--cart-badge-text);
   font-size: 12px;
   font-weight: 800;
   min-width: 22px;
@@ -500,8 +551,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--bg-white);
-  box-shadow: 0 2px 6px rgba(49, 98, 243, 0.4);
+  border: 2px solid var(--cart-badge-border);
+  box-shadow: 0 2px 6px rgba(217, 70, 239, 0.4); /* Pink/Fuchsia Glow */
   animation: pulse 2s ease-in-out infinite;
 }
 
@@ -523,9 +574,10 @@ body {
   display: flex;
   gap: 10px;
   padding: 9px 50px;
-  background: var(--bg-light);
-  border-top: 1px solid var(--border-light);
+  background: var(--search-bg); 
+  border-top: 1px solid var(--header-border);
   overflow-x: auto;
+  scroll-snap-type: x mandatory; /* Added for smooth snap */
   scrollbar-width: none;
 }
 
@@ -538,16 +590,17 @@ body {
   align-items: center;
   gap: 8px;
   padding: 10px 18px;
-  background: var(--bg-white);
-  border: 1px solid var(--border-light);
+  background: var(--header-bg);
+  border: 1px solid var(--header-border);
   border-radius: 20px;
   font-size: 14px;
   font-weight: 500;
-  color: var(--text-muted);
+  color: var(--header-text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  scroll-snap-align: start; /* Snap align */
 }
 
 .bt-cat-item:hover {
@@ -572,6 +625,7 @@ body {
 .bt-search--mobile {
   display: none;
   padding: 0 20px 16px;
+  background: var(--header-bg); 
 }
 
 .bt-search.is-mobile {

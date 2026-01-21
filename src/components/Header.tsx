@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
+import { useTheme } from "../context/ThemeContext"; // ✅ Added Import
 import "../styles/Header.css";
 
 const LOGO_IMG = "/logo.webp";
@@ -91,7 +92,7 @@ const SearchForm = React.forwardRef(function SearchForm(
       <button className="bt-search__btn" type="submit">
         Search
       </button>
-     
+      
       {openSug && (
         <div className="bt-suggest">
           {loadingSug && (
@@ -176,6 +177,7 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { cartItems } = useShop();
+  const { theme, toggleTheme } = useTheme(); // ✅ Hook usage
 
   const cartCount = useMemo(() => {
     if (!Array.isArray(cartItems)) return 0;
@@ -366,13 +368,42 @@ const Header: React.FC = () => {
 
           {/* Actions */}
           <nav className="bt-actions">
+            
+            {/* ✅ Theme Toggle (Replaced Bottom Floating Button) */}
+            <button
+              className="bt-account__button" // Using same class for consistent sizing/style
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              type="button"
+            >
+              {theme === 'light' ? (
+                // Moon Icon
+                <svg viewBox="0 0 24 24" className="bt-ico" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                   <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                </svg>
+              ) : (
+                // Sun Icon
+                <svg viewBox="0 0 24 24" className="bt-ico" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                   <circle cx="12" cy="12" r="5"></circle>
+                   <line x1="12" y1="1" x2="12" y2="3"></line>
+                   <line x1="12" y1="21" x2="12" y2="23"></line>
+                   <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                   <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                   <line x1="1" y1="12" x2="3" y2="12"></line>
+                   <line x1="21" y1="12" x2="23" y2="12"></line>
+                   <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                   <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+              )}
+              <span>{theme === 'light' ? 'Dark' : 'Light'}</span>
+            </button>
+
             {user ? (
               <div className="bt-account">
                 <button
                   className="bt-account__button"
                   onClick={() => navigate("/my-account")}
                 >
-                  {/* Professional User Account Icon */}
                   <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 4c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm0 14c-2.03 0-4.43-.82-6.14-2.88C7.55 15.8 9.68 15 12 15s4.45.8 6.14 2.12C16.43 19.18 14.03 20 12 20z" />
                   </svg>
@@ -381,18 +412,15 @@ const Header: React.FC = () => {
               </div>
             ) : (
               <Link className="bt-link bt-link--login" to="/login">
-                {/* Professional Login Icon */}
                 <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
                   <path d="M11 7L9.6 8.4l2.6 2.6H2v2h10.2l-2.6 2.6L11 17l5-5-5-5zm9 12h-8v2h8c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-8v2h8v14z"/>
                 </svg>
                 <span>Login</span>
               </Link>
             )}
-           
-            {/* My Orders - Hide in mobile view */}
+            
             {user && (
               <Link className="bt-link bt-link--orders bt-actions__orders-mobile-hide" to="/orders">
-                {/* Professional Orders Icon */}
                 <svg viewBox="0 0 24 24" className="bt-ico" fill="currentColor">
                   <path d="M19 3H5c-1.1 0-1.99.9-1.99 2L3 19c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 3c1.93 0 3.5 1.57 3.5 3.5S13.93 13 12 13s-3.5-1.57-3.5-3.5S10.07 6 12 6zm7 13H5v-1.23c0-.62.28-1.2.76-1.58C7.47 15.06 9.64 14 12 14s4.53 1.06 6.24 2.19c.48.38.76.97.76 1.58V19z"/>
                 </svg>
@@ -400,7 +428,6 @@ const Header: React.FC = () => {
               </Link>
             )}
 
-            {/* Cart with Professional Shopping Bag Icon */}
             <Link className="bt-cart" to="/cart">
               <div className="bt-cart__icon">
                 <svg viewBox="0 0 24 24" className="bt-cart__svg" fill="currentColor">

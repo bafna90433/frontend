@@ -1,58 +1,140 @@
+/* src/styles/PrivacyPolicy.css - Cosmic Tech Theme */
+
+/* --- Variables --- */
+:root {
+  /* Light Mode (Clean Tech) */
+  --pp-bg: #f8fafc;           /* Light Cool Grey */
+  --pp-card-bg: #ffffff;      
+  
+  --pp-title: #1e1b4b;        /* Deep Navy */
+  --pp-heading: #1e1b4b;
+  --pp-text: #334155;         /* Slate 700 */
+  --pp-list: #475569;         /* Slate 600 */
+  
+  --pp-footer: #64748b;       /* Muted Slate */
+  --pp-link: #7c3aed;         /* Electric Violet */
+  
+  --pp-border: 1px solid #e0e7ff; /* Light Indigo */
+  --pp-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --pp-bg: #030014;           /* Deepest Cosmic Background */
+  --pp-card-bg: #0f1026;      /* Glassy Dark Navy */
+  
+  --pp-title: #f8fafc;        /* White */
+  --pp-heading: #a78bfa;      /* Light Violet */
+  --pp-text: #94a3b8;         /* Blue-Grey */
+  --pp-list: #cbd5e1;         /* Light Grey */
+  
+  --pp-footer: #64748b;
+  --pp-link: #60a5fa;         /* Bright Blue */
+  
+  --pp-border: 1px solid #1e1b4b; /* Dark Indigo */
+  --pp-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+/* --- Container Style --- */
 .policy-container {
   max-width: 850px;
-  margin: 20px auto;
-  padding: 20px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  margin: 40px auto;
+  padding: 40px;
+  background: var(--pp-card-bg);
+  border-radius: 20px; /* Modern rounded corners */
+  box-shadow: var(--pp-shadow);
+  border: var(--pp-border);
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  font-family: 'Inter', sans-serif;
 }
 
+/* --- Headings --- */
 .policy-container h1 {
-  font-size: 26px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: #222;
-}
-
-.policy-container p {
-  font-size: 15px;
-  color: #555;
-  line-height: 1.6;
-  margin-bottom: 12px;
+  font-size: 32px;
+  margin-bottom: 24px;
+  font-weight: 800;
+  color: var(--pp-title);
+  text-align: center;
+  transition: color 0.3s ease;
+  letter-spacing: -0.5px;
 }
 
 .policy-container h3 {
-  font-size: 18px;
-  color: #111;
-  margin: 18px 0 8px;
-  font-weight: 600;
+  font-size: 20px;
+  color: var(--pp-heading);
+  margin: 32px 0 16px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: color 0.3s ease;
 }
 
+/* --- Paragraphs & Text --- */
+.policy-container p {
+  font-size: 16px;
+  color: var(--pp-text);
+  line-height: 1.7;
+  margin-bottom: 16px;
+  transition: color 0.3s ease;
+}
+
+/* --- Lists --- */
 .policy-container ul {
-  padding-left: 18px;
+  padding-left: 24px;
+  margin-bottom: 24px;
 }
 
 .policy-container ul li {
-  font-size: 15px;
-  color: #333;
-  margin-bottom: 6px;
+  font-size: 16px;
+  color: var(--pp-list);
+  margin-bottom: 10px;
+  line-height: 1.6;
+  list-style-type: disc;
+  transition: color 0.3s ease;
 }
 
+/* --- Footer Section --- */
 .footer-text {
   text-align: center;
-  margin-top: 25px;
+  margin-top: 50px;
+  padding-top: 24px;
+  border-top: var(--pp-border);
   font-size: 15px;
+  color: var(--pp-footer);
+}
+
+.footer-text strong {
+  color: var(--pp-link);
+  font-weight: 700;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.footer-text strong:hover {
+  text-decoration: underline;
   opacity: 0.8;
 }
 
-/* Responsive */
+/* --- Responsive --- */
 @media (max-width: 600px) {
   .policy-container {
-    padding: 15px;
-    margin: 10px;
+    padding: 24px;
+    margin: 20px 16px;
+    border-radius: 16px;
   }
 
   .policy-container h1 {
-    font-size: 22px;
+    font-size: 26px;
+  }
+  
+  .policy-container h3 {
+    font-size: 18px;
+    margin-top: 24px;
+  }
+  
+  .policy-container p, 
+  .policy-container ul li {
+    font-size: 15px;
   }
 }
