@@ -16,6 +16,7 @@ type OrderItem = {
   nosPerInner?: number;
 };
 
+// ✅ FIXED: Changed paymentMethod to paymentMode
 type Order = {
   _id: string;
   orderNumber?: string;
@@ -23,7 +24,7 @@ type Order = {
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   items?: OrderItem[];
   total: number;
-  paymentMethod?: string;
+  paymentMode?: string; // Corrected field name
   estimatedDelivery?: string;
   shippingAddress?: string | {
     fullName?: string;
@@ -256,6 +257,7 @@ const generateInvoice = (order: Order) => {
               <tr><td>Invoice No</td><td>: ${order.orderNumber || order._id.slice(-6)}</td></tr>
               <tr><td>Date</td><td>: ${currentDate}</td></tr>
               <tr><td>Status</td><td>: ${order.status}</td></tr>
+              <tr><td>Payment</td><td>: ${order.paymentMode === "ONLINE" ? "Online (Paid)" : "COD"}</td></tr>
             </table>
           </div>
         </div>
@@ -608,10 +610,23 @@ const Orders: React.FC = () => {
                           <span>Status</span>
                           <StatusBadge status={order.status} />
                         </div>
+                        
+                        {/* ✅ FIXED: Correct Payment Display Logic */}
                         <div className="summary-row">
                           <span>Payment Method</span>
-                          <span>{order.paymentMethod || "Not specified"}</span>
+                          <span>
+                            {order.paymentMode === "ONLINE" ? (
+                              <span style={{ color: "green", fontWeight: "bold" }}>
+                                Online Payment (Paid) ✅
+                              </span>
+                            ) : (
+                              <span style={{ color: "#444" }}>
+                                Cash on Delivery 📦
+                              </span>
+                            )}
+                          </span>
                         </div>
+
                         <div className="summary-row">
                           <span>Shipping Address</span>
                           <span className="shipping-address">
