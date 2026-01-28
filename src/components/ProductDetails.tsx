@@ -2,7 +2,18 @@ import React, { useEffect, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
-import { FiChevronDown, FiChevronUp, FiInfo } from "react-icons/fi";
+// ✅ Updated Imports: Added missing icons
+import { 
+  FiChevronDown, 
+  FiChevronUp, 
+  FiInfo, 
+  FiStar, 
+  FiCheckCircle, 
+  FiAlertCircle, 
+  FiBox, 
+  FiTag, 
+  FiHash 
+} from "react-icons/fi";
 import { FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
@@ -16,6 +27,7 @@ interface BulkTier {
   price: number;
 }
 
+// ✅ Updated Interface: Added missing properties to match ProductCard
 interface Product {
   _id: string;
   name: string;
@@ -30,6 +42,10 @@ interface Product {
   sku?: string;
   category?: { _id: string; name: string };
   stock?: number;
+  rating?: number;     // Added
+  reviews?: number;    // Added
+  tagline?: string;    // Added
+  packSize?: string;   // Added
 }
 
 const ProductDetails: React.FC = () => {
@@ -40,7 +56,7 @@ const ProductDetails: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true); // Default expanded for better UX
+  const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
@@ -49,8 +65,6 @@ const ProductDetails: React.FC = () => {
   const { cartItems, addToCart, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
-  // ✅ Login check removed for visibility
-  
   const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
 
   useEffect(() => {
@@ -74,7 +88,7 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // --- Logic: Minimum Quantity (Consistent with ProductCard) ---
+  // --- Logic: Minimum Quantity ---
   const minQty = product ? (product.price < 60 ? 3 : 2) : 1;
 
   // Ensure initial quantity matches minQty when product loads
@@ -117,7 +131,7 @@ const ProductDetails: React.FC = () => {
 
   const unitPrice = activeTier ? activeTier.price : product.price;
 
-  // ✅ Discount Logic
+  // Discount Logic
   const hasDiscount = product.mrp && product.mrp > unitPrice;
   const discountPercent = hasDiscount 
     ? Math.round(((product.mrp! - unitPrice) / product.mrp!) * 100) 
@@ -130,11 +144,9 @@ const ProductDetails: React.FC = () => {
   // Handlers
   const handleDec = () => {
     if (productInCart) {
-        // If in cart, logic handles cart update
         const newQ = Math.max(minQty, currentQty - 1);
         setCartItemQuantity(productInCart, newQ);
     } else {
-        // If local state
         setQuantity(prev => Math.max(minQty, prev - 1));
     }
   };
@@ -179,10 +191,62 @@ const ProductDetails: React.FC = () => {
             <div className="product-header">
               <h1 className="product-title">{product.name}</h1>
               
+              {/* ✅ NEW SECTION: Matches ProductCard details */}
+              <div className="product-meta-details" style={{ margin: '10px 0 20px 0' }}>
+                  
+                  {/* 1. SKU Badge */}
+                  {product.sku && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.85rem', color: '#888', marginBottom: '8px' }}>
+                      <FiHash size={14} /> <span>SKU: {product.sku}</span>
+                    </div>
+                  )}
+
+                  {/* 2. Rating Section */}
+                  {(product.rating || product.reviews) && (
+                     <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '12px' }}>
+                       <FiStar fill="#fbbf24" color="#fbbf24" />
+                       <span style={{ fontWeight: 'bold', color: '#333' }}>{product.rating || 4.5}</span>
+                       {product.reviews && (
+                         <span style={{ color: '#666', fontSize: '0.9rem' }}> ({product.reviews} reviews)</span>
+                       )}
+                     </div>
+                  )}
+
+                  {/* 3. Specs (Tagline & Pack Size) */}
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '12px', flexWrap: 'wrap' }}>
+                      {product.tagline && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f3f4f6', padding: '4px 10px', borderRadius: '4px', fontSize: '0.85rem', color: '#4b5563' }}>
+                          <FiTag /> {product.tagline}
+                        </span>
+                      )}
+                      {product.packSize && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#e0f2fe', padding: '4px 10px', borderRadius: '4px', fontSize: '0.85rem', color: '#0369a1' }}>
+                          <FiBox /> {product.packSize}
+                        </span>
+                      )}
+                  </div>
+
+                  {/* 4. Detailed Stock Status */}
+                  <div>
+                    {product.stock === 0 ? (
+                      <span style={{ color: '#ef4444', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500' }}>
+                         Out of Stock
+                      </span>
+                    ) : product.stock && product.stock <= 10 ? (
+                      <span style={{ color: '#d97706', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500' }}>
+                        <FiAlertCircle /> Only {product.stock} items left!
+                      </span>
+                    ) : (
+                      <span style={{ color: '#10b981', display: 'flex', alignItems: 'center', gap: '5px', fontWeight: '500' }}>
+                        <FiCheckCircle /> In Stock
+                      </span>
+                    )}
+                  </div>
+              </div>
+              {/* ✅ END NEW SECTION */}
+
               <div className="price-section">
-                  {/* ✅ Price Box Always Visible (No Login Check) */}
                   <div className="price-display-box">
-                    {/* MRP Strikethrough Display */}
                     {product.mrp && (
                       <div className="details-mrp-row" style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
                         <span className="details-mrp-label" style={{ color: '#666' }}>MRP: </span>
@@ -208,15 +272,14 @@ const ProductDetails: React.FC = () => {
                       )}
                     </div>
                     
-                    {/* Min Qty Info */}
                     <div style={{ fontSize: '0.9rem', color: '#666', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
-                       <FiInfo size={14} /> Minimum Order Quantity: <strong>{minQty} units</strong>
+                        <FiInfo size={14} /> Minimum Order Quantity: <strong>{minQty} units</strong>
                     </div>
                   </div>
               </div>
             </div>
 
-            {/* Quantity and Action Buttons - ✅ Always Visible */}
+            {/* Quantity and Action Buttons */}
             <div className="quantity-section" style={{ display: 'block', marginTop: '20px' }}>
               <h3 className="section-title">🔢 Quantity</h3>
               <div className="action-row" style={{ display: 'flex', gap: '15px', marginTop: '10px' }}>
