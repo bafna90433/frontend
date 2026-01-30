@@ -1,131 +1,198 @@
-/* --- CSS Variables & Theme Config (Cosmic Tech Edition) --- */
+/* src/styles/CategoryNav.css - Kid/Playful Theme (Full Width) */
+
 :root {
-  /* Light Mode Defaults - Clean & Techy */
-  --nav-primary: #7c3aed;       /* Electric Violet (Matches Header Primary) */
-  --nav-bg: #ffffff;            /* Seamless with Header */
-  --nav-border: #e0e7ff;        /* Light Indigo Border */
+  /* --- KID THEME PALETTE --- */
+  --cn-primary: #FF6B6B;       /* Strawberry Red */
+  --cn-secondary: #4ECDC4;     /* Mint Teal */
+  --cn-accent: #FFD93D;        /* Pop Yellow */
+  --cn-dark: #2D3436;          /* Soft Black */
   
-  --item-bg: #f5f3ff;           /* Very Light Violet Tint (Not boring gray) */
-  --item-text: #64748b;         /* Slate Text */
+  --cn-bg: #FFFFFF;
+  --cn-item-bg: #F8F9FA;
+  --cn-border: #F0F2F5;
   
-  --item-hover-bg: #ede9fe;     /* Slightly darker violet tint */
-  --item-hover-text: #7c3aed;   /* Violet Text */
+  /* Active Gradient */
+  --cn-grad-active: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
   
-  /* Active State - Gradient like the buttons */
-  --item-active-bg: linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%);
-  --item-active-text: #ffffff;
+  /* Shadows */
+  --cn-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  --cn-shadow-active: 0 6px 15px rgba(255, 107, 107, 0.3);
   
-  --shadow-active: rgba(124, 58, 237, 0.3); /* Purple Glow */
+  /* Font */
+  --cn-font: 'Nunito', 'Quicksand', sans-serif;
 }
 
-/* --- DARK MODE OVERRIDES (Deep Space Look) --- */
+/* Dark Mode Overrides */
 body.dark {
-  --nav-bg: #0f1026;            /* Matches Header Background */
-  --nav-border: #1e1b4b;        /* Dark Indigo Border */
-  
-  --item-bg: #1e1b4b;           /* Deep Indigo Pills */
-  --item-text: #94a3b8;         /* Muted Blue-Grey */
-  
-  --item-hover-bg: #2e1065;     /* Dark Violet Hover */
-  --item-hover-text: #a78bfa;   /* Light Violet Text */
-  
-  --item-active-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-  --item-active-text: #ffffff;
-  
-  --shadow-active: rgba(124, 58, 237, 0.5);
+  --cn-bg: #1a1a2e;
+  --cn-item-bg: #252840;
+  --cn-border: #2d3436;
+  --cn-dark: #f1f1f1;
+  --cn-shadow: 0 4px 10px rgba(0,0,0,0.3);
 }
 
-/* --- Layout Constants --- */
-:root {
-  --border-radius-pill: 20px;
-  --padding-x-desktop: 24px;
-}
-
-/* --- Main Container (NON-STICKY) --- */
+/* --- Main Container --- */
 .category-nav-container {
   width: 100%;
-  background: var(--nav-bg);        
-  border-bottom: 1px solid var(--nav-border); 
-  
-  /* Ensures it sits in the normal document flow below the header */
+  background: var(--cn-bg);        
+  border-bottom: 2px dashed var(--cn-border); 
   position: relative; 
-  z-index: 1; 
-
-  /* Hides the default scrollbar */
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  
-  transition: background-color 0.3s ease, border-color 0.3s ease;
+  z-index: 90; 
+  padding: 10px 0;
+  font-family: var(--cn-font);
 }
 
-/* Hide scrollbar for Chrome, Safari, and newer Edge */
-.category-nav-container::-webkit-scrollbar {
-  display: none;
+/* ✅ FULL WIDTH WRAPPER (No Max Width) */
+.category-nav-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 0; /* Remove auto margin */
+  display: flex;
+  align-items: center;
 }
 
-/* --- Scroll Wrapper and Layout --- */
+/* --- Scroll Area --- */
 .category-scroll {
   display: flex;
-  gap: 50px;
+  gap: 12px;
   align-items: center;
-  padding: 10px var(--padding-x-desktop);
-  white-space: nowrap;
+  
+  /* ✅ Spacing for Arrows + Full Width */
+  padding: 5px 50px; 
+  
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; /* Firefox */
+  scroll-behavior: smooth;
+  width: 100%;
+}
+
+/* Hide scrollbar */
+.category-scroll::-webkit-scrollbar {
+  display: none;
 }
 
 /* --- Category Item (Pill Button) --- */
 .category-item {
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
   
   /* Size and Shape */
-  padding: 8px 18px; /* Slightly larger for touch targets */
-  border-radius: var(--border-radius-pill);
+  padding: 10px 20px;
+  border-radius: 50px; /* Full pill shape */
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 700;
   text-decoration: none;
   
-  /* Colors using Variables */
-  background: var(--item-bg);
-  color: var(--item-text);
+  /* Colors */
+  background: var(--cn-item-bg);
+  color: var(--cn-dark);
+  border: 2px solid transparent;
   
-  /* Animation */
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-  border: 1px solid transparent; 
+  /* Physics */
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: var(--cn-shadow);
 }
 
 /* Hover State */
 .category-item:hover {
-  background: var(--item-hover-bg);
-  color: var(--item-hover-text);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  transform: translateY(-3px);
+  background: #FFF;
+  border-color: var(--cn-secondary);
+  color: var(--cn-secondary);
 }
 
 /* Active State */
 .category-item.active {
-  background: var(--item-active-bg);
-  color: var(--item-active-text);
-  font-weight: 600;
-  box-shadow: 0 4px 12px var(--shadow-active); /* Glowing effect */
+  background: var(--cn-grad-active);
+  color: #FFFFFF;
+  box-shadow: var(--cn-shadow-active);
   border-color: transparent;
+  transform: scale(1.05);
+}
+
+.category-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* --- SCROLL ARROW BUTTONS (PC Only) --- */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #FFF;
+  border: 1px solid var(--cn-border);
+  color: var(--cn-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+}
+
+.nav-arrow:hover {
+  background: var(--cn-secondary);
+  color: #FFF;
+  border-color: var(--cn-secondary);
+  transform: translateY(-50%) scale(1.1);
+}
+
+/* Arrow Positioning - Fixed to edges */
+.nav-arrow--left {
+  left: 10px;
+}
+
+.nav-arrow--right {
+  right: 10px;
+}
+
+/* --- Visual Fade for Scroll --- */
+.scroll-fade-right {
+  position: absolute;
+  right: 40px; /* Moved slightly inward */
+  top: 0;
+  bottom: 0;
+  width: 30px;
+  background: linear-gradient(to right, transparent, var(--cn-bg));
+  pointer-events: none;
+  z-index: 5;
 }
 
 /* --- Mobile Responsiveness --- */
 @media (max-width: 768px) {
-  .category-scroll {
-    gap: 12px;
-    padding: 10px 16px;
+  .category-nav-container {
+    padding: 5px 0;
   }
-}
-
-@media (max-width: 480px) {
+  
   .category-scroll {
     gap: 10px;
-    padding: 8px 12px;
+    /* Reduce side padding on mobile since arrows are gone */
+    padding: 5px 15px; 
+  }
+  
+  .category-item {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  
+  .category-icon {
+    font-size: 16px;
   }
 
-  .category-item {
-    padding: 6px 14px;
-    font-size: 13px;
+  /* HIDE ARROWS ON MOBILE */
+  .nav-arrow {
+    display: none;
+  }
+  
+  .scroll-fade-right {
+    right: 0;
   }
 }

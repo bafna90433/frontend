@@ -4,17 +4,16 @@ import { useShop } from "../context/ShopContext";
 import { 
   ShoppingCart, 
   Zap, 
-  Tag, 
   Box, 
   Plus, 
-  Minus,
-  Info,
-  Star,
-  Eye,
-  TrendingUp,
-  Shield,
-  CheckCircle,
-  Sparkles
+  Minus, 
+  Info, 
+  Star, 
+  TrendingUp, 
+  Shield, 
+  CheckCircle, 
+  Sparkles,
+  Tag
 } from "lucide-react";
 import "../styles/ProductCard.css";
 
@@ -54,7 +53,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
+  // Hover state removed as it was only used for Quick View
   
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
@@ -75,11 +74,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
       e.stopPropagation(); 
       const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
       setCartItemQuantity(product, nextQty); 
-    },
-    quickView: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // Add quick view modal logic here
-      console.log("Quick view:", product._id);
     }
   };
 
@@ -88,31 +82,27 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
     : 0;
 
-  // Calculate rating stars
+  // Rating Logic
   const rating = product.rating || 4.5;
-  const filledStars = Math.floor(rating);
-  const hasHalfStar = rating % 1 >= 0.5;
 
   return (
-    <div 
-      className="pc-wrapper" 
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="pc-card">
-        {/* Glassmorphic Top Badges */}
-        <div className="pc-top-badges">
-          {product.featured && (
-            <span className="pc-badge pc-badge--featured">
-              <TrendingUp size={10} /> Featured
-            </span>
-          )}
-          {/* Hot Deal removed */}
-        </div>
-
-        {/* Product Image with Interactive Overlay */}
-        <div className="pc-image-container" onClick={handleNavigate}>
+    <div className="pc-wrapper">
+      <div className="pc-card" onClick={handleNavigate}>
+        
+        {/* --- 1. Image Section --- */}
+        <div className="pc-image-container">
           <div className="pc-image-wrapper">
+            
+            {/* Top Badges */}
+            <div className="pc-top-badges">
+              {product.featured && (
+                <span className="pc-badge pc-badge--featured">
+                  <TrendingUp size={10} strokeWidth={3} /> Featured
+                </span>
+              )}
+            </div>
+
+            {/* Main Image */}
             {!imgLoaded && <div className="pc-skeleton" />}
             <img
               src={getOptimizedImageUrl(product.images?.[0] || "", 400)}
@@ -121,38 +111,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               loading={index < 4 ? "eager" : "lazy"}
               onLoad={() => setImgLoaded(true)}
             />
-            {/* Gradient Overlay */}
-            <div className="pc-image-gradient" />
             
-            {/* Quick Actions Overlay */}
-            <div className={`pc-quick-actions ${isHovered ? "pc-quick-actions--visible" : ""}`}>
-              <button className="pc-action-btn pc-action-btn--view" onClick={actions.quickView}>
-                <Eye size={18} />
-              </button>
-            </div>
+            {/* Quick View Removed */}
           </div>
 
-          {/* Discount Ribbon */}
+          {/* Discount Ribbon (Bottom Right) */}
           {discountPercent > 0 && (
             <div className="pc-discount-ribbon">
-              <Sparkles size={10} />
+              <Sparkles size={10} fill="currentColor" />
               <span>{discountPercent}% OFF</span>
             </div>
           )}
         </div>
 
+        {/* --- 2. Body Section --- */}
         <div className="pc-body">
-          {/* Category and Stock Status */}
+          
+          {/* Stock & Category Row */}
           <div className="pc-meta-row">
-            <span className="pc-category-tag">
-              {categoryName || "Toys"}
-            </span>
+            <span className="pc-category-tag">{categoryName || "Toys"}</span>
             <div className="pc-stock-status">
-              {product.stock === 0 ? (
+               {product.stock === 0 ? (
                 <span className="pc-stock pc-stock--out">Out of Stock</span>
               ) : product.stock && product.stock <= 10 ? (
                 <span className="pc-stock pc-stock--low">
-                  <Zap size={10} /> {product.stock} left
+                  <Zap size={10} fill="currentColor" /> {product.stock} left
                 </span>
               ) : (
                 <span className="pc-stock pc-stock--in">
@@ -163,46 +146,47 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
           </div>
 
           {/* Product Title */}
-          <h3 className="pc-title" onClick={handleNavigate}>
+          <h3 className="pc-title">
             {product.name}
-            {product.sku && <span className="pc-sku-badge">#{product.sku.slice(0, 6)}</span>}
           </h3>
 
-          {/* Rating */}
-          {(product.rating || product.reviews) && (
-            <div className="pc-rating">
-              <div className="pc-stars">
-                {[...Array(5)].map((_, i) => (
-                  <Star
-                    key={i}
-                    size={12}
-                    fill={i < filledStars ? "#fbbf24" : i === filledStars && hasHalfStar ? "url(#half-star)" : "none"}
-                    className={i < filledStars ? "pc-star pc-star--filled" : "pc-star"}
-                  />
-                ))}
-              </div>
-              <span className="pc-rating-text">{rating.toFixed(1)}</span>
-              {product.reviews && (
-                <span className="pc-reviews">({product.reviews} reviews)</span>
-              )}
-            </div>
-          )}
-
-          {/* Product Specs */}
-          <div className="pc-specs">
-            {product.tagline && (
-              <span className="pc-spec-item">
-                <Tag size={10} /> {product.tagline}
+          {/* Meta Chips: SKU, Tagline, Pack Size */}
+          <div className="pc-meta-chips">
+            
+            {/* SKU Chip (Purple) */}
+            {product.sku && (
+              <span className="pc-chip pc-chip--sku">
+                <span className="pc-chip-hash">#</span> 
+                {product.sku.replace("#", "").slice(0, 8)}
               </span>
             )}
-            {product.packSize && (
-              <span className="pc-spec-item">
-                <Box size={10} /> {product.packSize}
+
+            {/* Tagline Chip (Orange) - ADDED BACK */}
+            {product.tagline && (
+              <span className="pc-chip pc-chip--tag">
+                <Tag size={10} strokeWidth={2.5} /> 
+                {product.tagline}
               </span>
+            )}
+
+            {/* Pack Size Chip (Blue) */}
+            {product.packSize && (
+              <span className="pc-chip pc-chip--box">
+                <Box size={10} strokeWidth={2.5} /> 
+                {product.packSize}
+              </span>
+            )}
+
+            {/* Rating Chip (Yellow) */}
+            {(product.rating || product.reviews) && (
+               <span className="pc-chip pc-chip--rating">
+                 <Star size={10} fill="#FBC02D" stroke="none" /> 
+                 {rating.toFixed(1)}
+               </span>
             )}
           </div>
 
-          {/* Pricing Section */}
+          {/* --- 3. Price & Actions Section --- */}
           <div className="pc-price-section">
             <div className="pc-price-main">
               <div className="pc-current-price">
@@ -210,28 +194,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
                 <span className="pc-amount">{product.price.toLocaleString()}</span>
                 {product.mrp && product.mrp > product.price && (
                   <span className="pc-mrp">
-                    <span className="pc-mrp-label">MRP </span>
-                    <span className="pc-mrp-value">₹{product.mrp.toLocaleString()}</span>
+                    MRP ₹{product.mrp.toLocaleString()}
                   </span>
                 )}
               </div>
-              
-              {discountPercent > 0 && (
-                <div className="pc-savings">
-                  Save ₹{(product.mrp! - product.price).toLocaleString()}
-                </div>
-              )}
             </div>
-
-            {/* Min Qty Indicator */}
+            
+            {/* Min Qty Alert */}
             {itemCount === 0 && (
               <div className="pc-min-qty">
-                <Info size={10} /> Minimum order: {minQty} items
+                <Info size={10} /> Min Order: {minQty}
               </div>
             )}
           </div>
 
-          {/* Cart Actions */}
+          {/* Cart Buttons */}
           <div className="pc-actions">
             {itemCount === 0 ? (
               <button 
@@ -240,43 +217,30 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
                 disabled={product.stock === 0}
               >
                 {product.stock === 0 ? (
-                  <>
-                    <Shield size={16} /> Notify Me
-                  </>
+                  <> <Shield size={16} /> Notify Me </>
                 ) : (
-                  <>
-                    <ShoppingCart size={18} />
-                    <span>Add to Cart</span>
-                    <span className="pc-min-indicator">Min {minQty}</span>
-                  </>
+                  <> <ShoppingCart size={18} strokeWidth={2.5} /> Add to Cart </>
                 )}
               </button>
             ) : (
               <div className="pc-quantity-controls">
-                <div className="pc-quantity-display">
-                  <span className="pc-quantity-label">In cart:</span>
-                  <span className="pc-quantity-value">{itemCount}</span>
-                  <span className="pc-quantity-total">₹{(itemCount * product.price).toLocaleString()}</span>
+                <div className="pc-qty-info">
+                   <span className="pc-qty-label">Total:</span>
+                   <span className="pc-qty-total">₹{(itemCount * product.price).toLocaleString()}</span>
                 </div>
                 <div className="pc-quantity-buttons">
-                  <button 
-                    onClick={actions.dec} 
-                    className="pc-qty-btn pc-qty-btn--decrease"
-                    title={itemCount === minQty ? "Remove from cart" : "Decrease quantity"}
-                  >
-                    {itemCount === minQty ? "Remove" : <Minus size={14} />}
+                  <button onClick={actions.dec} className="pc-qty-btn pc-qty-btn--decrease">
+                    {itemCount === minQty ? "Del" : <Minus size={14} strokeWidth={3} />}
                   </button>
-                  <button 
-                    onClick={actions.inc} 
-                    className="pc-qty-btn pc-qty-btn--increase"
-                    disabled={product.stock !== undefined && itemCount >= product.stock}
-                  >
-                    <Plus size={14} />
+                  <span className="pc-qty-val">{itemCount}</span>
+                  <button onClick={actions.inc} className="pc-qty-btn pc-qty-btn--increase" disabled={product.stock !== undefined && itemCount >= product.stock}>
+                    <Plus size={14} strokeWidth={3} />
                   </button>
                 </div>
               </div>
             )}
           </div>
+
         </div>
       </div>
     </div>

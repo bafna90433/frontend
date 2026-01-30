@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom"; // 👈 Import Link for navigation
+import { Link } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
@@ -24,6 +24,15 @@ interface Product {
   innerQty: number;
   images: string[];
   taxFields?: string[];
+  // Added optional fields to match ProductCard interface if API returns them
+  stock?: number;
+  rating?: number;
+  reviews?: number;
+  tagline?: string;
+  packSize?: string;
+  featured?: boolean;
+  mrp?: number;
+  slug?: string;
 }
 
 interface Banner {
@@ -140,18 +149,18 @@ const Home: React.FC = () => {
           <div key={i} className="category-block">
             <Skeleton
               variant="text"
-              width="60%"
-              height={30}
-              sx={{ marginLeft: "0.5rem" }}
+              width="40%"
+              height={40}
+              sx={{ marginLeft: "1rem", marginBottom: "1rem", borderRadius: "10px" }}
             />
             <div className="product-scroll">
               {Array.from({ length: 4 }).map((_, j) => (
                 <Skeleton
                   key={j}
                   variant="rectangular"
-                  width={140}
-                  height={180}
-                  sx={{ marginRight: "0.8rem", borderRadius: "8px" }}
+                  width={160}
+                  height={220}
+                  sx={{ marginRight: "1rem", borderRadius: "20px" }}
                 />
               ))}
             </div>
@@ -162,7 +171,9 @@ const Home: React.FC = () => {
           const items = products.filter((p) => p.category?._id === cat._id);
           return (
             <div key={cat._id} id={`cat-${cat._id}`} className="category-block">
-              <h2 className="category-title">{cat.name}</h2>
+              <h2 className="category-title">
+                <span className="title-highlight">{cat.name}</span>
+              </h2>
               <div className="product-scroll-wrapper">
                 <div
                   id={`scroll-${cat._id}`}
@@ -176,34 +187,36 @@ const Home: React.FC = () => {
                   ))}
                   {items.length === 0 && (
                     <div className="empty-category-message">
-                      No products in this category
+                      Currently restocking these toys! 🧸
                     </div>
                   )}
                 </div>
-                <div className="scroll-indicator">← Scroll →</div>
+                {/* Scroll indicator hidden in CSS for desktop, visible/animated if needed */}
               </div>
             </div>
           );
         })
       ) : (
-        <div className="empty-category-message">No categories available</div>
+        <div className="empty-category-message">No categories found 🎈</div>
       )}
 
       <FloatingCheckoutButton />
 
-      {/* ✅ NEW FOOTER SECTION ADDED HERE */}
+      {/* ✅ FOOTER SECTION */}
       <footer className="home-footer">
-        <div className="footer-links-container">
-            <h3>Quick Links</h3>
-            <ul className="footer-links">
-                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
-            </ul>
-        </div>
-        <div className="footer-copyright">
-            <p>© {new Date().getFullYear()} Bafna Toys. All rights reserved.</p>
+        <div className="footer-content">
+            <div className="footer-links-container">
+                <h3>Quick Links</h3>
+                <ul className="footer-links">
+                    <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                    <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                    <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                    <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+                </ul>
+            </div>
+            <div className="footer-copyright">
+                <p>© {new Date().getFullYear()} Bafna Toys. Spreading Joy! 🚀</p>
+            </div>
         </div>
       </footer>
     </div>

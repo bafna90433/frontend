@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import api from "../utils/api";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; // ✅ Import Icons
 import "../styles/CategoryNav.css";
 
 interface Category {
@@ -13,6 +14,20 @@ const CategoryNav: React.FC = () => {
   const location = useLocation();
   const params = new URLSearchParams(location.search);
   const activeCategory = params.get("category");
+  
+  // ✅ 1. Create Ref for the scroll container
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // ✅ 2. Scroll Function
+  const scrollNav = (direction: "left" | "right") => {
+    if (scrollRef.current) {
+      const scrollAmount = 300; // Distance to scroll
+      scrollRef.current.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
+  };
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -48,7 +63,18 @@ const CategoryNav: React.FC = () => {
   return (
     <div className="category-nav-container">
       <div className="category-nav-wrapper">
-        <div className="category-scroll">
+        
+        {/* ✅ Left Arrow Button (PC Only) */}
+        <button 
+          className="nav-arrow nav-arrow--left" 
+          onClick={() => scrollNav("left")}
+          aria-label="Scroll Left"
+        >
+          <FiChevronLeft size={20} />
+        </button>
+
+        {/* Scroll Container with Ref */}
+        <div className="category-scroll" ref={scrollRef}>
           {/* All Categories Button */}
           <Link
             to="/products"
@@ -73,17 +99,17 @@ const CategoryNav: React.FC = () => {
           ))}
         </div>
         
-        {/* Scroll Indicators */}
-        <div className="scroll-indicator left-indicator">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" fill="currentColor"/>
-          </svg>
-        </div>
-        <div className="scroll-indicator right-indicator">
-          <svg viewBox="0 0 24 24" width="16" height="16">
-            <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z" fill="currentColor"/>
-          </svg>
-        </div>
+        {/* ✅ Right Arrow Button (PC Only) */}
+        <button 
+          className="nav-arrow nav-arrow--right" 
+          onClick={() => scrollNav("right")}
+          aria-label="Scroll Right"
+        >
+          <FiChevronRight size={20} />
+        </button>
+
+        {/* Visual Fade for Scroll */}
+        <div className="scroll-fade-right"></div>
       </div>
     </div>
   );
