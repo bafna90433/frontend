@@ -8,6 +8,7 @@ import "../styles/Home.css";
 import { Skeleton } from "@mui/material";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
+import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi"; // ✅ Added FiArrowRight
 
 interface Category {
   _id: string;
@@ -24,7 +25,6 @@ interface Product {
   innerQty: number;
   images: string[];
   taxFields?: string[];
-  // Added optional fields to match ProductCard interface if API returns them
   stock?: number;
   rating?: number;
   reviews?: number;
@@ -48,29 +48,18 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const activeDemos = useRef<Record<string, boolean>>({});
-
-  const runScrollDemo = (id: string) => {
+  // ✅ SCROLL FUNCTION
+  const scrollContainer = (id: string, direction: "left" | "right") => {
     const container = document.getElementById(`scroll-${id}`);
-    if (!container || activeDemos.current[id]) return;
-
-    activeDemos.current[id] = true;
-    const firstProduct = container.querySelector<HTMLElement>(".product-link");
-    const productWidth = firstProduct ? firstProduct.offsetWidth + 16 : 200;
-    const distance = Math.min(
-      productWidth * 4,
-      container.scrollWidth - container.clientWidth
-    );
-
-    const duration = 1500;
-    container.scrollBy({ left: distance, behavior: "smooth" });
-    setTimeout(() => {
-      container.scrollBy({ left: -distance, behavior: "smooth" });
-      activeDemos.current[id] = false;
-    }, duration);
+    if (container) {
+      const scrollAmount = container.clientWidth; 
+      container.scrollBy({
+        left: direction === "left" ? -scrollAmount : scrollAmount,
+        behavior: "smooth",
+      });
+    }
   };
 
-  // ✅ Fetch all
   useEffect(() => {
     async function fetchData() {
       try {
@@ -107,43 +96,15 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
-  // ✅ Intersection scroll animation
-  useEffect(() => {
-    if (!loading && categories.length > 0) {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              const id = entry.target.getAttribute("data-id");
-              if (id) runScrollDemo(id);
-            }
-          });
-        },
-        { threshold: 0.4 }
-      );
-
-      categories.forEach((cat) => {
-        const el = document.getElementById(`scroll-${cat._id}`);
-        if (el) observer.observe(el);
-      });
-
-      return () => observer.disconnect();
-    }
-  }, [loading, categories]);
-
   if (error) {
     return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
     <div className="home-container">
-      {/* ✅ Category navigation strip */}
       <CategoryNav />
-
-      {/* ✅ Banner Slider */}
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* ✅ Loading skeleton */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
@@ -154,12 +115,12 @@ const Home: React.FC = () => {
               sx={{ marginLeft: "1rem", marginBottom: "1rem", borderRadius: "10px" }}
             />
             <div className="product-scroll">
-              {Array.from({ length: 4 }).map((_, j) => (
+              {Array.from({ length: 6 }).map((_, j) => (
                 <Skeleton
                   key={j}
                   variant="rectangular"
-                  width={160}
-                  height={220}
+                  width={200}
+                  height={280}
                   sx={{ marginRight: "1rem", borderRadius: "20px" }}
                 />
               ))}
@@ -169,12 +130,32 @@ const Home: React.FC = () => {
       ) : categories.length > 0 ? (
         categories.map((cat) => {
           const items = products.filter((p) => p.category?._id === cat._id);
+          if (items.length === 0) return null;
+
           return (
             <div key={cat._id} id={`cat-${cat._id}`} className="category-block">
-              <h2 className="category-title">
-                <span className="title-highlight">{cat.name}</span>
-              </h2>
+              
+              {/* ✅ HEADER ROW: Title + View All Button */}
+              <div className="category-header">
+                <h2 className="category-title">
+                  <span className="title-highlight">{cat.name}</span>
+                </h2>
+                
+                <Link to={`/products?category=${cat._id}`} className="view-all-btn">
+                  View All <FiArrowRight />
+                </Link>
+              </div>
+              
               <div className="product-scroll-wrapper">
+                {/* Left Button */}
+                <button 
+                  className="scroll-btn scroll-btn--left"
+                  onClick={() => scrollContainer(cat._id, "left")}
+                  aria-label="Scroll Left"
+                >
+                  <FiChevronLeft size={24} />
+                </button>
+
                 <div
                   id={`scroll-${cat._id}`}
                   data-id={cat._id}
@@ -185,13 +166,16 @@ const Home: React.FC = () => {
                       <ProductCard product={product} userRole="customer" />
                     </div>
                   ))}
-                  {items.length === 0 && (
-                    <div className="empty-category-message">
-                      Currently restocking these toys! 🧸
-                    </div>
-                  )}
                 </div>
-                {/* Scroll indicator hidden in CSS for desktop, visible/animated if needed */}
+
+                {/* Right Button */}
+                <button 
+                  className="scroll-btn scroll-btn--right"
+                  onClick={() => scrollContainer(cat._id, "right")}
+                  aria-label="Scroll Right"
+                >
+                  <FiChevronRight size={24} />
+                </button>
               </div>
             </div>
           );
@@ -202,7 +186,6 @@ const Home: React.FC = () => {
 
       <FloatingCheckoutButton />
 
-      {/* ✅ FOOTER SECTION */}
       <footer className="home-footer">
         <div className="footer-content">
             <div className="footer-links-container">

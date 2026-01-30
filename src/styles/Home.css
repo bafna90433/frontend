@@ -1,32 +1,21 @@
 /* src/styles/Home.css - Kid/Playful Theme */
 
 :root {
-  /* --- KID THEME PALETTE --- */
   --kid-bg: #FFFFFF;
   --kid-card-bg: #FFFFFF;
-  
-  /* Bright "Toy Store" Colors */
   --kid-primary: #FF6B6B;       /* Strawberry Red */
   --kid-secondary: #4ECDC4;     /* Mint Teal */
   --kid-accent: #FFD93D;        /* Pop Yellow */
   --kid-blue: #45AAF2;          /* Sky Blue */
   --kid-purple: #A55EEA;        /* Grape */
-  
   --kid-text: #2D3436;          /* Soft Black */
   --kid-text-light: #636e72;    /* Grey */
-  
-  /* Footer */
-  --footer-bg: #FFF9C4;         /* Soft Creamy Yellow Background */
-  --footer-text: #5d4037;       /* Brown Text (Warm) */
-  
-  /* Fonts */
+  --footer-bg: #FFF9C4;
+  --footer-text: #5d4037;
   --kid-font: 'Nunito', 'Quicksand', sans-serif;
-  
-  /* Shadows */
   --kid-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
-/* Dark Mode Overrides */
 body.dark {
   --kid-bg: #1a1a2e;
   --kid-card-bg: #16213e;
@@ -36,7 +25,6 @@ body.dark {
   --footer-text: #f8fafc;
 }
 
-/* ===== MAIN CONTAINER ===== */
 .home-container {
   width: 100%;
   margin: 0;
@@ -47,38 +35,40 @@ body.dark {
   overflow-x: hidden;
 }
 
-/* ===== BANNER SECTION ===== */
 .banner-section {
   width: 100%;
   margin-bottom: 30px;
-  border-radius: 0 0 30px 30px; /* Fun curve at bottom of banner area */
+  border-radius: 0 0 30px 30px; 
   overflow: hidden;
   box-shadow: var(--kid-shadow);
 }
 
-/* ===== CATEGORY BLOCKS ===== */
 .category-block {
   margin-bottom: 50px;
   position: relative;
-  padding-left: 10px;
+  /* Removed padding-left here to use container padding */
 }
 
-/* ===== FUN CATEGORY TITLES ===== */
+/* ✅ NEW: CATEGORY HEADER (Title + Button) */
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px; /* Align with scroll area */
+  margin-bottom: 15px;
+}
+
 .category-title {
   font-size: 28px;
-  font-weight: 900; /* Extra Bold */
-  margin: 0 0 20px 15px;
+  font-weight: 900;
+  margin: 0; /* Margin handled by parent padding */
   color: var(--kid-text);
   position: relative;
   display: inline-block;
   z-index: 1;
 }
 
-/* The yellow highlighter effect behind text */
-.category-title .title-highlight {
-  position: relative;
-  z-index: 2;
-}
+.title-highlight { position: relative; z-index: 2; }
 
 .category-title::after {
   content: "";
@@ -87,21 +77,38 @@ body.dark {
   left: 0;
   width: 100%;
   height: 12px;
-  background-color: var(--kid-accent); /* Yellow highlighter */
+  background-color: var(--kid-accent);
   border-radius: 6px;
   opacity: 0.6;
   z-index: 1;
   transform: rotate(-1deg);
 }
 
-/* Alternating Title Colors for Fun */
-.category-block:nth-child(even) .category-title::after {
-  background-color: var(--kid-secondary); /* Mint highlighter */
-  transform: rotate(1deg);
+/* Alternating Title Colors */
+.category-block:nth-child(even) .category-title::after { background-color: var(--kid-secondary); transform: rotate(1deg); }
+.category-block:nth-child(3n) .category-title::after { background-color: #FFB7B2; }
+
+/* ✅ NEW: VIEW ALL BUTTON STYLE */
+.view-all-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--kid-primary);
+  text-decoration: none;
+  background: #FFF5F5; /* Light red tint */
+  padding: 8px 16px;
+  border-radius: 30px;
+  transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border: 1px solid transparent;
 }
 
-.category-block:nth-child(3n) .category-title::after {
-  background-color: #FFB7B2; /* Light Pink highlighter */
+.view-all-btn:hover {
+  background: var(--kid-primary);
+  color: white;
+  transform: translateX(5px); /* Slide effect */
+  box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
 }
 
 /* ===== PRODUCT SCROLL AREA ===== */
@@ -110,47 +117,64 @@ body.dark {
   width: 100%;
 }
 
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 20;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid #f0f0f0;
+  color: var(--kid-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  transition: all 0.2s;
+  opacity: 0; 
+}
+
+.product-scroll-wrapper:hover .scroll-btn { opacity: 1; }
+
+.scroll-btn:hover {
+  background: var(--kid-primary);
+  color: white;
+  border-color: var(--kid-primary);
+  transform: translateY(-50%) scale(1.15);
+}
+
+.scroll-btn--left { left: 10px; }
+.scroll-btn--right { right: 10px; }
+
 .product-scroll {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 16px; /* Desktop Gap */
+  gap: 16px; 
   padding: 10px 20px 20px 20px; 
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x mandatory; 
   scrollbar-width: thin;
   -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
-.product-scroll::-webkit-scrollbar {
-  height: 8px;
-}
+.product-scroll::-webkit-scrollbar { height: 8px; }
+.product-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
+.product-scroll::-webkit-scrollbar-thumb { background-color: var(--kid-secondary); border-radius: 10px; border: 2px solid #f1f1f1; }
 
-.product-scroll::-webkit-scrollbar-track {
-  background: #f1f1f1;
-  border-radius: 10px;
-}
-
-.product-scroll::-webkit-scrollbar-thumb {
-  background-color: var(--kid-secondary); 
-  border-radius: 10px;
-  border: 2px solid #f1f1f1;
-}
-
-/* Product Item Wrapper - DESKTOP DEFAULT (6 Columns) */
-/* (100% width - (5 gaps * 16px)) / 6 items roughly */
 .product-link {
   flex: 0 0 calc((100% - 80px) / 6); 
   max-width: calc((100% - 80px) / 6);
-  
-  scroll-snap-align: start;
+  scroll-snap-align: start; 
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
 }
 
-/* Empty State */
 .empty-category-message {
   padding: 40px;
   text-align: center;
@@ -212,9 +236,7 @@ body.dark {
   position: relative;
 }
 
-.footer-links li a:hover {
-  color: var(--kid-primary);
-}
+.footer-links li a:hover { color: var(--kid-primary); }
 
 .footer-copyright {
   border-top: 2px dashed rgba(0,0,0,0.1);
@@ -225,60 +247,34 @@ body.dark {
 }
 
 /* ===== RESPONSIVE ===== */
+@media (max-width: 1440px) {
+  .product-link { flex: 0 0 calc((100% - 64px) / 5); max-width: calc((100% - 64px) / 5); }
+}
 
-/* Laptop/Tablet Landscape (1024px - 1280px) -> 5 Columns */
 @media (max-width: 1280px) {
-  .product-link {
-    flex: 0 0 calc((100% - 64px) / 5);
-    max-width: calc((100% - 64px) / 5);
-  }
+  .product-link { flex: 0 0 calc((100% - 48px) / 4); max-width: calc((100% - 48px) / 4); }
 }
 
-/* Tablet Portrait (768px - 1024px) -> 4 Columns */
 @media (max-width: 1024px) {
-  .product-link {
-    flex: 0 0 calc((100% - 48px) / 4);
-    max-width: calc((100% - 48px) / 4);
-  }
+  .product-link { flex: 0 0 calc((100% - 32px) / 3); max-width: calc((100% - 32px) / 3); }
+  .scroll-btn { display: none; } 
 }
 
-/* Mobile (Under 768px) -> 2 COLUMNS EXACTLY */
 @media (max-width: 768px) {
-  .home-container {
-    padding-bottom: 60px;
-  }
-
-  .category-title {
-    font-size: 22px;
-    margin-left: 15px;
-  }
-
-  /* Reduce gap on mobile */
-  .product-scroll {
-    padding: 0 10px 10px 10px; /* Symmetric padding */
-    gap: 10px;                 /* 10px gap */
-  }
-
-  /* Calculation for 2 Columns:
-     Total width 100% minus the gap (10px) divided by 2.
-  */
-  .product-link {
-    flex: 0 0 calc((100% - 10px) / 2); 
-    max-width: calc((100% - 10px) / 2);
-  }
-
-  .home-footer {
-    padding: 40px 20px 80px 20px;
-    border-radius: 30px 30px 0 0;
-  }
+  .home-container { padding-bottom: 60px; }
   
-  .footer-links {
-    flex-direction: column;
-    gap: 15px;
-  }
-}
+  /* Mobile Header Adjustment */
+  .category-header { padding: 0 15px; margin-bottom: 10px; }
+  
+  .category-title { font-size: 22px; }
+  
+  /* Smaller View All button on mobile */
+  .view-all-btn { padding: 6px 12px; font-size: 12px; }
 
-/* Scroll Indicator Animation */
-.scroll-indicator {
-  display: none; 
+  .product-scroll { padding: 0 10px 10px 10px; gap: 10px; }
+  .product-link { flex: 0 0 calc((100% - 10px) / 2); max-width: calc((100% - 10px) / 2); }
+  .scroll-btn { display: none !important; }
+  
+  .home-footer { padding: 40px 20px 80px 20px; border-radius: 30px 30px 0 0; }
+  .footer-links { flex-direction: column; gap: 15px; }
 }

@@ -162,14 +162,14 @@ const Register: React.FC = () => {
       <div className="auth-brand">
         <div className="brand-content">
           <div className="brand-header">
-            <Store size={32} color="#fff" />
-            <h1>ShopPartner</h1>
+            <Store size={36} color="#fff" />
+            <h1>Bafna Toys</h1>
           </div>
-          <h2>Join the Retail <br/> Revolution.</h2>
-          <p>Register your shop in seconds and start managing your inventory digitally.</p>
+          <h2>Join the Fun! 🚀 <br/> Start Your Toy Story.</h2>
+          <p>Register your shop in seconds and start stocking the best toys in town.</p>
           <div className="brand-badges">
-             <span className="brand-badge"><ShieldCheck size={16}/> Secure</span>
-             <span className="brand-badge"><ShoppingBag size={16}/> Easy Sales</span>
+             <span className="brand-badge"><ShieldCheck size={18}/> Secure</span>
+             <span className="brand-badge"><ShoppingBag size={18}/> Easy Orders</span>
           </div>
         </div>
         <div className="circle c1"></div>
