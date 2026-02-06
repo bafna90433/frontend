@@ -5,6 +5,7 @@ import axios from "axios";
 import MainLayout from "./MainLayout";
 import "../styles/Orders.css";
 
+// ================= TYPES =================
 type OrderItem = {
   productId?: string;
   name: string;
@@ -16,7 +17,6 @@ type OrderItem = {
   nosPerInner?: number;
 };
 
-// ✅ FIXED: Changed paymentMethod to paymentMode
 type Order = {
   _id: string;
   orderNumber?: string;
@@ -24,8 +24,14 @@ type Order = {
   status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
   items?: OrderItem[];
   total: number;
-  paymentMode?: string; // Corrected field name
+  paymentMode?: string;
   estimatedDelivery?: string;
+  
+  // ✅ ADDED: Tracking Fields
+  trackingId?: string;
+  courierName?: string;
+  isShipped?: boolean;
+
   shippingAddress?: string | {
     fullName?: string;
     street?: string;
@@ -37,6 +43,7 @@ type Order = {
   };
 };
 
+// ================= UTILITIES =================
 const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
 
 const useBases = () => {
@@ -68,7 +75,6 @@ const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
   }
 };
 
-// ✅ toPackets function
 const toPackets = (it: OrderItem) => {
   if (it.inners && it.inners > 0) return it.inners;
   const perInner =
@@ -80,7 +86,7 @@ const toPackets = (it: OrderItem) => {
   return Math.ceil((it.qty || 0) / perInner);
 };
 
-/* -------------------- Invoice Generator -------------------- */
+// ================= INVOICE GENERATOR =================
 const generateInvoice = (order: Order) => {
   const user = JSON.parse(localStorage.getItem("user") || "null");
   const printWindow = window.open("", "_blank");
@@ -306,9 +312,10 @@ const generateInvoice = (order: Order) => {
   printWindow.document.close();
 };
 
-/* -------------------- Orders Component -------------------- */
+/* -------------------- MAIN COMPONENT -------------------- */
 const Orders: React.FC = () => {
   const { apiBase, imageBase } = useBases();
+  
   const resolveImage = (img?: string) => {
     if (!img) return "/placeholder-product.png";
     if (/^https?:\/\//i.test(img)) return img;
@@ -343,15 +350,11 @@ const Orders: React.FC = () => {
           return;
         }
 
-        console.log("Fetching orders for user:", user._id);
-        
         const url = `${apiBase}/orders`;
         const response = await axios.get(url, {
           params: { customerId: user._id },
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         });
-
-        console.log("Orders API response:", response.data);
 
         if (response.data && Array.isArray(response.data)) {
           const sortedOrders = response.data.sort(
@@ -364,8 +367,6 @@ const Orders: React.FC = () => {
           setOrders([]);
         }
       } catch (err: any) {
-        console.error("Error fetching orders:", err);
-        
         if (err.response?.status === 401) {
           setError("Your session has expired. Please login again.");
         } else if (err.response?.status === 404) {
@@ -389,6 +390,21 @@ const Orders: React.FC = () => {
     statusFilter === "all"
       ? orders
       : orders.filter((order) => order.status === statusFilter);
+
+  // ✅ TRACKING URL LOGIC
+  const getTrackingUrl = (order: Order) => {
+    if (!order.trackingId) return "#";
+    // Check if courier matches "iThink" or "Delhivery"
+    const courier = (order.courierName || "").toLowerCase();
+    
+    if (courier.includes("ithink") || courier.includes("delhivery")) {
+      // Use iThink Logistics public tracking page
+      return `https://www.ithinklogistics.co.in/postship/tracking/${order.trackingId}`;
+    }
+    
+    // Default fallback (can be replaced with other courier logic if needed)
+    return `https://www.google.com/search?q=${order.trackingId}+tracking`;
+  };
 
   const StatusBadge = ({ status }: { status: Order["status"] }) => {
     const statusMap = {
@@ -456,15 +472,9 @@ const Orders: React.FC = () => {
     );
   };
 
-  // Format shipping address for display
   const formatShippingAddress = (address: Order["shippingAddress"]) => {
     if (!address) return "Not specified";
-    
-    if (typeof address === "string") {
-      return address;
-    }
-    
-    // If address is an object
+    if (typeof address === "string") return address;
     const addr = address as any;
     return `${addr.fullName || ""}, ${addr.street || ""}, ${addr.area || ""}, ${addr.city || ""}, ${addr.state || ""} - ${addr.pincode || ""}`.trim();
   };
@@ -568,6 +578,50 @@ const Orders: React.FC = () => {
                 {expandedOrder === order._id && (
                   <div className="order-details">
                     <OrderProgress status={order.status} />
+                    
+                    {/* ✅ TRACKING SECTION ADDED HERE */}
+                    {order.status === "shipped" && order.trackingId && (
+                      <div className="tracking-section" style={{
+                        background: '#f0f9ff', 
+                        padding: '15px', 
+                        borderRadius: '8px',
+                        border: '1px solid #bae6fd',
+                        margin: '20px 0',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexWrap: 'wrap',
+                        gap: '10px'
+                      }}>
+                        <div className="tracking-info">
+                          <h4 style={{ margin: '0 0 5px 0', color: '#0369a1' }}>🚚 Shipment On The Way!</h4>
+                          <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
+                            <strong>Courier:</strong> {order.courierName || "Express Shipping"} <br/>
+                            <strong>Tracking ID:</strong> {order.trackingId}
+                          </p>
+                        </div>
+                        <a 
+                          href={getTrackingUrl(order)} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="track-btn"
+                          style={{
+                            backgroundColor: '#0284c7',
+                            color: 'white',
+                            padding: '10px 20px',
+                            borderRadius: '6px',
+                            textDecoration: 'none',
+                            fontWeight: 'bold',
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '8px'
+                          }}
+                        >
+                          📍 Track Live Location
+                        </a>
+                      </div>
+                    )}
+
                     <div className="details-grid">
                       <div className="items-list">
                         <h4>Order Items ({order.items?.length || 0})</h4>
@@ -611,7 +665,6 @@ const Orders: React.FC = () => {
                           <StatusBadge status={order.status} />
                         </div>
                         
-                        {/* ✅ FIXED: Correct Payment Display Logic */}
                         <div className="summary-row">
                           <span>Payment Method</span>
                           <span>
