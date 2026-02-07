@@ -8,7 +8,7 @@ workflows:
       - name: Install dependencies
         script: |
           cd frontend
-          npm ci
+          npm install
 
       - name: Build web app
         script: |
@@ -20,5 +20,7 @@ workflows:
           cd frontend
           npx cap sync android
 
-    artifacts:
-      - frontend/android/app/build/outputs/**/*.aab
+      - name: Build Android
+        script: |
+          cd frontend/android
+          ./gradlew bundleRelease
