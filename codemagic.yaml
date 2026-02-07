@@ -1,0 +1,24 @@
+workflows:
+  android-capacitor:
+    name: Android Capacitor Build
+    max_build_duration: 60
+    environment:
+      node: 18
+    scripts:
+      - name: Install dependencies
+        script: |
+          cd frontend
+          npm ci
+
+      - name: Build web app
+        script: |
+          cd frontend
+          npm run build
+
+      - name: Capacitor sync
+        script: |
+          cd frontend
+          npx cap sync android
+
+    artifacts:
+      - frontend/android/app/build/outputs/**/*.aab
