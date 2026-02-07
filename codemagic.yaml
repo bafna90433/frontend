@@ -5,6 +5,8 @@ workflows:
 
     environment:
       node: 22
+      android_signing:
+        - bafnatoys_keystore
 
     scripts:
       - name: Install dependencies
