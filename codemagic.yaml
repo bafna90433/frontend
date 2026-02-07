@@ -9,7 +9,8 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
+          npm install
+          npm install -g @capacitor/cli
 
       - name: Build web app
         script: |
@@ -19,7 +20,11 @@ workflows:
         script: |
           npx cap sync android
 
-      - name: Build Android (AAB)
+      - name: Fix gradlew permission
+        script: |
+          chmod +x android/gradlew
+
+      - name: Build Android AAB
         script: |
           cd android
           ./gradlew bundleRelease
