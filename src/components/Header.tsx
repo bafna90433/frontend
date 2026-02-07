@@ -318,7 +318,7 @@ const Header: React.FC = () => {
     <header className={`kid-header ${scrolled ? 'kid-header--scrolled' : ''}`}>
       <div className="kid-header__main">
         <div className="kid-header__container">
-          
+           
           {/* Logo */}
           <Link to="/" className="kid-logo">
             <img src={LOGO_IMG} alt="BAFNA TOYS" className="kid-logo__img" height="45" />
@@ -368,8 +368,8 @@ const Header: React.FC = () => {
             {/* Cart Button (Bouncy & Colorful) */}
             <Link className="kid-cart-btn" to="/cart">
               <div className="kid-cart-icon-wrap">
-                 🛒
-                 {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
+                  🛒
+                  {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
               </div>
               <span className="kid-btn-text">Cart</span>
             </Link>

@@ -1,204 +1,184 @@
-/* ==============================
-   Sidebar.css - Cosmic Tech Theme
-   ============================== */
-
-/* --- Variables --- */
 :root {
-  /* Light Mode Defaults (Clean & Professional) */
-  --nav-bg-start: #ffffff;
-  --nav-bg-end: #ffffff;
-  --nav-border-right: #e0e7ff;   /* Light Indigo */
-  
-  --nav-title: #1e1b4b;          /* Deep Navy */
-  --nav-text: #64748b;           /* Slate */
-  --nav-text-hover: #1e1b4b;
-  --nav-text-active: #7c3aed;    /* Electric Violet */
-  
-  --nav-hover-bg: #f8fafc;
-  --nav-active-bg: #f5f3ff;      /* Very Light Violet */
-  --nav-active-border: #7c3aed;
-  
-  --shadow-soft: 0 8px 24px rgba(124, 58, 237, 0.05);
-  
-  --danger: #dc2626;
-  --danger-bg-hover: #fee2e2;
-
-  --topbar-h: 0px; 
+  --sidebar-w: 280px;
+  --header-h: 80px; /* Aapke header ki height */
+  --accent-color: #8b5cf6;
+  --accent-glow: rgba(139, 92, 246, 0.3);
+  --bg-glass: rgba(255, 255, 255, 0.9);
+  --text-main: #1e293b;
+  --text-muted: #64748b;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Dark Mode Overrides (Cosmic Deep Space) */
 body.dark {
-  --nav-bg-start: #0f1026;       /* Glassy Dark Navy (Matches Cards) */
-  --nav-bg-end: #0f1026; 
-  --nav-border-right: #1e1b4b;   /* Dark Indigo Border */
-  
-  --nav-title: #f8fafc;
-  --nav-text: #94a3b8;           /* Muted Blue-Grey */
-  --nav-text-hover: #e2e8f0;
-  --nav-text-active: #ffffff;
-  
-  --nav-hover-bg: rgba(124, 58, 237, 0.1); /* Violet Tint */
-  /* Gradient Active State for Dark Mode */
-  --nav-active-bg: linear-gradient(90deg, rgba(124, 58, 237, 0.2) 0%, rgba(124, 58, 237, 0.05) 100%);
-  --nav-active-border: #7c3aed;
-  
-  --shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.5);
-  --danger: #f87171; 
-  --danger-bg-hover: rgba(220, 38, 38, 0.15);
+  --bg-glass: rgba(15, 16, 38, 0.9);
+  --text-main: #f1f5f9;
+  --text-muted: #94a3b8;
 }
 
-.app-sidebar {
-  width: 260px;
-}
-
-/* ===== Desktop Fixed Sidebar ===== */
-.sidebar {
+.sidebar-container {
+  width: var(--sidebar-w);
+  height: calc(100vh - var(--header-h)); /* Header ki height minus kar di */
   position: fixed;
   left: 0;
-  top: var(--topbar-h, 0px);
-  width: 260px;
-  height: calc(100dvh - var(--topbar-h, 0px));
-  overflow-y: auto;
-
-  background: linear-gradient(180deg, var(--nav-bg-start), var(--nav-bg-end));
-  border-right: 1px solid var(--nav-border-right); /* Added Border */
-  color: var(--nav-text);
-  padding: 24px 16px 16px;
-  box-shadow: var(--shadow-soft);
+  top: var(--header-h); /* Header ke thik niche se start hoga */
+  padding: 15px 20px 25px 20px;
   box-sizing: border-box;
-  transition: background 0.3s ease, border-color 0.3s ease;
-  z-index: 50;
+  z-index: 99; /* Header se niche rakha hai */
 }
 
-/* Scrollbar Styling */
-.sidebar::-webkit-scrollbar {
-  width: 5px;
-}
-.sidebar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.sidebar::-webkit-scrollbar-thumb {
-  background-color: var(--nav-border-right);
-  border-radius: 4px;
+.sidebar-glass {
+  height: 100%;
+  background: var(--bg-glass);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 1px solid rgba(124, 58, 237, 0.1);
+  border-radius: 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.05);
+  overflow: hidden;
 }
 
-/* Title */
-.sidebar__title {
-  margin: 0 0 24px;
-  padding-left: 12px;
-  font-size: 20px;
+.sidebar__header {
+  padding: 25px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-logo {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  color: white;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   font-weight: 800;
-  color: var(--nav-title);
-  transition: color 0.3s ease;
-  letter-spacing: -0.5px;
+  box-shadow: 0 4px 12px var(--accent-glow);
 }
 
-/* Nav */
+.sidebar__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+}
+
+.sidebar__nav-wrapper {
+  flex: 1;
+  padding: 0 12px;
+  overflow-y: auto;
+}
+
 .sidebar__nav {
   list-style: none;
-  margin: 0;
   padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* Items */
-.sidebar__item {
-  border-radius: 12px; /* Modern rounded corners */
-  border: 1px solid transparent; 
-  transition: all 0.2s ease;
-  position: relative;
-  overflow: hidden;
-}
-
-.sidebar__link,
-.sidebar__item.sidebar__logout {
+.sidebar__link {
   display: flex;
   align-items: center;
-  gap: 12px; /* Space for icons if you add them */
+  gap: 12px;
   padding: 12px 16px;
   text-decoration: none;
-  font-weight: 500;
-  color: var(--nav-text);
-  outline: none;
-  transition: color 0.2s ease;
-  font-size: 15px;
-}
-
-/* Hover */
-.sidebar__item:hover {
-  background: var(--nav-hover-bg);
-}
-
-.sidebar__item:hover .sidebar__link {
-  color: var(--nav-text-hover);
-}
-
-/* Active state */
-.sidebar__item.active {
-  background: var(--nav-active-bg);
-  border-color: var(--nav-active-border); /* Highlight Border */
-}
-
-.sidebar__item.active .sidebar__link {
-  color: var(--nav-text-active);
-  font-weight: 600;
-}
-
-/* Optional: Active Indicator Line on Left */
-.sidebar__item.active::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10%;
-  bottom: 10%;
-  width: 3px;
-  background: var(--nav-active-border);
-  border-radius: 0 4px 4px 0;
-}
-
-/* Logout */
-.sidebar__logout {
+  color: var(--text-muted);
+  border-radius: 14px;
+  transition: var(--transition);
+  position: relative;
+  background: transparent;
+  border: none;
+  width: 100%;
   cursor: pointer;
-  color: var(--danger) !important;
-  margin-top: auto; /* Pushes logout to bottom if container flex */
-  border-top: 1px solid transparent;
 }
 
-.sidebar__logout:hover {
-  background: var(--danger-bg-hover);
-  color: #ef4444 !important;
+.sidebar__link:hover {
+  background: rgba(124, 58, 237, 0.08);
+  color: var(--accent-color);
 }
 
-/* Mobile / Drawer */
+.sidebar__link.active {
+  background: var(--accent-color);
+  color: white;
+  box-shadow: 0 8px 20px var(--accent-glow);
+}
+
+.active-glow {
+  position: absolute;
+  right: 12px;
+  width: 5px;
+  height: 5px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 0 10px white;
+}
+
+.sidebar__footer {
+  padding: 15px 20px;
+  border-top: 1px solid rgba(124, 58, 237, 0.1);
+}
+
+.logout-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  background: #fff5f5;
+  border: 1px solid #fed7d7;
+  border-radius: 12px;
+  color: #e53e3e;
+  cursor: pointer;
+  font-weight: 600;
+  transition: var(--transition);
+}
+
+.logout-button:hover {
+  background: #e53e3e;
+  color: white;
+}
+
+.mobile-logout-item { display: none; }
+
+/* Mobile View Fix */
 @media (max-width: 900px) {
-  .sidebar {
-    position: static;
+  .sidebar-container {
     width: 100%;
     height: auto;
-    overflow: visible;
-    padding: 16px;
-    background: transparent;
-    box-shadow: none;
-    border-right: none;
+    position: fixed;
+    bottom: 0;
+    top: auto;
+    left: 0;
+    padding: 10px;
   }
-  .app-sidebar {
-    width: 100%;
+  .sidebar-glass {
+    flex-direction: row;
+    height: 70px;
+    border-radius: 20px;
   }
-  
-  /* Hide title on mobile if it repeats header */
-  .sidebar__title {
+  .sidebar__header, .sidebar__footer, .sidebar__label {
     display: none;
   }
-}
-
-/* Desktop spacing adjustment */
-@media (min-width: 901px) {
-  /* This ensures content doesn't hide behind fixed sidebar */
-  /* The layout CSS typically handles grid, but this is a safeguard */
-  .app-shell {
-    /* If you are NOT using the Layout.css grid system, uncomment below: */
-    /* padding-left: 260px; */
+  .sidebar__nav-wrapper {
+    padding: 0;
+    display: flex;
+    align-items: center;
+  }
+  .sidebar__nav {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+  }
+  .mobile-logout-item { 
+    display: block; 
+  }
+  .logout-trigger-btn {
+    color: #e53e3e;
   }
 }

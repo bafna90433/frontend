@@ -2,31 +2,31 @@
   /* --- KID THEME PALETTE --- */
   --pc-bg: #FFFFFF;
   --pc-card-bg: #FFFFFF;
-  
+   
   /* Candy Colors */
-  --pc-primary: #FF6B6B;       /* Strawberry */
-  --pc-secondary: #4ECDC4;     /* Mint */
-  --pc-accent: #FFD93D;        /* Banana Yellow */
-  --pc-purple: #A55EEA;        /* Grape */
-  --pc-blue: #45AAF2;          /* Sky */
-  --pc-green: #26de81;         /* Apple */
-  
+  --pc-primary: #FF6B6B;        /* Strawberry */
+  --pc-secondary: #4ECDC4;      /* Mint */
+  --pc-accent: #FFD93D;         /* Banana Yellow */
+  --pc-purple: #A55EEA;         /* Grape */
+  --pc-blue: #45AAF2;           /* Sky */
+  --pc-green: #26de81;          /* Apple */
+   
   --pc-dark: #2d3436;
   --pc-gray: #a4b0be;
-  
+   
   /* Gradients */
   --pc-grad-btn: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-  
+   
   /* Shapes */
   --pc-radius-card: 20px;
   --pc-radius-chip: 8px;
   --pc-radius-btn: 12px;
-  
+   
   /* Physics */
   --pc-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
   --pc-shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
   --pc-shadow-hover: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(255, 107, 107, 0.15);
-  
+   
   /* Fonts */
   --pc-font: 'Nunito', 'Quicksand', sans-serif;
 }
@@ -103,41 +103,6 @@
   text-transform: uppercase;
 }
 
-/* Quick View Bubble */
-.pc-quick-actions {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(0.5);
-  opacity: 0;
-  transition: all 0.3s var(--pc-bounce);
-}
-
-.pc-quick-actions--visible {
-  opacity: 1;
-  transform: translate(-50%, -50%) scale(1);
-}
-
-.pc-action-btn {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: white;
-  color: var(--pc-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-}
-
-.pc-action-btn:hover {
-  background: var(--pc-primary);
-  color: white;
-  transform: scale(1.1);
-}
-
 /* Discount Ribbon */
 .pc-discount-ribbon {
   position: absolute;
@@ -165,21 +130,11 @@
   gap: 8px;
 }
 
-/* 1. Meta Row */
+/* 1. Meta Row - Modified to just align stock if category is gone */
 .pc-meta-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end; /* Pushes Stock status to the right */
   align-items: center;
-}
-
-.pc-category-tag {
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--pc-secondary);
-  background: rgba(78, 205, 196, 0.1);
-  padding: 3px 8px;
-  border-radius: 8px;
-  text-transform: uppercase;
 }
 
 .pc-stock-status {
@@ -229,10 +184,8 @@
 }
 
 /* Chip Variants */
-.pc-chip--sku {
-  background: #F3E5F5;
-  color: #8E24AA;
-}
+/* Note: SKU Chip style removed */
+
 .pc-chip--box {
   background: #E3F2FD;
   color: #1976D2;
@@ -244,6 +197,10 @@
 .pc-chip--rating {
   background: #FFFDE7;
   color: #FBC02D;
+}
+.pc-chip--tag {
+    background: #FFECB3;
+    color: #F57F17;
 }
 
 /* 4. Price Section */

@@ -1,18 +1,18 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import CategoryNav from "./CategoryNav";
 import "../styles/Home.css";
 import { Skeleton } from "@mui/material";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
-import { FiChevronLeft, FiChevronRight, FiArrowRight } from "react-icons/fi"; // ✅ Added FiArrowRight
+import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 
 interface Category {
   _id: string;
   name: string;
+  image?: string;
 }
 
 interface Product {
@@ -48,11 +48,11 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // ✅ SCROLL FUNCTION
+  // Generic Scroll Function
   const scrollContainer = (id: string, direction: "left" | "right") => {
-    const container = document.getElementById(`scroll-${id}`);
+    const container = document.getElementById(id);
     if (container) {
-      const scrollAmount = container.clientWidth; 
+      const scrollAmount = container.clientWidth / 2; // Scroll half screen width
       container.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -97,14 +97,83 @@ const Home: React.FC = () => {
   }, []);
 
   if (error) {
-    return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
+    return (
+      <ErrorMessage
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
   }
 
   return (
     <div className="home-container">
-      <CategoryNav />
       {banners.length > 0 && <BannerSlider banners={banners} />}
 
+      {/* ✅ Shop By Category Heading */}
+      {!loading && categories.length > 0 && (
+        <div className="section-heading-wrapper">
+          <h3 className="section-heading">Shop By Category</h3>
+          <div className="section-heading-line"></div>
+        </div>
+      )}
+
+      {/* ✅ Circular Categories Section WITH BUTTONS */}
+      <div className="category-scroll-wrapper">
+        {/* Left Scroll Button (Only shows on Desktop via CSS) */}
+        {!loading && categories.length > 4 && (
+          <button 
+            className="scroll-btn cat-scroll-left" 
+            onClick={() => scrollContainer("category-circles-box", "left")}
+            aria-label="Scroll Left"
+          >
+            <FiChevronLeft size={24} />
+          </button>
+        )}
+
+        <div id="category-circles-box" className="category-circles-section">
+          {loading ? (
+             Array.from({ length: 6 }).map((_, i) => (
+               <div key={i} className="cat-circle-skeleton">
+                 <Skeleton 
+                    variant="circular" 
+                    width={180} 
+                    height={180} 
+                    sx={{
+                      '@media (max-width: 768px)': { width: 80, height: 80 }
+                    }}
+                 />
+                 <Skeleton variant="text" width={100} />
+               </div>
+             ))
+          ) : (
+            categories.map((cat) => (
+              <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
+                <div className="cat-circle-img-wrapper">
+                  {cat.image ? (
+                    <img src={cat.image} alt={cat.name} className="cat-circle-img" />
+                  ) : (
+                    <div className="cat-placeholder"><FiImage /></div>
+                  )}
+                </div>
+                <span className="cat-circle-name">{cat.name}</span>
+              </Link>
+            ))
+          )}
+        </div>
+
+        {/* Right Scroll Button */}
+        {!loading && categories.length > 4 && (
+          <button 
+            className="scroll-btn cat-scroll-right" 
+            onClick={() => scrollContainer("category-circles-box", "right")}
+            aria-label="Scroll Right"
+          >
+            <FiChevronRight size={24} />
+          </button>
+        )}
+      </div>
+
+      {/* Product Sections */}
       {loading ? (
         Array.from({ length: 3 }).map((_, i) => (
           <div key={i} className="category-block">
@@ -134,23 +203,22 @@ const Home: React.FC = () => {
 
           return (
             <div key={cat._id} id={`cat-${cat._id}`} className="category-block">
-              
-              {/* ✅ HEADER ROW: Title + View All Button */}
               <div className="category-header">
                 <h2 className="category-title">
                   <span className="title-highlight">{cat.name}</span>
                 </h2>
-                
-                <Link to={`/products?category=${cat._id}`} className="view-all-btn">
+                <Link
+                  to={`/products?category=${cat._id}`}
+                  className="view-all-btn"
+                >
                   View All <FiArrowRight />
                 </Link>
               </div>
-              
+
               <div className="product-scroll-wrapper">
-                {/* Left Button */}
-                <button 
-                  className="scroll-btn scroll-btn--left"
-                  onClick={() => scrollContainer(cat._id, "left")}
+                <button
+                  className="scroll-btn prod-scroll-left"
+                  onClick={() => scrollContainer(`scroll-${cat._id}`, "left")}
                   aria-label="Scroll Left"
                 >
                   <FiChevronLeft size={24} />
@@ -168,10 +236,9 @@ const Home: React.FC = () => {
                   ))}
                 </div>
 
-                {/* Right Button */}
-                <button 
-                  className="scroll-btn scroll-btn--right"
-                  onClick={() => scrollContainer(cat._id, "right")}
+                <button
+                  className="scroll-btn prod-scroll-right"
+                  onClick={() => scrollContainer(`scroll-${cat._id}`, "right")}
                   aria-label="Scroll Right"
                 >
                   <FiChevronRight size={24} />
@@ -181,25 +248,27 @@ const Home: React.FC = () => {
           );
         })
       ) : (
-        <div className="empty-category-message">No categories found 🎈</div>
+        <div className="empty-category-message">
+          No categories found 🎈
+        </div>
       )}
 
       <FloatingCheckoutButton />
 
       <footer className="home-footer">
         <div className="footer-content">
-            <div className="footer-links-container">
-                <h3>Quick Links</h3>
-                <ul className="footer-links">
-                    <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                    <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-                    <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-                    <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
-                </ul>
-            </div>
-            <div className="footer-copyright">
-                <p>© {new Date().getFullYear()} Bafna Toys. Spreading Joy! 🚀</p>
-            </div>
+          <div className="footer-links-container">
+            <h3>Quick Links</h3>
+            <ul className="footer-links">
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+              <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+              <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+            </ul>
+          </div>
+          <div className="footer-copyright">
+            <p>© {new Date().getFullYear()} Bafna Toys. Spreading Joy! 🚀</p>
+          </div>
         </div>
       </footer>
     </div>

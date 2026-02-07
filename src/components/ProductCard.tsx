@@ -53,7 +53,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  // Hover state removed as it was only used for Quick View
   
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
@@ -77,7 +76,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     }
   };
 
-  const categoryName = typeof product.category === "object" ? product.category?.name : product.category;
   const discountPercent = product.mrp && product.mrp > product.price 
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
     : 0;
@@ -111,8 +109,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               loading={index < 4 ? "eager" : "lazy"}
               onLoad={() => setImgLoaded(true)}
             />
-            
-            {/* Quick View Removed */}
           </div>
 
           {/* Discount Ribbon (Bottom Right) */}
@@ -127,9 +123,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
         {/* --- 2. Body Section --- */}
         <div className="pc-body">
           
-          {/* Stock & Category Row */}
+          {/* Stock Status Row (Category Removed) */}
           <div className="pc-meta-row">
-            <span className="pc-category-tag">{categoryName || "Toys"}</span>
+            {/* Empty spacer to keep alignment logic if needed, or just stock status */}
             <div className="pc-stock-status">
                {product.stock === 0 ? (
                 <span className="pc-stock pc-stock--out">Out of Stock</span>
@@ -150,18 +146,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             {product.name}
           </h3>
 
-          {/* Meta Chips: SKU, Tagline, Pack Size */}
+          {/* Meta Chips: SKU REMOVED. Tagline & Pack Size remain. */}
           <div className="pc-meta-chips">
             
-            {/* SKU Chip (Purple) */}
-            {product.sku && (
-              <span className="pc-chip pc-chip--sku">
-                <span className="pc-chip-hash">#</span> 
-                {product.sku.replace("#", "").slice(0, 8)}
-              </span>
-            )}
-
-            {/* Tagline Chip (Orange) - ADDED BACK */}
+            {/* Tagline Chip (Orange) */}
             {product.tagline && (
               <span className="pc-chip pc-chip--tag">
                 <Tag size={10} strokeWidth={2.5} /> 

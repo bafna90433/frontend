@@ -6,8 +6,16 @@ const BackFooter: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ Hide on home page
-  if (location.pathname === "/") return null;
+  // ❌ Hide Back button on Home & all Account related pages
+  if (
+    location.pathname === "/" ||
+    location.pathname.startsWith("/my-account") ||
+    location.pathname.startsWith("/edit-profile") ||
+    location.pathname.startsWith("/orders") ||
+    location.pathname.startsWith("/addresses")
+  ) {
+    return null;
+  }
 
   return (
     <div className="back-header-container">
