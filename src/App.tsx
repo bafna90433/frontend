@@ -10,12 +10,17 @@ import {
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
+// ✅ Shop hook
+import { useShop } from "./context/ShopContext";
+
+// ✅ Center Modal
+import FreeDeliveryModal from "./components/FreeDeliveryModal";
+
 // Layout Components
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import BackFooter from "./components/BackFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
-// import ThemeToggle from "./components/ThemeToggle"; // ❌ Removed
 
 // Pages / Components
 import Home from "./components/Home";
@@ -39,15 +44,16 @@ import TermsConditions from "./components/TermsConditions";
 import ShippingDelivery from "./components/ShippingDelivery";
 import CancellationRefund from "./components/CancellationRefund";
 
-const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
-  children,
-}) => {
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
 
+  // ✅ From YOUR ShopContext (already exists in your context)
+  const { cartTotal, freeShippingThreshold } = useShop();
+
   const publicPaths = [
-    "/",                
-    "/products",        
+    "/",
+    "/products",
     "/register",
     "/login",
     "/privacy-policy",
@@ -56,8 +62,8 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
     "/cancellation-refund",
   ];
 
-  const isPublicPage = 
-    publicPaths.includes(location.pathname) || 
+  const isPublicPage =
+    publicPaths.includes(location.pathname) ||
     location.pathname.startsWith("/product/");
 
   if (!user && !isPublicPage) {
@@ -66,16 +72,16 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <>
+      {/* ✅ Center Popup (not top bar) */}
+      <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
+
       <Header />
 
       <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
         {children}
       </main>
 
-      {/* ✅ Only WhatsApp Button Floating now, Theme Toggle removed */}
       <WhatsAppButton />
-      {/* <ThemeToggle /> ❌ Removed from here */}
-
       <BottomNav />
       <BackFooter />
     </>
@@ -103,18 +109,18 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetails />} />
-              
+
               <Route path="/cart" element={<Cart />} />
               <Route path="/wishlist" element={<Wishlist />} />
 
               {/* 🔒 Protected Pages */}
-              <Route 
-                path="/checkout" 
+              <Route
+                path="/checkout"
                 element={
                   <ProtectedRoute>
                     <Checkout />
                   </ProtectedRoute>
-                } 
+                }
               />
 
               <Route
