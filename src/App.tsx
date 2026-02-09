@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from "react";
+import React, { useEffect } from "react"; // ✅ Import useEffect
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +7,8 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
+import api from "./utils/api"; // ✅ Import API for tracking
+
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -89,6 +91,25 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 const App: React.FC = () => {
+
+  // ✅ VISITOR TRACKING LOGIC (Website open hote hi count karega)
+  useEffect(() => {
+    const trackVisitor = async () => {
+      try {
+        // Session Check: Agar user ne abhi session me visit kiya hai to dubara count mat karo
+        const hasVisited = sessionStorage.getItem("visited");
+        
+        if (!hasVisited) {
+          await api.post("/analytics/track"); // Backend API Call
+          sessionStorage.setItem("visited", "true"); // Mark as visited
+        }
+      } catch (e) {
+        console.error("Visitor tracking failed", e);
+      }
+    };
+    trackVisitor();
+  }, []);
+
   return (
     <ShopProvider>
       <ThemeProvider>

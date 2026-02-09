@@ -17,17 +17,29 @@ type OrderItem = {
   nosPerInner?: number;
 };
 
+// Return Request Type
+type ReturnRequest = {
+  isRequested: boolean;
+  status: "Pending" | "Approved" | "Rejected";
+  reason: string;
+  description: string;
+  proofImages: string[];
+  proofVideo: string;
+  adminComment?: string;
+  requestDate?: string;
+};
+
 type Order = {
   _id: string;
   orderNumber?: string;
   createdAt?: string;
-  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled";
+  status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "returned";
   items?: OrderItem[];
   total: number;
   paymentMode?: string;
   estimatedDelivery?: string;
   
-  // ✅ ADDED: Tracking Fields
+  // Tracking Fields
   trackingId?: string;
   courierName?: string;
   isShipped?: boolean;
@@ -41,6 +53,9 @@ type Order = {
     pincode?: string;
     phone?: string;
   };
+
+  // Return Request Field
+  returnRequest?: ReturnRequest;
 };
 
 // ================= UTILITIES =================
@@ -115,173 +130,38 @@ const generateInvoice = (order: Order) => {
     <head>
       <title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title>
       <style>
-        body {
-          font-family: 'Segoe UI', Roboto, Arial, sans-serif;
-          margin: 0; padding: 20px;
-          background: #f5f7fa; color: #333;
-        }
-        .invoice-container {
-          max-width: 850px; margin: 0 auto;
-          background: #fff; padding: 35px;
-          border-radius: 10px;
-          border: 1px solid #ddd;
-          box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-        }
+        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; color: #333; }
+        .invoice-container { max-width: 850px; margin: 0 auto; background: #fff; padding: 35px; border-radius: 10px; border: 1px solid #ddd; }
         .header { text-align: center; margin-bottom: 25px; }
-        .header img { max-height: 70px; margin-bottom: 8px; }
-        
-        .company-name {
-          font-size: 24px;
-          font-weight: 700;
-          color: #2c5aa0;
-          margin-bottom: 5px;
-          text-transform: uppercase;
-        }
-        
-        .company-info { 
-          font-size: 13px; 
-          color: #555; 
-          line-height: 1.5;
-          margin-bottom: 10px;
-        }
-
-        .invoice-title {
-          text-align: center;
-          font-size: 26px; font-weight: 700;
-          margin: 15px 0 30px; color: #2c5aa0;
-          text-transform: uppercase;
-          border-bottom: 3px solid #2c5aa0;
-          padding-bottom: 10px;
-        }
-
-        .invoice-details {
-          display: flex; justify-content: space-between;
-          flex-wrap: wrap; margin-bottom: 25px;
-        }
-        .detail-section {
-          flex: 1; min-width: 240px; margin-bottom: 15px;
-          font-size: 14px;
-        }
-        .detail-section h3 {
-          font-size: 15px; margin-bottom: 8px;
-          color: #2c5aa0; border-bottom: 1px solid #ddd;
-          padding-bottom: 4px;
-        }
-        .billto-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        .billto-table td { padding: 3px 6px; vertical-align: top; }
-        .billto-table td:first-child { width: 120px; font-weight: 600; color: #444; }
-
-        .items-table {
-          width: 100%; border-collapse: collapse; margin: 20px 0;
-          font-size: 14px;
-        }
-        .items-table th {
-          background: #2c5aa0; color: #fff;
-          padding: 10px; text-align: left;
-          font-size: 14px; font-weight: 600;
-        }
-        .items-table td {
-          padding: 10px; border-bottom: 1px solid #eee;
-        }
-        .items-table tr:nth-child(even) { background: #f9f9f9; }
-
-        thead { display: table-header-group; }
-        tfoot { display: table-footer-group; }
-        .grand-total td {
-          font-weight: 700; font-size: 15px;
-          border-top: 2px solid #2c5aa0;
-          padding-top: 10px;
-        }
-        .grand-total td:last-child {
-          color: #2c5aa0; font-size: 16px;
-        }
-
-        .footer {
-          margin-top: 40px; text-align: center;
-          font-size: 13px; color: #555;
-        }
-        .footer strong { color: #2c5aa0; }
-
-        .invoice-buttons {
-          margin-top: 25px; text-align: center;
-        }
-        .print-btn, .download-btn {
-          margin: 8px; padding: 10px 22px;
-          border-radius: 5px; font-size: 15px; font-weight: 600;
-          cursor: pointer; border: none;
-        }
-        .print-btn { background: #2c5aa0; color: white; }
-        .download-btn { background: #28a745; color: white; }
-
-        @media print {
-          .invoice-buttons { display: none; }
-          body { background: #fff; }
-        }
+        .company-name { font-size: 24px; font-weight: 700; color: #2c5aa0; text-transform: uppercase; }
+        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .items-table th { background: #2c5aa0; color: #fff; padding: 10px; text-align: left; }
+        .items-table td { padding: 10px; border-bottom: 1px solid #eee; }
+        .grand-total td { font-weight: 700; font-size: 15px; border-top: 2px solid #2c5aa0; padding-top: 10px; }
       </style>
-      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
       <script>
         function printInvoice() { window.print(); }
-        function downloadAsPDF() {
-          const element = document.querySelector('.invoice-container');
-          const opt = {
-            margin: [10, 10, 10, 10],
-            filename: 'Invoice-${order.orderNumber || order._id.slice(-6)}.pdf',
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-            pagebreak: { mode: ['css', 'legacy'] }
-          };
-          html2pdf().set(opt).from(element).save();
-        }
       </script>
     </head>
     <body>
       <div class="invoice-container">
         <div class="header">
-          <img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys Logo" />
           <div class="company-name">BafnaToys</div>
-          <div class="company-info">
-            1-12, Sundapalayam Rd, Coimbatore, Tamil Nadu 641007 <br/>
-            Phone: +91 9043347300 | Email: bafnatoysphotos@gmail.com
-          </div>
+          <div>Pro Forma Invoice</div>
         </div>
-        <h1 class="invoice-title">Pro Forma Invoice</h1>
-
-        <div class="invoice-details">
-          <div class="detail-section">
-            <h3>Bill To</h3>
-            <table class="billto-table">
-              <tr><td>Shop Name</td><td>: ${user?.shopName || "-"}</td></tr>
-              <tr><td>Address</td><td>: ${shippingAddressStr}</td></tr>
-              <tr><td>Mobile</td><td>: ${user?.otpMobile || "-"}</td></tr>
-              <tr><td>WhatsApp</td><td>: ${user?.whatsapp || "-"}</td></tr>
-            </table>
-          </div>
-          <div class="detail-section">
-            <h3>Invoice Details</h3>
-            <table class="billto-table">
-              <tr><td>Invoice No</td><td>: ${order.orderNumber || order._id.slice(-6)}</td></tr>
-              <tr><td>Date</td><td>: ${currentDate}</td></tr>
-              <tr><td>Status</td><td>: ${order.status}</td></tr>
-              <tr><td>Payment</td><td>: ${order.paymentMode === "ONLINE" ? "Online (Paid)" : "COD"}</td></tr>
-            </table>
-          </div>
-        </div>
-
+        <p><strong>Order No:</strong> ${order.orderNumber || order._id}</p>
+        <p><strong>Date:</strong> ${currentDate}</p>
+        <p><strong>To:</strong> ${shippingAddressStr}</p>
+        
         <table class="items-table">
           <thead>
-            <tr>
-              <th>Product</th>
-              <th>Quantity</th>
-              <th>Rate (₹)</th>
-              <th>Amount (₹)</th>
-            </tr>
+            <tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
           </thead>
           <tbody>
             ${order.items?.map(it => `
               <tr>
                 <td>${it.name}</td>
-                <td>${it.qty} pcs (${toPackets(it)} ${toPackets(it) === 1 ? "packet" : "packets"})</td>
+                <td>${it.qty} pcs (${toPackets(it)} pkts)</td>
                 <td>${it.price.toFixed(2)}</td>
                 <td>${(it.qty * it.price).toFixed(2)}</td>
               </tr>`).join("")}
@@ -293,16 +173,9 @@ const generateInvoice = (order: Order) => {
             </tr>
           </tfoot>
         </table>
-
-        <div class="footer">
-          <p><strong>Thank you for choosing BafnaToys!</strong><br/>
-          We appreciate your business and look forward to serving you again.</p>
-        </div>
       </div>
-
-      <div class="invoice-buttons">
-        <button class="print-btn" onclick="printInvoice()">🖨️ Print Invoice</button>
-        <button class="download-btn" onclick="downloadAsPDF()">📄 Download PDF</button>
+      <div style="text-align:center; margin-top:20px;">
+        <button onclick="printInvoice()" style="padding:10px 20px; background:#2c5aa0; color:white; border:none; cursor:pointer;">Print Invoice</button>
       </div>
     </body>
     </html>
@@ -327,6 +200,44 @@ const Orders: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">("all");
+
+  // ✅ STATES FOR RETURN MODAL
+  const [showReturnModal, setShowReturnModal] = useState(false);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
+  const [returnReason, setReturnReason] = useState("Damaged Product");
+  const [returnDescription, setReturnDescription] = useState("");
+  const [returnImages, setReturnImages] = useState<FileList | null>(null);
+  const [returnVideo, setReturnVideo] = useState<File | null>(null);
+  const [uploadingReturn, setUploadingReturn] = useState(false);
+  
+  // ✅ NEW: Selected Items for Return
+  const [returnSelectedItems, setReturnSelectedItems] = useState<string[]>([]);
+
+  // ✅ UPLOAD FUNCTION (Fixed URL)
+  const uploadFileToBackend = async (file: File) => {
+    const formData = new FormData();
+    formData.append("images", file);
+
+    try {
+      const token = localStorage.getItem("token");
+      const uploadUrl = `${apiBase}/upload`; 
+
+      const response = await axios.post(uploadUrl, formData, {
+        headers: { 
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}` 
+        }
+      });
+
+      if (response.data && response.data.urls && response.data.urls.length > 0) {
+        return response.data.urls[0]; 
+      }
+      return null;
+    } catch (error) {
+      console.error("Backend Upload Error:", error);
+      return null;
+    }
+  };
 
   useEffect(() => {
     const fetchOrders = async () => {
@@ -370,7 +281,7 @@ const Orders: React.FC = () => {
         if (err.response?.status === 401) {
           setError("Your session has expired. Please login again.");
         } else if (err.response?.status === 404) {
-          setOrders([]); // No orders found
+          setOrders([]);
         } else {
           setError("Could not fetch orders. Please try again later.");
         }
@@ -391,28 +302,151 @@ const Orders: React.FC = () => {
       ? orders
       : orders.filter((order) => order.status === statusFilter);
 
-  // ✅ TRACKING URL LOGIC
   const getTrackingUrl = (order: Order) => {
     if (!order.trackingId) return "#";
-    // Check if courier matches "iThink" or "Delhivery"
     const courier = (order.courierName || "").toLowerCase();
     
     if (courier.includes("ithink") || courier.includes("delhivery")) {
-      // Use iThink Logistics public tracking page
       return `https://www.ithinklogistics.co.in/postship/tracking/${order.trackingId}`;
     }
     
-    // Default fallback (can be replaced with other courier logic if needed)
     return `https://www.google.com/search?q=${order.trackingId}+tracking`;
   };
 
-  const StatusBadge = ({ status }: { status: Order["status"] }) => {
+  // ✅ CANCEL ORDER FUNCTION
+  const handleCancelOrder = async (orderId: string) => {
+    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+
+    try {
+        const token = localStorage.getItem("token");
+        await axios.put(
+            `${apiBase}/orders/${orderId}/status`, 
+            { 
+              status: "cancelled",
+              cancelledBy: "Customer" 
+            }, 
+            { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        );
+        
+        setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: "cancelled" } : o));
+        alert("Order cancelled successfully.");
+    } catch (error) {
+        console.error("Cancel Error:", error);
+        alert("Failed to cancel order. Please try again.");
+    }
+  };
+
+  // ✅ HANDLE OPEN RETURN MODAL
+  const handleOpenReturn = (orderId: string) => {
+    setSelectedOrderId(orderId);
+    setReturnSelectedItems([]); // Reset selection
+    setShowReturnModal(true);
+    setReturnReason("Damaged Product");
+    setReturnDescription("");
+    setReturnImages(null);
+    setReturnVideo(null);
+  };
+
+  // ✅ HANDLE ITEM CHECKBOX
+  const handleItemSelect = (itemName: string) => {
+    setReturnSelectedItems(prev => {
+        if (prev.includes(itemName)) {
+            return prev.filter(i => i !== itemName);
+        } else {
+            return [...prev, itemName];
+        }
+    });
+  };
+
+  // ✅ HANDLE SUBMIT RETURN
+  const handleSubmitReturn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOrderId) return;
+
+    // 🔴 Validation: Check if items are selected
+    if (returnSelectedItems.length === 0) {
+        alert("Please select at least one product to return.");
+        return;
+    }
+
+    setUploadingReturn(true);
+
+    try {
+      // 1. Upload Images
+      let uploadedImageUrls: string[] = [];
+      if (returnImages && returnImages.length > 0) {
+        for (let i = 0; i < returnImages.length; i++) {
+          const url = await uploadFileToBackend(returnImages[i]);
+          if (url) uploadedImageUrls.push(url);
+        }
+      }
+
+      // 2. Upload Video
+      let uploadedVideoUrl = "";
+      if (returnVideo) {
+        const vidUrl = await uploadFileToBackend(returnVideo);
+        if (vidUrl) uploadedVideoUrl = vidUrl;
+      }
+      
+      if (returnImages && returnImages.length > 0 && uploadedImageUrls.length === 0) {
+          alert("Image upload failed. Please check connection.");
+          setUploadingReturn(false);
+          return;
+      }
+
+      // ✅ PREPARE DESCRIPTION WITH SELECTED ITEMS
+      const formattedDescription = `[RETURN ITEMS: ${returnSelectedItems.join(", ")}] \n\nUser Note: ${returnDescription}`;
+
+      // 3. Send to Backend
+      const token = localStorage.getItem("token");
+      await axios.put(
+        `${apiBase}/orders/return/${selectedOrderId}`,
+        {
+          reason: returnReason,
+          description: formattedDescription, // Sent combined info
+          images: uploadedImageUrls,
+          video: uploadedVideoUrl
+        },
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+      );
+
+      alert("Return request submitted successfully!");
+      setShowReturnModal(false);
+      window.location.reload(); 
+
+    } catch (error) {
+      console.error("Return Error", error);
+      alert("Failed to submit return request.");
+    } finally {
+      setUploadingReturn(false);
+    }
+  };
+
+  const StatusBadge = ({ status, returnReq }: { status: Order["status"], returnReq?: ReturnRequest }) => {
+    if (returnReq?.isRequested) {
+        let color = "#F59E0B"; 
+        let label = "Return Pending";
+        let icon = "⏳";
+
+        if (returnReq.status === 'Approved') { color = "#10B981"; label = "Return Approved"; icon = "✅"; }
+        if (returnReq.status === 'Rejected') { color = "#EF4444"; label = "Return Rejected"; icon = "❌"; }
+
+        return (
+            <div className="status-badge-container">
+            <span className="status-badge" style={{ backgroundColor: `${color}10`, color: color, border: `1px solid ${color}` }}>
+              <span className="status-icon">{icon}</span> {label}
+            </span>
+          </div>
+        )
+    }
+
     const statusMap = {
       pending: { color: "#F59E0B", label: "Pending", icon: "⏳" },
       processing: { color: "#3B82F6", label: "Processing", icon: "🔄" },
       shipped: { color: "#8B5CF6", label: "Shipped", icon: "🚚" },
       delivered: { color: "#10B981", label: "Delivered", icon: "✅" },
       cancelled: { color: "#EF4444", label: "Cancelled", icon: "❌" },
+      returned: { color: "#6366f1", label: "Returned", icon: "🔙" },
     } as const;
     return (
       <div className="status-badge-container">
@@ -440,8 +474,10 @@ const Orders: React.FC = () => {
     ] as const;
     const currentIndex = steps.findIndex((step) => step.id === status);
     const cancelled = status === "cancelled";
+    const returned = status === "returned";
+
     return (
-      <div className={`order-progress ${cancelled ? "cancelled" : ""}`}>
+      <div className={`order-progress ${cancelled ? "cancelled" : ""} ${returned ? "returned" : ""}`}>
         {steps.map((step, index) => (
           <div
             key={step.id}
@@ -452,6 +488,8 @@ const Orders: React.FC = () => {
             <div className="step-indicator">
               {cancelled ? (
                 <span>❌</span>
+              ) : returned && index === 3 ? (
+                 <span>🔙</span>
               ) : index < currentIndex ? (
                 <span>✓</span>
               ) : (
@@ -472,11 +510,10 @@ const Orders: React.FC = () => {
     );
   };
 
-  const formatShippingAddress = (address: Order["shippingAddress"]) => {
-    if (!address) return "Not specified";
-    if (typeof address === "string") return address;
-    const addr = address as any;
-    return `${addr.fullName || ""}, ${addr.street || ""}, ${addr.area || ""}, ${addr.city || ""}, ${addr.state || ""} - ${addr.pincode || ""}`.trim();
+  // Helper to get items of selected order for modal
+  const getSelectedOrderItems = () => {
+      const order = orders.find(o => o._id === selectedOrderId);
+      return order ? order.items : [];
   };
 
   return (
@@ -503,43 +540,31 @@ const Orders: React.FC = () => {
                 <option value="shipped">Shipped</option>
                 <option value="delivered">Delivered</option>
                 <option value="cancelled">Cancelled</option>
+                <option value="returned">Returned</option>
               </select>
             </div>
           )}
         </div>
 
         {loading ? (
-          <div className="loading-state">
-            <p>Loading your orders...</p>
-          </div>
+          <div className="loading-state"><p>Loading your orders...</p></div>
         ) : error ? (
           <div className="error-state">
             <h3>Unable to load orders</h3>
             <p>{error}</p>
-            <button onClick={() => window.location.reload()}>
-              Try Again
-            </button>
+            <button onClick={() => window.location.reload()}>Try Again</button>
           </div>
         ) : filteredOrders.length === 0 ? (
           <div className="empty-state">
             <h3>No orders found</h3>
-            <p>
-              {statusFilter === "all"
-                ? "You haven't placed any orders yet."
-                : `You don't have any ${statusFilter} orders.`}
-            </p>
-            <button onClick={() => window.location.href = "/"}>
-              Start Shopping
-            </button>
+            <button onClick={() => window.location.href = "/"}>Start Shopping</button>
           </div>
         ) : (
           <div className="orders-list">
             {filteredOrders.map((order) => (
               <div
                 key={order._id}
-                className={`order-card ${
-                  expandedOrder === order._id ? "expanded" : ""
-                }`}
+                className={`order-card ${expandedOrder === order._id ? "expanded" : ""}`}
               >
                 <div className="order-summary" onClick={() => toggleOrder(order._id)}>
                   <div className="order-meta">
@@ -547,7 +572,7 @@ const Orders: React.FC = () => {
                       <h3>Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}</h3>
                       <p className="order-date">Placed on {formatDate(order.createdAt)}</p>
                     </div>
-                    <StatusBadge status={order.status} />
+                    <StatusBadge status={order.status} returnReq={order.returnRequest} />
                   </div>
                   <div className="order-preview">
                     <div className="items-preview">
@@ -556,9 +581,7 @@ const Orders: React.FC = () => {
                           <img 
                             src={resolveImage(item.image)} 
                             alt={item.name} 
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder-product.png";
-                            }}
+                            onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-product.png"; }}
                           />
                           <span>{item.name}</span>
                         </div>
@@ -566,10 +589,8 @@ const Orders: React.FC = () => {
                     </div>
                     <div className="order-totals">
                       <div className="order-total">
-                        <span>Total Packets:</span>
-                        <strong>
-                          {order.items?.reduce((sum, it) => sum + toPackets(it), 0) || 0}
-                        </strong>
+                        <span>Total:</span>
+                        <strong>₹{order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
                       </div>
                     </div>
                   </div>
@@ -579,125 +600,78 @@ const Orders: React.FC = () => {
                   <div className="order-details">
                     <OrderProgress status={order.status} />
                     
-                    {/* ✅ TRACKING SECTION ADDED HERE */}
                     {order.status === "shipped" && order.trackingId && (
-                      <div className="tracking-section" style={{
-                        background: '#f0f9ff', 
-                        padding: '15px', 
-                        borderRadius: '8px',
-                        border: '1px solid #bae6fd',
-                        margin: '20px 0',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        flexWrap: 'wrap',
-                        gap: '10px'
-                      }}>
-                        <div className="tracking-info">
-                          <h4 style={{ margin: '0 0 5px 0', color: '#0369a1' }}>🚚 Shipment On The Way!</h4>
-                          <p style={{ margin: 0, fontSize: '14px', color: '#334155' }}>
-                            <strong>Courier:</strong> {order.courierName || "Express Shipping"} <br/>
-                            <strong>Tracking ID:</strong> {order.trackingId}
-                          </p>
+                      <div className="tracking-section" style={{ background: '#f0f9ff', padding: '15px', borderRadius: '8px', border: '1px solid #bae6fd', margin: '20px 0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                           <h4 style={{ margin: '0 0 5px 0', color: '#0369a1' }}>🚚 Shipment On The Way!</h4>
+                           <p style={{ margin: 0 }}>Courier: {order.courierName || "Express"} | Tracking: {order.trackingId}</p>
                         </div>
-                        <a 
-                          href={getTrackingUrl(order)} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="track-btn"
-                          style={{
-                            backgroundColor: '#0284c7',
-                            color: 'white',
-                            padding: '10px 20px',
-                            borderRadius: '6px',
-                            textDecoration: 'none',
-                            fontWeight: 'bold',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '8px'
-                          }}
-                        >
-                          📍 Track Live Location
-                        </a>
+                        <a href={getTrackingUrl(order)} target="_blank" rel="noopener noreferrer" className="track-btn" style={{ background: '#0284c7', color: 'white', padding: '8px 15px', borderRadius: '5px', textDecoration: 'none' }}>Track</a>
                       </div>
+                    )}
+
+                    {/* ✅ CANCEL BUTTON (Only if Pending) */}
+                    {order.status === 'pending' && (
+                       <div style={{ marginTop: '20px', textAlign: 'right' }}>
+                          <button 
+                            onClick={() => handleCancelOrder(order._id)}
+                            style={{ backgroundColor: '#fff', border: '1px solid #ef4444', color: '#ef4444', padding: '8px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                             ❌ Cancel Order
+                          </button>
+                       </div>
+                    )}
+
+                    {order.status === 'delivered' && !order.returnRequest?.isRequested && (
+                       <div className="return-section" style={{ marginTop: '20px', padding: '15px', background: '#fff1f2', border: '1px solid #fda4af', borderRadius: '8px' }}>
+                          <h4 style={{ margin: '0 0 10px 0', color: '#be123c' }}>Need to Return?</h4>
+                          <p style={{ fontSize: '14px', marginBottom: '10px' }}>Returns are only accepted for Damaged or Wrong products. You must provide image/video proof.</p>
+                          <button 
+                            onClick={() => handleOpenReturn(order._id)}
+                            style={{ backgroundColor: '#e11d48', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                          >
+                             Request Return
+                          </button>
+                       </div>
+                    )}
+
+                    {order.returnRequest?.isRequested && (
+                        <div style={{ marginTop: '20px', padding: '15px', background: '#f3f4f6', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+                            <h4 style={{ margin: '0 0 5px 0' }}>Return Request Details</h4>
+                            <p><strong>Status:</strong> {order.returnRequest.status}</p>
+                            <p><strong>Reason:</strong> {order.returnRequest.reason}</p>
+                            {order.returnRequest.adminComment && (
+                                <p style={{ color: 'red' }}><strong>Admin Comment:</strong> {order.returnRequest.adminComment}</p>
+                            )}
+                        </div>
                     )}
 
                     <div className="details-grid">
                       <div className="items-list">
-                        <h4>Order Items ({order.items?.length || 0})</h4>
-                        <div className="items-container">
+                         <h4>Order Items</h4>
+                         <div className="items-container">
                           {order.items?.map((item, i) => (
                             <div key={i} className="item-detail">
                               <div className="item-image">
-                                <img 
-                                  src={resolveImage(item.image)} 
-                                  alt={item.name}
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = "/placeholder-product.png";
-                                  }}
-                                />
+                                <img src={resolveImage(item.image)} alt={item.name} onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder-product.png"; }} />
                               </div>
                               <div className="item-info">
                                 <h5>{item.name}</h5>
-                                <div className="item-specs">
-                                  <span>{item.qty} pcs ({toPackets(item)} packets)</span>
-                                </div>
-                                <div className="item-price">
-                                  ₹{item.price.toFixed(2)} per piece
-                                </div>
+                                <div className="item-specs"><span>{item.qty} pcs ({toPackets(item)} pkts)</span></div>
+                                <div className="item-price">₹{item.price.toFixed(2)}</div>
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="order-summary-card">
-                        <h4>Order Summary</h4>
-                        <div className="summary-row">
-                          <span>Order Number</span>
-                          <span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Order Date</span>
-                          <span>{formatDate(order.createdAt)}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Status</span>
-                          <StatusBadge status={order.status} />
-                        </div>
-                        
-                        <div className="summary-row">
-                          <span>Payment Method</span>
-                          <span>
-                            {order.paymentMode === "ONLINE" ? (
-                              <span style={{ color: "green", fontWeight: "bold" }}>
-                                Online Payment (Paid) ✅
-                              </span>
-                            ) : (
-                              <span style={{ color: "#444" }}>
-                                Cash on Delivery 📦
-                              </span>
-                            )}
-                          </span>
-                        </div>
 
-                        <div className="summary-row">
-                          <span>Shipping Address</span>
-                          <span className="shipping-address">
-                            {formatShippingAddress(order.shippingAddress)}
-                          </span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Total Amount</span>
-                          <span className="total-amount">₹{order.total.toFixed(2)}</span>
-                        </div>
-                        <div className="summary-row">
-                          <button 
-                            className="invoice-btn" 
-                            onClick={() => generateInvoice(order)}
-                          >
-                            📄 View Invoice
-                          </button>
-                        </div>
+                      <div className="order-summary-card">
+                         <h4>Order Summary</h4>
+                         <div className="summary-row"><span>Order No</span><span>{order.orderNumber}</span></div>
+                         <div className="summary-row"><span>Total</span><span>₹{order.total}</span></div>
+                         <div className="summary-row">
+                           <button className="invoice-btn" onClick={() => generateInvoice(order)}>📄 View Invoice</button>
+                         </div>
                       </div>
                     </div>
                   </div>
@@ -706,6 +680,109 @@ const Orders: React.FC = () => {
             ))}
           </div>
         )}
+
+        {/* ✅ RETURN REQUEST MODAL WITH PRODUCT SELECTION */}
+        {showReturnModal && (
+            <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+                <div className="modal-content" style={{ background: 'white', padding: '25px', borderRadius: '10px', width: '90%', maxWidth: '500px', maxHeight: '90vh', overflowY: 'auto' }}>
+                    <h2 style={{ marginTop: 0, color: '#2c5aa0' }}>Request Return</h2>
+                    <form onSubmit={handleSubmitReturn}>
+                        
+                        {/* SELECT PRODUCTS SECTION */}
+                        <div style={{ marginBottom: '15px', border:'1px solid #eee', padding:'10px', borderRadius:'5px' }}>
+                            <label style={{ display: 'block', marginBottom: '8px', fontWeight: 'bold', color:'#333' }}>
+                                Select Product(s) to Return *
+                            </label>
+                            <div style={{ maxHeight:'150px', overflowY:'auto' }}>
+                                {getSelectedOrderItems()?.map((item, index) => (
+                                    <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', paddingBottom:'8px', borderBottom:'1px solid #f9f9f9' }}>
+                                        <input 
+                                            type="checkbox" 
+                                            id={`item-${index}`}
+                                            checked={returnSelectedItems.includes(item.name)}
+                                            onChange={() => handleItemSelect(item.name)}
+                                            style={{ width:'18px', height:'18px', cursor:'pointer' }}
+                                        />
+                                        <img src={resolveImage(item.image)} alt="" style={{width:'35px', height:'35px', objectFit:'cover', borderRadius:'4px'}} />
+                                        <label htmlFor={`item-${index}`} style={{ fontSize:'13px', cursor:'pointer', flex:1 }}>
+                                            {item.name} <br/> 
+                                            <span style={{color:'#666', fontSize:'11px'}}>Qty: {item.qty}</span>
+                                        </label>
+                                    </div>
+                                ))}
+                            </div>
+                            {returnSelectedItems.length === 0 && (
+                                <p style={{color:'red', fontSize:'11px', margin:'5px 0 0'}}>Please select at least one item.</p>
+                            )}
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Reason</label>
+                            <select 
+                                value={returnReason} 
+                                onChange={(e) => setReturnReason(e.target.value)}
+                                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc' }}
+                            >
+                                <option value="Damaged Product">Damaged Product</option>
+                                <option value="Wrong Product">Wrong Product</option>
+                            </select>
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description / Note</label>
+                            <textarea 
+                                value={returnDescription} 
+                                onChange={(e) => setReturnDescription(e.target.value)}
+                                placeholder="Describe the damage or issue..."
+                                required
+                                style={{ width: '100%', padding: '10px', borderRadius: '5px', border: '1px solid #ccc', minHeight: '80px' }}
+                            />
+                        </div>
+
+                        <div style={{ marginBottom: '15px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Upload Images (Proof)</label>
+                            <input 
+                                type="file" 
+                                multiple 
+                                accept="image/*" 
+                                onChange={(e) => setReturnImages(e.target.files)}
+                                required
+                                style={{ width: '100%' }}
+                            />
+                            <small style={{color:'#666'}}>Max 3 images recommended</small>
+                        </div>
+
+                        <div style={{ marginBottom: '20px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Upload Video (Optional)</label>
+                            <input 
+                                type="file" 
+                                accept="video/*" 
+                                onChange={(e) => setReturnVideo(e.target.files ? e.target.files[0] : null)}
+                                style={{ width: '100%' }}
+                            />
+                        </div>
+
+                        <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
+                            <button 
+                                type="button" 
+                                onClick={() => setShowReturnModal(false)}
+                                style={{ padding: '10px 20px', borderRadius: '5px', border: '1px solid #ccc', background: '#f3f4f6', cursor: 'pointer' }}
+                            >
+                                Cancel
+                            </button>
+                            <button 
+                                type="submit" 
+                                disabled={uploadingReturn}
+                                style={{ padding: '10px 20px', borderRadius: '5px', border: 'none', background: uploadingReturn ? '#ccc' : '#2c5aa0', color: 'white', cursor: 'pointer', opacity: uploadingReturn ? 0.7 : 1 }}
+                            >
+                                {uploadingReturn ? "Uploading..." : "Submit Request"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        )}
+
       </div>
     </MainLayout>
   );

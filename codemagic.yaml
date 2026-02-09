@@ -12,25 +12,30 @@ workflows:
     scripts:
       - name: Install dependencies
         script: |
+          cd frontend
           npm install
           npm install -g @capacitor/cli
 
       - name: Build web app
         script: |
+          cd frontend
           npm run build
 
       - name: Capacitor sync
         script: |
+          cd frontend
           npx cap sync android
 
       - name: Fix gradlew permission
         script: |
-          chmod +x android/gradlew
+          cd frontend/android
+          chmod +x gradlew
 
       - name: Build Android AAB
         script: |
-          cd android
+          cd frontend/android
           ./gradlew bundleRelease
 
     artifacts:
-      - android/app/build/outputs/**/*.aab
+      - frontend/android/app/build/outputs/**/*.aab
+      - frontend/android/app/build/outputs/**/*.apk

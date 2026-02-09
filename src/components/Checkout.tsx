@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import api, { MEDIA_URL } from "../utils/api";
 import "../styles/Checkout.css";
-// ✅ Added 'Truck' icon for shipping indicator
-import { Trash2, Plus, Minus, FileText, MapPin, User as UserIcon, CreditCard, Package, AlertCircle, Truck } from "lucide-react";
+// ✅ Added 'Tag' icon for discount
+import { Trash2, Plus, Minus, FileText, MapPin, User as UserIcon, CreditCard, Package, AlertCircle, Truck, Tag } from "lucide-react";
 
 // --- Types ---
 interface Item {
@@ -44,6 +44,12 @@ interface OrderData {
   advancePaid?: number;
   itemsPrice?: number;
   shippingPrice?: number;
+  discountAmount?: number; // Added for Invoice
+}
+
+interface DiscountRule {
+  minAmount: number;
+  discountPercentage: number;
 }
 
 // --- Helper function for minimum quantity ---
@@ -58,11 +64,11 @@ const getItemValues = (item: Item) => {
   const minQty = getMinimumQuantity(unitPrice);
   const totalPrice = innerCount * unitPrice * (item.piecesPerInner || item.innerQty || 1);
 
-  return { 
-    innerCount, 
-    unitPrice, 
+  return {
+    innerCount,
+    unitPrice,
     totalPrice,
-    minQty 
+    minQty
   };
 };
 
@@ -88,23 +94,23 @@ const loadRazorpay = () => {
 // --- Invoice Generator ---
 const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   const printWindow = window.open("", "_blank", "width=900,height=700");
-  if (!printWindow) { 
-    alert("Popup blocked! Please allow popups to generate invoice."); 
-    return false; 
+  if (!printWindow) {
+    alert("Popup blocked! Please allow popups to generate invoice.");
+    return false;
   }
-  
+
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-IN", {
     day: 'numeric',
     month: 'long',
     year: 'numeric'
   });
-  
+
   const addr = orderData.shippingAddress;
   const shopName = user?.shopName || addr?.fullName || "Customer";
   const mobile = addr?.phone || user?.otpMobile || "N/A";
   const whatsapp = mobile;
-  
+
   let shipToAddress = "";
   if (addr) {
     const parts = [];
@@ -117,13 +123,13 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
     if (addr.pincode) parts.push(`PIN: ${addr.pincode}`);
     shipToAddress = parts.join(", ");
   }
-  
+
   const logoUrl = "https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png";
-  
+
   const invoiceItems = orderData.items.map(item => {
     const totalPieces = item.qty || 0;
     const inners = item.inners || Math.floor(totalPieces / (item.innerQty || 1));
-    
+
     return {
       name: item.name,
       quantity: `${totalPieces} pcs (${inners} inner${inners !== 1 ? 's' : ''})`,
@@ -135,7 +141,12 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   const totalAmount = orderData.total;
   const advancePaid = orderData.advancePaid || 0;
   const balanceAmount = Math.max(totalAmount - advancePaid, 0);
-  
+  const discount = orderData.discountAmount || 0;
+  // Calculate Subtotal (Items Price) by adding discount back to total (approximate logic if original item total not stored)
+  // Ideally orderData should have itemsTotal. Using orderData.itemsPrice if available.
+  const subTotal = orderData.itemsPrice || (totalAmount + discount - (orderData.shippingPrice || 0));
+
+
   const invoiceContent = `
   <!DOCTYPE html>
   <html>
@@ -189,7 +200,10 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
       </div>
       
       <div class="total-section">
-        <div class="total-row"><span>Subtotal</span><span>₹${totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>
+        <div class="total-row"><span>Subtotal</span><span>₹${subTotal.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>
+        ${orderData.shippingPrice ? `<div class="total-row"><span>Shipping</span><span>₹${orderData.shippingPrice.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>` : ''}
+        ${discount > 0 ? `<div class="total-row" style="color: #ea580c;"><span>Discount</span><span>- ₹${discount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>` : ''}
+        <div class="total-row" style="margin-top: 10px; border-top: 1px solid #ddd; paddingTop: 10px; font-weight: bold;"><span>Total</span><span>₹${totalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>
         ${advancePaid > 0 ? `<div class="total-row" style="color: #059669;"><span>Advance Paid</span><span>- ₹${advancePaid.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span></div>` : ''}
         <div class="total-row" style="margin-top: 15px; font-weight: 800; font-size: 24px; color: #2c5aa0;">
           <span>${advancePaid > 0 && orderData.paymentMode === 'COD' ? 'Balance to Pay' : 'Grand Total'}</span>
@@ -204,27 +218,23 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
     </div>
   </body>
   </html>`;
-  
+
   printWindow.document.write(invoiceContent);
   printWindow.document.close();
   return true;
 };
 
-const getItemTotalPrice = (item: Item) => (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1) * (item.price || 0);
-
 const Checkout: React.FC = () => {
-  const { 
-    cartItems, 
-    setCartItemQuantity, 
-    clearCart, 
-    removeFromCart,
+  const {
+    cartItems,
+    setCartItemQuantity,
+    clearCart,
     cartTotal,
     shippingFee,
-    finalTotal,
-    // ✅ Fetch Threshold from Context
-    freeShippingThreshold 
+    finalTotal: originalFinalTotal, // We will calculate our own final total with discount
+    freeShippingThreshold
   } = useShop();
-  
+
   const navigate = useNavigate();
 
   const [orderPlaced, setOrderPlaced] = useState(false);
@@ -234,6 +244,10 @@ const Checkout: React.FC = () => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMode, setPaymentMode] = useState<"ONLINE" | "COD">("ONLINE");
   const [codAdvance, setCodAdvance] = useState<number>(0);
+  
+  // ✅ Discount States
+  const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
+  const [appliedDiscount, setAppliedDiscount] = useState<{ amount: number, percentage: number } | null>(null);
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
   const [user, setUser] = useState<any>(null);
@@ -241,11 +255,11 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     const userString = localStorage.getItem("user");
-    if (!userString) { 
-      navigate("/login"); 
-      return; 
+    if (!userString) {
+      navigate("/login");
+      return;
     }
-    
+
     const userData = JSON.parse(userString);
     setUser(userData);
 
@@ -257,6 +271,7 @@ const Checkout: React.FC = () => {
     }
 
     fetchCodSettings();
+    fetchDiscountRules(); // ✅ Load rules on mount
   }, []);
 
   const fetchCodSettings = async () => {
@@ -269,6 +284,39 @@ const Checkout: React.FC = () => {
       console.error("Failed to fetch COD settings", error);
     }
   };
+
+  const fetchDiscountRules = async () => {
+    try {
+      const { data } = await api.get("/discount-rules");
+      if (Array.isArray(data)) {
+        // Sort descending to find highest applicable rule easily
+        setDiscountRules(data.sort((a, b) => b.minAmount - a.minAmount));
+      }
+    } catch (error) {
+      console.error("Failed to fetch Discount Rules", error);
+    }
+  };
+
+  // ✅ Recalculate Discount whenever cartTotal or Rules change
+  useEffect(() => {
+    if (discountRules.length > 0 && cartTotal > 0) {
+      // Find the best rule
+      const rule = discountRules.find(r => cartTotal >= r.minAmount);
+      
+      if (rule) {
+        const discountVal = (cartTotal * rule.discountPercentage) / 100;
+        setAppliedDiscount({ 
+          amount: Math.floor(discountVal), // Round down
+          percentage: rule.discountPercentage 
+        });
+      } else {
+        setAppliedDiscount(null);
+      }
+    } else {
+        setAppliedDiscount(null);
+    }
+  }, [cartTotal, discountRules]);
+
 
   useEffect(() => {
     const invalidItems = cartItems.filter(item => {
@@ -291,24 +339,16 @@ const Checkout: React.FC = () => {
         const def = data.find((a: Address) => a.isDefault) || data[0];
         setSelectedAddress(def);
       }
-    } catch (e) { 
-      console.error("Failed to fetch default address"); 
+    } catch (e) {
+      console.error("Failed to fetch default address");
     }
   };
 
-  const handleDecrease = (item: Item) => {
-    const currentQty = item.quantity || 0;
-    const { minQty } = getItemValues(item);
-    if (currentQty <= minQty) return; 
-    setCartItemQuantity(item, currentQty - 1);
-  };
-
-  const handleIncrease = (item: Item) => {
-    const currentQty = item.quantity || 0;
-    setCartItemQuantity(item, currentQty + 1);
-  };
-
   const handleChooseAddress = () => navigate("/addresses?select=true");
+
+  // ✅ CALCULATE FINAL PAYABLE AMOUNT WITH DISCOUNT
+  const discountAmt = appliedDiscount ? appliedDiscount.amount : 0;
+  const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
 
   const handlePlaceOrder = async () => {
     const invalidItems = cartItems.filter(item => {
@@ -326,14 +366,14 @@ const Checkout: React.FC = () => {
       return;
     }
 
-    const applicableAdvance = paymentMode === "COD" ? Math.min(codAdvance, finalTotal) : 0;
+    const applicableAdvance = paymentMode === "COD" ? Math.min(codAdvance, finalTotalWithDiscount) : 0;
     const isCodDirect = paymentMode === "COD" && applicableAdvance <= 0;
 
     // --- Scenario 1: PURE COD ---
     if (isCodDirect) {
       try {
         setPlacing(true);
-        
+
         const items = cartItems.map((item: any) => ({
           productId: item._id,
           name: item.name,
@@ -349,12 +389,13 @@ const Checkout: React.FC = () => {
           items,
           itemsPrice: cartTotal,
           shippingPrice: shippingFee,
-          total: finalTotal,
+          discountAmount: discountAmt, // ✅ Send discount info
+          total: finalTotalWithDiscount, // ✅ Send discounted total
           shippingAddress: selectedAddress,
           paymentMode: "COD",
           paymentId: null,
           codAdvancePaid: 0,
-          codRemainingAmount: finalTotal 
+          codRemainingAmount: finalTotalWithDiscount
         });
 
         const orderNum = data.order?.orderNumber || data.orderNumber;
@@ -362,9 +403,10 @@ const Checkout: React.FC = () => {
         setOrderDetails({
           orderNumber: orderNum,
           items,
-          total: finalTotal,
+          total: finalTotalWithDiscount,
           itemsPrice: cartTotal,
           shippingPrice: shippingFee,
+          discountAmount: discountAmt,
           date: new Date().toISOString(),
           paymentMode: "COD",
           shippingAddress: selectedAddress,
@@ -386,7 +428,7 @@ const Checkout: React.FC = () => {
     // --- Scenario 2: Razorpay ---
     try {
       setPlacing(true);
-      const payAmount = paymentMode === "ONLINE" ? finalTotal : applicableAdvance;
+      const payAmount = paymentMode === "ONLINE" ? finalTotalWithDiscount : applicableAdvance;
 
       const res = await loadRazorpay();
       if (!res) {
@@ -396,11 +438,10 @@ const Checkout: React.FC = () => {
       }
 
       const { data: razorOrder } = await api.post("/payments/create-order", {
-        amount: payAmount, 
+        amount: payAmount,
       });
 
       const options = {
-        // ✅ Correct VITE syntax
         key: (import.meta as any).env.VITE_RAZORPAY_KEY || "rzp_test_YOUR_KEY_HERE",
         amount: razorOrder.amount,
         currency: "INR",
@@ -428,14 +469,15 @@ const Checkout: React.FC = () => {
             }));
 
             const advancePaid = paymentMode === "COD" ? applicableAdvance : 0;
-            const remaining = Math.max(finalTotal - advancePaid, 0);
+            const remaining = Math.max(finalTotalWithDiscount - advancePaid, 0);
 
             const { data } = await api.post("/orders", {
               customerId: user._id,
               items,
               itemsPrice: cartTotal,
               shippingPrice: shippingFee,
-              total: finalTotal,
+              discountAmount: discountAmt, // ✅ Send Discount
+              total: finalTotalWithDiscount, // ✅ Send Discounted Total
               shippingAddress: selectedAddress,
               paymentMode: paymentMode,
               paymentId: response.razorpay_payment_id,
@@ -448,9 +490,10 @@ const Checkout: React.FC = () => {
             setOrderDetails({
               orderNumber: orderNum,
               items,
-              total: finalTotal,
+              total: finalTotalWithDiscount,
               itemsPrice: cartTotal,
               shippingPrice: shippingFee,
+              discountAmount: discountAmt,
               date: new Date().toISOString(),
               paymentMode: paymentMode,
               paymentId: response.razorpay_payment_id,
@@ -501,7 +544,7 @@ const Checkout: React.FC = () => {
           <div className="success-icon">✅</div>
           <h2>Order Placed Successfully!</h2>
           <p className="order-number">Order #: <strong>{orderNumber}</strong></p>
-          
+
           <div className="success-payment-summary" style={{margin: '20px 0', padding: '15px', background: '#f8fafc', borderRadius: '8px'}}>
              <p>Payment Mode: <strong>{isCod ? "Cash on Delivery" : "Online Payment"}</strong></p>
              <p>Total Amount: <strong>₹{totalAmt.toLocaleString()}</strong></p>
@@ -525,20 +568,16 @@ const Checkout: React.FC = () => {
     );
   }
 
-  // Allow all users
-  const isApproved = true; 
-  const canUseOnline = true; 
-  
-  const applicableAdvance = Math.min(codAdvance, finalTotal);
+  const applicableAdvance = Math.min(codAdvance, finalTotalWithDiscount);
   const showCodAdvance = paymentMode === "COD" && applicableAdvance > 0;
-  const payOnDeliveryAmount = Math.max(finalTotal - applicableAdvance, 0);
+  const payOnDeliveryAmount = Math.max(finalTotalWithDiscount - applicableAdvance, 0);
 
   const allItemsMeetMinQty = cartItems.every(item => {
     const { innerCount, minQty } = getItemValues(item);
     return innerCount >= minQty;
   });
 
-  // ✅ SHIPPING LOGIC CALCULATIONS
+  // FREE SHIPPING PROGRESS
   const neededForFree = freeShippingThreshold - cartTotal;
   const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
 
@@ -549,25 +588,24 @@ const Checkout: React.FC = () => {
         <p>Complete your purchase</p>
       </div>
 
-      {/* ✅ NEW: FREE SHIPPING PROGRESS BAR */}
       {freeShippingThreshold > 0 && (
         <div style={{
-            maxWidth: '1200px', margin: '0 auto 20px', padding: '15px 20px', 
-            background: neededForFree > 0 ? '#eff6ff' : '#f0fdf4', 
+            maxWidth: '1200px', margin: '0 auto 20px', padding: '15px 20px',
+            background: neededForFree > 0 ? '#eff6ff' : '#f0fdf4',
             borderRadius: '12px', border: neededForFree > 0 ? '1px solid #bfdbfe' : '1px solid #bbf7d0',
             boxShadow: '0 2px 5px rgba(0,0,0,0.05)'
         }}>
           <div style={{display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px', fontSize: '15px', fontWeight: '600', color: neededForFree > 0 ? '#1e40af' : '#15803d'}}>
              <Truck size={20} />
-             {neededForFree > 0 
+             {neededForFree > 0
                ? <span>Add <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping!</strong></span>
                : <span>🎉 Congratulations! You've unlocked <strong>FREE Shipping!</strong></span>
              }
           </div>
           <div style={{width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden'}}>
              <div style={{
-                width: `${progressPercent}%`, 
-                height: '100%', 
+                width: `${progressPercent}%`,
+                height: '100%',
                 background: neededForFree > 0 ? '#3b82f6' : '#22c55e',
                 transition: 'width 0.5s ease',
                 borderRadius: '4px'
@@ -593,7 +631,7 @@ const Checkout: React.FC = () => {
           <div className="checkout-section payment-mode-card">
             <div className="section-header"><h2>📦 Select Payment Method</h2></div>
             <div className="payment-options">
-              <div 
+              <div
                 className={`payment-option ${paymentMode === "COD" ? "selected" : ""}`}
                 onClick={() => setPaymentMode("COD")}
               >
@@ -606,8 +644,8 @@ const Checkout: React.FC = () => {
                 </div>
                 <div className="payment-radio"><div className={`radio-circle ${paymentMode === "COD" ? "active" : ""}`} /></div>
               </div>
-              
-              <div 
+
+              <div
                 className={`payment-option ${paymentMode === "ONLINE" ? "selected" : ""}`}
                 onClick={() => setPaymentMode("ONLINE")}
               >
@@ -650,9 +688,9 @@ const Checkout: React.FC = () => {
             <div className="order-items-list">
               {cartItems.map((item: Item) => {
                 const { minQty, innerCount } = getItemValues(item);
-                const itemTotal = (item.quantity || 0) * (item.price || 0) * (item.piecesPerInner || item.innerQty || 1); 
+                const itemTotal = (item.quantity || 0) * (item.price || 0) * (item.piecesPerInner || item.innerQty || 1);
                 const imgSrc = item.image?.startsWith("http") ? item.image : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
-                
+
                 return (
                   <div key={item._id} className="order-item-card">
                     <div className="item-image-container"><img src={imgSrc} className="item-image" alt={item.name} /></div>
@@ -680,20 +718,31 @@ const Checkout: React.FC = () => {
                 <span>Shipping</span>
                 <span>{shippingFee === 0 ? "Free" : `₹${shippingFee}`}</span>
             </div>
+
+            {/* ✅ DISCOUNT DISPLAY */}
+            {appliedDiscount && (
+                <div className="total-row" style={{ color: '#ea580c', fontWeight: 500 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <Tag size={16} /> Bulk Discount ({appliedDiscount.percentage}%)
+                    </span>
+                    <span>- ₹{appliedDiscount.amount.toLocaleString()}</span>
+                </div>
+            )}
+
             <div className="divider" />
-            
+
             {showCodAdvance ? (
               <>
-                <div className="total-row"><span>Order Total</span><span>₹{finalTotal.toLocaleString()}</span></div>
+                <div className="total-row"><span>Order Total</span><span>₹{finalTotalWithDiscount.toLocaleString()}</span></div>
                 <div className="total-row" style={{color: '#2c5aa0'}}><span>Advance</span><span>₹{applicableAdvance}</span></div>
                 <div className="total-row grand-total"><span>Due on Delivery</span><span>₹{payOnDeliveryAmount.toLocaleString()}</span></div>
               </>
             ) : (
-              <div className="total-row grand-total"><span>Grand Total</span><span>₹{finalTotal.toLocaleString()}</span></div>
+              <div className="total-row grand-total"><span>Grand Total</span><span>₹{finalTotalWithDiscount.toLocaleString()}</span></div>
             )}
 
-            <button 
-              className={`place-order-btn ${placing ? "processing" : ""} ${!allItemsMeetMinQty ? "disabled" : ""}`} 
+            <button
+              className={`place-order-btn ${placing ? "processing" : ""} ${!allItemsMeetMinQty ? "disabled" : ""}`}
               onClick={handlePlaceOrder}
               disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty}
             >
