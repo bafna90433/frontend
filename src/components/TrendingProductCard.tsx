@@ -9,9 +9,9 @@ import {
   Shield,
   CheckCircle,
   Zap,
-  Clock,      // ✅ Added for Timer Icon
-  Sparkles,   // ✅ Added for Discount Icon
-  TrendingUp  // ✅ Added for Featured Icon
+  Clock,
+  Sparkles,
+  TrendingUp,
 } from "lucide-react";
 import "../styles/TrendingSection.css";
 
@@ -25,19 +25,36 @@ interface Product {
   stock?: number;
   rating?: number;
   reviews?: number;
-  sale_end_time?: string; // ✅ Added for Timer
-  featured?: boolean;     // ✅ Added for Featured badge
+  sale_end_time?: string;
+  featured?: boolean;
 }
 
-const IMAGE_BASE_URL =
-  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+/** ✅ Use your existing env: VITE_MEDIA_URL
+ *  Fallback -> Railway backend (not localhost) */
+const MEDIA_BASE_URL =
+  (import.meta.env.VITE_MEDIA_URL as string)?.replace(/\/+$/, "") ||
+  (import.meta.env.VITE_IMAGE_BASE_URL as string)?.replace(/\/+$/, "") ||
+  "https://bafnatoys-backend-production.up.railway.app";
 
 const getOptimizedImageUrl = (url: string, width = 260) => {
   if (!url) return "";
-  if (url.includes("res.cloudinary.com"))
+
+  // Cloudinary optimize
+  if (url.includes("res.cloudinary.com")) {
     return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
+  }
+
+  // Already full url
   if (url.startsWith("http")) return url;
-  return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
+
+  // If backend stores "uploads/xyz.jpg" or "/uploads/xyz.jpg"
+  const clean = url.replace(/^\/+/, "");
+  if (clean.startsWith("uploads/")) {
+    return `${MEDIA_BASE_URL}/${clean}`;
+  }
+
+  // Default: treat as uploads filename
+  return `${MEDIA_BASE_URL}/uploads/${encodeURIComponent(clean)}`;
 };
 
 const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
@@ -46,7 +63,7 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<string | null>(null); // ✅ Timer State
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
   const cartItem = cartItems.find((item: any) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
@@ -72,28 +89,27 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
     },
   };
 
-  const discountPercent = product.mrp && product.mrp > product.price 
-    ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
-    : 0;
+  const discountPercent =
+    product.mrp && product.mrp > product.price
+      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+      : 0;
 
   // ✅ Timer Logic
   useEffect(() => {
     if (!product.sale_end_time) return;
 
     const calculateTimeLeft = () => {
-      const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
-      
-      if (difference > 0) {
-        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
-        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
-        const minutes = Math.floor((difference / 1000 / 60) % 60);
-        const seconds = Math.floor((difference / 1000) % 60);
+      const difference = new Date(product.sale_end_time!).getTime() - Date.now();
+      if (difference <= 0) return null;
 
-        // Format: 16D 22:07:36
-        return `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      } else {
-        return null;
-      }
+      const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+      const minutes = Math.floor((difference / 1000 / 60) % 60);
+      const seconds = Math.floor((difference / 1000) % 60);
+
+      return `${days}D ${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     };
 
     setTimeLeft(calculateTimeLeft());
@@ -108,24 +124,23 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
 
   return (
     <div className="t-card" onClick={handleNavigate} role="button" tabIndex={0}>
-      
       {/* Left Image */}
       <div className="t-imgbox">
-        
-        {/* ✅ BADGES (Timer / Featured) - Top Left */}
+        {/* ✅ BADGES */}
         <div className="t-badges">
-            {timeLeft ? (
-                <span className="t-badge t-badge--timer">
-                    <Clock size={9} strokeWidth={3} style={{marginRight:3}} /> {timeLeft}
-                </span>
-            ) : product.featured ? (
-                <span className="t-badge t-badge--featured">
-                    <TrendingUp size={9} strokeWidth={3} style={{marginRight:3}} /> Featured
-                </span>
-            ) : null}
+          {timeLeft ? (
+            <span className="t-badge t-badge--timer">
+              <Clock size={9} strokeWidth={3} style={{ marginRight: 3 }} /> {timeLeft}
+            </span>
+          ) : product.featured ? (
+            <span className="t-badge t-badge--featured">
+              <TrendingUp size={9} strokeWidth={3} style={{ marginRight: 3 }} /> Featured
+            </span>
+          ) : null}
         </div>
 
         {!imgLoaded && <div className="t-img-skel" />}
+
         <img
           src={getOptimizedImageUrl(product.images?.[0] || "", 260)}
           alt={product.name}
@@ -134,34 +149,38 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
           onLoad={() => setImgLoaded(true)}
         />
 
-        {/* ✅ Discount Ribbon - Bottom Right of Image */}
+        {/* ✅ Discount Ribbon */}
         {discountPercent > 0 && (
-            <div className="t-discount">
-              <Sparkles size={9} fill="currentColor" style={{marginRight:2}} />
-              {discountPercent}% OFF
-            </div>
+          <div className="t-discount">
+            <Sparkles size={9} fill="currentColor" style={{ marginRight: 2 }} />
+            {discountPercent}% OFF
+          </div>
         )}
       </div>
 
       {/* Right Info */}
       <div className="t-info">
-        {/* stock mini */}
         <div className="t-toprow">
           <div className="t-spacer" />
           <div className="t-stock-mini">
             {product.stock === 0 ? (
-              <span><Shield size={12} /> Out</span>
+              <span>
+                <Shield size={12} /> Out
+              </span>
             ) : product.stock && product.stock <= 10 ? (
-              <span><Zap size={12} /> {product.stock} left</span>
+              <span>
+                <Zap size={12} /> {product.stock} left
+              </span>
             ) : (
-              <span><CheckCircle size={12} /> In</span>
+              <span>
+                <CheckCircle size={12} /> In
+              </span>
             )}
           </div>
         </div>
 
         <h3 className="t-name">{product.name}</h3>
 
-        {/* Price row + controls */}
         <div className="t-priceRow">
           <div className="t-price">
             ₹{product.price.toLocaleString()}
@@ -207,16 +226,13 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
           )}
         </div>
 
-        {/* Min order / Total */}
         <div className="t-actions-row">
           {itemCount === 0 ? (
             <div className="t-min-qty">
               <Info size={12} /> Min Order: {minQty}
             </div>
           ) : (
-            <div className="t-total">
-              Total: ₹{(itemCount * product.price).toLocaleString()}
-            </div>
+            <div className="t-total">Total: ₹{(itemCount * product.price).toLocaleString()}</div>
           )}
         </div>
       </div>
