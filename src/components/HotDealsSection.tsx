@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-// TrendingProductCard ko hata kar HotDealProductCard add kiya
-import HotDealProductCard from "./HotDealProductCard"; 
+
+// ✅ File name match (HotdealProductCard.tsx)
+import HotdealProductCard from "./HotdealProductCard";
+
 import "../styles/HotDealsSection.css";
 
 type Product = {
@@ -14,10 +16,12 @@ type Product = {
   stock?: number;
 };
 
+type DealType = "none" | "percent" | "flat" | "NONE" | "PERCENT" | "FLAT";
+
 type HotDealItem = {
   productId: string;
   endsAt: string | null; // ISO
-  discountType: "none" | "percent" | "flat";
+  discountType: DealType;
   discountValue: number;
   product?: Product | null;
 };
@@ -33,31 +37,41 @@ const pad = (n: number) => String(n).padStart(2, "0");
 
 const calcDealPrice = (base: number, it: HotDealItem) => {
   const v = Number(it.discountValue || 0);
-  if (!v || it.discountType === "none") return base;
+  const type = String(it.discountType || "NONE").toUpperCase();
 
-  if (it.discountType === "percent") {
+  if (!v || type === "NONE") return base;
+
+  if (type === "PERCENT") {
     const off = (base * v) / 100;
     return Math.max(1, Math.round(base - off));
   }
-  if (it.discountType === "flat") {
+
+  if (type === "FLAT") {
     return Math.max(1, Math.round(base - v));
   }
+
   return base;
 };
 
-const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({ allProducts, cfg }) => {
+const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
+  allProducts,
+  cfg,
+}) => {
   const enabled = cfg?.hotDealsEnabled !== false;
   const title = cfg?.hotDealsTitle || "Deals Of The Day";
 
   const items = useMemo(() => {
     const raw = Array.isArray(cfg?.hotDealsItems) ? cfg.hotDealsItems : [];
+
     return raw
       .map((it) => {
         const p = it.product || allProducts.find((x) => x._id === it.productId) || null;
         if (!p) return null;
 
         const dealPrice = calcDealPrice(p.price, it);
-        const cloned: any = {
+
+        // ✅ Clone product (response only)
+        const cloned: Product = {
           ...p,
           mrp: p.mrp || (dealPrice < p.price ? p.price : p.mrp),
           price: dealPrice,
@@ -104,8 +118,10 @@ const HotDealCard: React.FC<{ item: HotDealItem }> = ({ item }) => {
       const diff = Math.max(0, end - Date.now());
       if (diff <= 0) {
         clearInterval(t);
+        setLeft({ d: 0, h: 0, m: 0, s: 0 });
         return;
       }
+
       setLeft({
         d: Math.floor(diff / (1000 * 60 * 60 * 24)),
         h: Math.floor((diff / (1000 * 60 * 60)) % 24),
@@ -117,13 +133,17 @@ const HotDealCard: React.FC<{ item: HotDealItem }> = ({ item }) => {
     return () => clearInterval(t);
   }, [item?.endsAt]);
 
-  const timerText = item.endsAt ? `${left.d}D ${pad(left.h)}:${pad(left.m)}:${pad(left.s)}` : "";
+  const timerText = item.endsAt
+    ? `${left.d}D ${pad(left.h)}:${pad(left.m)}:${pad(left.s)}`
+    : "";
+
+  // ✅ product null safe
+  if (!item.product) return null;
 
   return (
     <div className="hd-cardWrap">
       {timerText && <div className="hd-timerBadge">{timerText}</div>}
-      {/* Naya component yahan use ho raha hai */}
-      <HotDealProductCard product={item.product as any} />
+      <HotdealProductCard product={item.product as any} />
     </div>
   );
 };
