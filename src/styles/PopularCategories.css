@@ -1,0 +1,176 @@
+/* =========================
+   POPULAR CATEGORIES (BIG VERSION)
+========================= */
+
+.pc-section {
+  width: 100%;
+  padding: 60px 0 80px; /* Increased vertical padding */
+  background: #ffffff;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.pc-heading {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.pc-heading h2 {
+  margin: 0;
+  font-size: 42px; /* Bigger Heading */
+  font-weight: 800;
+  color: #0b2b3a;
+}
+
+.pc-heading p {
+  margin: 12px auto 0;
+  font-size: 16px;
+  color: #7b8a97;
+}
+
+/* Container to hold Arrows + Pill */
+.pc-slider-container {
+  position: relative;
+  width: 95%;
+  max-width: 1400px; /* Allows it to be wider */
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* THE BIG PILL BACKGROUND */
+.pc-pill {
+  flex: 1;
+  background-color: #f0fdfd; /* Light Cyan Color like screenshot */
+  border-radius: 999px;      /* Full rounded corners */
+  padding: 20px 0;           /* Space inside the pill */
+  overflow: hidden;          /* Crops the scrollbar */
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+}
+
+/* The Scrollable Area */
+.pc-slider {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+}
+.pc-slider::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+
+/* INDIVIDUAL ITEM */
+.pc-item {
+  flex: 0 0 260px; /* WIDER item (Bada) */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 20px 10px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+/* White Vertical Separator Line */
+.pc-item::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 10%;
+  height: 80%;
+  width: 2px;
+  background-color: #ffffff; /* The white line */
+}
+
+/* Remove line from last item */
+.pc-item:last-child::after {
+  display: none;
+}
+
+/* CIRCLE IMAGE */
+.pc-circle {
+  width: 130px;  /* BIGGER Circle */
+  height: 130px; /* BIGGER Circle */
+  border-radius: 50%;
+  background: #ffffff; /* White bg behind image */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-bottom: 18px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.pc-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pc-circle .pc-noimg {
+  font-size: 14px;
+  color: #ccc;
+  font-weight: bold;
+}
+
+/* ITEM NAME */
+.pc-name {
+  font-size: 18px; /* Bigger Font */
+  font-weight: 700;
+  color: #0f2230;
+  text-align: center;
+}
+
+/* HOVER EFFECTS */
+.pc-item:hover .pc-circle {
+  transform: scale(1.08); /* Pops up slightly */
+}
+
+/* NAVIGATION ARROWS */
+.pc-arrow {
+  width: 55px;   /* Bigger buttons */
+  height: 55px;
+  border-radius: 50%;
+  border: none;
+  background: #ffffff;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #0b2b3a;
+  transition: all 0.2s;
+  z-index: 5;
+  flex-shrink: 0; /* Prevents shrinking */
+}
+
+.pc-arrow:hover {
+  background: #0b2b3a;
+  color: #fff;
+  transform: scale(1.1);
+}
+
+/* =========================
+   RESPONSIVE (Mobile)
+========================= */
+@media (max-width: 768px) {
+  .pc-pill {
+    border-radius: 20px; /* Less rounded on mobile */
+  }
+  .pc-item {
+    flex: 0 0 160px; /* Smaller width on mobile */
+  }
+  .pc-circle {
+    width: 90px;
+    height: 90px;
+  }
+  .pc-name {
+    font-size: 14px;
+  }
+  .pc-arrow {
+    display: none; /* Hide arrows on mobile, just swipe */
+  }
+}

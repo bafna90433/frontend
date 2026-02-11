@@ -81,7 +81,7 @@
   transform: scale(1.1) rotate(2deg);
 }
 
-/* Featured Badge */
+/* Featured Badge Container */
 .pc-top-badges {
   position: absolute;
   top: 8px;
@@ -130,10 +130,10 @@
   gap: 8px;
 }
 
-/* 1. Meta Row - Modified to just align stock if category is gone */
+/* Meta Row */
 .pc-meta-row {
   display: flex;
-  justify-content: flex-end; /* Pushes Stock status to the right */
+  justify-content: flex-end; 
   align-items: center;
 }
 
@@ -146,7 +146,7 @@
 .pc-stock--low { color: #f39c12; display: flex; align-items: center; gap: 3px; }
 .pc-stock--out { color: var(--pc-primary); }
 
-/* 2. Title */
+/* Title */
 .pc-title {
   font-size: 15px;
   font-weight: 800;
@@ -165,7 +165,7 @@
   color: var(--pc-primary);
 }
 
-/* 3. NEW: CHIPS SECTION */
+/* Chips */
 .pc-meta-chips {
   display: flex;
   flex-wrap: wrap;
@@ -183,27 +183,11 @@
   border-radius: var(--pc-radius-chip);
 }
 
-/* Chip Variants */
-/* Note: SKU Chip style removed */
+.pc-chip--box { background: #E3F2FD; color: #1976D2; }
+.pc-chip--rating { background: #FFFDE7; color: #FBC02D; }
+.pc-chip--tag { background: #FFECB3; color: #F57F17; }
 
-.pc-chip--box {
-  background: #E3F2FD;
-  color: #1976D2;
-}
-.pc-chip--unit {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-.pc-chip--rating {
-  background: #FFFDE7;
-  color: #FBC02D;
-}
-.pc-chip--tag {
-    background: #FFECB3;
-    color: #F57F17;
-}
-
-/* 4. Price Section */
+/* Price Section */
 .pc-price-section {
   margin-top: auto;
   padding-top: 8px;
@@ -249,12 +233,11 @@
   margin-top: 4px;
 }
 
-/* 5. Buttons */
+/* Buttons */
 .pc-actions {
   margin-top: 10px;
 }
 
-/* Add To Cart Button */
 .pc-add-to-cart {
   width: 100%;
   background: var(--pc-grad-btn);
@@ -269,7 +252,7 @@
   justify-content: center;
   gap: 6px;
   cursor: pointer;
-  box-shadow: 0 4px 0 #d64040; /* 3D effect */
+  box-shadow: 0 4px 0 #d64040; 
   transition: all 0.1s;
   margin-bottom: 4px;
 }
@@ -329,7 +312,6 @@
   text-align: center;
 }
 
-/* Skeleton */
 .pc-skeleton {
   position: absolute; inset: 0;
   background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
@@ -338,7 +320,6 @@
 
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
-/* Mobile Optimizations */
 @media (max-width: 480px) {
   .pc-wrapper { padding: 6px; }
   .pc-body { padding: 8px; gap: 6px; }
@@ -346,4 +327,24 @@
   .pc-chip { padding: 3px 6px; font-size: 9px; }
   .pc-amount { font-size: 18px; }
   .pc-add-to-cart { font-size: 12px; padding: 8px; }
+}
+
+/* --- ADDED: HOT DEAL TIMER --- */
+.pc-hotdeal-timer {
+  position: absolute;
+  top: 8px; /* Positioned at top-left corner of image */
+  left: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #0f172a; /* Dark background */
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.5px;
 }

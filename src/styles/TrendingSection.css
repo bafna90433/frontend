@@ -1,0 +1,437 @@
+/* =========================
+   TRENDING WRAP
+========================= */
+
+.trending-wrap{
+  width: 100%;
+  margin: 26px 0;
+  padding: 22px 26px 26px;
+  border-radius: 16px;
+  background: #eaf8f8;
+  box-sizing: border-box;
+}
+
+.trending-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.trending-title{
+  margin:0;
+  font-size: 30px;
+  font-weight: 800;
+  color: #0b2b3a;
+}
+
+/* Tabs */
+.trending-tabs{
+  display:flex;
+  gap: 18px;
+  align-items:center;
+  flex-wrap: wrap;
+}
+
+.t-tab{
+  border: 0;
+  background: transparent;
+  color: #2e4050;
+  font-weight: 600;
+  font-size: 13px;
+  opacity: .75;
+  cursor: pointer;
+  padding: 6px 4px;
+  position: relative;
+}
+.t-tab.active{ opacity: 1; }
+.t-tab.active::after{
+  content:"";
+  position:absolute;
+  left:0; right:0; bottom:-6px;
+  height: 2px;
+  background:#0b2b3a;
+  border-radius: 2px;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+
+.trending-body{
+  display:flex;
+  gap: 22px;
+  align-items: stretch;
+}
+
+.trending-grid{
+  flex: 3;
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.trending-banner{
+  flex: 1;
+  border-radius: 14px;
+  overflow:hidden;
+  background: rgba(255,255,255,0.55);
+}
+
+.trending-banner img{
+  width:100%;
+  height:100%;
+  min-height: 420px;
+  object-fit: cover;
+  display:block;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.t-card{
+  display:flex;
+  align-items:center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255,255,255,0.88);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.04);
+  cursor:pointer;
+  transition: transform .12s ease, box-shadow .2s ease;
+}
+.t-card:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
+}
+
+.t-imgbox{
+  width: 92px;
+  height: 78px;
+  border-radius: 12px;
+  background: #f4f6f8;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* image skeleton */
+.t-img-skel{
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, #f2f2f2, #fafafa, #f2f2f2);
+  animation: tShimmer 1.2s infinite linear;
+}
+@keyframes tShimmer{
+  0%{ transform: translateX(-30%); }
+  100%{ transform: translateX(30%); }
+}
+
+.t-img{
+  width:100%;
+  height:100%;
+  object-fit: contain;
+  padding: 6px;
+  opacity:0;
+  transition: opacity .2s ease;
+}
+.t-img.loaded{ opacity:1; }
+
+/* right info */
+.t-info{ flex: 1; min-width: 0; }
+
+/* top row for stock */
+.t-toprow{
+  display:flex;
+  justify-content: space-between;
+  align-items:center;
+  gap: 10px;
+}
+.t-spacer{ flex: 1; }
+
+.t-stock-mini{
+  font-size: 12px;
+  font-weight: 800;
+  color: #2e4050;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+.t-stock-mini span{
+  display:flex;
+  align-items:center;
+  gap: 6px;
+}
+
+/* title */
+.t-name{
+  margin: 8px 0 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color:#162a36;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* price row */
+.t-priceRow{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 10px;
+}
+
+.t-price{
+  font-size: 16px;
+  font-weight: 900;
+  color:#182b37;
+  white-space: nowrap;
+}
+
+.t-mrp{
+  margin-left: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color:#8a97a3;
+  text-decoration: line-through;
+}
+
+/* add button */
+.t-btn{
+  border: 0;
+  background:#0aa88f;
+  color:#fff;
+  font-weight: 800;
+  font-size: 12px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  display:flex;
+  align-items:center;
+  gap: 8px;
+  cursor:pointer;
+  white-space: nowrap;
+  transition: transform .08s ease, background .2s ease, opacity .2s ease;
+}
+.t-btn:hover{ background:#078e79; }
+.t-btn:active{ transform: scale(.98); }
+.t-btn:disabled{ opacity: 0.6; cursor: not-allowed; }
+
+/* =========================
+   QTY CONTROLS
+========================= */
+
+.t-qty-controls{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.t-qty-btn{
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,0,0,0.10);
+  background: #ffffff;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 900;
+  transition: transform .08s ease, box-shadow .2s ease, opacity .2s ease;
+}
+.t-qty-btn:hover{
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+}
+.t-qty-btn:active{
+  transform: scale(0.96);
+}
+.t-qty-btn:disabled{
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.t-qty-val{
+  min-width: 18px;
+  text-align: center;
+  font-weight: 900;
+  color: #162a36;
+}
+
+/* bottom row: min qty / total */
+.t-actions-row{
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.t-min-qty{
+  font-size: 12px;
+  font-weight: 700;
+  color: #2e4050;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.t-total{
+  font-size: 12px;
+  font-weight: 900;
+  color: #1a2d38;
+  opacity: 0.9;
+  white-space: nowrap;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 1100px){
+  .trending-body{ flex-direction: column; }
+  .trending-grid{ grid-template-columns: 1fr; }
+  .trending-banner img{ min-height: 260px; }
+}
+
+@media (max-width: 600px){
+  .trending-wrap{ padding: 18px 14px; }
+  .trending-title{ font-size: 24px; }
+  .t-card{ padding: 12px; }
+  .t-actions-row{
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.t-imgbox{
+  width: 120px;      /* ✅ pehle 92px */
+  height: 110px;     /* ✅ pehle 78px */
+  border-radius: 14px;
+  background: #f4f6f8;
+  position: relative;
+  overflow: hidden;
+  flex-shrink: 0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+.t-img{
+  width:100%;
+  height:100%;
+  object-fit: contain;
+  padding: 4px;      /* ✅ pehle 6px (image zyada area le) */
+  opacity:0;
+  transition: opacity .2s ease;
+}
+.trending-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom: 14px;
+}
+
+.trending-title{
+  margin:0;
+  font-size: 28px;
+  font-weight: 900;
+  color:#0b2b3a;
+  text-transform: capitalize;
+  display:block;          /* ✅ */
+  visibility: visible;    /* ✅ */
+  opacity: 1;             /* ✅ */
+}
+/* ... Existing Styles ... */
+
+/* =========================
+   UPDATED IMAGE BOX & BADGES
+========================= */
+
+.t-imgbox {
+  width: 120px;
+  height: 110px;
+  border-radius: 14px;
+  background: #f4f6f8;
+  position: relative; /* Badge positioning ke liye zaroori */
+  overflow: hidden;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.t-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 4px;
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.t-img.loaded { opacity: 1; }
+
+/* --- Badges Container (Top Left) --- */
+.t-badges {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* --- Base Badge Style --- */
+.t-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
+  backdrop-filter: blur(2px);
+  width: fit-content;
+}
+
+/* --- Red Timer Badge --- */
+.t-badge--timer {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Blue Featured Badge --- */
+.t-badge--featured {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* --- Discount Ribbon (Bottom Right) --- */
+.t-discount {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+  color: #059669; /* Dark Green Text */
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-top-left-radius: 8px;
+  display: flex;
+  align-items: center;
+  z-index: 5;
+}

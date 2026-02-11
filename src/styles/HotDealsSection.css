@@ -1,0 +1,149 @@
+/* ===== Hot Deals Section (Final Clean + Playful) ===== */
+
+.hd-wrap {
+  width: min(1240px, 94%);
+  margin: 40px auto;
+  border-radius: 24px;
+  padding: 20px;
+  background: #ffffff;
+  border: 3px solid #f0f4ff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Patterns */
+.hd-wrap::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.15;
+  background-image: 
+    radial-gradient(#ff7eb3 2px, transparent 2px),
+    radial-gradient(#7afcff 2px, transparent 2px),
+    radial-gradient(#ffe66d 2px, transparent 2px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px, 10px 10px;
+}
+
+.hd-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 2px dashed #e2e8f0;
+}
+
+.hd-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 900;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.hd-viewall {
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 14px;
+  color: #4f46e5;
+  background: #fdf2f8;
+  padding: 8px 16px;
+  border-radius: 50px;
+  transition: all 0.3s ease;
+  border: 1px solid #fbcfe8;
+}
+
+.hd-viewall:hover {
+  background: #4f46e5;
+  color: #ffffff;
+  transform: translateY(-2px);
+}
+
+/* --- GRID LAYOUT (DESKTOP) --- */
+.hd-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.hd-cardWrap {
+  position: relative;
+  transition: transform 0.3s ease;
+}
+
+.hd-cardWrap:hover {
+  transform: translateY(-5px);
+}
+
+/* --- RESPONSIVE BREAKPOINTS --- */
+
+@media (max-width: 1024px) {
+  .hd-grid { 
+    grid-template-columns: repeat(3, 1fr); 
+  }
+}
+
+@media (max-width: 768px) {
+  .hd-wrap {
+    padding: 15px;
+    margin: 20px auto;
+  }
+  
+  .hd-title { 
+    font-size: 18px; 
+  }
+  
+  .hd-grid {
+    grid-template-columns: repeat(2, 1fr); /* Tablet/Phone pe 2 columns */
+    gap: 12px;
+  }
+
+  .hd-viewall {
+    font-size: 12px;
+    padding: 6px 12px;
+  }
+}
+
+/* ✅ Mobile View optimization (Hamesha 2 Column) */
+@media (max-width: 480px) {
+  .hd-wrap {
+    padding: 12px 10px; /* Thoda space bachane ke liye */
+  }
+
+  .hd-grid {
+    grid-template-columns: repeat(2, 1fr); /* Hamesha 2 column rakhega */
+    gap: 10px; /* Card ke beech ka gap thoda kam */
+  }
+
+  .hd-title {
+    font-size: 16px;
+  }
+}
+
+/* Pulsing Timer Badge */
+.hd-timerBadge {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  background: #ef4444;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 900;
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}

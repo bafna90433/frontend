@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import { 
@@ -13,10 +13,12 @@ import {
   Shield, 
   CheckCircle, 
   Sparkles,
-  Tag
+  Tag,
+  Clock // Clock icon for timer
 } from "lucide-react";
 import "../styles/ProductCard.css";
 
+// --- Types ---
 interface Product {
   _id: string;
   name: string;
@@ -32,14 +34,16 @@ interface Product {
   rating?: number;
   reviews?: number;
   featured?: boolean;
+  sale_end_time?: string; // For Countdown Timer
 }
 
 interface ProductCardProps {
   product: Product;
-  userRole: "admin" | "customer";
+  userRole?: "admin" | "customer";
   index?: number;
 }
 
+// --- Helpers ---
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const getOptimizedImageUrl = (url: string, width = 400) => {
@@ -53,10 +57,12 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
-  
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
+   
+  // --- Cart & Navigation Logic ---
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
-  const minQty = product.price < 60 ? 3 : 2;
+  const minQty = product.price < 60 ? 3 : 2; 
 
   const handleNavigate = () => navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
 
@@ -80,8 +86,38 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
     : 0;
 
-  // Rating Logic
   const rating = product.rating || 4.5;
+
+  // --- Countdown Timer Logic ---
+  useEffect(() => {
+    if (!product.sale_end_time) return;
+
+    const calculateTimeLeft = () => {
+      const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
+      
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / 1000 / 60) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+
+        // Format: 02D 14:30:05
+        return `${days.toString().padStart(2, '0')}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      } else {
+        return null;
+      }
+    };
+
+    setTimeLeft(calculateTimeLeft());
+
+    const timer = setInterval(() => {
+      const timeLeftStr = calculateTimeLeft();
+      setTimeLeft(timeLeftStr);
+      if (!timeLeftStr) clearInterval(timer);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [product.sale_end_time]);
 
   return (
     <div className="pc-wrapper">
@@ -91,14 +127,22 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
             
-            {/* Top Badges */}
-            <div className="pc-top-badges">
-              {product.featured && (
-                <span className="pc-badge pc-badge--featured">
-                  <TrendingUp size={10} strokeWidth={3} /> Featured
-                </span>
-              )}
-            </div>
+            {/* --- UPDATED: HOT DEAL TIMER --- */}
+            {timeLeft ? (
+               <div className="pc-hotdeal-timer">
+                 <Clock size={12} strokeWidth={3} color="#fbbf24" /> {/* Gold Icon */}
+                 <span>{timeLeft}</span>
+               </div>
+            ) : (
+              // Show Featured badge ONLY if timer is not active
+              product.featured && (
+                <div className="pc-top-badges">
+                  <span className="pc-badge pc-badge--featured">
+                    <TrendingUp size={10} strokeWidth={3} /> Featured
+                  </span>
+                </div>
+              )
+            )}
 
             {/* Main Image */}
             {!imgLoaded && <div className="pc-skeleton" />}
@@ -111,7 +155,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             />
           </div>
 
-          {/* Discount Ribbon (Bottom Right) */}
+          {/* Discount Ribbon */}
           {discountPercent > 0 && (
             <div className="pc-discount-ribbon">
               <Sparkles size={10} fill="currentColor" />
@@ -123,9 +167,8 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
         {/* --- 2. Body Section --- */}
         <div className="pc-body">
           
-          {/* Stock Status Row (Category Removed) */}
+          {/* Stock Status Row */}
           <div className="pc-meta-row">
-            {/* Empty spacer to keep alignment logic if needed, or just stock status */}
             <div className="pc-stock-status">
                {product.stock === 0 ? (
                 <span className="pc-stock pc-stock--out">Out of Stock</span>
@@ -146,26 +189,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             {product.name}
           </h3>
 
-          {/* Meta Chips: SKU REMOVED. Tagline & Pack Size remain. */}
+          {/* Meta Chips */}
           <div className="pc-meta-chips">
-            
-            {/* Tagline Chip (Orange) */}
             {product.tagline && (
               <span className="pc-chip pc-chip--tag">
                 <Tag size={10} strokeWidth={2.5} /> 
                 {product.tagline}
               </span>
             )}
-
-            {/* Pack Size Chip (Blue) */}
             {product.packSize && (
               <span className="pc-chip pc-chip--box">
                 <Box size={10} strokeWidth={2.5} /> 
                 {product.packSize}
               </span>
             )}
-
-            {/* Rating Chip (Yellow) */}
             {(product.rating || product.reviews) && (
                <span className="pc-chip pc-chip--rating">
                  <Star size={10} fill="#FBC02D" stroke="none" /> 
@@ -188,7 +225,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               </div>
             </div>
             
-            {/* Min Qty Alert */}
             {itemCount === 0 && (
               <div className="pc-min-qty">
                 <Info size={10} /> Min Order: {minQty}

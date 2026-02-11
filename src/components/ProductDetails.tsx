@@ -11,11 +11,12 @@ import {
   FiAlertCircle, 
   FiBox, 
   FiTag, 
-  FiHash,
-  FiShoppingCart,
-  FiMinus,
-  FiPlus,
-  FiShield
+  FiHash, 
+  FiShoppingCart, 
+  FiMinus, 
+  FiPlus, 
+  FiShield,
+  FiClock 
 } from "react-icons/fi";
 import { FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
@@ -48,6 +49,7 @@ interface Product {
   reviews?: number;
   tagline?: string;
   packSize?: string;
+  sale_end_time?: string;
 }
 
 const ProductDetails: React.FC = () => {
@@ -58,12 +60,13 @@ const ProductDetails: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [imgLoaded, setImgLoaded] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
+  const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
 
-  const { cartItems, addToCart, setCartItemQuantity } = useShop();
+  const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
   const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
@@ -89,7 +92,36 @@ const ProductDetails: React.FC = () => {
     fetchProduct();
   }, [id]);
 
-  // Gallery Swipe Handling
+  useEffect(() => {
+    if (!product?.sale_end_time) {
+        setTimeLeft(null);
+        return;
+    }
+
+    const calculateTimeLeft = () => {
+      const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
+      
+      if (difference > 0) {
+        const days = Math.floor(difference / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
+        const minutes = Math.floor((difference / 1000 / 60) % 60);
+        const seconds = Math.floor((difference / 1000) % 60);
+        return `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+      } else {
+        return null;
+      }
+    };
+
+    setTimeLeft(calculateTimeLeft());
+    const timer = setInterval(() => {
+      const t = calculateTimeLeft();
+      setTimeLeft(t);
+      if (!t) clearInterval(timer);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [product]);
+
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e: React.TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
   const handleTouchEnd = () => {
@@ -106,25 +138,14 @@ const ProductDetails: React.FC = () => {
   if (error) return <div className="pd-error">{error}</div>;
   if (!product) return <div className="pd-error">Product not found</div>;
 
-  // Cart Logic
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
   const minQty = product.price < 60 ? 3 : 2;
 
-  // Price Calculation
-  const sortedTiers = Array.isArray(product.bulkPricing)
-    ? [...product.bulkPricing].sort((a, b) => parseInt(a.inner) - parseInt(b.inner))
-    : [];
+  // 🔥 REMOVED: Bulk Pricing Logic (activeTier) hata diya gaya hai.
+  // ✅ NOW: Seedha backend se aaya hua price use ho raha hai.
+  const unitPrice = product.price;
 
-  const activeTier = sortedTiers.length > 0
-    ? sortedTiers.reduce((prev, tier) =>
-        itemCount >= parseInt(tier.inner) ? tier : prev,
-        sortedTiers[0]
-      ) : undefined;
-
-  const unitPrice = activeTier ? activeTier.price : product.price;
-
-  // Discount Logic
   const hasDiscount = product.mrp && product.mrp > unitPrice;
   const discountPercent = hasDiscount 
     ? Math.round(((product.mrp! - unitPrice) / product.mrp!) * 100) 
@@ -134,28 +155,16 @@ const ProductDetails: React.FC = () => {
   const imageUrl = getImageUrl(baseImage, 800);
   const handleSelectImage = (index: number) => { setSelectedImage(index); setImgLoaded(false); };
 
-  // --- Handlers (Matching ProductCard Logic) ---
-  const handleAdd = () => {
-    setCartItemQuantity(product, minQty);
-  };
-
-  const handleInc = () => {
-    setCartItemQuantity(product, itemCount + 1);
-  };
-
-  const handleDec = () => {
-    const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
-    setCartItemQuantity(product, nextQty);
-  };
+  const handleAdd = () => { setCartItemQuantity(product, minQty); };
+  const handleInc = () => { setCartItemQuantity(product, itemCount + 1); };
+  const handleDec = () => { const nextQty = itemCount <= minQty ? 0 : itemCount - 1; setCartItemQuantity(product, nextQty); };
 
   return (
     <>
       <ProductSEO name={product.name} description={product.description} price={product.price} image={imageUrl} url={`https://bafnatoys.com/product/${product._id}`} />
 
-      {/* Full Width Container */}
       <div className="pd-container">
         
-        {/* --- LEFT: GALLERY --- */}
         <div className="pd-gallery">
           <div className="pd-main-image-frame" ref={imageContainerRef} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
             <img 
@@ -194,12 +203,29 @@ const ProductDetails: React.FC = () => {
           )}
         </div>
 
-        {/* --- RIGHT: INFO PANEL --- */}
         <div className="pd-info">
           
           <div className="pd-header">
             <h1 className="pd-title">{product.name}</h1>
             
+            {timeLeft && (
+               <div style={{
+                   display: 'inline-flex',
+                   alignItems: 'center',
+                   gap: '6px',
+                   background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                   color: 'white',
+                   padding: '6px 12px',
+                   borderRadius: '20px',
+                   fontSize: '0.85rem',
+                   fontWeight: 'bold',
+                   marginBottom: '10px',
+                   boxShadow: '0 2px 5px rgba(239, 68, 68, 0.3)'
+               }}>
+                   <FiClock /> Deal Ends in: {timeLeft}
+               </div>
+            )}
+
             <div className="pd-meta-chips">
               {product.sku && (
                 <span className="pd-chip pd-chip--sku">
@@ -257,10 +283,8 @@ const ProductDetails: React.FC = () => {
              </div>
           </div>
 
-          {/* --- ACTIONS: Matches ProductCard Behavior --- */}
           <div className="pd-actions-area">
              {itemCount === 0 ? (
-                // 1. Initial State: "Add to Cart" Button
                 <button 
                   className="pd-btn-cart" 
                   onClick={handleAdd}
@@ -273,7 +297,6 @@ const ProductDetails: React.FC = () => {
                   )}
                 </button>
              ) : (
-                // 2. Added State: Quantity Controls
                 <div className="pd-qty-wrapper">
                    <button 
                      onClick={handleDec} 
@@ -296,7 +319,6 @@ const ProductDetails: React.FC = () => {
              )}
           </div>
 
-          {/* Description */}
           {product.description && (
             <div className={`pd-desc-accordion ${isDescriptionExpanded ? "open" : ""}`}>
               <div className="pd-desc-header" onClick={toggleDescription}>
@@ -317,7 +339,6 @@ const ProductDetails: React.FC = () => {
         </div>
       </div>
 
-      {/* Related Products */}
       {product.relatedProducts && product.relatedProducts.length > 0 && (
         <div className="pd-related-section">
           <h3 className="pd-section-title">🧸 You May Also Like</h3>

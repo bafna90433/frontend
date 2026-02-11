@@ -1,5 +1,5 @@
 // src/App.tsx
-import React, { useEffect } from "react"; // ✅ Import useEffect
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,15 +7,15 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api"; // ✅ Import API for tracking
+import api from "./utils/api"; 
 
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// ✅ Shop hook
+// Shop hook
 import { useShop } from "./context/ShopContext";
 
-// ✅ Center Modal
+// Center Modal
 import FreeDeliveryModal from "./components/FreeDeliveryModal";
 
 // Layout Components
@@ -31,6 +31,9 @@ import ProductDetails from "./components/ProductDetails";
 import Cart from "./components/Cart";
 import Wishlist from "./components/Wishlist";
 import Checkout from "./components/Checkout";
+
+// ✅ NEW: Import Hot Deals Page
+import HotDealsPage from "./pages/HotDealsPage"; 
 
 import Register from "./components/Register";
 import LoginOTP from "./components/LoginOTP";
@@ -50,12 +53,13 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const location = useLocation();
   const user = localStorage.getItem("user");
 
-  // ✅ From YOUR ShopContext (already exists in your context)
+  // From YOUR ShopContext
   const { cartTotal, freeShippingThreshold } = useShop();
 
   const publicPaths = [
     "/",
     "/products",
+    "/hot-deals", // ✅ ADDED: Allow public access to Hot Deals
     "/register",
     "/login",
     "/privacy-policy",
@@ -74,7 +78,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <>
-      {/* ✅ Center Popup (not top bar) */}
+      {/* Center Popup */}
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
 
       <Header />
@@ -92,11 +96,11 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 const App: React.FC = () => {
 
-  // ✅ VISITOR TRACKING LOGIC (Website open hote hi count karega)
+  // VISITOR TRACKING LOGIC
   useEffect(() => {
     const trackVisitor = async () => {
       try {
-        // Session Check: Agar user ne abhi session me visit kiya hai to dubara count mat karo
+        // Session Check
         const hasVisited = sessionStorage.getItem("visited");
         
         if (!hasVisited) {
@@ -129,6 +133,10 @@ const App: React.FC = () => {
               {/* 🛍️ Public App Pages */}
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
+              
+              {/* ✅ NEW: Hot Deals Route */}
+              <Route path="/hot-deals" element={<HotDealsPage />} />
+
               <Route path="/product/:id" element={<ProductDetails />} />
 
               <Route path="/cart" element={<Cart />} />
