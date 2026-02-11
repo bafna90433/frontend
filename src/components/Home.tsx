@@ -1,15 +1,15 @@
-// src/pages/Home.tsx (FINAL)
-// ✅ Banner ke niche 4 professional icon feature blocks added
-
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
+
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
 import TrendingSection from "./TrendingSection";
 import PopularCategories from "./PopularCategories";
+import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
+
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
@@ -32,6 +32,7 @@ interface Product {
   category?: { _id: string; name: string };
   images: string[];
   slug?: string;
+  mrp?: number;
 }
 
 interface Banner {
@@ -46,17 +47,20 @@ type HomeCfg = {
   popularCategoryIds?: string[];
   popularCategories?: Category[];
 
-  // old support
   trendingTitle?: string;
   trendingProductIds?: string[];
-
-  // ✅ new support
   trendingSections?: { title: string; productIds: string[]; products?: Product[] }[];
 
   bannerImage?: string;
   bannerLink?: string;
 
-  products?: Product[];
+  // ✅ HOT DEALS
+  hotDealsEnabled?: boolean;
+  hotDealsPageEnabled?: boolean;
+  hotDealsTitle?: string;
+  hotDealsEndsAt?: string | null;
+  hotDealsProductIds?: string[];
+  hotDealsProducts?: Product[];
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
@@ -94,13 +98,9 @@ const Home: React.FC = () => {
           api.get("/home-config"),
         ]);
 
-        const catList = catRes.data?.categories || catRes.data || [];
-        const prodList = prodRes.data?.products || prodRes.data || [];
-        const bannerList = bannerRes.data?.banners || bannerRes.data || [];
-
-        setCategories(safeArr<Category>(catList));
-        setProducts(safeArr<Product>(prodList));
-        setBanners(safeArr<Banner>(bannerList));
+        setCategories(safeArr<Category>(catRes.data?.categories || catRes.data || []));
+        setProducts(safeArr<Product>(prodRes.data?.products || prodRes.data || []));
+        setBanners(safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || []));
         setHomeCfg(cfgRes.data || null);
       } catch (err: any) {
         console.error("Fetch error:", err);
@@ -109,21 +109,16 @@ const Home: React.FC = () => {
         setLoading(false);
       }
     }
-
     fetchData();
   }, []);
 
-  // ✅ Popular categories = admin selected
   const popularCats = useMemo(() => {
     if (!homeCfg) return [];
-
     if (Array.isArray(homeCfg.popularCategories) && homeCfg.popularCategories.length > 0) {
       return homeCfg.popularCategories;
     }
-
     const ids = safeStrArr(homeCfg.popularCategoryIds);
     if (!ids.length) return [];
-
     return categories.filter((c) => ids.includes(c._id));
   }, [homeCfg, categories]);
 
@@ -136,47 +131,24 @@ const Home: React.FC = () => {
       {/* 1️⃣ Banner Slider */}
       {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* ✅ 1.5️⃣ TRUST BAR (Banner ke niche) */}
+      {/* ✅ TRUST BAR */}
       {!loading && (
         <div className="trustbar">
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <FaTruckFast />
-            </div>
-            <div className="trust-text">
-              <h4>Fast Delivery</h4>
-              <p>Quick dispatch & reliable shipping</p>
-            </div>
+            <div className="trust-icon" aria-hidden><FaTruckFast /></div>
+            <div className="trust-text"><h4>Fast Delivery</h4><p>Quick dispatch & reliable shipping</p></div>
           </div>
-
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <MdSecurity />
-            </div>
-            <div className="trust-text">
-              <h4>Secure Payment</h4>
-              <p>Safe & trusted checkout</p>
-            </div>
+            <div className="trust-icon" aria-hidden><MdSecurity /></div>
+            <div className="trust-text"><h4>Secure Payment</h4><p>Safe & trusted checkout</p></div>
           </div>
-
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <HiBadgeCheck />
-            </div>
-            <div className="trust-text">
-              <h4>Quality Assured</h4>
-              <p>Checked products & trusted brand</p>
-            </div>
+            <div className="trust-icon" aria-hidden><HiBadgeCheck /></div>
+            <div className="trust-text"><h4>Quality Assured</h4><p>Checked products & trusted brand</p></div>
           </div>
-
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <BiSupport />
-            </div>
-            <div className="trust-text">
-              <h4>Customer Support</h4>
-              <p>Quick help on WhatsApp & calls</p>
-            </div>
+            <div className="trust-icon" aria-hidden><BiSupport /></div>
+            <div className="trust-text"><h4>Customer Support</h4><p>Quick help on WhatsApp & calls</p></div>
           </div>
         </div>
       )}
@@ -196,9 +168,7 @@ const Home: React.FC = () => {
                   {cat.image || cat.imageUrl ? (
                     <img src={cat.image || cat.imageUrl} alt={cat.name} className="cat-circle-img" />
                   ) : (
-                    <div className="cat-placeholder">
-                      <FiImage />
-                    </div>
+                    <div className="cat-placeholder"><FiImage /></div>
                   )}
                 </div>
                 <span className="cat-circle-name">{cat.name}</span>
@@ -208,7 +178,7 @@ const Home: React.FC = () => {
         </>
       )}
 
-      {/* ✅ loading skeleton for category circles */}
+      {/* Skeleton */}
       {loading && (
         <div className="category-circles-section">
           {Array.from({ length: 6 }).map((_, i) => (
@@ -225,12 +195,21 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* 3️⃣ Trending Section */}
+      {/* 3️⃣ Trending (✅ mobile 2 column wrapper) */}
       {!loading && products.length > 0 && (
-        <TrendingSection products={products} config={homeCfg} />
+        <section className="two-col-mobile two-col-mobile--trending">
+          <TrendingSection products={products as any} config={homeCfg as any} />
+        </section>
       )}
 
-      {/* 4️⃣ Popular Categories */}
+      {/* 3.5️⃣ Hot Deals (✅ mobile 2 column wrapper) */}
+      {!loading && products.length > 0 && homeCfg && (
+        <section className="two-col-mobile two-col-mobile--hotdeals">
+          <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
+        </section>
+      )}
+
+      {/* 4️⃣ Popular */}
       {!loading && popularCats.length > 0 && (
         <PopularCategories
           categories={popularCats}
@@ -239,7 +218,7 @@ const Home: React.FC = () => {
         />
       )}
 
-      {/* 5️⃣ Category Wise Product Rows */}
+      {/* 5️⃣ Category Wise Rows */}
       {!loading &&
         categories.map((cat) => {
           const items = products.filter((p) => p.category?._id === cat._id);
@@ -251,34 +230,25 @@ const Home: React.FC = () => {
                 <h2 className="category-title">
                   <span className="title-highlight">{cat.name}</span>
                 </h2>
-
                 <Link to={`/products?category=${cat._id}`} className="view-all-btn">
                   View All <FiArrowRight />
                 </Link>
               </div>
 
               <div className="product-scroll-wrapper">
-                <button
-                  className="scroll-btn scroll-btn--left"
-                  onClick={() => scrollContainer(cat._id, "left")}
-                  aria-label="Scroll Left"
-                >
+                <button className="scroll-btn scroll-btn--left" onClick={() => scrollContainer(cat._id, "left")}>
                   <FiChevronLeft size={22} />
                 </button>
 
                 <div id={`scroll-${cat._id}`} className="product-scroll">
                   {items.map((product) => (
                     <div key={product._id} className="product-link">
-                      <ProductCard product={product} userRole="customer" />
+                      <ProductCard product={product as any} userRole="customer" />
                     </div>
                   ))}
                 </div>
 
-                <button
-                  className="scroll-btn scroll-btn--right"
-                  onClick={() => scrollContainer(cat._id, "right")}
-                  aria-label="Scroll Right"
-                >
+                <button className="scroll-btn scroll-btn--right" onClick={() => scrollContainer(cat._id, "right")}>
                   <FiChevronRight size={22} />
                 </button>
               </div>
@@ -288,27 +258,17 @@ const Home: React.FC = () => {
 
       <FloatingCheckoutButton />
 
-      {/* Footer */}
       <footer className="home-footer">
         <div className="footer-content">
           <div className="footer-links-container">
             <h3>Quick Links</h3>
             <ul className="footer-links">
-              <li>
-                <Link to="/privacy-policy">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link to="/terms-conditions">Terms & Conditions</Link>
-              </li>
-              <li>
-                <Link to="/shipping-delivery">Shipping & Delivery</Link>
-              </li>
-              <li>
-                <Link to="/cancellation-refund">Cancellation & Refund</Link>
-              </li>
+              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+              <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+              <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+              <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
             </ul>
           </div>
-
           <div className="footer-copyright">
             <p>© {new Date().getFullYear()} Bafna Toys</p>
           </div>
