@@ -1,5 +1,4 @@
-// src/App.tsx
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,14 +6,18 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api"; 
-import { io } from "socket.io-client"; // ✅ Added Socket.io Client
+import api from "./utils/api";
+import { io } from "socket.io-client";
+import axios from "axios"; // ✅ Make sure axios is imported
 
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
 // Shop hook
 import { useShop } from "./context/ShopContext";
+
+// ✅ Import Coming Soon Component
+import ComingSoon from "./components/ComingSoon";
 
 // Center Modal
 import FreeDeliveryModal from "./components/FreeDeliveryModal";
@@ -33,8 +36,7 @@ import Cart from "./components/Cart";
 import Wishlist from "./components/Wishlist";
 import Checkout from "./components/Checkout";
 
-// ✅ NEW: Import Hot Deals Page
-import HotDealsPage from "./pages/HotDealsPage"; 
+import HotDealsPage from "./pages/HotDealsPage";
 
 import Register from "./components/Register";
 import LoginOTP from "./components/LoginOTP";
@@ -50,20 +52,21 @@ import TermsConditions from "./components/TermsConditions";
 import ShippingDelivery from "./components/ShippingDelivery";
 import CancellationRefund from "./components/CancellationRefund";
 
-// --- ✅ SOCKET CONFIGURATION (Live Backend) ---
+// --- SOCKET CONFIGURATION ---
 const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
+// --- API BASE URL FOR MAINTENANCE CHECK ---
+const API_BASE_URL = "https://bafnatoys-backend-production.up.railway.app/api";
 
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
 
-  // From YOUR ShopContext
   const { cartTotal, freeShippingThreshold } = useShop();
 
   const publicPaths = [
     "/",
     "/products",
-    "/hot-deals", // ✅ Allow public access to Hot Deals
+    "/hot-deals",
     "/register",
     "/login",
     "/privacy-policy",
@@ -82,15 +85,11 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
   return (
     <>
-      {/* Center Popup */}
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
-
       <Header />
-
       <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
         {children}
       </main>
-
       <WhatsAppButton />
       <BottomNav />
       <BackFooter />
@@ -99,18 +98,34 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 };
 
 const App: React.FC = () => {
+  const [isMaintenance, setIsMaintenance] = useState(false);
+  const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ CENTRALIZED TRACKING LOGIC
+  // ✅ CHECK MAINTENANCE MODE ON LOAD
   useEffect(() => {
-    // 1. Visitor Tracking (Database Entry for Total Visitors)
+    const checkMaintenance = async () => {
+      try {
+        const res = await axios.get(`${API_BASE_URL}/settings/maintenance`);
+        if (res.data && res.data.enabled) {
+          setIsMaintenance(true);
+        }
+      } catch (error) {
+        console.error("Maintenance check failed", error);
+      } finally {
+        setLoadingCheck(false);
+      }
+    };
+    checkMaintenance();
+  }, []);
+
+  // VISITOR TRACKING & SOCKET LOGIC
+  useEffect(() => {
     const trackVisitor = async () => {
       try {
-        // Session Check to prevent duplicate counts on refresh
         const hasVisited = sessionStorage.getItem("visited");
-        
         if (!hasVisited) {
-          await api.post("/analytics/track"); // Backend API Call
-          sessionStorage.setItem("visited", "true"); // Mark as visited
+          await api.post("/analytics/track");
+          sessionStorage.setItem("visited", "true");
         }
       } catch (e) {
         console.error("Visitor tracking failed", e);
@@ -118,21 +133,32 @@ const App: React.FC = () => {
     };
     trackVisitor();
 
-    // 2. Real-time Socket Connection (For "Online Now" Counter)
     const socket = io(SOCKET_URL, {
-      transports: ["websocket", "polling"], // Ensure reliable connection
+      transports: ["websocket", "polling"],
+      withCredentials: true
     });
 
-    // Optional: Log connection for debugging
     socket.on("connect", () => {
-      // console.log("Connected to live server"); 
+      // console.log("Connected to Real-time analytics server");
     });
 
-    // Cleanup: Disconnect socket when user leaves/closes tab
     return () => {
       socket.disconnect();
     };
   }, []);
+
+  if (loadingCheck) {
+    return (
+      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        Loading...
+      </div>
+    );
+  }
+
+  // 🔴 BLOCK ACCESS IF MAINTENANCE IS ON
+  if (isMaintenance) {
+    return <ComingSoon />;
+  }
 
   return (
     <ShopProvider>
@@ -144,66 +170,26 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<LoginOTP />} />
 
+              {/* 🛍️ Public Pages */}
+              <Route path="/" element={<Home />} />
+              <Route path="/products" element={<Products />} />
+              <Route path="/hot-deals" element={<HotDealsPage />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
+
               {/* 📜 Legal Pages */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
 
-              {/* 🛍️ Public App Pages */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              
-              {/* ✅ Hot Deals Route */}
-              <Route path="/hot-deals" element={<HotDealsPage />} />
-
-              <Route path="/product/:id" element={<ProductDetails />} />
-
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-
               {/* 🔒 Protected Pages */}
-              <Route
-                path="/checkout"
-                element={
-                  <ProtectedRoute>
-                    <Checkout />
-                  </ProtectedRoute>
-                }
-              />
-
-              <Route
-                path="/my-account"
-                element={
-                  <ProtectedRoute>
-                    <MyAccount />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/edit-profile"
-                element={
-                  <ProtectedRoute>
-                    <EditProfile />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/orders"
-                element={
-                  <ProtectedRoute>
-                    <Orders />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/addresses"
-                element={
-                  <ProtectedRoute>
-                    <ManageAddresses />
-                  </ProtectedRoute>
-                }
-              />
+              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+              <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
+              <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+              <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
+              <Route path="/addresses" element={<ProtectedRoute><ManageAddresses /></ProtectedRoute>} />
 
               {/* 🔁 Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />

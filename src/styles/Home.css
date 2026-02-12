@@ -229,7 +229,7 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 0px;
+  gap: 0px; isko change mat karo 
   padding: 10px 40px 20px 40px;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
