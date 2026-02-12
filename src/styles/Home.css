@@ -1,14 +1,12 @@
-/* src/styles/Home.css */
-
 :root {
   --kid-bg: #FFFFFF;
   --kid-card-bg: #FFFFFF;
-  --kid-primary: #FF6B6B;       
-  --kid-secondary: #4ECDC4;     
-  --kid-accent: #FFD93D;        
-  --kid-blue: #45AAF2;          
+  --kid-primary: #FF6B6B;        
+  --kid-secondary: #4ECDC4;      
+  --kid-accent: #FFD93D;         
+  --kid-blue: #45AAF2;           
   --kid-purple: #A55EEA;        
-  --kid-text: #2D3436;          
+  --kid-text: #2D3436;           
   --kid-text-light: #636e72;    
   --footer-bg: #FFF9C4;
   --footer-text: #5d4037;
@@ -26,30 +24,149 @@
   overflow-x: hidden;
 }
 
+/* ==============================
+   ✅ TRUST BAR (Desktop Default)
+   ============================== */
+.trustbar {
+  width: 100%;
+  padding: 14px 40px;
+  margin: 10px 0 10px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.trust-item {
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 18px;
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: var(--kid-shadow);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.trust-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+}
+
+.trust-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--kid-primary);
+  flex: 0 0 auto;
+  font-size: 22px;
+}
+
+.trust-item:nth-child(2) .trust-icon { background: rgba(78, 205, 196, 0.12); color: var(--kid-secondary); }
+.trust-item:nth-child(3) .trust-icon { background: rgba(255, 217, 61, 0.18); color: #d59a00; }
+.trust-item:nth-child(4) .trust-icon { background: rgba(69, 170, 242, 0.14); color: var(--kid-blue); }
+
+.trust-text h4 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 900;
+  color: var(--kid-text);
+  line-height: 1.2;
+}
+
+.trust-text p {
+  margin: 3px 0 0 0;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--kid-text-light);
+  line-height: 1.25;
+}
+
+/* =========================================
+   ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT)
+   ========================================= */
+@media (max-width: 768px) {
+  .trustbar {
+    /* Force 4 columns grid */
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important; /* Gap bohot kam rakha hai taaki fit ho */
+    padding: 10px 5px !important;
+    overflow-x: hidden;
+  }
+
+  .trust-item {
+    flex-direction: column !important; /* Icon top, Text bottom */
+    justify-content: flex-start !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 6px 2px !important;
+    border-radius: 8px !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: 1px solid #f0f0f0 !important;
+    min-height: 85px; /* Minimum height taaki sab barabar dikhein */
+  }
+
+  .trust-icon {
+    width: 28px !important; /* Icon thoda aur chota kiya */
+    height: 28px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    margin-bottom: 4px !important;
+    margin-right: 0 !important;
+  }
+
+  .trust-text {
+    width: 100%;
+    padding: 0 1px;
+  }
+
+  .trust-text h4 {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 2px !important;
+    white-space: normal !important;
+  }
+
+  /* ✅ Details Text (Description) ab dikhega */
+  .trust-text p {
+    display: block !important; 
+    font-size: 8px !important; /* Font size chota rakha hai */
+    line-height: 1 !important;
+    font-weight: 600 !important;
+    color: #999 !important;
+    white-space: normal !important;
+  }
+}
+
+/* ... (Baaki saara CSS waisa hi rahega) ... */
+
 /* =========================================
    ✅ CATEGORY SECTION (FIXED SCROLLING)
    ========================================= */
-
-/* Wrapper to hold buttons + list */
 .category-scroll-wrapper {
   position: relative;
   width: 100%;
   display: flex;
   align-items: center;
-  padding: 0 10px; /* Space for buttons */
+  padding: 0 10px;
 }
 
 .category-circles-section {
   display: flex;
-  flex-wrap: nowrap; /* Forces items in a single line */
+  flex-wrap: nowrap;
   overflow-x: auto;
   gap: 40px; 
   padding: 30px 40px;
   margin-bottom: 20px;
   scroll-behavior: smooth;
   width: 100%;
-  
-  /* Hide scrollbar but allow scrolling */
   scrollbar-width: none; 
   -ms-overflow-style: none;
 }
@@ -63,7 +180,6 @@
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  /* ✅ IMPORTANT: Prevents shrinking */
   flex: 0 0 auto; 
   min-width: 180px; 
   cursor: pointer;
@@ -94,7 +210,6 @@
   border-color: #fff;
 }
 
-/* Alternate Border Colors */
 .cat-circle-item:nth-child(odd) .cat-circle-img-wrapper { border-color: #FFF0F0; }
 .cat-circle-item:nth-child(even) .cat-circle-img-wrapper { border-color: #F0FCFF; }
 
@@ -129,15 +244,15 @@
     flex-direction: column; 
     align-items: center; 
     gap: 15px;
-    flex: 0 0 auto; /* Keep skeleton same size */
+    flex: 0 0 auto; 
 }
 
 /* =========================================
-   ✅ SCROLL BUTTONS (SHARED)
+   ✅ SCROLL BUTTONS
    ========================================= */
 .scroll-btn {
   position: absolute;
-  top: 45%; /* Center vertically relative to container */
+  top: 45%;
   transform: translateY(-50%);
   z-index: 20;
   width: 44px;
@@ -152,7 +267,7 @@
   cursor: pointer;
   box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   transition: all 0.2s;
-  opacity: 1; /* Always visible on PC for clarity */
+  opacity: 1;
 }
 
 .scroll-btn:hover {
@@ -162,18 +277,14 @@
   transform: translateY(-50%) scale(1.15);
 }
 
-/* Position modifications */
 .cat-scroll-left { left: 10px; }
 .cat-scroll-right { right: 10px; }
-
-/* Product section buttons */
 .prod-scroll-left { left: 0; }
 .prod-scroll-right { right: 0; }
 
 /* =========================================
-   EXISTING STYLES (Headings & Products)
+   EXISTING STYLES
    ========================================= */
-
 .section-heading-wrapper {
   text-align: center;
   margin: 30px 0 10px 0;
@@ -375,10 +486,13 @@
     flex: 0 0 calc((100% - 32px) / 3);
     max-width: calc((100% - 32px) / 3);
   }
-  /* Buttons only visible on hover or always on touch, but usually hidden on small tablets */
+  .trustbar {
+    grid-template-columns: repeat(2, 1fr);
+    padding: 12px 20px;
+  }
 }
 
-/* ✅ MOBILE OVERRIDES (Keep Small & Hide Buttons) */
+/* ✅ GENERAL MOBILE OVERRIDES */
 @media (max-width: 768px) {
   .home-container { padding-bottom: 60px; }
   .category-header { padding: 0 15px; margin-bottom: 10px; }
@@ -397,7 +511,7 @@
   .footer-links { flex-direction: column; gap: 15px; }
   
   /* ✅ Mobile Adjustments for Circle Section */
-  .category-scroll-wrapper { padding: 0; } /* Remove padding for mobile */
+  .category-scroll-wrapper { padding: 0; } 
   .category-circles-section { padding: 10px 15px; gap: 15px; }
   
   .cat-circle-item { min-width: 80px; } 
@@ -417,103 +531,4 @@
   }
   
   .cat-placeholder { font-size: 24px; }
-}
-/* src/styles/Home.css (ADD THIS BLOCK ANYWHERE - best near top) */
-
-/* ==============================
-   ✅ TRUST BAR (Banner ke niche)
-   ============================== */
-.trustbar {
-  width: 100%;
-  padding: 14px 40px;
-  margin: 10px 0 10px 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.trust-item {
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 18px;
-  padding: 14px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: var(--kid-shadow);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.trust-item:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
-}
-
-.trust-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 107, 107, 0.1);
-  color: var(--kid-primary);
-  flex: 0 0 auto;
-  font-size: 22px;
-}
-
-.trust-item:nth-child(2) .trust-icon {
-  background: rgba(78, 205, 196, 0.12);
-  color: var(--kid-secondary);
-}
-.trust-item:nth-child(3) .trust-icon {
-  background: rgba(255, 217, 61, 0.18);
-  color: #d59a00;
-}
-.trust-item:nth-child(4) .trust-icon {
-  background: rgba(69, 170, 242, 0.14);
-  color: var(--kid-blue);
-}
-
-.trust-text h4 {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 900;
-  color: var(--kid-text);
-  line-height: 1.2;
-}
-
-.trust-text p {
-  margin: 3px 0 0 0;
-  font-size: 12.5px;
-  font-weight: 700;
-  color: var(--kid-text-light);
-  line-height: 1.25;
-}
-
-/* ✅ Responsive */
-@media (max-width: 1024px) {
-  .trustbar {
-    grid-template-columns: repeat(2, 1fr);
-    padding: 12px 20px;
-  }
-}
-
-@media (max-width: 768px) {
-  .trustbar {
-    grid-template-columns: 1fr;
-    padding: 10px 12px;
-    gap: 10px;
-  }
-
-  .trust-item {
-    border-radius: 16px;
-    padding: 12px;
-  }
-
-  .trust-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 14px;
-  }
 }

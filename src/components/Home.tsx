@@ -136,19 +136,19 @@ const Home: React.FC = () => {
         <div className="trustbar">
           <div className="trust-item">
             <div className="trust-icon" aria-hidden><FaTruckFast /></div>
-            <div className="trust-text"><h4>Fast Delivery</h4><p>Quick dispatch & reliable shipping</p></div>
+            <div className="trust-text"><h4>Fast Delivery</h4><p>Quick dispatch</p></div>
           </div>
           <div className="trust-item">
             <div className="trust-icon" aria-hidden><MdSecurity /></div>
-            <div className="trust-text"><h4>Secure Payment</h4><p>Safe & trusted checkout</p></div>
+            <div className="trust-text"><h4>Secure Pay</h4><p>Safe checkout</p></div>
           </div>
           <div className="trust-item">
             <div className="trust-icon" aria-hidden><HiBadgeCheck /></div>
-            <div className="trust-text"><h4>Quality Assured</h4><p>Checked products & trusted brand</p></div>
+            <div className="trust-text"><h4>Quality</h4><p>Checked products</p></div>
           </div>
           <div className="trust-item">
             <div className="trust-icon" aria-hidden><BiSupport /></div>
-            <div className="trust-text"><h4>Customer Support</h4><p>Quick help on WhatsApp & calls</p></div>
+            <div className="trust-text"><h4>Support</h4><p>Help on call</p></div>
           </div>
         </div>
       )}
@@ -195,14 +195,14 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* 3️⃣ Trending (✅ mobile 2 column wrapper) */}
+      {/* 3️⃣ Trending */}
       {!loading && products.length > 0 && (
         <section className="two-col-mobile two-col-mobile--trending">
           <TrendingSection products={products as any} config={homeCfg as any} />
         </section>
       )}
 
-      {/* 3.5️⃣ Hot Deals (✅ mobile 2 column wrapper) */}
+      {/* 3.5️⃣ Hot Deals */}
       {!loading && products.length > 0 && homeCfg && (
         <section className="two-col-mobile two-col-mobile--hotdeals">
           <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
