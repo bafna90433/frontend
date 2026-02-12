@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -8,77 +8,78 @@ import {
 } from "react-router-dom";
 import api from "./utils/api";
 import { io } from "socket.io-client";
-import axios from "axios"; // ✅ Axios for Maintenance Check
+import axios from "axios";
 
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
-
-// Shop hook
 import { useShop } from "./context/ShopContext";
 
-// ✅ Import Coming Soon Component
-import ComingSoon from "./components/ComingSoon";
-
-// Center Modal
-import FreeDeliveryModal from "./components/FreeDeliveryModal";
-
-// Layout Components
+// --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import BackFooter from "./components/BackFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
+import FreeDeliveryModal from "./components/FreeDeliveryModal";
+import ComingSoon from "./components/ComingSoon";
 
-// Pages / Components
-import Home from "./components/Home";
-import Products from "./components/Products";
-import ProductDetails from "./components/ProductDetails";
-import Cart from "./components/Cart";
-import Wishlist from "./components/Wishlist";
-import Checkout from "./components/Checkout";
+// --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
+const Home = React.lazy(() => import("./components/Home"));
+const Products = React.lazy(() => import("./components/Products"));
+const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
+const Cart = React.lazy(() => import("./components/Cart"));
+const Wishlist = React.lazy(() => import("./components/Wishlist"));
+const Checkout = React.lazy(() => import("./components/Checkout"));
+const HotDealsPage = React.lazy(() => import("./pages/HotDealsPage"));
+const Register = React.lazy(() => import("./components/Register"));
+const LoginOTP = React.lazy(() => import("./components/LoginOTP"));
+const MyAccount = React.lazy(() => import("./components/MyAccount"));
+const EditProfile = React.lazy(() => import("./components/EditProfile"));
+const Orders = React.lazy(() => import("./components/Orders"));
+const ManageAddresses = React.lazy(() => import("./components/ManageAddresses"));
+const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
+const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
+const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"));
+const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
+const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute")); // Lazy load wrapper too
 
-// ✅ Hot Deals Page
-import HotDealsPage from "./pages/HotDealsPage";
-
-import Register from "./components/Register";
-import LoginOTP from "./components/LoginOTP";
-import MyAccount from "./components/MyAccount";
-import EditProfile from "./components/EditProfile";
-import Orders from "./components/Orders";
-import ManageAddresses from "./components/ManageAddresses";
-import ProtectedRoute from "./components/ProtectedRoute";
-
-// Legal Pages
-import PrivacyPolicy from "./components/PrivacyPolicy";
-import TermsConditions from "./components/TermsConditions";
-import ShippingDelivery from "./components/ShippingDelivery";
-import CancellationRefund from "./components/CancellationRefund";
-
-// --- SOCKET & API CONFIGURATION ---
+// --- CONFIGURATION ---
 const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
 const API_BASE_URL = "https://bafnatoys-backend-production.up.railway.app/api";
 
-// --- LAYOUT WRAPPER (Handles Header/Footer/Auth Checks) ---
+// --- LOADER COMPONENT ---
+const PageLoader = () => (
+  <div style={{ 
+    height: "60vh", 
+    display: "flex", 
+    justifyContent: "center", 
+    alignItems: "center",
+    flexDirection: "column",
+    gap: "15px"
+  }}>
+    <div className="loader" style={{
+      border: "4px solid #f3f3f3",
+      borderTop: "4px solid #3498db",
+      borderRadius: "50%",
+      width: "40px",
+      height: "40px",
+      animation: "spin 1s linear infinite"
+    }}></div>
+    <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+  </div>
+);
+
+// --- LAYOUT WRAPPER ---
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
-
   const { cartTotal, freeShippingThreshold } = useShop();
 
   const publicPaths = [
-    "/",
-    "/products",
-    "/hot-deals",
-    "/register",
-    "/login",
-    "/privacy-policy",
-    "/terms-conditions",
-    "/shipping-delivery",
-    "/cancellation-refund",
+    "/", "/products", "/hot-deals", "/register", "/login",
+    "/privacy-policy", "/terms-conditions", "/shipping-delivery", "/cancellation-refund"
   ];
 
-  const isPublicPage =
-    publicPaths.includes(location.pathname) ||
-    location.pathname.startsWith("/product/");
+  const isPublicPage = publicPaths.includes(location.pathname) || location.pathname.startsWith("/product/");
 
   if (!user && !isPublicPage) {
     return <Navigate to="/register" replace />;
@@ -89,7 +90,10 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
       <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
-        {children}
+        {/* Suspense handles the loading state while lazy chunk is fetched */}
+        <Suspense fallback={<PageLoader />}>
+          {children}
+        </Suspense>
       </main>
       <WhatsAppButton />
       <BottomNav />
@@ -102,23 +106,15 @@ const App: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ 1. CHECK MAINTENANCE MODE (With Localhost Bypass)
+  // 1. MAINTENANCE CHECK (Optimized)
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/settings/maintenance`);
-        
-        // Detect Localhost
         const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
 
-        if (res.data && res.data.enabled) {
-          if (isLocal) {
-            console.log("🚧 Maintenance Mode is ON (Bypassed for Local Development)");
-            // Do NOT set isMaintenance(true) so you can work
-          } else {
-            // Live Site will show Coming Soon
-            setIsMaintenance(true);
-          }
+        if (res.data && res.data.enabled && !isLocal) {
+          setIsMaintenance(true);
         }
       } catch (error) {
         console.error("Maintenance check failed", error);
@@ -129,82 +125,64 @@ const App: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // ✅ 2. VISITOR TRACKING & SOCKET
+  // 2. ANALYTICS & SOCKET (Deferred Load)
   useEffect(() => {
-    const trackVisitor = async () => {
+    const initAnalytics = async () => {
       try {
-        const hasVisited = sessionStorage.getItem("visited");
-        if (!hasVisited) {
+        if (!sessionStorage.getItem("visited")) {
           await api.post("/analytics/track");
           sessionStorage.setItem("visited", "true");
         }
-      } catch (e) {
-        console.error("Visitor tracking failed", e);
-      }
+      } catch (e) { console.error(e); }
+
+      // Connect Socket AFTER initial render to unblock main thread
+      const socket = io(SOCKET_URL, {
+        transports: ["websocket"], 
+        withCredentials: true
+      });
+      return () => socket.disconnect();
     };
-    trackVisitor();
 
-    const socket = io(SOCKET_URL, {
-      transports: ["websocket", "polling"],
-      withCredentials: true
-    });
-
-    socket.on("connect", () => {
-      // console.log("Connected to Real-time analytics server");
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    // Small delay to prioritize UI painting
+    const timer = setTimeout(initAnalytics, 1500);
+    return () => clearTimeout(timer);
   }, []);
 
-  // Show Loading while checking settings
-  if (loadingCheck) {
-    return (
-      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        <div className="loader">Loading...</div>
-      </div>
-    );
-  }
+  if (loadingCheck) return <PageLoader />;
+  if (isMaintenance) return <ComingSoon />;
 
-  // 🔴 SHOW COMING SOON (If Maintenance is ON and NOT Localhost)
-  if (isMaintenance) {
-    return <ComingSoon />;
-  }
-
-  // 🟢 SHOW WEBSITE (Normal Mode)
   return (
     <ShopProvider>
       <ThemeProvider>
         <Router>
           <LayoutWrapper>
             <Routes>
-              {/* 🔐 Auth Pages */}
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<LoginOTP />} />
-
-              {/* 🛍️ Public Pages */}
+              {/* Public Routes */}
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/hot-deals" element={<HotDealsPage />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
               <Route path="/wishlist" element={<Wishlist />} />
+              
+              {/* Auth Routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<LoginOTP />} />
 
-              {/* 📜 Legal Pages */}
+              {/* Legal Routes */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
 
-              {/* 🔒 Protected Pages */}
-              <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
-              <Route path="/my-account" element={<ProtectedRoute><MyAccount /></ProtectedRoute>} />
-              <Route path="/edit-profile" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
-              <Route path="/orders" element={<ProtectedRoute><Orders /></ProtectedRoute>} />
-              <Route path="/addresses" element={<ProtectedRoute><ManageAddresses /></ProtectedRoute>} />
+              {/* Protected Routes */}
+              <Route path="/checkout" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><Checkout /></ProtectedRoute></Suspense>} />
+              <Route path="/my-account" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><MyAccount /></ProtectedRoute></Suspense>} />
+              <Route path="/edit-profile" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><EditProfile /></ProtectedRoute></Suspense>} />
+              <Route path="/orders" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><Orders /></ProtectedRoute></Suspense>} />
+              <Route path="/addresses" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><ManageAddresses /></ProtectedRoute></Suspense>} />
 
-              {/* 🔁 Fallback */}
+              {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </LayoutWrapper>
