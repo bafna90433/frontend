@@ -1,8 +1,9 @@
+// src/components/Header.tsx
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
-import { useTheme } from "../context/ThemeContext"; 
+import { useTheme } from "../context/ThemeContext";
 import "../styles/Header.css";
 
 const LOGO_IMG = "/logo.webp"; // Ensure this logo is colorful!
@@ -24,15 +25,23 @@ const IMAGE_BASE =
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
+
+  // Absolute URL
   if (/^https?:\/\//i.test(f)) return f;
+
+  // If IMAGE_BASE is provided
   if (IMAGE_BASE) {
     const base = IMAGE_BASE.replace(/\/+$/, "");
     return `${base}/${f.replace(/^\/+/, "")}`;
   }
+
+  // If backend relative path like /uploads/...
   if (f.includes("/uploads/")) {
     const root = API_ROOT.replace(/\/+$/, "");
     return `${root}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
   }
+
+  // Other relative
   return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
@@ -67,7 +76,7 @@ const SearchForm = React.forwardRef(function SearchForm(
     setActiveIdx,
     navigate,
   } = props;
-  
+
   return (
     <form
       className={`kid-search ${mobile ? "is-mobile" : ""}`}
@@ -83,14 +92,15 @@ const SearchForm = React.forwardRef(function SearchForm(
           onKeyDown={onKeyDown}
           className="kid-search__input"
           placeholder="Search for toys, games..."
+          aria-label="Search"
         />
-        <button className="kid-search__btn" type="submit">
-          <svg className="kid-search__icon" viewBox="0 0 24 24">
-             <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        <button className="kid-search__btn" type="submit" aria-label="Search">
+          <svg className="kid-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
           </svg>
         </button>
       </div>
-      
+
       {/* Suggestions Dropdown (Playful Style) */}
       {openSug && (
         <div className="kid-suggest">
@@ -100,25 +110,27 @@ const SearchForm = React.forwardRef(function SearchForm(
               Looking for toys...
             </div>
           )}
+
           {!loadingSug && sug.length === 0 && (
             <div className="kid-suggest__empty">
               😕 No toys found. Try "car" or "doll"?
             </div>
           )}
+
           {!loadingSug && sug.length > 0 && (
-            <ul className="kid-suggest__list">
+            <ul className="kid-suggest__list" role="listbox" aria-label="Search suggestions">
               {sug.map((p, idx) => (
                 <li
                   key={p._id}
-                  className={`kid-suggest__item ${
-                    idx === activeIdx ? "is-active" : ""
-                  }`}
+                  className={`kid-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onMouseDown={(e) => {
                     e.preventDefault();
                     setOpenSug(false);
                     navigate(`/product/${p._id}`);
                   }}
+                  role="option"
+                  aria-selected={idx === activeIdx}
                 >
                   {getThumb(p) ? (
                     <img
@@ -126,36 +138,37 @@ const SearchForm = React.forwardRef(function SearchForm(
                       alt=""
                       className="kid-suggest__thumb"
                       loading="lazy"
+                      width={44}
+                      height={44}
                     />
                   ) : (
                     <div className="kid-suggest__thumb kid-suggest__thumb--ph" />
                   )}
+
                   <div className="kid-suggest__meta">
                     <div className="kid-suggest__name">{p.name}</div>
                     {p.sku && <div className="kid-suggest__sku">#{p.sku}</div>}
                   </div>
-                  <div className="kid-suggest__price">
-                     {p.price ? `₹${p.price}` : ''}
-                  </div>
+
+                  <div className="kid-suggest__price">{p.price ? `₹${p.price}` : ""}</div>
                 </li>
               ))}
             </ul>
           )}
+
           {sug.length > 0 && (
-              <button
-                className="kid-suggest__more"
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => {
-                  const query = q.trim();
-                  setOpenSug(false);
-                  navigate(
-                    `/products${query ? `?search=${encodeURIComponent(query)}` : ""}`
-                  );
-                }}
-              >
-                See all results
-              </button>
+            <button
+              className="kid-suggest__more"
+              type="button"
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={() => {
+                const query = q.trim();
+                setOpenSug(false);
+                navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+              }}
+            >
+              See all results
+            </button>
           )}
         </div>
       )}
@@ -200,7 +213,9 @@ const Header: React.FC = () => {
       return null;
     }
   };
+
   const [user, setUser] = useState<any | null>(() => parseUser());
+
   useEffect(() => {
     const onStorage = () => setUser(parseUser());
     window.addEventListener("storage", onStorage);
@@ -211,12 +226,14 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // Search Logic (Same as before)
+  // Search Logic
   useEffect(() => {
     let t: any;
     let alive = true;
+
     const run = async () => {
       const needle = q.trim();
+
       if (needle.length < 2) {
         if (alive) {
           setSug([]);
@@ -225,23 +242,28 @@ const Header: React.FC = () => {
         }
         return;
       }
+
       setLoadingSug(true);
       try {
         const res = await api.get("/products", {
           params: { search: needle, limit: 10 },
         });
+
         if (!alive) return;
+
         const arr: Suggestion[] = Array.isArray(res.data)
           ? res.data
           : Array.isArray((res.data as any)?.products)
           ? (res.data as any).products
           : [];
+
         const n = needle.toLowerCase();
         const filtered = arr.filter(
           (p) =>
             (p.name || "").toLowerCase().includes(n) ||
             (p.sku || "").toLowerCase().includes(n)
         );
+
         setSug(filtered.slice(0, 8));
         setOpenSug(true);
         setActiveIdx(-1);
@@ -255,7 +277,9 @@ const Header: React.FC = () => {
         if (alive) setLoadingSug(false);
       }
     };
+
     t = setTimeout(run, 200);
+
     return () => {
       alive = false;
       clearTimeout(t);
@@ -284,6 +308,7 @@ const Header: React.FC = () => {
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!openSug || (!sug.length && !loadingSug)) return;
+
     if (e.key === "ArrowDown") {
       e.preventDefault();
       setActiveIdx((i) => (i + 1 >= sug.length ? 0 : i + 1));
@@ -307,73 +332,98 @@ const Header: React.FC = () => {
 
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className={`kid-header ${scrolled ? 'kid-header--scrolled' : ''}`}>
+    <header className={`kid-header ${scrolled ? "kid-header--scrolled" : ""}`}>
       <div className="kid-header__main">
         <div className="kid-header__container">
-           
           {/* Logo */}
-          <Link to="/" className="kid-logo">
-            <img src={LOGO_IMG} alt="BAFNA TOYS" className="kid-logo__img" height="45" />
+          <Link to="/" className="kid-logo" aria-label="Home">
+            <img
+              src={LOGO_IMG}
+              alt="BAFNA TOYS"
+              className="kid-logo__img"
+              width={188}
+              height={45}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
+            />
           </Link>
 
           {/* Desktop Search */}
           <div className="kid-search__desktop-wrapper">
             <SearchForm
               ref={deskRef}
-              q={q} setQ={setQ}
-              onSubmit={onSubmit} onKeyDown={onKeyDown}
-              openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug}
-              sug={sug} activeIdx={activeIdx} setActiveIdx={setActiveIdx}
+              q={q}
+              setQ={setQ}
+              onSubmit={onSubmit}
+              onKeyDown={onKeyDown}
+              openSug={openSug}
+              setOpenSug={setOpenSug}
+              loadingSug={loadingSug}
+              sug={sug}
+              activeIdx={activeIdx}
+              setActiveIdx={setActiveIdx}
               navigate={navigate}
             />
           </div>
 
           {/* Action Buttons (Icons + Text) */}
-          <nav className="kid-actions">
-            
+          <nav className="kid-actions" aria-label="Header actions">
             {/* Theme Toggle */}
-            <button className="kid-action-btn kid-theme-btn" onClick={toggleTheme} aria-label="Toggle Theme">
-              {theme === 'light' ? '🌙' : '☀️'}
+            <button
+              className="kid-action-btn kid-theme-btn"
+              onClick={toggleTheme}
+              aria-label="Toggle Theme"
+              type="button"
+            >
+              {theme === "light" ? "🌙" : "☀️"}
             </button>
 
             {/* Account / Login */}
             {user ? (
-               <button className="kid-action-btn" onClick={() => navigate("/my-account")}>
-                 <span className="kid-ico">👤</span>
-                 <span className="kid-btn-text">Account</span>
-               </button>
+              <button
+                className="kid-action-btn"
+                onClick={() => navigate("/my-account")}
+                type="button"
+              >
+                <span className="kid-ico" aria-hidden>
+                  👤
+                </span>
+                <span className="kid-btn-text">Account</span>
+              </button>
             ) : (
-               <Link className="kid-action-btn" to="/login">
-                 <span className="kid-ico">🔑</span>
-                 <span className="kid-btn-text">Login</span>
-               </Link>
+              <Link className="kid-action-btn" to="/login">
+                <span className="kid-ico" aria-hidden>
+                  🔑
+                </span>
+                <span className="kid-btn-text">Login</span>
+              </Link>
             )}
 
             {/* My Orders */}
             {user && (
               <Link className="kid-action-btn mobile-hide" to="/orders">
-                <span className="kid-ico">📦</span>
+                <span className="kid-ico" aria-hidden>
+                  📦
+                </span>
                 <span className="kid-btn-text">Orders</span>
               </Link>
             )}
 
-            {/* Cart Button (Bouncy & Colorful) */}
-            <Link className="kid-cart-btn" to="/cart">
-              <div className="kid-cart-icon-wrap">
-                  🛒
-                  {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
+            {/* Cart Button */}
+            <Link className="kid-cart-btn" to="/cart" aria-label="Cart">
+              <div className="kid-cart-icon-wrap" aria-hidden>
+                🛒
+                {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
               </div>
               <span className="kid-btn-text">Cart</span>
             </Link>
-
           </nav>
         </div>
       </div>
@@ -383,10 +433,16 @@ const Header: React.FC = () => {
         <SearchForm
           ref={mobRef}
           mobile
-          q={q} setQ={setQ}
-          onSubmit={onSubmit} onKeyDown={onKeyDown}
-          openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug}
-          sug={sug} activeIdx={activeIdx} setActiveIdx={setActiveIdx}
+          q={q}
+          setQ={setQ}
+          onSubmit={onSubmit}
+          onKeyDown={onKeyDown}
+          openSug={openSug}
+          setOpenSug={setOpenSug}
+          loadingSug={loadingSug}
+          sug={sug}
+          activeIdx={activeIdx}
+          setActiveIdx={setActiveIdx}
           navigate={navigate}
         />
       </div>

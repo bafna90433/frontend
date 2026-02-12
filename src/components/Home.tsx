@@ -1,4 +1,4 @@
-// src/pages/Home.tsx (same file where your Home component is)
+// src/pages/Home.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
@@ -11,7 +11,12 @@ import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 
-import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiArrowRight,
+  FiImage,
+} from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
@@ -50,7 +55,11 @@ type HomeCfg = {
 
   trendingTitle?: string;
   trendingProductIds?: string[];
-  trendingSections?: { title: string; productIds: string[]; products?: Product[] }[];
+  trendingSections?: {
+    title: string;
+    productIds: string[];
+    products?: Product[];
+  }[];
 
   bannerImage?: string;
   bannerLink?: string;
@@ -64,7 +73,8 @@ type HomeCfg = {
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
-const safeStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
+const safeStrArr = (v: any): string[] =>
+  Array.isArray(v) ? v.map(String) : [];
 
 // ✅ Cloudinary optimizer (works only for Cloudinary URLs)
 const optimizeCloudinary = (url: string, w: number, h: number) => {
@@ -72,7 +82,10 @@ const optimizeCloudinary = (url: string, w: number, h: number) => {
   if (!url.includes("res.cloudinary.com")) return url;
 
   // if already has transformations, keep it
-  if (url.includes("/image/upload/") && url.split("/image/upload/")[1]?.includes("/")) {
+  if (
+    url.includes("/image/upload/") &&
+    url.split("/image/upload/")[1]?.includes("/")
+  ) {
     // still ok, but we want to ensure our transform is applied:
     // If your URLs already have transforms you can return url directly.
     // Here we force a small transform for category icons.
@@ -114,9 +127,15 @@ const Home: React.FC = () => {
           api.get("/home-config"),
         ]);
 
-        setCategories(safeArr<Category>(catRes.data?.categories || catRes.data || []));
-        setProducts(safeArr<Product>(prodRes.data?.products || prodRes.data || []));
-        setBanners(safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || []));
+        setCategories(
+          safeArr<Category>(catRes.data?.categories || catRes.data || [])
+        );
+        setProducts(
+          safeArr<Product>(prodRes.data?.products || prodRes.data || [])
+        );
+        setBanners(
+          safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || [])
+        );
         setHomeCfg(cfgRes.data || null);
       } catch (err: any) {
         console.error("Fetch error:", err);
@@ -130,7 +149,10 @@ const Home: React.FC = () => {
 
   const popularCats = useMemo(() => {
     if (!homeCfg) return [];
-    if (Array.isArray(homeCfg.popularCategories) && homeCfg.popularCategories.length > 0) {
+    if (
+      Array.isArray(homeCfg.popularCategories) &&
+      homeCfg.popularCategories.length > 0
+    ) {
       return homeCfg.popularCategories;
     }
     const ids = safeStrArr(homeCfg.popularCategoryIds);
@@ -139,7 +161,12 @@ const Home: React.FC = () => {
   }, [homeCfg, categories]);
 
   if (error) {
-    return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
+    return (
+      <ErrorMessage
+        message={error}
+        onRetry={() => window.location.reload()}
+      />
+    );
   }
 
   return (
@@ -149,20 +176,43 @@ const Home: React.FC = () => {
       {!loading && (
         <div className="trustbar">
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden><FaTruckFast /></div>
-            <div className="trust-text"><h4>Fast Delivery</h4><p>Quick dispatch</p></div>
+            <div className="trust-icon" aria-hidden>
+              <FaTruckFast />
+            </div>
+            <div className="trust-text">
+              <h4>Fast Delivery</h4>
+              <p>Quick dispatch</p>
+            </div>
           </div>
+
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden><MdSecurity /></div>
-            <div className="trust-text"><h4>Secure Pay</h4><p>Safe checkout</p></div>
+            <div className="trust-icon" aria-hidden>
+              <MdSecurity />
+            </div>
+            <div className="trust-text">
+              <h4>Secure Pay</h4>
+              <p>Safe checkout</p>
+            </div>
           </div>
+
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden><HiBadgeCheck /></div>
-            <div className="trust-text"><h4>Quality</h4><p>Checked products</p></div>
+            <div className="trust-icon" aria-hidden>
+              <HiBadgeCheck />
+            </div>
+            <div className="trust-text">
+              <h4>Quality</h4>
+              <p>Checked products</p>
+            </div>
           </div>
+
           <div className="trust-item">
-            <div className="trust-icon" aria-hidden><BiSupport /></div>
-            <div className="trust-text"><h4>Support</h4><p>Help on call</p></div>
+            <div className="trust-icon" aria-hidden>
+              <BiSupport />
+            </div>
+            <div className="trust-text">
+              <h4>Support</h4>
+              <p>Help on call</p>
+            </div>
           </div>
         </div>
       )}
@@ -182,7 +232,11 @@ const Home: React.FC = () => {
               const img = optimizeCloudinary(raw, 160, 160);
 
               return (
-                <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
+                <Link
+                  key={cat._id}
+                  to={`/products?category=${cat._id}`}
+                  className="cat-circle-item"
+                >
                   <div className="cat-circle-img-wrapper">
                     {raw ? (
                       <img
@@ -195,7 +249,9 @@ const Home: React.FC = () => {
                         decoding="async"
                       />
                     ) : (
-                      <div className="cat-placeholder"><FiImage /></div>
+                      <div className="cat-placeholder">
+                        <FiImage />
+                      </div>
                     )}
                   </div>
                   <span className="cat-circle-name">{cat.name}</span>
@@ -253,13 +309,19 @@ const Home: React.FC = () => {
                 <h2 className="category-title">
                   <span className="title-highlight">{cat.name}</span>
                 </h2>
-                <Link to={`/products?category=${cat._id}`} className="view-all-btn">
+                <Link
+                  to={`/products?category=${cat._id}`}
+                  className="view-all-btn"
+                >
                   View All <FiArrowRight />
                 </Link>
               </div>
 
               <div className="product-scroll-wrapper">
-                <button className="scroll-btn scroll-btn--left" onClick={() => scrollContainer(cat._id, "left")}>
+                <button
+                  className="scroll-btn scroll-btn--left"
+                  onClick={() => scrollContainer(cat._id, "left")}
+                >
                   <FiChevronLeft size={22} />
                 </button>
 
@@ -271,7 +333,10 @@ const Home: React.FC = () => {
                   ))}
                 </div>
 
-                <button className="scroll-btn scroll-btn--right" onClick={() => scrollContainer(cat._id, "right")}>
+                <button
+                  className="scroll-btn scroll-btn--right"
+                  onClick={() => scrollContainer(cat._id, "right")}
+                >
                   <FiChevronRight size={22} />
                 </button>
               </div>
@@ -286,12 +351,21 @@ const Home: React.FC = () => {
           <div className="footer-links-container">
             <h3>Quick Links</h3>
             <ul className="footer-links">
-              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-              <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-              <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-              <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+              <li>
+                <Link to="/privacy-policy">Privacy Policy</Link>
+              </li>
+              <li>
+                <Link to="/terms-conditions">Terms & Conditions</Link>
+              </li>
+              <li>
+                <Link to="/shipping-delivery">Shipping & Delivery</Link>
+              </li>
+              <li>
+                <Link to="/cancellation-refund">Cancellation & Refund</Link>
+              </li>
             </ul>
           </div>
+
           <div className="footer-copyright">
             <p>© {new Date().getFullYear()} Bafna Toys</p>
           </div>

@@ -1,16 +1,18 @@
+/* src/styles/ShippingDelivery.css */
+
 /* --- VARIABLES & THEME CONFIG --- */
 :root {
   /* Light Mode (Default) */
   --ship-page-bg: #f8f9fa;
   --ship-card-bg: #ffffff;
-  --ship-title: #d63031;       /* Bafna Brand Red */
+  --ship-title: #d63031; /* Bafna Brand Red */
   --ship-heading: #2d3436;
   --ship-text: #4a4a4a;
   --ship-border: #eaeaea;
   --ship-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  
+
   /* Specific Elements */
-  --ship-list-bg: #fff5f5;     /* Light Red tint for timeline */
+  --ship-list-bg: #fff5f5; /* Light Red tint for timeline */
   --ship-list-border: #d63031;
   --ship-icon: #d63031;
   --ship-footer-text: #666666;
@@ -20,14 +22,14 @@
 body.dark {
   --ship-page-bg: #121212;
   --ship-card-bg: #1e1e1e;
-  --ship-title: #ff6b6b;       /* Lighter Red for dark bg */
+  --ship-title: #ff6b6b; /* Lighter Red for dark bg */
   --ship-heading: #f1f5f9;
   --ship-text: #b0b3b8;
   --ship-border: #333333;
   --ship-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 
   /* Specific Elements */
-  --ship-list-bg: #2d2323;     /* Dark Red tint */
+  --ship-list-bg: #2d2323; /* Dark Red tint */
   --ship-list-border: #ff6b6b;
   --ship-icon: #ff6b6b;
   --ship-footer-text: #a0aec0;
@@ -51,7 +53,7 @@ body.dark {
   border-radius: 16px;
   box-shadow: var(--ship-shadow);
   border: 1px solid var(--ship-border);
-  font-family: 'Nunito', sans-serif;
+  font-family: "Nunito", sans-serif;
   transition: all 0.3s ease;
 }
 
@@ -103,7 +105,7 @@ body.dark {
   margin-bottom: 10px;
 }
 
-.policy-section b, 
+.policy-section b,
 .policy-section strong {
   color: var(--ship-heading);
   font-weight: 700;
@@ -169,7 +171,7 @@ body.dark {
   .policy-wrapper {
     padding: 10px;
   }
-  
+
   .policy-container {
     padding: 20px;
     border-radius: 12px;
@@ -178,7 +180,7 @@ body.dark {
   .policy-header h1 {
     font-size: 24px;
   }
-  
+
   .policy-section h3 {
     font-size: 17px;
   }

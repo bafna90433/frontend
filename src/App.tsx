@@ -1,3 +1,4 @@
+// src/App.tsx
 import React, { useEffect, useState, Suspense } from "react";
 import {
   BrowserRouter as Router,
@@ -10,9 +11,8 @@ import api from "./utils/api";
 import { io } from "socket.io-client";
 import axios from "axios";
 
-import { ShopProvider } from "./context/ShopContext";
+import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
-import { useShop } from "./context/ShopContext";
 
 // --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
@@ -48,22 +48,27 @@ const API_BASE_URL = "https://bafnatoys-backend-production.up.railway.app/api";
 
 // --- LOADER COMPONENT ---
 const PageLoader = () => (
-  <div style={{ 
-    height: "60vh", 
-    display: "flex", 
-    justifyContent: "center", 
-    alignItems: "center",
-    flexDirection: "column",
-    gap: "15px"
-  }}>
-    <div className="loader" style={{
-      border: "4px solid #f3f3f3",
-      borderTop: "4px solid #3498db",
-      borderRadius: "50%",
-      width: "40px",
-      height: "40px",
-      animation: "spin 1s linear infinite"
-    }}></div>
+  <div
+    style={{
+      height: "60vh",
+      display: "flex",
+      justifyContent: "center",
+      alignItems: "center",
+      flexDirection: "column",
+      gap: "15px",
+    }}
+  >
+    <div
+      className="loader"
+      style={{
+        border: "4px solid #f3f3f3",
+        borderTop: "4px solid #3498db",
+        borderRadius: "50%",
+        width: "40px",
+        height: "40px",
+        animation: "spin 1s linear infinite",
+      }}
+    ></div>
     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
   </div>
 );
@@ -75,11 +80,20 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const { cartTotal, freeShippingThreshold } = useShop();
 
   const publicPaths = [
-    "/", "/products", "/hot-deals", "/register", "/login",
-    "/privacy-policy", "/terms-conditions", "/shipping-delivery", "/cancellation-refund"
+    "/",
+    "/products",
+    "/hot-deals",
+    "/register",
+    "/login",
+    "/privacy-policy",
+    "/terms-conditions",
+    "/shipping-delivery",
+    "/cancellation-refund",
   ];
 
-  const isPublicPage = publicPaths.includes(location.pathname) || location.pathname.startsWith("/product/");
+  const isPublicPage =
+    publicPaths.includes(location.pathname) ||
+    location.pathname.startsWith("/product/");
 
   if (!user && !isPublicPage) {
     return <Navigate to="/register" replace />;
@@ -89,12 +103,12 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
     <>
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
+
       <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
         {/* Suspense handles the loading state while lazy chunk is fetched */}
-        <Suspense fallback={<PageLoader />}>
-          {children}
-        </Suspense>
+        <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
+
       <WhatsAppButton />
       <BottomNav />
       <BackFooter />
@@ -102,7 +116,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   );
 };
 
-const App: React.FC = () => {
+const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
@@ -111,7 +125,9 @@ const App: React.FC = () => {
     const checkMaintenance = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/settings/maintenance`);
-        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+        const isLocal =
+          window.location.hostname === "localhost" ||
+          window.location.hostname === "127.0.0.1";
 
         if (res.data && res.data.enabled && !isLocal) {
           setIsMaintenance(true);
@@ -127,66 +143,127 @@ const App: React.FC = () => {
 
   // 2. ANALYTICS & SOCKET (Deferred Load)
   useEffect(() => {
-    const initAnalytics = async () => {
+    let socket: ReturnType<typeof io> | null = null;
+
+    const initAnalyticsAndSocket = async () => {
       try {
         if (!sessionStorage.getItem("visited")) {
           await api.post("/analytics/track");
           sessionStorage.setItem("visited", "true");
         }
-      } catch (e) { console.error(e); }
+      } catch (e) {
+        console.error(e);
+      }
 
       // Connect Socket AFTER initial render to unblock main thread
-      const socket = io(SOCKET_URL, {
-        transports: ["websocket"], 
-        withCredentials: true
+      socket = io(SOCKET_URL, {
+        transports: ["websocket"],
+        withCredentials: true,
       });
-      return () => socket.disconnect();
     };
 
     // Small delay to prioritize UI painting
-    const timer = setTimeout(initAnalytics, 1500);
-    return () => clearTimeout(timer);
+    const timer = setTimeout(initAnalyticsAndSocket, 1500);
+
+    return () => {
+      clearTimeout(timer);
+      if (socket) socket.disconnect();
+    };
   }, []);
 
   if (loadingCheck) return <PageLoader />;
   if (isMaintenance) return <ComingSoon />;
 
   return (
+    <Router>
+      <LayoutWrapper>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/hot-deals" element={<HotDealsPage />} />
+          <Route path="/product/:id" element={<ProductDetails />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/wishlist" element={<Wishlist />} />
+
+          {/* Auth Routes */}
+          <Route path="/register" element={<Register />} />
+          <Route path="/login" element={<LoginOTP />} />
+
+          {/* Legal Routes */}
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+          <Route path="/terms-conditions" element={<TermsConditions />} />
+          <Route path="/shipping-delivery" element={<ShippingDelivery />} />
+          <Route
+            path="/cancellation-refund"
+            element={<CancellationRefund />}
+          />
+
+          {/* Protected Routes */}
+          <Route
+            path="/checkout"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProtectedRoute>
+                  <Checkout />
+                </ProtectedRoute>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/my-account"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProtectedRoute>
+                  <MyAccount />
+                </ProtectedRoute>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/edit-profile"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProtectedRoute>
+                  <EditProfile />
+                </ProtectedRoute>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/orders"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProtectedRoute>
+                  <Orders />
+                </ProtectedRoute>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/addresses"
+            element={
+              <Suspense fallback={<PageLoader />}>
+                <ProtectedRoute>
+                  <ManageAddresses />
+                </ProtectedRoute>
+              </Suspense>
+            }
+          />
+
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </LayoutWrapper>
+    </Router>
+  );
+};
+
+const App: React.FC = () => {
+  return (
     <ShopProvider>
       <ThemeProvider>
-        <Router>
-          <LayoutWrapper>
-            <Routes>
-              {/* Public Routes */}
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/hot-deals" element={<HotDealsPage />} />
-              <Route path="/product/:id" element={<ProductDetails />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/wishlist" element={<Wishlist />} />
-              
-              {/* Auth Routes */}
-              <Route path="/register" element={<Register />} />
-              <Route path="/login" element={<LoginOTP />} />
-
-              {/* Legal Routes */}
-              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-              <Route path="/terms-conditions" element={<TermsConditions />} />
-              <Route path="/shipping-delivery" element={<ShippingDelivery />} />
-              <Route path="/cancellation-refund" element={<CancellationRefund />} />
-
-              {/* Protected Routes */}
-              <Route path="/checkout" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><Checkout /></ProtectedRoute></Suspense>} />
-              <Route path="/my-account" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><MyAccount /></ProtectedRoute></Suspense>} />
-              <Route path="/edit-profile" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><EditProfile /></ProtectedRoute></Suspense>} />
-              <Route path="/orders" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><Orders /></ProtectedRoute></Suspense>} />
-              <Route path="/addresses" element={<Suspense fallback={<PageLoader />}><ProtectedRoute><ManageAddresses /></ProtectedRoute></Suspense>} />
-
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
-          </LayoutWrapper>
-        </Router>
+        <AppInner />
       </ThemeProvider>
     </ShopProvider>
   );
