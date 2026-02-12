@@ -16,7 +16,8 @@ import {
   FiMinus, 
   FiPlus, 
   FiShield,
-  FiClock 
+  FiClock,
+  FiShare2 // Share icon added
 } from "react-icons/fi";
 import { FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
@@ -122,6 +123,28 @@ const ProductDetails: React.FC = () => {
     return () => clearInterval(timer);
   }, [product]);
 
+  // --- Share Functionality ---
+  const handleShare = async () => {
+    if (!product) return;
+    
+    const shareData = {
+      title: product.name,
+      text: `Hey! Check out this ${product.name} at Bafna Toys: ${product.tagline || ''}`,
+      url: window.location.href,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.log("Error sharing:", err);
+    }
+  };
+
   const handleTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; };
   const handleTouchMove = (e: React.TouchEvent) => { touchEndX.current = e.touches[0].clientX; };
   const handleTouchEnd = () => {
@@ -141,9 +164,6 @@ const ProductDetails: React.FC = () => {
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
   const minQty = product.price < 60 ? 3 : 2;
-
-  // 🔥 REMOVED: Bulk Pricing Logic (activeTier) hata diya gaya hai.
-  // ✅ NOW: Seedha backend se aaya hua price use ho raha hai.
   const unitPrice = product.price;
 
   const hasDiscount = product.mrp && product.mrp > unitPrice;
@@ -153,7 +173,6 @@ const ProductDetails: React.FC = () => {
 
   const baseImage = product.images?.[selectedImage] || product.image || "";
   const imageUrl = getImageUrl(baseImage, 800);
-  const handleSelectImage = (index: number) => { setSelectedImage(index); setImgLoaded(false); };
 
   const handleAdd = () => { setCartItemQuantity(product, minQty); };
   const handleInc = () => { setCartItemQuantity(product, itemCount + 1); };
@@ -161,7 +180,13 @@ const ProductDetails: React.FC = () => {
 
   return (
     <>
-      <ProductSEO name={product.name} description={product.description} price={product.price} image={imageUrl} url={`https://bafnatoys.com/product/${product._id}`} />
+      <ProductSEO 
+        name={product.name} 
+        description={product.description} 
+        price={product.price} 
+        image={imageUrl} 
+        url={window.location.href} 
+      />
 
       <div className="pd-container">
         
@@ -206,22 +231,20 @@ const ProductDetails: React.FC = () => {
         <div className="pd-info">
           
           <div className="pd-header">
-            <h1 className="pd-title">{product.name}</h1>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '10px' }}>
+              <h1 className="pd-title">{product.name}</h1>
+              {/* --- SHARE BUTTON --- */}
+              <button 
+                onClick={handleShare}
+                className="pd-share-button"
+                title="Share Product"
+              >
+                <FiShare2 size={20} />
+              </button>
+            </div>
             
             {timeLeft && (
-               <div style={{
-                   display: 'inline-flex',
-                   alignItems: 'center',
-                   gap: '6px',
-                   background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
-                   color: 'white',
-                   padding: '6px 12px',
-                   borderRadius: '20px',
-                   fontSize: '0.85rem',
-                   fontWeight: 'bold',
-                   marginBottom: '10px',
-                   boxShadow: '0 2px 5px rgba(239, 68, 68, 0.3)'
-               }}>
+               <div className="pd-timer-badge">
                    <FiClock /> Deal Ends in: {timeLeft}
                </div>
             )}

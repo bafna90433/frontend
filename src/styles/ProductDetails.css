@@ -394,4 +394,39 @@ body {
   .pd-price-block { margin-bottom: 0; }
   
   .pd-related-item { flex: 0 0 180px; }
+}/* Share Button */
+.pd-share-button {
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.pd-share-button:hover {
+  background: #e2e8f0;
+  color: #ef4444; /* Bafna primary red color */
+  transform: scale(1.05);
+}
+
+/* Timer Badge */
+.pd-timer-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
 }
