@@ -1,5 +1,5 @@
 // src/components/ProductCard.tsx
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import {
@@ -42,41 +42,72 @@ interface ProductCardProps {
   index?: number;
 }
 
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
+const API_BASE =
+  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
 const IMAGE_BASE_URL =
   import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+
 const FALLBACK_IMAGE = "/images/placeholder.webp";
 
-const getOptimizedImageUrl = (url: string | undefined, width = 400) => {
-  if (!url) return FALLBACK_IMAGE;
+// ✅ Match PageSpeed suggestion (display ~282x282) -> serve 300x300
+const IMG_W = 300;
+const IMG_H = 300;
+
+const safeNum = (v: any, fallback: number) => {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+};
+
+const toAbsUrl = (raw: string) => {
+  if (!raw) return "";
+  if (raw.startsWith("http")) return raw;
+
+  // /uploads/xxx or uploads/xxx
+  if (raw.includes("/uploads/")) return `${API_BASE}${raw}`;
+  const clean = raw.replace(/^\/+/, "");
+  const finalPath =
+    clean.startsWith("uploads/") || clean.startsWith("images/")
+      ? clean
+      : `uploads/${clean}`;
+  return `${IMAGE_BASE_URL}/${finalPath}`;
+};
+
+/**
+ * ✅ Optimized URL builder:
+ * - Cloudinary full URL -> inject transforms
+ * - Cloudinary public_id (no http) -> build URL
+ * - local/backend URL -> keep absolute
+ */
+const getOptimizedImageUrl = (
+  rawUrl: string | undefined,
+  width = IMG_W,
+  height = IMG_H
+) => {
+  if (!rawUrl) return FALLBACK_IMAGE;
+
   try {
-    if (url.includes("cloudinary.com")) {
-      if (url.includes("/upload/w_") || url.includes("/upload/q_")) return url;
-      return url.replace(
-        "/upload/",
-        `/upload/f_auto,q_auto,w_${width},c_limit/`
+    // If public_id stored (no http) and cloudName exists
+    if (!rawUrl.startsWith("http") && CLOUD_NAME) {
+      const publicId = rawUrl.replace(/^\/+/, "");
+      return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/${publicId}`;
+    }
+
+    const abs = toAbsUrl(rawUrl);
+
+    // Cloudinary full URL -> inject transforms (avoid double-inject)
+    if (abs.includes("res.cloudinary.com") && abs.includes("/image/upload/")) {
+      // If already has f_auto/q_auto/w_/h_ etc, keep
+      if (abs.includes("/image/upload/f_auto") || abs.includes("/image/upload/q_") || abs.includes("/image/upload/w_"))
+        return abs;
+
+      return abs.replace(
+        "/image/upload/",
+        `/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/`
       );
     }
 
-    if (url.startsWith("http")) {
-      const urlObj = new URL(url);
-      if (
-        urlObj.hostname === "localhost" ||
-        urlObj.hostname === "127.0.0.1" ||
-        url.includes(IMAGE_BASE_URL)
-      ) {
-        const relativePath = urlObj.pathname.replace(/^\/+/, "");
-        return `${IMAGE_BASE_URL}/${relativePath}`;
-      }
-      return url;
-    }
-
-    const cleanPath = url.replace(/^\/+/, "");
-    const finalPath =
-      cleanPath.startsWith("uploads/") || cleanPath.startsWith("images/")
-        ? cleanPath
-        : `uploads/${cleanPath}`;
-
-    return `${IMAGE_BASE_URL}/${finalPath}`;
+    return abs || FALLBACK_IMAGE;
   } catch {
     return FALLBACK_IMAGE;
   }
@@ -90,27 +121,28 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
 
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
-  const minQty = product.price < 60 ? 3 : 2;
+
+  const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
 
   const handleNavigate = () =>
-    navigate(
-      product.slug ? `/product/${product.slug}` : `/product/${product._id}`
-    );
+    navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
+
+  const shareUrl = useMemo(() => {
+    const path = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
+    return `${window.location.origin}${path}`;
+  }, [product._id, product.slug]);
 
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    const url = `${window.location.origin}${
-      product.slug ? `/product/${product.slug}` : `/product/${product._id}`
-    }`;
     try {
       if (navigator.share) {
         await navigator.share({
           title: product.name,
-          text: `Hey! Check out this ${product.name} - ${product.tagline || ""}`,
-          url,
+          text: `Hey! Check out this ${product.name}${product.tagline ? ` - ${product.tagline}` : ""}`,
+          url: shareUrl,
         });
       } else {
-        await navigator.clipboard.writeText(url);
+        await navigator.clipboard.writeText(shareUrl);
         alert("Link copied to clipboard!");
       }
     } catch (err) {
@@ -134,50 +166,58 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     },
   };
 
-  const discountPercent =
-    product.mrp && product.mrp > product.price
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-      : 0;
+  const discountPercent = useMemo(() => {
+    if (!product.mrp || product.mrp <= product.price) return 0;
+    return Math.round(((product.mrp - product.price) / product.mrp) * 100);
+  }, [product.mrp, product.price]);
 
-  const rating = product.rating || 4.5;
+  const rating = useMemo(() => safeNum(product.rating, 4.5), [product.rating]);
 
+  // ✅ Serve correct size for PSI (no 400x400)
+  const imgSrc = useMemo(
+    () => getOptimizedImageUrl(product.images?.[0], IMG_W, IMG_H),
+    [product.images]
+  );
+
+  // ✅ Reduce CLS: keep fixed dimensions (width/height), and keep container aspect ratio in CSS
+  // ✅ Hotdeal timer: keep 1s interval only when sale_end_time exists
   useEffect(() => {
     if (!product.sale_end_time) return;
 
     const calculate = () => {
-      const diff =
-        new Date(product.sale_end_time!).getTime() - new Date().getTime();
+      const diff = new Date(product.sale_end_time!).getTime() - Date.now();
       if (diff <= 0) return null;
+
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
       const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
-      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const minutes = Math.floor((diff / (1000 * 60)) % 60);
       const seconds = Math.floor((diff / 1000) % 60);
+
       return `${days}D ${hours.toString().padStart(2, "0")}:${minutes
         .toString()
         .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
     };
 
     setTimeLeft(calculate());
-    const timer = setInterval(() => {
+    const timer = window.setInterval(() => {
       const t = calculate();
       setTimeLeft(t);
-      if (!t) clearInterval(timer);
+      if (!t) window.clearInterval(timer);
     }, 1000);
 
-    return () => clearInterval(timer);
+    return () => window.clearInterval(timer);
   }, [product.sale_end_time]);
+
+  // ✅ LCP: first few images can be eager, but not too many
+  const eager = index < 2;
 
   return (
     <div className="pc-wrapper">
-      <div className="pc-card" onClick={handleNavigate}>
+      <div className="pc-card" onClick={handleNavigate} role="button" tabIndex={0}>
         {/* Image */}
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
-            <button
-              className="pc-share-btn"
-              onClick={handleShare}
-              aria-label="Share"
-            >
+            <button className="pc-share-btn" onClick={handleShare} aria-label="Share">
               <Share2 size={16} strokeWidth={2.5} />
             </button>
 
@@ -197,14 +237,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             )}
 
             {!imgLoaded && <div className="pc-skeleton" />}
+
             <img
-              src={getOptimizedImageUrl(product.images?.[0] || "", 400)}
+              src={imgSrc}
               alt={product.name}
               className={`pc-img ${imgLoaded ? "pc-img--loaded" : ""}`}
-              loading={index < 4 ? "eager" : "lazy"}
-              width="400"
-              height="400"
+              loading={eager ? "eager" : "lazy"}
+              fetchPriority={eager ? "high" : "auto"}
+              decoding="async"
+              width={IMG_W}
+              height={IMG_H}
               onLoad={() => setImgLoaded(true)}
+              onError={(e) => {
+                const target = e.currentTarget as HTMLImageElement;
+                if (target.src !== FALLBACK_IMAGE) target.src = FALLBACK_IMAGE;
+              }}
             />
           </div>
 
@@ -218,7 +265,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
 
         {/* Body */}
         <div className="pc-body">
-          {/* ✅ TOP ROW: LEFT = MIN ORDER | RIGHT = STOCK */}
+          {/* TOP ROW */}
           <div className="pc-toprow">
             <div className="pc-topleft">
               <div className="pc-min-qty">
@@ -271,9 +318,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               <span className="pc-currency">₹</span>
               <span className="pc-amount">{product.price.toLocaleString()}</span>
               {product.mrp && product.mrp > product.price && (
-                <span className="pc-mrp">
-                  MRP ₹{product.mrp.toLocaleString()}
-                </span>
+                <span className="pc-mrp">MRP ₹{product.mrp.toLocaleString()}</span>
               )}
             </div>
           </div>
@@ -305,10 +350,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
                 </div>
 
                 <div className="pc-quantity-buttons">
-                  <button
-                    onClick={actions.dec}
-                    className="pc-qty-btn pc-qty-btn--decrease"
-                  >
+                  <button onClick={actions.dec} className="pc-qty-btn pc-qty-btn--decrease">
                     {itemCount === minQty ? "Del" : <Minus size={14} strokeWidth={3} />}
                   </button>
 

@@ -508,4 +508,143 @@
 .t-imgbox {
   position: relative;
   /* ... existing styles ... */
+}/* =========================
+   WRAP
+========================= */
+.trending-wrap {
+  width: 100%;
+  margin: 26px 0;
+  padding: 18px 18px 20px;
+  border-radius: 16px;
+  background: #eaf8f8;
+  box-sizing: border-box;
+}
+
+/* Heading */
+.trending-heading {
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.trending-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: #0b2b3a;
+}
+
+.trending-line {
+  width: 60px;
+  height: 4px;
+  background: #0aa88f;
+  border-radius: 99px;
+  margin: 10px auto 0;
+}
+
+/* Tabs */
+.trending-tabs {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 12px 0 16px;
+}
+
+.t-tab {
+  border: 0;
+  background: transparent;
+  color: #2e4050;
+  font-weight: 700;
+  font-size: 13px;
+  opacity: 0.7;
+  cursor: pointer;
+  padding: 6px 4px;
+  position: relative;
+}
+
+.t-tab.active {
+  opacity: 1;
+}
+
+.t-tab.active::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: #0b2b3a;
+  border-radius: 2px;
+}
+
+/* =========================
+   LAYOUT
+========================= */
+.trending-body {
+  display: flex;
+  gap: 18px;
+  align-items: stretch;
+}
+
+.trending-grid {
+  flex: 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Banner */
+.trending-banner {
+  flex: 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.trending-banner img {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+  display: block;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+@media (max-width: 1100px) {
+  .trending-body {
+    flex-direction: column;
+  }
+
+  .trending-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trending-banner img {
+    min-height: 220px;
+    height: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .trending-wrap {
+    padding: 14px;
+  }
+
+  /* ✅ banner hide on mobile */
+  .trending-banner {
+    display: none !important;
+  }
+
+  /* ✅ mobile 1 column */
+  .trending-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .trending-title {
+    font-size: 22px;
+  }
 }

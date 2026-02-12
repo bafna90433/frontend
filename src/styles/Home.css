@@ -1,20 +1,20 @@
-/* src/styles/Home.css (your pasted file) */
+/* src/styles/Home.css */
 
 /* ============ ROOT ============ */
 :root {
-  --kid-bg: #FFFFFF;
-  --kid-card-bg: #FFFFFF;
-  --kid-primary: #FF6B6B;
-  --kid-secondary: #4ECDC4;
-  --kid-accent: #FFD93D;
-  --kid-blue: #45AAF2;
-  --kid-purple: #A55EEA;
-  --kid-text: #2D3436;
+  --kid-bg: #ffffff;
+  --kid-card-bg: #ffffff;
+  --kid-primary: #ff6b6b;
+  --kid-secondary: #4ecdc4;
+  --kid-accent: #ffd93d;
+  --kid-blue: #45aaf2;
+  --kid-purple: #a55eea;
+  --kid-text: #2d3436;
   --kid-text-light: #636e72;
-  --footer-bg: #FFF9C4;
+  --footer-bg: #fff9c4;
   --footer-text: #5d4037;
-  --kid-font: 'Nunito', 'Quicksand', sans-serif;
-  --kid-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  --kid-font: "Nunito", "Quicksand", sans-serif;
+  --kid-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
 }
 
 .home-container {
@@ -69,9 +69,18 @@
   font-size: 22px;
 }
 
-.trust-item:nth-child(2) .trust-icon { background: rgba(78, 205, 196, 0.12); color: var(--kid-secondary); }
-.trust-item:nth-child(3) .trust-icon { background: rgba(255, 217, 61, 0.18); color: #d59a00; }
-.trust-item:nth-child(4) .trust-icon { background: rgba(69, 170, 242, 0.14); color: var(--kid-blue); }
+.trust-item:nth-child(2) .trust-icon {
+  background: rgba(78, 205, 196, 0.12);
+  color: var(--kid-secondary);
+}
+.trust-item:nth-child(3) .trust-icon {
+  background: rgba(255, 217, 61, 0.18);
+  color: #d59a00;
+}
+.trust-item:nth-child(4) .trust-icon {
+  background: rgba(69, 170, 242, 0.14);
+  color: var(--kid-blue);
+}
 
 .trust-text h4 {
   margin: 0;
@@ -133,7 +142,7 @@
   border-radius: 50%;
   overflow: hidden;
   border: 5px solid #fff;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
   background: #f8f9fa;
   display: flex;
   align-items: center;
@@ -143,17 +152,22 @@
 }
 
 .cat-circle-item:hover .cat-circle-img-wrapper {
-  box-shadow: 0 12px 25px rgba(0,0,0,0.15);
+  box-shadow: 0 12px 25px rgba(0, 0, 0, 0.15);
   border-color: #fff;
 }
 
-.cat-circle-item:nth-child(odd) .cat-circle-img-wrapper { border-color: #FFF0F0; }
-.cat-circle-item:nth-child(even) .cat-circle-img-wrapper { border-color: #F0FCFF; }
+.cat-circle-item:nth-child(odd) .cat-circle-img-wrapper {
+  border-color: #fff0f0;
+}
+.cat-circle-item:nth-child(even) .cat-circle-img-wrapper {
+  border-color: #f0fcff;
+}
 
 .cat-circle-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block; /* ✅ CLS fix */
   transition: transform 0.5s ease;
 }
 
@@ -185,7 +199,7 @@
 }
 
 /* =========================================
-   ✅ SCROLL BUTTONS
+   ✅ SCROLL BUTTONS (Home page product rows)
    ========================================= */
 .scroll-btn {
   position: absolute;
@@ -195,29 +209,46 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: white;
+  background: #fff;
   border: 1px solid #f0f0f0;
   color: var(--kid-text);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   transition: all 0.2s;
   opacity: 1;
 }
 
 .scroll-btn:hover {
   background: var(--kid-primary);
-  color: white;
+  color: #fff;
   border-color: var(--kid-primary);
   transform: translateY(-50%) scale(1.15);
 }
 
-.cat-scroll-left { left: 10px; }
-.cat-scroll-right { right: 10px; }
-.prod-scroll-left { left: 0; }
-.prod-scroll-right { right: 0; }
+/* ✅ Your buttons are: scroll-btn--left / scroll-btn--right */
+.scroll-btn--left {
+  left: 10px;
+}
+.scroll-btn--right {
+  right: 10px;
+}
+
+/* (Keeping old classes if used somewhere else) */
+.cat-scroll-left {
+  left: 10px;
+}
+.cat-scroll-right {
+  right: 10px;
+}
+.prod-scroll-left {
+  left: 0;
+}
+.prod-scroll-right {
+  right: 0;
+}
 
 /* =========================================
    ✅ PRODUCT SCROLL (PC FIXES)
@@ -263,7 +294,9 @@
   flex-direction: column;
 }
 
-/* Existing Styles */
+/* ==============================
+   ✅ SECTION HEADING
+   ============================== */
 .section-heading-wrapper {
   text-align: center;
   margin: 30px 0 10px 0;
@@ -288,6 +321,9 @@
   border-radius: 2px;
 }
 
+/* ==============================
+   ✅ CATEGORY BLOCK
+   ============================== */
 .category-block {
   margin-bottom: 50px;
   position: relative;
@@ -311,7 +347,10 @@
   z-index: 1;
 }
 
-.title-highlight { position: relative; z-index: 2; }
+.title-highlight {
+  position: relative;
+  z-index: 2;
+}
 
 .category-title::after {
   content: "";
@@ -332,7 +371,7 @@
   transform: rotate(1deg);
 }
 .category-block:nth-child(3n) .category-title::after {
-  background-color: #FFB7B2;
+  background-color: #ffb7b2;
 }
 
 .view-all-btn {
@@ -343,7 +382,7 @@
   font-weight: 700;
   color: var(--kid-primary);
   text-decoration: none;
-  background: #FFF5F5;
+  background: #fff5f5;
   padding: 8px 16px;
   border-radius: 30px;
   transition: all 0.2s;
@@ -351,7 +390,7 @@
 }
 .view-all-btn:hover {
   background: var(--kid-primary);
-  color: white;
+  color: #fff;
   transform: translateX(5px);
   box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
 }
@@ -375,7 +414,13 @@
   left: 0;
   right: 0;
   height: 6px;
-  background: linear-gradient(90deg, var(--kid-primary), var(--kid-accent), var(--kid-secondary), var(--kid-blue));
+  background: linear-gradient(
+    90deg,
+    var(--kid-primary),
+    var(--kid-accent),
+    var(--kid-secondary),
+    var(--kid-blue)
+  );
 }
 .footer-links-container h3 {
   font-size: 1.4rem;
@@ -399,9 +444,11 @@
   font-size: 1rem;
   transition: color 0.2s;
 }
-.footer-links li a:hover { color: var(--kid-primary); }
+.footer-links li a:hover {
+  color: var(--kid-primary);
+}
 .footer-copyright {
-  border-top: 2px dashed rgba(0,0,0,0.1);
+  border-top: 2px dashed rgba(0, 0, 0, 0.1);
   padding-top: 25px;
   font-size: 0.9rem;
   font-weight: 600;
@@ -438,10 +485,20 @@
    ✅ GENERAL MOBILE OVERRIDES
    ========================================= */
 @media (max-width: 768px) {
-  .home-container { padding-bottom: 60px; }
-  .category-header { padding: 0 15px; margin-bottom: 10px; }
-  .category-title { font-size: 22px; }
-  .view-all-btn { padding: 6px 12px; font-size: 12px; }
+  .home-container {
+    padding-bottom: 60px;
+  }
+  .category-header {
+    padding: 0 15px;
+    margin-bottom: 10px;
+  }
+  .category-title {
+    font-size: 22px;
+  }
+  .view-all-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
 
   /* ✅ Product Scroll Gap = 0 (same as desktop) */
   .product-scroll {
@@ -450,17 +507,27 @@
   }
 
   /* Hide scrollbar on mobile only */
-  .product-scroll::-webkit-scrollbar { display: none; }
+  .product-scroll::-webkit-scrollbar {
+    display: none;
+  }
 
   .product-link {
     flex: 0 0 calc((100% - 10px) / 2);
     max-width: calc((100% - 10px) / 2);
   }
 
-  .scroll-btn { display: none !important; }
+  .scroll-btn {
+    display: none !important;
+  }
 
-  .home-footer { padding: 40px 20px 80px 20px; border-radius: 30px 30px 0 0; }
-  .footer-links { flex-direction: column; gap: 15px; }
+  .home-footer {
+    padding: 40px 20px 80px 20px;
+    border-radius: 30px 30px 0 0;
+  }
+  .footer-links {
+    flex-direction: column;
+    gap: 15px;
+  }
 
   /* ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT) */
   .trustbar {
@@ -493,7 +560,10 @@
     margin-right: 0 !important;
   }
 
-  .trust-text { width: 100%; padding: 0 1px; }
+  .trust-text {
+    width: 100%;
+    padding: 0 1px;
+  }
 
   .trust-text h4 {
     font-size: 9px !important;
@@ -513,10 +583,17 @@
   }
 
   /* ✅ MOBILE CATEGORY CIRCLES FIX (SMALLER) */
-  .category-scroll-wrapper { padding: 0; }
-  .category-circles-section { padding: 10px 10px; gap: 12px; }
+  .category-scroll-wrapper {
+    padding: 0;
+  }
+  .category-circles-section {
+    padding: 10px 10px;
+    gap: 12px;
+  }
 
-  .cat-circle-item { min-width: 55px; }
+  .cat-circle-item {
+    min-width: 55px;
+  }
 
   .cat-circle-img-wrapper {
     width: 55px;
@@ -532,6 +609,11 @@
     line-height: 1.1;
   }
 
-  .cat-placeholder { font-size: 20px; }
-  .cat-circle-skeleton { min-width: 55px; flex: 0 0 auto; }
+  .cat-placeholder {
+    font-size: 20px;
+  }
+  .cat-circle-skeleton {
+    min-width: 55px;
+    flex: 0 0 auto;
+  }
 }

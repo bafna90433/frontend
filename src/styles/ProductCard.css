@@ -57,6 +57,7 @@
   flex-direction: column;
   border: 1px solid #eef2f7;
   cursor: pointer;
+  contain: layout paint; /* ✅ small performance help */
 }
 
 .pc-card:hover {
@@ -68,7 +69,7 @@
 /* --- IMAGE SECTION --- */
 .pc-image-container {
   position: relative;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: 1 / 1; /* ✅ CLS fix */
   overflow: hidden;
   background: #f8fafc;
   margin: 8px;
@@ -83,11 +84,18 @@
   overflow: hidden;
 }
 
+/* ✅ prevent reflow on image load */
 .pc-img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.45s ease;
+  display: block;
+  transition: transform 0.45s ease, opacity 0.2s ease;
+  opacity: 0;
+}
+
+.pc-img.pc-img--loaded {
+  opacity: 1;
 }
 
 .pc-card:hover .pc-img {
@@ -191,24 +199,30 @@
   gap: 8px;
 }
 
-/* ✅ NEW: Top row (Right side: Stock + Min Order) */
+/* ✅ TOP ROW: Left = Min Order | Right = Stock */
 .pc-toprow {
   display: flex;
-  justify-content: flex-end;
-  align-items: flex-start;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-topleft {
+  display: flex;
+  align-items: center;
 }
 
 .pc-topright {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end; /* ✅ Right aligned */
-  gap: 6px;
+  justify-content: flex-end;
+  align-items: center;
 }
 
 /* Stock Status */
 .pc-stock-status {
   font-size: 11px;
   font-weight: var(--w-medium);
+  white-space: nowrap;
 }
 
 .pc-stock--in {
@@ -225,6 +239,23 @@
 }
 .pc-stock--out {
   color: var(--pc-primary);
+}
+
+/* Min Order chip */
+.pc-min-qty {
+  font-size: 10px;
+  font-weight: var(--w-medium);
+  color: #b45309;
+  background: #fff7ed;
+  padding: 4px 8px;
+  border-radius: 8px;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+  border: 1px solid rgba(245, 158, 11, 0.18);
+  white-space: nowrap;
 }
 
 /* Title */
@@ -308,22 +339,6 @@
   color: var(--pc-gray);
   margin-left: 8px;
   font-weight: var(--w-regular);
-}
-
-/* Min Order (same chip, just right aligned + no extra margin) */
-.pc-min-qty {
-  font-size: 10px;
-  font-weight: var(--w-medium);
-  color: #b45309;
-  background: #fff7ed;
-  padding: 4px 8px;
-  border-radius: 8px;
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 0; /* ✅ IMPORTANT */
-  border: 1px solid rgba(245, 158, 11, 0.18);
 }
 
 /* Buttons */
@@ -450,77 +465,20 @@
   background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s infinite;
+  z-index: 1;
 }
 
 @keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Responsive */
 @media (max-width: 480px) {
-  .pc-wrapper {
-    padding: 6px;
-  }
-  .pc-body {
-    padding: 10px;
-    gap: 6px;
-  }
-  .pc-title {
-    font-size: 13px;
-  }
-  .pc-chip {
-    padding: 3px 6px;
-    font-size: 9px;
-  }
-  .pc-amount {
-    font-size: 18px;
-  }
-  .pc-add-to-cart {
-    font-size: 12px;
-    padding: 9px;
-  }
-
-  /* ✅ keep right alignment in mobile too */
-  .pc-topright {
-    gap: 5px;
-  }
-}
-/* ✅ TOP ROW: Left = Min Order | Right = Stock */
-.pc-toprow{
-  display: flex;
-  justify-content: space-between;  /* ✅ left + right */
-  align-items: center;
-  gap: 8px;
-}
-
-.pc-topleft{
-  display: flex;
-  align-items: center;
-}
-
-.pc-topright{
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-/* Min Order chip (same) */
-.pc-min-qty{
-  font-size: 10px;
-  font-weight: var(--w-medium);
-  color: #b45309;
-  background: #fff7ed;
-  padding: 4px 8px;
-  border-radius: 8px;
-  width: fit-content;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 0; /* ✅ important */
-  border: 1px solid rgba(245, 158, 11, 0.18);
+  .pc-wrapper { padding: 6px; }
+  .pc-body { padding: 10px; gap: 6px; }
+  .pc-title { font-size: 13px; }
+  .pc-chip { padding: 3px 6px; font-size: 9px; }
+  .pc-amount { font-size: 18px; }
+  .pc-add-to-cart { font-size: 12px; padding: 9px; }
 }
