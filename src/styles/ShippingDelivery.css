@@ -1,93 +1,185 @@
-/* src/styles/Policy.css */
-
-/* --- Variables --- */
+/* --- VARIABLES & THEME CONFIG --- */
 :root {
-  /* Light Mode Defaults */
-  --pol-bg: #ffffff;
-  --pol-title: #222222;
-  --pol-heading: #111111;
-  --pol-text: #555555;      /* Paragraph text */
-  --pol-list: #333333;      /* List item text */
-  --pol-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
-  --pol-border: 1px solid transparent;
-  --pol-footer: #666666;
+  /* Light Mode (Default) */
+  --ship-page-bg: #f8f9fa;
+  --ship-card-bg: #ffffff;
+  --ship-title: #d63031;       /* Bafna Brand Red */
+  --ship-heading: #2d3436;
+  --ship-text: #4a4a4a;
+  --ship-border: #eaeaea;
+  --ship-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  
+  /* Specific Elements */
+  --ship-list-bg: #fff5f5;     /* Light Red tint for timeline */
+  --ship-list-border: #d63031;
+  --ship-icon: #d63031;
+  --ship-footer-text: #666666;
 }
 
 /* Dark Mode Overrides */
 body.dark {
-  --pol-bg: #1e1e1e;        /* Dark card background */
-  --pol-title: #ffffff;
-  --pol-heading: #f1f5f9;   /* High contrast for headings */
-  --pol-text: #9ca3af;      /* Softer text for reading */
-  --pol-list: #e2e8f0;      /* Clear text for lists */
-  --pol-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
-  --pol-border: 1px solid #333333;
-  --pol-footer: #888888;
+  --ship-page-bg: #121212;
+  --ship-card-bg: #1e1e1e;
+  --ship-title: #ff6b6b;       /* Lighter Red for dark bg */
+  --ship-heading: #f1f5f9;
+  --ship-text: #b0b3b8;
+  --ship-border: #333333;
+  --ship-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+
+  /* Specific Elements */
+  --ship-list-bg: #2d2323;     /* Dark Red tint */
+  --ship-list-border: #ff6b6b;
+  --ship-icon: #ff6b6b;
+  --ship-footer-text: #a0aec0;
+}
+
+/* --- LAYOUT & CONTAINER --- */
+.policy-wrapper {
+  background-color: var(--ship-page-bg);
+  min-height: 80vh;
+  padding: 40px 20px;
+  display: flex;
+  justify-content: center;
+  transition: background-color 0.3s ease;
 }
 
 .policy-container {
-  max-width: 850px;
-  margin: 20px auto;
-  padding: 20px;
-  background: var(--pol-bg);
-  border-radius: 10px;
-  box-shadow: var(--pol-shadow);
-  border: var(--pol-border);
-  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  background: var(--ship-card-bg);
+  max-width: 800px;
+  width: 100%;
+  padding: 40px;
+  border-radius: 16px;
+  box-shadow: var(--ship-shadow);
+  border: 1px solid var(--ship-border);
+  font-family: 'Nunito', sans-serif;
+  transition: all 0.3s ease;
 }
 
-.policy-container h1 {
-  font-size: 26px;
-  margin-bottom: 10px;
-  font-weight: bold;
-  color: var(--pol-title);
-  transition: color 0.3s ease;
-}
-
-.policy-container p {
-  font-size: 15px;
-  color: var(--pol-text);
-  line-height: 1.6;
-  margin-bottom: 12px;
-  transition: color 0.3s ease;
-}
-
-.policy-container h3 {
-  font-size: 18px;
-  color: var(--pol-heading);
-  margin: 18px 0 8px;
-  font-weight: 600;
-  transition: color 0.3s ease;
-}
-
-.policy-container ul {
-  padding-left: 18px;
-}
-
-.policy-container ul li {
-  font-size: 15px;
-  color: var(--pol-list);
-  margin-bottom: 6px;
-  line-height: 1.5;
-  transition: color 0.3s ease;
-}
-
-.footer-text {
+/* --- HEADER --- */
+.policy-header {
   text-align: center;
-  margin-top: 25px;
-  font-size: 15px;
-  opacity: 0.8;
-  color: var(--pol-footer);
+  margin-bottom: 30px;
+  border-bottom: 2px solid var(--ship-border);
+  padding-bottom: 20px;
 }
 
-/* Responsive */
+.policy-header h1 {
+  font-size: 28px;
+  color: var(--ship-title);
+  margin-bottom: 8px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.policy-subtitle {
+  font-size: 14px;
+  color: var(--ship-footer-text);
+}
+
+/* --- SECTIONS --- */
+.policy-section {
+  margin-bottom: 30px;
+}
+
+.policy-section h3 {
+  font-size: 18px;
+  color: var(--ship-heading);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.policy-icon {
+  color: var(--ship-icon);
+  flex-shrink: 0;
+}
+
+.policy-section p {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--ship-text);
+  margin-bottom: 10px;
+}
+
+.policy-section b, 
+.policy-section strong {
+  color: var(--ship-heading);
+  font-weight: 700;
+}
+
+/* --- TIMELINE LIST --- */
+.policy-list {
+  list-style: none;
+  padding: 15px 20px;
+  margin: 15px 0;
+  background: var(--ship-list-bg);
+  border-left: 4px solid var(--ship-list-border);
+  border-radius: 0 8px 8px 0;
+  transition: background-color 0.3s ease;
+}
+
+.policy-list li {
+  margin-bottom: 8px;
+  font-size: 15px;
+  color: var(--ship-text);
+}
+
+.policy-list li:last-child {
+  margin-bottom: 0;
+}
+
+.policy-note {
+  font-size: 13px;
+  color: var(--ship-footer-text);
+  font-style: italic;
+  margin-top: 8px;
+  display: block;
+}
+
+/* --- FOOTER --- */
+.policy-footer {
+  margin-top: 40px;
+  padding-top: 25px;
+  border-top: 1px dashed var(--ship-border);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  color: var(--ship-footer-text);
+}
+
+.policy-footer a {
+  color: var(--ship-title);
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 16px;
+  transition: opacity 0.2s;
+}
+
+.policy-footer a:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
+/* --- RESPONSIVE --- */
 @media (max-width: 600px) {
+  .policy-wrapper {
+    padding: 10px;
+  }
+  
   .policy-container {
-    padding: 15px;
-    margin: 10px;
+    padding: 20px;
+    border-radius: 12px;
   }
 
-  .policy-container h1 {
-    font-size: 22px;
+  .policy-header h1 {
+    font-size: 24px;
+  }
+  
+  .policy-section h3 {
+    font-size: 17px;
   }
 }

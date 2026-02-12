@@ -51,6 +51,7 @@
   display: flex;
   flex-direction: column;
   border: 1px solid #f1f2f6;
+  cursor: pointer;
 }
 
 .pc-card:hover {
@@ -64,10 +65,18 @@
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  cursor: pointer;
   background: #fafafa;
   margin: 6px;
   border-radius: 16px;
+}
+
+/* Wrapper for proper positioning */
+.pc-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
 }
 
 .pc-img {
@@ -81,7 +90,29 @@
   transform: scale(1.1) rotate(2deg);
 }
 
-/* Featured Badge Container */
+/* --- BADGES & OVERLAYS --- */
+
+/* 1. Hot Deal Timer (Top Left) */
+.pc-hotdeal-timer {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #0f172a; /* Dark background */
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 10;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  letter-spacing: 0.5px;
+}
+
+/* 2. Featured Badge (Top Left - fallback) */
 .pc-top-badges {
   position: absolute;
   top: 8px;
@@ -103,7 +134,38 @@
   text-transform: uppercase;
 }
 
-/* Discount Ribbon */
+/* 3. Share Button (Top Right) */
+.pc-share-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 20;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff6b6b;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.pc-share-btn:hover {
+  background: var(--pc-primary);
+  color: white;
+  transform: scale(1.1) rotate(5deg);
+}
+
+.pc-share-btn:active {
+  transform: scale(0.9);
+}
+
+/* 4. Discount Ribbon (Bottom Right) */
 .pc-discount-ribbon {
   position: absolute;
   bottom: 8px;
@@ -119,6 +181,7 @@
   gap: 4px;
   box-shadow: 0 4px 0 rgba(200, 50, 50, 0.3);
   transform: rotate(-3deg);
+  z-index: 5;
 }
 
 /* --- BODY SECTION --- */
@@ -153,7 +216,6 @@
   color: var(--pc-dark);
   margin: 0;
   line-height: 1.3;
-  cursor: pointer;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -262,6 +324,12 @@
   box-shadow: none;
 }
 
+.pc-add-to-cart:disabled {
+  background: #bdc3c7;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
 /* Qty Controls */
 .pc-quantity-controls {
   background: #F8F9FA;
@@ -312,6 +380,7 @@
   text-align: center;
 }
 
+/* Skeleton Loading */
 .pc-skeleton {
   position: absolute; inset: 0;
   background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
@@ -320,6 +389,7 @@
 
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
+/* Responsive adjustments */
 @media (max-width: 480px) {
   .pc-wrapper { padding: 6px; }
   .pc-body { padding: 8px; gap: 6px; }
@@ -327,62 +397,4 @@
   .pc-chip { padding: 3px 6px; font-size: 9px; }
   .pc-amount { font-size: 18px; }
   .pc-add-to-cart { font-size: 12px; padding: 8px; }
-}
-
-/* --- ADDED: HOT DEAL TIMER --- */
-.pc-hotdeal-timer {
-  position: absolute;
-  top: 8px; /* Positioned at top-left corner of image */
-  left: 8px;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: #0f172a; /* Dark background */
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: 800;
-  z-index: 10;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  letter-spacing: 0.5px;
-}/* Share Button Styling */
-.pc-share-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 20; /* Badges ke upar dikhne ke liye */
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #ff6b6b; /* Strawberry color */
-  cursor: pointer;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-
-.pc-share-btn:hover {
-  background: #ff6b6b;
-  color: white;
-  transform: scale(1.1) rotate(5deg);
-}
-
-.pc-share-btn:active {
-  transform: scale(0.9);
-}
-
-/* Ensure the wrapper is relative for absolute children */
-.pc-image-wrapper {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  border-radius: 12px;
-  overflow: hidden;
 }

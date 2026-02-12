@@ -1,7 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
-import { ShoppingCart, Plus, Minus, Shield, Zap, CheckCircle } from "lucide-react";
+import { 
+  ShoppingCart, 
+  Plus, 
+  Minus, 
+  Shield, 
+  Zap, 
+  CheckCircle, 
+  Share2 // ✅ Added Share Icon
+} from "lucide-react";
+import { getImageUrl } from "../utils/image"; // ✅ Use the optimized helper
 import "../styles/HotdealProductCard.css";
 
 interface Product {
@@ -12,18 +21,8 @@ interface Product {
   price: number;
   mrp?: number;
   stock?: number;
+  tagline?: string; // Helpful for sharing
 }
-
-const IMAGE_BASE_URL =
-  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
-
-const getOptimizedImageUrl = (url: string, width = 520) => {
-  if (!url) return "";
-  if (url.includes("res.cloudinary.com"))
-    return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
-  if (url.startsWith("http")) return url;
-  return `${IMAGE_BASE_URL}/uploads/${encodeURIComponent(url)}`;
-};
 
 const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   if (!product) return null;
@@ -32,13 +31,43 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  const cartItem = cartItems.find((item: any) => item._id === product._id);
-  const itemCount = cartItem?.quantity ?? 0;
+  // ✅ 1. Memoize heavy calculations
+  const { itemCount, minQty, offPct, imageUrl } = useMemo(() => {
+    const cartItem = cartItems.find((item: any) => item._id === product._id);
+    const count = cartItem?.quantity ?? 0;
+    const min = product.price < 60 ? 3 : 2;
 
-  const minQty = product.price < 60 ? 3 : 2;
+    const discount = product.mrp && product.mrp > product.price
+      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+      : 0;
+
+    // Optimize for the specific size this card uses (520px as per your code)
+    const url = getImageUrl(product.images?.[0], 520);
+
+    return { itemCount: count, minQty: min, offPct: discount, imageUrl: url };
+  }, [product, cartItems]);
 
   const handleNavigate = () =>
     navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
+
+  // ✅ 2. Share Functionality
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = {
+      title: product.name,
+      text: `Look at this! ${product.name} - ${product.tagline || 'Amazing Toy'}`,
+      url: `${window.location.origin}${product.slug ? `/product/${product.slug}` : `/product/${product._id}`}`,
+    };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied!");
+      }
+    } catch (err) {
+      console.error("Share failed", err);
+    }
+  };
 
   const actions = {
     add: (e: React.MouseEvent) => {
@@ -59,43 +88,41 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const out = product.stock === 0;
   const low = product.stock !== undefined && product.stock > 0 && product.stock <= 10;
 
-  const offPct =
-    product.mrp && product.mrp > product.price
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-      : 0;
-
   return (
     <div className="kid-card" onClick={handleNavigate} role="button" tabIndex={0}>
       {/* Sticker Row */}
       <div className="kid-stickers">
         <span className={`kid-pill ${out ? "danger" : low ? "warn" : "ok"}`}>
           {out ? (
-            <>
-              <Shield size={14} /> Out
-            </>
+            <> <Shield size={14} /> Out </>
           ) : low ? (
-            <>
-              <Zap size={14} /> {product.stock} left
-            </>
+            <> <Zap size={14} /> {product.stock} left </>
           ) : (
-            <>
-              <CheckCircle size={14} /> In stock
-            </>
+            <> <CheckCircle size={14} /> In stock </>
           )}
         </span>
 
-        {offPct > 0 ? <span className="kid-pill off">{offPct}% OFF</span> : <span />}
+        {offPct > 0 && <span className="kid-pill off">{offPct}% OFF</span>}
       </div>
 
       {/* Image Bubble */}
       <div className="kid-imgWrap">
+        {/* ✅ Share Button Positioned inside Image Area */}
+        <button className="kid-share-btn" onClick={handleShare} aria-label="Share">
+          <Share2 size={16} strokeWidth={2.5} />
+        </button>
+
         <div className="kid-confetti" aria-hidden="true" />
+        
         {!imgLoaded && <div className="kid-img-skel" />}
+        
         <img
-          src={getOptimizedImageUrl(product.images?.[0] || "", 520)}
+          src={imageUrl}
           alt={product.name}
           className={`kid-img ${imgLoaded ? "loaded" : ""}`}
           loading="lazy"
+          width="520" // ✅ Explicit dimensions prevent Layout Shift (CLS)
+          height="520"
           onLoad={() => setImgLoaded(true)}
         />
       </div>
@@ -132,13 +159,9 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
         {itemCount === 0 ? (
           <button className="kid-addBtn" type="button" onClick={actions.add} disabled={out}>
             {out ? (
-              <>
-                <Shield size={18} /> Notify
-              </>
+              <> <Shield size={18} /> Notify </>
             ) : (
-              <>
-                <ShoppingCart size={18} /> Add {minQty}
-              </>
+              <> <ShoppingCart size={18} /> Add {minQty} </>
             )}
           </button>
         ) : (

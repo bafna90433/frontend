@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import {
@@ -12,7 +12,9 @@ import {
   Clock,
   Sparkles,
   TrendingUp,
+  Share2 // ✅ Added Share Icon
 } from "lucide-react";
+import { getImageUrl } from "../utils/image"; // ✅ Import the optimized helper
 import "../styles/TrendingSection.css";
 
 interface Product {
@@ -27,35 +29,8 @@ interface Product {
   reviews?: number;
   sale_end_time?: string;
   featured?: boolean;
+  tagline?: string; // Added for share text
 }
-
-/** ✅ Use your existing env: VITE_MEDIA_URL
- *  Fallback -> Railway backend (not localhost) */
-const MEDIA_BASE_URL =
-  (import.meta.env.VITE_MEDIA_URL as string)?.replace(/\/+$/, "") ||
-  (import.meta.env.VITE_IMAGE_BASE_URL as string)?.replace(/\/+$/, "") ||
-  "https://bafnatoys-backend-production.up.railway.app";
-
-const getOptimizedImageUrl = (url: string, width = 260) => {
-  if (!url) return "";
-
-  // Cloudinary optimize
-  if (url.includes("res.cloudinary.com")) {
-    return url.replace("/upload/", `/upload/w_${width},f_auto,q_auto/`);
-  }
-
-  // Already full url
-  if (url.startsWith("http")) return url;
-
-  // If backend stores "uploads/xyz.jpg" or "/uploads/xyz.jpg"
-  const clean = url.replace(/^\/+/, "");
-  if (clean.startsWith("uploads/")) {
-    return `${MEDIA_BASE_URL}/${clean}`;
-  }
-
-  // Default: treat as uploads filename
-  return `${MEDIA_BASE_URL}/uploads/${encodeURIComponent(clean)}`;
-};
 
 const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   if (!product) return null;
@@ -65,13 +40,43 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
-  const cartItem = cartItems.find((item: any) => item._id === product._id);
-  const itemCount = cartItem?.quantity ?? 0;
+  // ✅ Memoize heavy derived state
+  const { itemCount, minQty, discountPercent, imageUrl } = useMemo(() => {
+    const cartItem = cartItems.find((item: any) => item._id === product._id);
+    const count = cartItem?.quantity ?? 0;
+    const min = product.price < 60 ? 3 : 2;
+    
+    const discount = product.mrp && product.mrp > product.price
+      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
+      : 0;
 
-  const minQty = product.price < 60 ? 3 : 2;
+    // Optimize image for this card size (260px width)
+    const imgUrl = getImageUrl(product.images?.[0], 260);
+
+    return { itemCount: count, minQty: min, discountPercent: discount, imageUrl: imgUrl };
+  }, [product, cartItems]);
 
   const handleNavigate = () =>
     navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
+
+  // ✅ Share Logic
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const shareData = {
+      title: product.name,
+      text: `Check out ${product.name} - ${product.tagline || 'Best Wholesale Toy'}`,
+      url: `${window.location.origin}${product.slug ? `/product/${product.slug}` : `/product/${product._id}`}`,
+    };
+    try {
+      if (navigator.share) await navigator.share(shareData);
+      else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied!");
+      }
+    } catch (err) {
+      console.error("Share failed:", err);
+    }
+  };
 
   const actions = {
     add: (e: React.MouseEvent) => {
@@ -88,11 +93,6 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
       setCartItemQuantity(product as any, nextQty);
     },
   };
-
-  const discountPercent =
-    product.mrp && product.mrp > product.price
-      ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
-      : 0;
 
   // ✅ Timer Logic
   useEffect(() => {
@@ -126,7 +126,13 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
     <div className="t-card" onClick={handleNavigate} role="button" tabIndex={0}>
       {/* Left Image */}
       <div className="t-imgbox">
-        {/* ✅ BADGES */}
+        
+        {/* ✅ Share Button */}
+        <button className="t-share-btn" onClick={handleShare} aria-label="Share">
+           <Share2 size={14} strokeWidth={2.5} />
+        </button>
+
+        {/* Badges */}
         <div className="t-badges">
           {timeLeft ? (
             <span className="t-badge t-badge--timer">
@@ -139,17 +145,19 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
           ) : null}
         </div>
 
+        {/* Skeleton & Image */}
         {!imgLoaded && <div className="t-img-skel" />}
-
         <img
-          src={getOptimizedImageUrl(product.images?.[0] || "", 260)}
+          src={imageUrl}
           alt={product.name}
           className={`t-img ${imgLoaded ? "loaded" : ""}`}
           loading="lazy"
+          width="260" // ✅ Fix CLS
+          height="260"
           onLoad={() => setImgLoaded(true)}
         />
 
-        {/* ✅ Discount Ribbon */}
+        {/* Discount Ribbon */}
         {discountPercent > 0 && (
           <div className="t-discount">
             <Sparkles size={9} fill="currentColor" style={{ marginRight: 2 }} />
@@ -164,17 +172,11 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
           <div className="t-spacer" />
           <div className="t-stock-mini">
             {product.stock === 0 ? (
-              <span>
-                <Shield size={12} /> Out
-              </span>
+              <span><Shield size={12} /> Out</span>
             ) : product.stock && product.stock <= 10 ? (
-              <span>
-                <Zap size={12} /> {product.stock} left
-              </span>
+              <span><Zap size={12} /> {product.stock} left</span>
             ) : (
-              <span>
-                <CheckCircle size={12} /> In
-              </span>
+              <span><CheckCircle size={12} /> In</span>
             )}
           </div>
         </div>
@@ -197,13 +199,9 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
               disabled={product.stock === 0}
             >
               {product.stock === 0 ? (
-                <>
-                  <Shield size={14} /> Notify
-                </>
+                <> <Shield size={14} /> Notify </>
               ) : (
-                <>
-                  <ShoppingCart size={14} /> Add
-                </>
+                <> <ShoppingCart size={14} /> Add </>
               )}
             </button>
           ) : (
@@ -211,9 +209,7 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
               <button type="button" onClick={actions.dec} className="t-qty-btn">
                 {itemCount === minQty ? "Del" : <Minus size={14} strokeWidth={3} />}
               </button>
-
               <span className="t-qty-val">{itemCount}</span>
-
               <button
                 type="button"
                 onClick={actions.inc}

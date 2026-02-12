@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
@@ -17,7 +17,7 @@ import {
   FiPlus, 
   FiShield,
   FiClock,
-  FiShare2 // Share icon added
+  FiShare2 
 } from "react-icons/fi";
 import { FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
@@ -78,6 +78,9 @@ const ProductDetails: React.FC = () => {
     setProduct(null);
     setSelectedImage(0);
     setImgLoaded(false);
+    
+    // Scroll to top when product changes
+    window.scrollTo(0, 0);
 
     const fetchProduct = async () => {
       try {
@@ -121,7 +124,7 @@ const ProductDetails: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [product]);
+  }, [product?.sale_end_time]); // Optimised dependency
 
   // --- Share Functionality ---
   const handleShare = async () => {
@@ -157,26 +160,35 @@ const ProductDetails: React.FC = () => {
     }
   };
 
+  // Memoize heavy calculations
+  const { itemCount, minQty, unitPrice, discountPercent, hasDiscount, baseImage, imageUrl } = useMemo(() => {
+    if (!product) return { itemCount: 0, minQty: 1, unitPrice: 0, discountPercent: 0, hasDiscount: false, baseImage: "", imageUrl: "" };
+
+    const cartItem = cartItems.find((item) => item._id === product._id);
+    const itemCount = cartItem?.quantity ?? 0;
+    const minQty = product.price < 60 ? 3 : 2;
+    const unitPrice = product.price;
+
+    const hasDiscount = product.mrp && product.mrp > unitPrice;
+    const discountPercent = hasDiscount 
+      ? Math.round(((product.mrp! - unitPrice) / product.mrp!) * 100) 
+      : 0;
+
+    const baseImage = product.images?.[selectedImage] || product.image || "";
+    // OPTIMIZATION: Request exact size needed (800w for main view)
+    const imageUrl = getImageUrl(baseImage, 800); 
+
+    return { itemCount, minQty, unitPrice, discountPercent, hasDiscount, baseImage, imageUrl };
+  }, [product, cartItems, selectedImage]);
+
+  const handleAdd = () => { if (product) setCartItemQuantity(product, minQty); };
+  const handleInc = () => { if (product) setCartItemQuantity(product, itemCount + 1); };
+  const handleDec = () => { if (product) { const nextQty = itemCount <= minQty ? 0 : itemCount - 1; setCartItemQuantity(product, nextQty); } };
+  const handleSelectImage = (index: number) => { setSelectedImage(index); setImgLoaded(false); };
+
   if (loading) return <div className="pd-loading"><div className="pd-spinner"></div><p>Loading fun stuff...</p></div>;
   if (error) return <div className="pd-error">{error}</div>;
   if (!product) return <div className="pd-error">Product not found</div>;
-
-  const cartItem = cartItems.find((item) => item._id === product._id);
-  const itemCount = cartItem?.quantity ?? 0;
-  const minQty = product.price < 60 ? 3 : 2;
-  const unitPrice = product.price;
-
-  const hasDiscount = product.mrp && product.mrp > unitPrice;
-  const discountPercent = hasDiscount 
-    ? Math.round(((product.mrp! - unitPrice) / product.mrp!) * 100) 
-    : 0;
-
-  const baseImage = product.images?.[selectedImage] || product.image || "";
-  const imageUrl = getImageUrl(baseImage, 800);
-
-  const handleAdd = () => { setCartItemQuantity(product, minQty); };
-  const handleInc = () => { setCartItemQuantity(product, itemCount + 1); };
-  const handleDec = () => { const nextQty = itemCount <= minQty ? 0 : itemCount - 1; setCartItemQuantity(product, nextQty); };
 
   return (
     <>
@@ -192,11 +204,19 @@ const ProductDetails: React.FC = () => {
         
         <div className="pd-gallery">
           <div className="pd-main-image-frame" ref={imageContainerRef} onTouchStart={handleTouchStart} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
+            {/* OPTIMIZATION: Skeleton loader prevents layout shift */}
+            {!imgLoaded && <div className="pd-skeleton-loader" style={{position: 'absolute', inset: 0, background: '#f0f0f0'}} />}
+            
             <img 
               src={imageUrl} 
               alt={product.name} 
               className={`pd-main-image ${imgLoaded ? "loaded" : ""}`} 
               onLoad={() => setImgLoaded(true)} 
+              // OPTIMIZATION: High Priority for LCP
+              fetchPriority="high"
+              loading="eager"
+              width="600" // Explicit width/height to reduce CLS
+              height="600"
             />
             {product.images && product.images.length > 1 && (
               <div className="pd-swipe-dots">
@@ -221,7 +241,13 @@ const ProductDetails: React.FC = () => {
                   className={`pd-thumb ${selectedImage === i ? "active" : ""}`} 
                   onClick={() => handleSelectImage(i)}
                 >
-                  <img src={getImageUrl(img, 150)} alt="thumb" />
+                  <img 
+                    src={getImageUrl(img, 150)} // Small thumbnail size
+                    alt={`thumb-${i}`} 
+                    loading="lazy" 
+                    width="60"
+                    height="60"
+                  />
                 </div>
               ))}
             </div>
@@ -238,6 +264,7 @@ const ProductDetails: React.FC = () => {
                 onClick={handleShare}
                 className="pd-share-button"
                 title="Share Product"
+                aria-label="Share this product"
               >
                 <FiShare2 size={20} />
               </button>
@@ -368,7 +395,8 @@ const ProductDetails: React.FC = () => {
           <div className="pd-related-scroll">
             {product.relatedProducts.map((rel, i) => (
               <div key={rel._id} className="pd-related-item">
-                <ProductCard product={rel} userRole="customer" index={i} />
+                {/* OPTIMIZATION: Related items are low priority, so lazy load everything */}
+                <ProductCard product={rel} userRole="customer" index={i + 4} />
               </div>
             ))}
           </div>
