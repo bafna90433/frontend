@@ -14,11 +14,11 @@ import {
   CheckCircle, 
   Sparkles,
   Tag,
-  Clock // Clock icon for timer
+  Clock,
+  Share2 // Share icon added
 } from "lucide-react";
 import "../styles/ProductCard.css";
 
-// --- Types ---
 interface Product {
   _id: string;
   name: string;
@@ -34,7 +34,7 @@ interface Product {
   rating?: number;
   reviews?: number;
   featured?: boolean;
-  sale_end_time?: string; // For Countdown Timer
+  sale_end_time?: string;
 }
 
 interface ProductCardProps {
@@ -43,7 +43,6 @@ interface ProductCardProps {
   index?: number;
 }
 
-// --- Helpers ---
 const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const getOptimizedImageUrl = (url: string, width = 400) => {
@@ -58,27 +57,42 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
-   
-  // --- Cart & Navigation Logic ---
+  
   const cartItem = cartItems.find((item) => item._id === product._id);
   const itemCount = cartItem?.quantity ?? 0;
   const minQty = product.price < 60 ? 3 : 2; 
 
   const handleNavigate = () => navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
 
+  // --- Share Logic ---
+  const handleShare = async (e: React.MouseEvent) => {
+    e.stopPropagation(); // Card click se bachne ke liye
+    
+    const shareData = {
+      title: product.name,
+      text: `Hey! Check out this ${product.name} - ${product.tagline || ''}`,
+      url: `${window.location.origin}${product.slug ? `/product/${product.slug}` : `/product/${product._id}`}`,
+    };
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(shareData.url);
+        alert("Link copied to clipboard!");
+      }
+    } catch (err) {
+      console.error("Error sharing:", err);
+    }
+  };
+
   const actions = {
-    add: (e: React.MouseEvent) => { 
-      e.stopPropagation(); 
-      setCartItemQuantity(product, minQty); 
-    },
-    inc: (e: React.MouseEvent) => { 
-      e.stopPropagation(); 
-      setCartItemQuantity(product, itemCount + 1); 
-    },
-    dec: (e: React.MouseEvent) => { 
-      e.stopPropagation(); 
+    add: (e: React.MouseEvent) => { e.stopPropagation(); setCartItemQuantity(product, minQty); },
+    inc: (e: React.MouseEvent) => { e.stopPropagation(); setCartItemQuantity(product, itemCount + 1); },
+    dec: (e: React.MouseEvent) => {
+      e.stopPropagation();
       const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
-      setCartItemQuantity(product, nextQty); 
+      setCartItemQuantity(product, nextQty);
     }
   };
 
@@ -86,36 +100,21 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     ? Math.round(((product.mrp - product.price) / product.mrp) * 100) 
     : 0;
 
-  const rating = product.rating || 4.5;
-
-  // --- Countdown Timer Logic ---
   useEffect(() => {
     if (!product.sale_end_time) return;
-
     const calculateTimeLeft = () => {
       const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
-      
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / 1000 / 60) % 60);
         const seconds = Math.floor((difference / 1000) % 60);
-
-        // Format: 02D 14:30:05
-        return `${days.toString().padStart(2, '0')}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-      } else {
-        return null;
+        return `${days}D ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
       }
+      return null;
     };
-
     setTimeLeft(calculateTimeLeft());
-
-    const timer = setInterval(() => {
-      const timeLeftStr = calculateTimeLeft();
-      setTimeLeft(timeLeftStr);
-      if (!timeLeftStr) clearInterval(timer);
-    }, 1000);
-
+    const timer = setInterval(() => setTimeLeft(calculateTimeLeft()), 1000);
     return () => clearInterval(timer);
   }, [product.sale_end_time]);
 
@@ -123,18 +122,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     <div className="pc-wrapper">
       <div className="pc-card" onClick={handleNavigate}>
         
-        {/* --- 1. Image Section --- */}
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
             
-            {/* --- UPDATED: HOT DEAL TIMER --- */}
+            {/* Share Button Overlay */}
+            <button className="pc-share-btn" onClick={handleShare} aria-label="Share">
+              <Share2 size={16} strokeWidth={2.5} />
+            </button>
+
             {timeLeft ? (
                <div className="pc-hotdeal-timer">
-                 <Clock size={12} strokeWidth={3} color="#fbbf24" /> {/* Gold Icon */}
+                 <Clock size={12} strokeWidth={3} color="#fbbf24" />
                  <span>{timeLeft}</span>
                </div>
             ) : (
-              // Show Featured badge ONLY if timer is not active
               product.featured && (
                 <div className="pc-top-badges">
                   <span className="pc-badge pc-badge--featured">
@@ -144,7 +145,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               )
             )}
 
-            {/* Main Image */}
             {!imgLoaded && <div className="pc-skeleton" />}
             <img
               src={getOptimizedImageUrl(product.images?.[0] || "", 400)}
@@ -155,7 +155,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             />
           </div>
 
-          {/* Discount Ribbon */}
           {discountPercent > 0 && (
             <div className="pc-discount-ribbon">
               <Sparkles size={10} fill="currentColor" />
@@ -164,13 +163,10 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
           )}
         </div>
 
-        {/* --- 2. Body Section --- */}
         <div className="pc-body">
-          
-          {/* Stock Status Row */}
           <div className="pc-meta-row">
             <div className="pc-stock-status">
-               {product.stock === 0 ? (
+              {product.stock === 0 ? (
                 <span className="pc-stock pc-stock--out">Out of Stock</span>
               ) : product.stock && product.stock <= 10 ? (
                 <span className="pc-stock pc-stock--low">
@@ -184,47 +180,36 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             </div>
           </div>
 
-          {/* Product Title */}
-          <h3 className="pc-title">
-            {product.name}
-          </h3>
+          <h3 className="pc-title">{product.name}</h3>
 
-          {/* Meta Chips */}
           <div className="pc-meta-chips">
             {product.tagline && (
               <span className="pc-chip pc-chip--tag">
-                <Tag size={10} strokeWidth={2.5} /> 
-                {product.tagline}
+                <Tag size={10} strokeWidth={2.5} /> {product.tagline}
               </span>
             )}
             {product.packSize && (
               <span className="pc-chip pc-chip--box">
-                <Box size={10} strokeWidth={2.5} /> 
-                {product.packSize}
+                <Box size={10} strokeWidth={2.5} /> {product.packSize}
               </span>
             )}
             {(product.rating || product.reviews) && (
                <span className="pc-chip pc-chip--rating">
-                 <Star size={10} fill="#FBC02D" stroke="none" /> 
-                 {rating.toFixed(1)}
+                 <Star size={10} fill="#FBC02D" stroke="none" /> {(product.rating || 4.5).toFixed(1)}
                </span>
             )}
           </div>
 
-          {/* --- 3. Price & Actions Section --- */}
           <div className="pc-price-section">
             <div className="pc-price-main">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
                 <span className="pc-amount">{product.price.toLocaleString()}</span>
                 {product.mrp && product.mrp > product.price && (
-                  <span className="pc-mrp">
-                    MRP ₹{product.mrp.toLocaleString()}
-                  </span>
+                  <span className="pc-mrp">MRP ₹{product.mrp.toLocaleString()}</span>
                 )}
               </div>
             </div>
-            
             {itemCount === 0 && (
               <div className="pc-min-qty">
                 <Info size={10} /> Min Order: {minQty}
@@ -232,7 +217,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             )}
           </div>
 
-          {/* Cart Buttons */}
           <div className="pc-actions">
             {itemCount === 0 ? (
               <button 
@@ -264,7 +248,6 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               </div>
             )}
           </div>
-
         </div>
       </div>
     </div>
