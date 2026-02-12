@@ -1,11 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react"; // useEffect aur useState hata diya
 import { Link } from "react-router-dom";
-
-// ✅ File name match (HotdealProductCard.tsx)
-import HotdealProductCard from "./HotdealProductCard";
-
+import ProductCard from "./ProductCard"; 
 import "../styles/HotDealsSection.css";
 
+/* --- TYPES --- */
 type Product = {
   _id: string;
   name: string;
@@ -14,13 +12,14 @@ type Product = {
   images?: string[];
   slug?: string;
   stock?: number;
+  tagline?: string;
 };
 
 type DealType = "none" | "percent" | "flat" | "NONE" | "PERCENT" | "FLAT";
 
 type HotDealItem = {
   productId: string;
-  endsAt: string | null; // ISO
+  endsAt: string | null; 
   discountType: DealType;
   discountValue: number;
   product?: Product | null;
@@ -33,8 +32,7 @@ type HotCfg = {
   hotDealsItems?: HotDealItem[];
 };
 
-const pad = (n: number) => String(n).padStart(2, "0");
-
+/* --- HELPERS --- */
 const calcDealPrice = (base: number, it: HotDealItem) => {
   const v = Number(it.discountValue || 0);
   const type = String(it.discountType || "NONE").toUpperCase();
@@ -53,6 +51,21 @@ const calcDealPrice = (base: number, it: HotDealItem) => {
   return base;
 };
 
+/* --- SUB-COMPONENT: CARD WRAPPER (Timer Removed) --- */
+const HotDealCard: React.FC<{ item: HotDealItem }> = ({ item }) => {
+  // ❌ Maine yahan se duplicate Timer Logic hata diya hai
+
+  if (!item.product) return null;
+
+  return (
+    <div className="hd-cardWrap">
+      {/* Ab sirf ProductCard dikhega, uska internal timer use hoga */}
+      <ProductCard product={item.product as any} />
+    </div>
+  );
+};
+
+/* --- MAIN COMPONENT --- */
 const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
   allProducts,
   cfg,
@@ -70,7 +83,7 @@ const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
 
         const dealPrice = calcDealPrice(p.price, it);
 
-        // ✅ Clone product (response only)
+        // Product Clone logic
         const cloned: Product = {
           ...p,
           mrp: p.mrp || (dealPrice < p.price ? p.price : p.mrp),
@@ -86,6 +99,7 @@ const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
 
   return (
     <section className="hd-wrap">
+      {/* Header */}
       <div className="hd-head">
         <div className="hd-left">
           <h2 className="hd-title">{title}</h2>
@@ -98,53 +112,13 @@ const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
         )}
       </div>
 
+      {/* Grid */}
       <div className="hd-grid">
         {items.slice(0, 8).map((it) => (
           <HotDealCard key={it.productId} item={it} />
         ))}
       </div>
     </section>
-  );
-};
-
-const HotDealCard: React.FC<{ item: HotDealItem }> = ({ item }) => {
-  const [left, setLeft] = useState({ d: 0, h: 0, m: 0, s: 0 });
-
-  useEffect(() => {
-    const end = item?.endsAt ? new Date(item.endsAt).getTime() : 0;
-    if (!end) return;
-
-    const t = setInterval(() => {
-      const diff = Math.max(0, end - Date.now());
-      if (diff <= 0) {
-        clearInterval(t);
-        setLeft({ d: 0, h: 0, m: 0, s: 0 });
-        return;
-      }
-
-      setLeft({
-        d: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        h: Math.floor((diff / (1000 * 60 * 60)) % 24),
-        m: Math.floor((diff / (1000 * 60)) % 60),
-        s: Math.floor((diff / 1000) % 60),
-      });
-    }, 1000);
-
-    return () => clearInterval(t);
-  }, [item?.endsAt]);
-
-  const timerText = item.endsAt
-    ? `${left.d}D ${pad(left.h)}:${pad(left.m)}:${pad(left.s)}`
-    : "";
-
-  // ✅ product null safe
-  if (!item.product) return null;
-
-  return (
-    <div className="hd-cardWrap">
-      {timerText && <div className="hd-timerBadge">{timerText}</div>}
-      <HotdealProductCard product={item.product as any} />
-    </div>
   );
 };
 

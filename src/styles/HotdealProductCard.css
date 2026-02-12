@@ -49,14 +49,15 @@
   color:#854d0e;
 }
 
-/* Image bubble */
+/* Image bubble - ✅ HEIGHT CHANGED HERE */
 .kid-imgWrap{
   position: relative;
   border-radius: 18px;
   border: 2px dashed #c7d2fe;
   background: radial-gradient(circle at 30% 20%, #e0f2fe, #ffffff 55%),
               radial-gradient(circle at 80% 70%, #fae8ff, #ffffff 55%);
-  height: 170px;
+  /* Changed from 170px to 140px to make it smaller */
+  height: 140px; 
   display:grid;
   place-items:center;
   overflow:hidden;
@@ -89,9 +90,11 @@
   100%{ background-position: 100% 50%; }
 }
 
+/* Actual Image - ✅ SIZE CHANGED HERE */
 .kid-img{
-  width: 90%;
-  height: 90%;
+  /* Changed from 90% to 75% to add padding and make toy look smaller */
+  width: 75%;
+  height: 75%;
   object-fit: contain;
   position: relative;
   z-index: 1;
@@ -218,9 +221,8 @@
   font-weight: 1000;
   color:#0f172a;
 }
-/* ... existing styles ... */
 
-/* New Share Button */
+/* Share Button */
 .kid-share-btn {
   position: absolute;
   top: 10px;
@@ -247,10 +249,4 @@
 
 .kid-share-btn:active {
   transform: scale(0.95);
-}
-
-/* Ensure image wrapper handles absolute positioning */
-.kid-imgWrap {
-  position: relative;
-  /* ... existing styles ... */
 }

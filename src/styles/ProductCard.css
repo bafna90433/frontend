@@ -1,34 +1,37 @@
+/* src/styles/ProductCard.css */
+
+/* Clear font + less bold everywhere */
 :root {
-  /* --- KID THEME PALETTE --- */
-  --pc-bg: #FFFFFF;
-  --pc-card-bg: #FFFFFF;
-   
-  /* Candy Colors */
-  --pc-primary: #FF6B6B;        /* Strawberry */
-  --pc-secondary: #4ECDC4;      /* Mint */
-  --pc-accent: #FFD93D;         /* Banana Yellow */
-  --pc-purple: #A55EEA;         /* Grape */
-  --pc-blue: #45AAF2;           /* Sky */
-  --pc-green: #26de81;          /* Apple */
-   
-  --pc-dark: #2d3436;
-  --pc-gray: #a4b0be;
-   
-  /* Gradients */
-  --pc-grad-btn: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
-   
-  /* Shapes */
-  --pc-radius-card: 20px;
-  --pc-radius-chip: 8px;
+  --pc-bg: #ffffff;
+  --pc-card-bg: #ffffff;
+
+  --pc-primary: #ff6b6b;
+  --pc-secondary: #4ecdc4;
+  --pc-accent: #ffd93d;
+
+  --pc-dark: #1f2937;
+  --pc-gray: #94a3b8;
+
+  --pc-grad-btn: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+
+  --pc-radius-card: 18px;
+  --pc-radius-chip: 10px;
   --pc-radius-btn: 12px;
-   
-  /* Physics */
+
   --pc-bounce: cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  --pc-shadow-sm: 0 4px 6px rgba(0,0,0,0.05);
-  --pc-shadow-hover: 0 15px 35px rgba(0,0,0,0.1), 0 5px 15px rgba(255, 107, 107, 0.15);
-   
-  /* Fonts */
-  --pc-font: 'Nunito', 'Quicksand', sans-serif;
+  --pc-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.06);
+  --pc-shadow-hover: 0 18px 36px rgba(15, 23, 42, 0.12),
+    0 8px 18px rgba(255, 107, 107, 0.12);
+
+  /* ✅ Clear font stack */
+  --pc-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
+    Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+
+  /* ✅ Controlled weights */
+  --w-regular: 400;
+  --w-medium: 500;
+  --w-semibold: 600;
+  --w-bold: 700;
 }
 
 /* Base Wrapper */
@@ -37,6 +40,8 @@
   height: 100%;
   box-sizing: border-box;
   font-family: var(--pc-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Card Container */
@@ -45,19 +50,19 @@
   border-radius: var(--pc-radius-card);
   overflow: hidden;
   position: relative;
-  transition: all 0.3s var(--pc-bounce);
+  transition: all 0.25s ease;
   box-shadow: var(--pc-shadow-sm);
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid #f1f2f6;
+  border: 1px solid #eef2f7;
   cursor: pointer;
 }
 
 .pc-card:hover {
-  transform: translateY(-8px);
+  transform: translateY(-6px);
   box-shadow: var(--pc-shadow-hover);
-  border-color: var(--pc-primary);
+  border-color: rgba(255, 107, 107, 0.5);
 }
 
 /* --- IMAGE SECTION --- */
@@ -65,17 +70,16 @@
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
-  background: #fafafa;
-  margin: 6px;
+  background: #f8fafc;
+  margin: 8px;
   border-radius: 16px;
 }
 
-/* Wrapper for proper positioning */
 .pc-image-wrapper {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
 }
 
@@ -83,16 +87,14 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.5s ease;
+  transition: transform 0.45s ease;
 }
 
 .pc-card:hover .pc-img {
-  transform: scale(1.1) rotate(2deg);
+  transform: scale(1.06);
 }
 
 /* --- BADGES & OVERLAYS --- */
-
-/* 1. Hot Deal Timer (Top Left) */
 .pc-hotdeal-timer {
   position: absolute;
   top: 8px;
@@ -100,19 +102,18 @@
   display: flex;
   gap: 6px;
   align-items: center;
-  padding: 5px 12px;
+  padding: 6px 10px;
   border-radius: 999px;
-  background: #0f172a; /* Dark background */
+  background: rgba(15, 23, 42, 0.92);
   color: #ffffff;
   font-size: 11px;
-  font-weight: 800;
+  font-weight: var(--w-semibold);
   z-index: 10;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
-  letter-spacing: 0.5px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+  letter-spacing: 0.2px;
 }
 
-/* 2. Featured Badge (Top Left - fallback) */
 .pc-top-badges {
   position: absolute;
   top: 8px;
@@ -124,95 +125,112 @@
   background: var(--pc-accent);
   color: #5d4037;
   font-size: 10px;
-  font-weight: 800;
-  padding: 4px 8px;
-  border-radius: 20px;
+  font-weight: var(--w-semibold);
+  padding: 5px 9px;
+  border-radius: 999px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  gap: 5px;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.08);
   text-transform: uppercase;
 }
 
-/* 3. Share Button (Top Right) */
 .pc-share-btn {
   position: absolute;
   top: 8px;
   right: 8px;
   z-index: 20;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ff6b6b;
   cursor: pointer;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
+  transition: all 0.15s ease;
 }
 
 .pc-share-btn:hover {
   background: var(--pc-primary);
-  color: white;
-  transform: scale(1.1) rotate(5deg);
+  color: #fff;
+  transform: scale(1.05);
 }
 
 .pc-share-btn:active {
-  transform: scale(0.9);
+  transform: scale(0.95);
 }
 
-/* 4. Discount Ribbon (Bottom Right) */
 .pc-discount-ribbon {
   position: absolute;
   bottom: 8px;
   right: 8px;
   background: var(--pc-primary);
-  color: white;
-  padding: 4px 10px;
+  color: #fff;
+  padding: 5px 10px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: var(--w-semibold);
   border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 4px;
-  box-shadow: 0 4px 0 rgba(200, 50, 50, 0.3);
-  transform: rotate(-3deg);
+  gap: 5px;
+  box-shadow: 0 8px 16px rgba(255, 107, 107, 0.25);
   z-index: 5;
 }
 
 /* --- BODY SECTION --- */
 .pc-body {
-  padding: 12px;
+  padding: 12px 12px 14px;
   flex-grow: 1;
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-/* Meta Row */
-.pc-meta-row {
+/* ✅ NEW: Top row (Right side: Stock + Min Order) */
+.pc-toprow {
   display: flex;
-  justify-content: flex-end; 
-  align-items: center;
+  justify-content: flex-end;
+  align-items: flex-start;
 }
 
+.pc-topright {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* ✅ Right aligned */
+  gap: 6px;
+}
+
+/* Stock Status */
 .pc-stock-status {
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: var(--w-medium);
 }
 
-.pc-stock--in { color: var(--pc-green); display: flex; align-items: center; gap: 3px; }
-.pc-stock--low { color: #f39c12; display: flex; align-items: center; gap: 3px; }
-.pc-stock--out { color: var(--pc-primary); }
+.pc-stock--in {
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pc-stock--low {
+  color: #f59e0b;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.pc-stock--out {
+  color: var(--pc-primary);
+}
 
 /* Title */
 .pc-title {
   font-size: 15px;
-  font-weight: 800;
+  font-weight: var(--w-semibold);
   color: var(--pc-dark);
   margin: 0;
   line-height: 1.3;
@@ -220,10 +238,10 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  transition: color 0.2s;
+  transition: color 0.15s ease;
 }
 
-.pc-title:hover {
+.pc-card:hover .pc-title {
   color: var(--pc-primary);
 }
 
@@ -238,16 +256,26 @@
 .pc-chip {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 5px;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--w-medium);
   padding: 4px 8px;
   border-radius: var(--pc-radius-chip);
+  border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.pc-chip--box { background: #E3F2FD; color: #1976D2; }
-.pc-chip--rating { background: #FFFDE7; color: #FBC02D; }
-.pc-chip--tag { background: #FFECB3; color: #F57F17; }
+.pc-chip--box {
+  background: #eaf2ff;
+  color: #1d4ed8;
+}
+.pc-chip--rating {
+  background: #fff7ed;
+  color: #b45309;
+}
+.pc-chip--tag {
+  background: #fff7cc;
+  color: #9a6700;
+}
 
 /* Price Section */
 .pc-price-section {
@@ -263,36 +291,39 @@
 
 .pc-currency {
   font-size: 14px;
-  font-weight: 700;
+  font-weight: var(--w-medium);
   color: var(--pc-primary);
 }
 
 .pc-amount {
   font-size: 22px;
-  font-weight: 900;
+  font-weight: var(--w-bold);
   color: var(--pc-dark);
+  letter-spacing: -0.2px;
 }
 
 .pc-mrp {
   font-size: 11px;
   text-decoration: line-through;
   color: var(--pc-gray);
-  margin-left: 6px;
-  font-weight: 600;
+  margin-left: 8px;
+  font-weight: var(--w-regular);
 }
 
+/* Min Order (same chip, just right aligned + no extra margin) */
 .pc-min-qty {
   font-size: 10px;
-  font-weight: 700;
-  color: #E67E22;
-  background: #FFF3E0;
-  padding: 3px 8px;
-  border-radius: 6px;
+  font-weight: var(--w-medium);
+  color: #b45309;
+  background: #fff7ed;
+  padding: 4px 8px;
+  border-radius: 8px;
   width: fit-content;
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: 4px;
+  gap: 6px;
+  margin-top: 0; /* ✅ IMPORTANT */
+  border: 1px solid rgba(245, 158, 11, 0.18);
 }
 
 /* Buttons */
@@ -303,39 +334,44 @@
 .pc-add-to-cart {
   width: 100%;
   background: var(--pc-grad-btn);
-  color: white;
+  color: #fff;
   border: none;
   padding: 10px;
   border-radius: var(--pc-radius-btn);
   font-size: 13px;
-  font-weight: 800;
+  font-weight: var(--w-semibold);
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 8px;
   cursor: pointer;
-  box-shadow: 0 4px 0 #d64040; 
-  transition: all 0.1s;
+  box-shadow: 0 8px 18px rgba(255, 107, 107, 0.25);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   margin-bottom: 4px;
 }
 
+.pc-add-to-cart:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(255, 107, 107, 0.28);
+}
+
 .pc-add-to-cart:active {
-  transform: translateY(4px);
-  box-shadow: none;
+  transform: translateY(1px);
+  box-shadow: 0 6px 14px rgba(255, 107, 107, 0.22);
 }
 
 .pc-add-to-cart:disabled {
-  background: #bdc3c7;
+  background: #cbd5e1;
   box-shadow: none;
   cursor: not-allowed;
 }
 
 /* Qty Controls */
 .pc-quantity-controls {
-  background: #F8F9FA;
-  border: 1px solid #eee;
+  background: #f8fafc;
+  border: 1px solid #eef2f7;
   border-radius: var(--pc-radius-btn);
-  padding: 4px 8px;
+  padding: 6px 8px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -344,11 +380,19 @@
 .pc-qty-info {
   display: flex;
   flex-direction: column;
-  line-height: 1;
+  line-height: 1.1;
 }
 
-.pc-qty-label { font-size: 9px; color: var(--pc-gray); font-weight: 700; }
-.pc-qty-total { font-size: 12px; color: var(--pc-primary); font-weight: 800; }
+.pc-qty-label {
+  font-size: 10px;
+  color: #64748b;
+  font-weight: var(--w-regular);
+}
+.pc-qty-total {
+  font-size: 12px;
+  color: var(--pc-primary);
+  font-weight: var(--w-semibold);
+}
 
 .pc-quantity-buttons {
   display: flex;
@@ -357,44 +401,126 @@
 }
 
 .pc-qty-btn {
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
 
-.pc-qty-btn--decrease { background: white; color: var(--pc-primary); box-shadow: 0 2px 0 #eee; }
-.pc-qty-btn--increase { background: var(--pc-secondary); color: white; box-shadow: 0 2px 0 #2bcbba; }
-.pc-qty-btn:active { transform: translateY(2px); box-shadow: none; }
+.pc-qty-btn--decrease {
+  background: #ffffff;
+  color: var(--pc-primary);
+  box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
+}
+.pc-qty-btn--increase {
+  background: var(--pc-secondary);
+  color: #fff;
+  border-color: rgba(46, 204, 196, 0.35);
+  box-shadow: 0 8px 14px rgba(78, 205, 196, 0.22);
+}
+
+.pc-qty-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
+}
+
+.pc-qty-btn--increase:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
 
 .pc-qty-val {
-  font-weight: 800;
+  font-weight: var(--w-semibold);
   font-size: 14px;
   color: var(--pc-dark);
-  min-width: 14px;
+  min-width: 16px;
   text-align: center;
 }
 
 /* Skeleton Loading */
 .pc-skeleton {
-  position: absolute; inset: 0;
-  background: linear-gradient(90deg, #eee 25%, #f5f5f5 50%, #eee 75%);
-  animation: shimmer 1.5s infinite;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #eef2f7 25%, #f8fafc 50%, #eef2f7 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s infinite;
 }
 
-@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
 
-/* Responsive adjustments */
+/* Responsive */
 @media (max-width: 480px) {
-  .pc-wrapper { padding: 6px; }
-  .pc-body { padding: 8px; gap: 6px; }
-  .pc-title { font-size: 13px; }
-  .pc-chip { padding: 3px 6px; font-size: 9px; }
-  .pc-amount { font-size: 18px; }
-  .pc-add-to-cart { font-size: 12px; padding: 8px; }
+  .pc-wrapper {
+    padding: 6px;
+  }
+  .pc-body {
+    padding: 10px;
+    gap: 6px;
+  }
+  .pc-title {
+    font-size: 13px;
+  }
+  .pc-chip {
+    padding: 3px 6px;
+    font-size: 9px;
+  }
+  .pc-amount {
+    font-size: 18px;
+  }
+  .pc-add-to-cart {
+    font-size: 12px;
+    padding: 9px;
+  }
+
+  /* ✅ keep right alignment in mobile too */
+  .pc-topright {
+    gap: 5px;
+  }
+}
+/* ✅ TOP ROW: Left = Min Order | Right = Stock */
+.pc-toprow{
+  display: flex;
+  justify-content: space-between;  /* ✅ left + right */
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-topleft{
+  display: flex;
+  align-items: center;
+}
+
+.pc-topright{
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+/* Min Order chip (same) */
+.pc-min-qty{
+  font-size: 10px;
+  font-weight: var(--w-medium);
+  color: #b45309;
+  background: #fff7ed;
+  padding: 4px 8px;
+  border-radius: 8px;
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0; /* ✅ important */
+  border: 1px solid rgba(245, 158, 11, 0.18);
 }

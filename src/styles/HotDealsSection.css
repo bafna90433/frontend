@@ -1,45 +1,47 @@
-/* ===== Hot Deals Section (Final Clean + Playful) ===== */
-
+/* =========================================
+   HOT DEALS SECTION WRAPPER
+   ========================================= */
 .hd-wrap {
   width: min(1240px, 94%);
   margin: 40px auto;
   border-radius: 24px;
-  padding: 20px;
+  padding: 24px;
   background: #ffffff;
   border: 3px solid #f0f4ff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.04);
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; -> Removed so shadows/badges don't get cut off */
 }
 
-/* Background Patterns */
+/* Background Pattern (Subtle Dots) */
 .hd-wrap::before {
   content: "";
   position: absolute;
   inset: 0;
   pointer-events: none;
-  opacity: 0.15;
-  background-image: 
-    radial-gradient(#ff7eb3 2px, transparent 2px),
-    radial-gradient(#7afcff 2px, transparent 2px),
-    radial-gradient(#ffe66d 2px, transparent 2px);
-  background-size: 40px 40px;
-  background-position: 0 0, 20px 20px, 10px 10px;
+  opacity: 0.4;
+  background-image: radial-gradient(#e0f2fe 2px, transparent 2px);
+  background-size: 30px 30px;
+  z-index: 0;
 }
 
+/* =========================================
+   HEADER (Title + View All)
+   ========================================= */
 .hd-head {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   padding-bottom: 12px;
   border-bottom: 2px dashed #e2e8f0;
+  z-index: 2;
 }
 
 .hd-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 900;
   color: #1e293b;
   text-transform: uppercase;
@@ -51,27 +53,33 @@
   font-weight: 800;
   font-size: 14px;
   color: #4f46e5;
-  background: #fdf2f8;
-  padding: 8px 16px;
+  background: #f5f3ff;
+  padding: 10px 20px;
   border-radius: 50px;
-  transition: all 0.3s ease;
-  border: 1px solid #fbcfe8;
+  transition: all 0.2s ease;
+  border: 1px solid #ddd6fe;
 }
 
 .hd-viewall:hover {
   background: #4f46e5;
   color: #ffffff;
   transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
 }
 
-/* --- GRID LAYOUT (DESKTOP) --- */
+/* =========================================
+   GRID LAYOUT
+   ========================================= */
 .hd-grid {
   position: relative;
+  z-index: 2;
   display: grid;
+  /* Default: 4 Columns for Desktop */
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
+/* Individual Card Wrapper (Need relative for Timer positioning) */
 .hd-cardWrap {
   position: relative;
   transition: transform 0.3s ease;
@@ -79,66 +87,33 @@
 
 .hd-cardWrap:hover {
   transform: translateY(-5px);
+  z-index: 10;
 }
 
-/* --- RESPONSIVE BREAKPOINTS --- */
-
-@media (max-width: 1024px) {
-  .hd-grid { 
-    grid-template-columns: repeat(3, 1fr); 
-  }
-}
-
-@media (max-width: 768px) {
-  .hd-wrap {
-    padding: 15px;
-    margin: 20px auto;
-  }
-  
-  .hd-title { 
-    font-size: 18px; 
-  }
-  
-  .hd-grid {
-    grid-template-columns: repeat(2, 1fr); /* Tablet/Phone pe 2 columns */
-    gap: 12px;
-  }
-
-  .hd-viewall {
-    font-size: 12px;
-    padding: 6px 12px;
-  }
-}
-
-/* ✅ Mobile View optimization (Hamesha 2 Column) */
-@media (max-width: 480px) {
-  .hd-wrap {
-    padding: 12px 10px; /* Thoda space bachane ke liye */
-  }
-
-  .hd-grid {
-    grid-template-columns: repeat(2, 1fr); /* Hamesha 2 column rakhega */
-    gap: 10px; /* Card ke beech ka gap thoda kam */
-  }
-
-  .hd-title {
-    font-size: 16px;
-  }
-}
-
-/* Pulsing Timer Badge */
+/* =========================================
+   TIMER BADGE (Pulsing Red Sticker)
+   ========================================= */
 .hd-timerBadge {
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 10;
+  top: -8px; /* Thoda upar overlap karega */
+  left: 10px; /* Left side align */
+  z-index: 20;
+  
   background: #ef4444;
   color: white;
   padding: 4px 10px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 900;
+  letter-spacing: 0.5px;
   box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
+  border: 2px solid #fff;
+  white-space: nowrap;
+  
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  
   animation: pulse 2s infinite;
 }
 
@@ -146,4 +121,67 @@
   0% { transform: scale(1); }
   50% { transform: scale(1.05); }
   100% { transform: scale(1); }
+}
+
+/* =========================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================= */
+
+/* Laptop / Small Desktop (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .hd-grid { 
+    grid-template-columns: repeat(3, 1fr); /* 3 Columns */
+  }
+}
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+  .hd-wrap {
+    padding: 16px;
+    margin: 20px auto;
+  }
+  
+  .hd-title { 
+    font-size: 20px; 
+  }
+  
+  .hd-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 Columns */
+    gap: 12px;
+  }
+
+  .hd-viewall {
+    font-size: 12px;
+    padding: 6px 14px;
+  }
+}
+
+/* Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+  .hd-wrap {
+    padding: 12px 8px; /* Padding kam taaki content zada dikhe */
+    border-width: 2px;
+  }
+
+  .hd-head {
+    margin-bottom: 16px;
+  }
+
+  /* Mobile Grid: 2 Columns side-by-side */
+  .hd-grid {
+    grid-template-columns: repeat(2, 1fr); 
+    gap: 10px; /* Gap kam taaki cards fit ho sakein */
+  }
+
+  .hd-title {
+    font-size: 17px;
+  }
+  
+  /* Mobile pe Timer thoda chhota aur adjust */
+  .hd-timerBadge {
+    font-size: 10px;
+    padding: 3px 8px;
+    top: -6px;
+    left: 6px;
+  }
 }

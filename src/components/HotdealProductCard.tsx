@@ -8,9 +8,9 @@ import {
   Shield, 
   Zap, 
   CheckCircle, 
-  Share2 // ✅ Added Share Icon
+  Share2 
 } from "lucide-react";
-import { getImageUrl } from "../utils/image"; // ✅ Use the optimized helper
+import { getImageUrl } from "../utils/image";
 import "../styles/HotdealProductCard.css";
 
 interface Product {
@@ -21,7 +21,7 @@ interface Product {
   price: number;
   mrp?: number;
   stock?: number;
-  tagline?: string; // Helpful for sharing
+  tagline?: string;
 }
 
 const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
@@ -31,7 +31,7 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
 
-  // ✅ 1. Memoize heavy calculations
+  // ✅ Memoize heavy calculations
   const { itemCount, minQty, offPct, imageUrl } = useMemo(() => {
     const cartItem = cartItems.find((item: any) => item._id === product._id);
     const count = cartItem?.quantity ?? 0;
@@ -41,8 +41,8 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
       ? Math.round(((product.mrp - product.price) / product.mrp) * 100)
       : 0;
 
-    // Optimize for the specific size this card uses (520px as per your code)
-    const url = getImageUrl(product.images?.[0], 520);
+    // ✅ CHANGED: 520px -> 300px (Chhoti size request karein)
+    const url = getImageUrl(product.images?.[0], 300);
 
     return { itemCount: count, minQty: min, offPct: discount, imageUrl: url };
   }, [product, cartItems]);
@@ -50,7 +50,6 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
   const handleNavigate = () =>
     navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
 
-  // ✅ 2. Share Functionality
   const handleShare = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const shareData = {
@@ -107,7 +106,6 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
 
       {/* Image Bubble */}
       <div className="kid-imgWrap">
-        {/* ✅ Share Button Positioned inside Image Area */}
         <button className="kid-share-btn" onClick={handleShare} aria-label="Share">
           <Share2 size={16} strokeWidth={2.5} />
         </button>
@@ -121,8 +119,9 @@ const TrendingProductCard: React.FC<{ product?: Product }> = ({ product }) => {
           alt={product.name}
           className={`kid-img ${imgLoaded ? "loaded" : ""}`}
           loading="lazy"
-          width="520" // ✅ Explicit dimensions prevent Layout Shift (CLS)
-          height="520"
+          // ✅ CHANGED: Dimensions reduced for better aspect ratio logic
+          width="200" 
+          height="200"
           onLoad={() => setImgLoaded(true)}
         />
       </div>
