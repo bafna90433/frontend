@@ -8,6 +8,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import api from "./utils/api"; 
+import { io } from "socket.io-client"; // ✅ Added Socket.io Client
 
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -49,6 +50,9 @@ import TermsConditions from "./components/TermsConditions";
 import ShippingDelivery from "./components/ShippingDelivery";
 import CancellationRefund from "./components/CancellationRefund";
 
+// --- ✅ SOCKET CONFIGURATION (Live Backend) ---
+const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
+
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
@@ -59,7 +63,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
   const publicPaths = [
     "/",
     "/products",
-    "/hot-deals", // ✅ ADDED: Allow public access to Hot Deals
+    "/hot-deals", // ✅ Allow public access to Hot Deals
     "/register",
     "/login",
     "/privacy-policy",
@@ -96,11 +100,12 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
 
 const App: React.FC = () => {
 
-  // VISITOR TRACKING LOGIC
+  // ✅ CENTRALIZED TRACKING LOGIC
   useEffect(() => {
+    // 1. Visitor Tracking (Database Entry for Total Visitors)
     const trackVisitor = async () => {
       try {
-        // Session Check
+        // Session Check to prevent duplicate counts on refresh
         const hasVisited = sessionStorage.getItem("visited");
         
         if (!hasVisited) {
@@ -112,6 +117,21 @@ const App: React.FC = () => {
       }
     };
     trackVisitor();
+
+    // 2. Real-time Socket Connection (For "Online Now" Counter)
+    const socket = io(SOCKET_URL, {
+      transports: ["websocket", "polling"], // Ensure reliable connection
+    });
+
+    // Optional: Log connection for debugging
+    socket.on("connect", () => {
+      // console.log("Connected to live server"); 
+    });
+
+    // Cleanup: Disconnect socket when user leaves/closes tab
+    return () => {
+      socket.disconnect();
+    };
   }, []);
 
   return (
@@ -134,7 +154,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/products" element={<Products />} />
               
-              {/* ✅ NEW: Hot Deals Route */}
+              {/* ✅ Hot Deals Route */}
               <Route path="/hot-deals" element={<HotDealsPage />} />
 
               <Route path="/product/:id" element={<ProductDetails />} />
