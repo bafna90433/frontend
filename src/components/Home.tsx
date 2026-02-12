@@ -1,3 +1,4 @@
+// src/pages/Home.tsx (same file where your Home component is)
 import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
@@ -54,7 +55,6 @@ type HomeCfg = {
   bannerImage?: string;
   bannerLink?: string;
 
-  // ✅ HOT DEALS
   hotDealsEnabled?: boolean;
   hotDealsPageEnabled?: boolean;
   hotDealsTitle?: string;
@@ -65,6 +65,22 @@ type HomeCfg = {
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
 const safeStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
+
+// ✅ Cloudinary optimizer (works only for Cloudinary URLs)
+const optimizeCloudinary = (url: string, w: number, h: number) => {
+  if (!url) return "";
+  if (!url.includes("res.cloudinary.com")) return url;
+
+  // if already has transformations, keep it
+  if (url.includes("/image/upload/") && url.split("/image/upload/")[1]?.includes("/")) {
+    // still ok, but we want to ensure our transform is applied:
+    // If your URLs already have transforms you can return url directly.
+    // Here we force a small transform for category icons.
+  }
+
+  const TRANSFORM = `f_auto,q_auto,w_${w},h_${h},c_fill,g_auto`;
+  return url.replace("/image/upload/", `/image/upload/${TRANSFORM}/`);
+};
 
 const Home: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -78,8 +94,7 @@ const Home: React.FC = () => {
   const scrollContainer = (id: string, direction: "left" | "right") => {
     const container = document.getElementById(`scroll-${id}`);
     if (!container) return;
-
-    const scrollAmount = container.clientWidth * 0.8; // Scroll 80% of width
+    const scrollAmount = container.clientWidth * 0.8;
     container.scrollBy({
       left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
@@ -129,10 +144,8 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      {/* 1️⃣ Banner Slider */}
       {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
 
-      {/* ✅ TRUST BAR */}
       {!loading && (
         <div className="trustbar">
           <div className="trust-item">
@@ -163,30 +176,43 @@ const Home: React.FC = () => {
           </div>
 
           <div className="category-circles-section">
-            {categories.map((cat) => (
-              <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
-                <div className="cat-circle-img-wrapper">
-                  {cat.image || cat.imageUrl ? (
-                    <img src={cat.image || cat.imageUrl} alt={cat.name} className="cat-circle-img" />
-                  ) : (
-                    <div className="cat-placeholder"><FiImage /></div>
-                  )}
-                </div>
-                <span className="cat-circle-name">{cat.name}</span>
-              </Link>
-            ))}
+            {categories.map((cat) => {
+              const raw = cat.image || cat.imageUrl || "";
+              // ✅ desktop 130, mobile 55 => we can load 160x160 (perfect)
+              const img = optimizeCloudinary(raw, 160, 160);
+
+              return (
+                <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
+                  <div className="cat-circle-img-wrapper">
+                    {raw ? (
+                      <img
+                        src={img}
+                        alt={cat.name}
+                        className="cat-circle-img"
+                        width={130}
+                        height={130}
+                        loading="lazy"
+                        decoding="async"
+                      />
+                    ) : (
+                      <div className="cat-placeholder"><FiImage /></div>
+                    )}
+                  </div>
+                  <span className="cat-circle-name">{cat.name}</span>
+                </Link>
+              );
+            })}
           </div>
         </>
       )}
 
-      {/* Skeleton */}
       {loading && (
         <div className="category-circles-section">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="cat-circle-skeleton">
               <Skeleton
                 variant="circular"
-                width={130} /* ✅ Reduced for PC (was 180) */
+                width={130}
                 height={130}
                 sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }}
               />
@@ -196,21 +222,18 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* 3️⃣ Trending */}
       {!loading && products.length > 0 && (
         <section className="two-col-mobile two-col-mobile--trending">
           <TrendingSection products={products as any} config={homeCfg as any} />
         </section>
       )}
 
-      {/* 3.5️⃣ Hot Deals */}
       {!loading && products.length > 0 && homeCfg && (
         <section className="two-col-mobile two-col-mobile--hotdeals">
           <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
         </section>
       )}
 
-      {/* 4️⃣ Popular */}
       {!loading && popularCats.length > 0 && (
         <PopularCategories
           categories={popularCats}
@@ -219,7 +242,6 @@ const Home: React.FC = () => {
         />
       )}
 
-      {/* 5️⃣ Category Wise Rows */}
       {!loading &&
         categories.map((cat) => {
           const items = products.filter((p) => p.category?._id === cat._id);

@@ -1,13 +1,16 @@
+/* src/styles/Home.css (your pasted file) */
+
+/* ============ ROOT ============ */
 :root {
   --kid-bg: #FFFFFF;
   --kid-card-bg: #FFFFFF;
-  --kid-primary: #FF6B6B;        
-  --kid-secondary: #4ECDC4;      
-  --kid-accent: #FFD93D;         
-  --kid-blue: #45AAF2;           
-  --kid-purple: #A55EEA;        
-  --kid-text: #2D3436;           
-  --kid-text-light: #636e72;    
+  --kid-primary: #FF6B6B;
+  --kid-secondary: #4ECDC4;
+  --kid-accent: #FFD93D;
+  --kid-blue: #45AAF2;
+  --kid-purple: #A55EEA;
+  --kid-text: #2D3436;
+  --kid-text-light: #636e72;
   --footer-bg: #FFF9C4;
   --footer-text: #5d4037;
   --kid-font: 'Nunito', 'Quicksand', sans-serif;
@@ -17,7 +20,7 @@
 .home-container {
   width: 100%;
   margin: 0;
-  padding: 0 0 80px; 
+  padding: 0 0 80px;
   background-color: var(--kid-bg);
   color: var(--kid-text);
   font-family: var(--kid-font);
@@ -101,13 +104,12 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 30px; /* Reduced gap from 40px to 30px */
+  gap: 30px;
   padding: 30px 40px;
   margin-bottom: 20px;
   scroll-behavior: smooth;
   width: 100%;
-  /* PC Scrollbar visible */
-  scrollbar-width: thin; 
+  scrollbar-width: thin;
 }
 
 .cat-circle-item {
@@ -115,8 +117,8 @@
   flex-direction: column;
   align-items: center;
   text-decoration: none;
-  flex: 0 0 auto; 
-  min-width: 130px; /* ✅ Reduced from 180px */
+  flex: 0 0 auto;
+  min-width: 130px;
   cursor: pointer;
   transition: transform 0.3s ease;
 }
@@ -126,8 +128,8 @@
 }
 
 .cat-circle-img-wrapper {
-  width: 130px;  /* ✅ Reduced from 180px */
-  height: 130px; /* ✅ Reduced from 180px */
+  width: 130px;
+  height: 130px;
   border-radius: 50%;
   overflow: hidden;
   border: 5px solid #fff;
@@ -156,30 +158,30 @@
 }
 
 .cat-circle-item:hover .cat-circle-img {
-  transform: scale(1.1); 
+  transform: scale(1.1);
 }
 
 .cat-placeholder {
   color: #ccc;
-  font-size: 50px; /* Reduced size */
+  font-size: 50px;
 }
 
 .cat-circle-name {
-  font-size: 15px; /* ✅ Reduced from 18px */
+  font-size: 15px;
   font-weight: 800;
   color: var(--kid-text);
   text-align: center;
   line-height: 1.3;
   white-space: normal;
-  max-width: 130px; /* Matches new image width */
+  max-width: 130px;
 }
 
 .cat-circle-skeleton {
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 15px;
-    flex: 0 0 auto; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  flex: 0 0 auto;
 }
 
 /* =========================================
@@ -229,18 +231,19 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 0px; isko change mat karo 
+
+  gap: 0px; /* isko change mat karo */
+
   padding: 10px 40px 20px 40px;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  /* ✅ PC SCROLL FIX: Show scrollbar so it can be dragged */
-  scrollbar-width: thin; 
+  scrollbar-width: thin;
 }
 
 /* Custom Scrollbar for PC */
 .product-scroll::-webkit-scrollbar {
   height: 6px;
-  display: block; /* Show on PC */
+  display: block;
 }
 .product-scroll::-webkit-scrollbar-thumb {
   background: #ddd;
@@ -294,7 +297,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 40px; 
+  padding: 0 40px;
   margin-bottom: 15px;
 }
 
@@ -412,12 +415,14 @@
     max-width: calc((100% - 64px) / 5);
   }
 }
+
 @media (max-width: 1280px) {
   .product-link {
     flex: 0 0 calc((100% - 48px) / 4);
     max-width: calc((100% - 48px) / 4);
   }
 }
+
 @media (max-width: 1024px) {
   .product-link {
     flex: 0 0 calc((100% - 32px) / 3);
@@ -430,36 +435,34 @@
 }
 
 /* =========================================
-   ✅ GENERAL MOBILE OVERRIDES (Mobile First)
+   ✅ GENERAL MOBILE OVERRIDES
    ========================================= */
 @media (max-width: 768px) {
   .home-container { padding-bottom: 60px; }
   .category-header { padding: 0 15px; margin-bottom: 10px; }
   .category-title { font-size: 22px; }
   .view-all-btn { padding: 6px 12px; font-size: 12px; }
-  
-  /* ✅ Product Scroll Gap = 0 */
-  .product-scroll { 
-    padding: 0 10px 10px 10px; 
-    gap: 0px !important; /* Fixed Gap */
+
+  /* ✅ Product Scroll Gap = 0 (same as desktop) */
+  .product-scroll {
+    padding: 0 10px 10px 10px;
+    gap: 0px !important;
   }
-  
+
   /* Hide scrollbar on mobile only */
   .product-scroll::-webkit-scrollbar { display: none; }
-  
+
   .product-link {
     flex: 0 0 calc((100% - 10px) / 2);
     max-width: calc((100% - 10px) / 2);
   }
-  
+
   .scroll-btn { display: none !important; }
-  
+
   .home-footer { padding: 40px 20px 80px 20px; border-radius: 30px 30px 0 0; }
   .footer-links { flex-direction: column; gap: 15px; }
-  
-  /* =========================================
-     ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT)
-     ========================================= */
+
+  /* ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT) */
   .trustbar {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
@@ -501,7 +504,7 @@
   }
 
   .trust-text p {
-    display: block !important; 
+    display: block !important;
     font-size: 8px !important;
     line-height: 1 !important;
     font-weight: 600 !important;
@@ -509,30 +512,26 @@
     white-space: normal !important;
   }
 
-  /* =========================================
-     ✅ MOBILE CATEGORY CIRCLES FIX (SMALLER)
-     ========================================= */
-  .category-scroll-wrapper { padding: 0; } 
+  /* ✅ MOBILE CATEGORY CIRCLES FIX (SMALLER) */
+  .category-scroll-wrapper { padding: 0; }
   .category-circles-section { padding: 10px 10px; gap: 12px; }
-  
-  .cat-circle-item { 
-    min-width: 55px; /* Reduced from 180px */ 
-  } 
-  
-  .cat-circle-img-wrapper { 
-    width: 55px;  /* Reduced from 80px */
-    height: 55px; 
+
+  .cat-circle-item { min-width: 55px; }
+
+  .cat-circle-img-wrapper {
+    width: 55px;
+    height: 55px;
     border-width: 2px;
     margin-bottom: 5px;
   }
-  
-  .cat-circle-name { 
-    font-size: 8px; /* Requested 8px */
+
+  .cat-circle-name {
+    font-size: 8px;
     max-width: 60px;
     font-weight: 700;
     line-height: 1.1;
   }
-  
+
   .cat-placeholder { font-size: 20px; }
   .cat-circle-skeleton { min-width: 55px; flex: 0 0 auto; }
 }

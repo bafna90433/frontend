@@ -27,32 +27,20 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
     slidesToShow: 3,
     slidesToScroll: 1,
     autoplay: true,
-    autoplaySpeed: 3000, // ✅ 3 seconds timing
+    autoplaySpeed: 3000,
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
     responsive: [
-      {
-        breakpoint: 1024,
-        settings: { 
-          slidesToShow: 2,
-          speed: 600
-        },
-      },
-      {
-        breakpoint: 768,
-        settings: { 
-          slidesToShow: 1,
-          speed: 500
-        },
-      },
+      { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
+      { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
       {
         breakpoint: 480,
-        settings: { 
+        settings: {
           slidesToShow: 1,
           speed: 400,
           centerMode: true,
-          centerPadding: "20px"
+          centerPadding: "20px",
         },
       },
     ],
@@ -60,11 +48,39 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
 
   const getBannerUrl = (url: string): string => {
     if (!url) return "https://via.placeholder.com/500x300?text=No+Banner";
-    if (url.startsWith("http")) return url;
+
+    // ✅ Cloudinary public id -> optimize
+    if (!url.startsWith("http") && cloudName) {
+      return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_1000,c_limit/${url}`;
+    }
+
+    // ✅ Absolute URL
+    if (url.startsWith("http")) {
+      // If Cloudinary URL, inject optimization
+      if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
+        if (url.includes("/image/upload/f_auto")) return url;
+        return url.replace(
+          "/image/upload/",
+          "/image/upload/f_auto,q_auto,w_1000,c_limit/"
+        );
+      }
+      return url;
+    }
+
+    // ✅ Your server uploads
     if (url.includes("/uploads/")) return `${API_BASE}${url}`;
-    if (cloudName)
-      return `https://res.cloudinary.com/${cloudName}/image/upload/${url}`;
     return `${IMAGE_BASE_URL}/uploads/${url}`;
+  };
+
+  const getImgProps = (index: number) => {
+    const isLCP = index === 0; // ✅ first banner is LCP
+    return {
+      width: 500,
+      height: 300,
+      loading: isLCP ? ("eager" as const) : ("lazy" as const),
+      fetchPriority: isLCP ? ("high" as const) : ("auto" as const),
+      decoding: "async" as const,
+    };
   };
 
   return (
@@ -72,6 +88,8 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
       <Slider {...settings}>
         {banners.map((b, index) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
+          const imgProps = getImgProps(index);
+
           return (
             <div key={index} className="banner-slide">
               {b.link ? (
@@ -85,9 +103,7 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
                     src={bannerUrl}
                     alt={`Banner ${index + 1}`}
                     className="banner-row-img blur-up"
-                    width="500"
-                    height="300"
-                    loading="lazy"
+                    {...imgProps}
                   />
                 </a>
               ) : (
@@ -95,9 +111,7 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
                   src={bannerUrl}
                   alt={`Banner ${index + 1}`}
                   className="banner-row-img blur-up"
-                  width="500"
-                  height="300"
-                  loading="lazy"
+                  {...imgProps}
                 />
               )}
             </div>

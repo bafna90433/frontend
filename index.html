@@ -15,21 +15,12 @@
       content="Bafna Toys is a trusted toy manufacturer and wholesale supplier in Coimbatore, Tamil Nadu. We make PVC dolls, windup key toys, squeeze toys, pullback cars, educational toys, and rattles — available at genuine wholesale prices across India."
     />
 
-    <!-- ✅ Keywords -->
-    <meta
-      name="keywords"
-      content="toy manufacturer India, wholesale toys Coimbatore, PVC dolls supplier, windup toys, pullback car toys, squeeze toys, educational toys, rattles, kids toys factory, Bafna Toys"
-    />
-
     <!-- ✅ Canonical -->
     <link rel="canonical" href="https://bafnatoys.com/" />
 
-    <!-- ✅ Open Graph (Social Media / WhatsApp Preview) -->
+    <!-- ✅ Open Graph -->
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
-    />
+    <meta property="og:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
     <meta
       property="og:description"
       content="We manufacture and supply PVC dolls, windup toys, squeeze toys, pullback cars, and educational toys at wholesale factory prices from Coimbatore, India."
@@ -37,12 +28,9 @@
     <meta property="og:url" content="https://bafnatoys.com/" />
     <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
 
-    <!-- ✅ Twitter Card -->
+    <!-- ✅ Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
-    />
+    <meta name="twitter:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
     <meta
       name="twitter:description"
       content="Buy toys directly from manufacturer — PVC dolls, windup key toys, pullback cars & more at wholesale rates. Factory outlet in Coimbatore."
@@ -51,37 +39,51 @@
 
     <!-- ✅ Robots -->
     <meta name="robots" content="index, follow" />
-
-    <!-- ✅ Language -->
-    <meta name="language" content="en" />
     <meta name="author" content="Bafna Toys" />
-
-    <!-- ✅ Preconnect -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-    <!-- ✅ Async font load -->
-    <link
-      rel="preload"
-      as="style"
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
-    />
-    <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
-      media="print"
-      onload="this.media='all'"
-    />
-    <noscript>
-      <link
-        rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;600&display=swap"
-      />
-    </noscript>
+    <meta name="theme-color" content="#ffffff" />
 
     <!-- ✅ Favicons -->
     <link rel="icon" href="/favicon.webp" type="image/webp" />
-    <meta name="theme-color" content="#ffffff" />
+
+    <!-- ✅ PERFORMANCE: Preconnect (Cloudinary + API) -->
+    <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
+    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
+    <!-- if you use any API domain, add it too (example):
+    <link rel="preconnect" href="https://api.bafnatoys.com" crossorigin />
+    -->
+
+    <!-- ✅ PERFORMANCE: Preload Logo (FCP faster) -->
+    <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
+
+    <!-- ✅ IMPORTANT: Avoid Google Fonts (it was causing CLS due to font swap)
+         Use system font stack globally instead -->
+    <style>
+      :root {
+        --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial,
+          "Noto Sans", "Helvetica Neue", sans-serif;
+      }
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: var(--font);
+      }
+
+      /* ✅ Prevent layout jump while React loads */
+      #root {
+        min-height: 100vh;
+      }
+      .app-loading {
+        min-height: 100vh; /* ✅ CLS reduce */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 10px;
+        text-align: center;
+        padding: 40px;
+      }
+    </style>
 
     <!-- ✅ LocalBusiness Schema (Toy Manufacturer + Wholesale Supplier) -->
     <script type="application/ld+json">
@@ -111,10 +113,6 @@
           { "@type": "Product", "name": "Educational Toys" },
           { "@type": "Product", "name": "Rattles Toys" }
         ],
-        "founder": {
-          "@type": "Person",
-          "name": "Bafna Group"
-        },
         "sameAs": [
           "https://www.facebook.com/bafnatoys",
           "https://www.instagram.com/bafnatoys"
@@ -125,20 +123,21 @@
 
   <body>
     <div id="root">
-      <!-- ✅ SEO + FCP fallback -->
       <noscript>
         <p style="text-align: center; padding: 20px; font-size: 18px">
           Please enable JavaScript to view BafnaToys.
         </p>
       </noscript>
 
-      <div class="app-loading" style="text-align: center; padding: 40px">
+      <div class="app-loading">
         <img
           src="/logo.webp"
           alt="BafnaToys Wholesale Loading"
           width="80"
           height="80"
-          style="opacity: 0.7"
+          style="opacity: 0.85"
+          fetchpriority="high"
+          decoding="async"
         />
         <p>Loading BafnaToys…</p>
       </div>
