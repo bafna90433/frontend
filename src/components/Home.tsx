@@ -79,8 +79,9 @@ const Home: React.FC = () => {
     const container = document.getElementById(`scroll-${id}`);
     if (!container) return;
 
+    const scrollAmount = container.clientWidth * 0.8; // Scroll 80% of width
     container.scrollBy({
-      left: direction === "left" ? -container.clientWidth : container.clientWidth,
+      left: direction === "left" ? -scrollAmount : scrollAmount,
       behavior: "smooth",
     });
   };
@@ -185,11 +186,11 @@ const Home: React.FC = () => {
             <div key={i} className="cat-circle-skeleton">
               <Skeleton
                 variant="circular"
-                width={180}
-                height={180}
-                sx={{ "@media (max-width: 768px)": { width: 80, height: 80 } }}
+                width={130} /* ✅ Reduced for PC (was 180) */
+                height={130}
+                sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }}
               />
-              <Skeleton variant="text" width={100} />
+              <Skeleton variant="text" width={50} />
             </div>
           ))}
         </div>

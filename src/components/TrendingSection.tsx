@@ -34,14 +34,15 @@ type HomeConfig = {
 };
 
 const toStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
-const toSections = (v: any): TrendingSectionCfg[] =>
-  Array.isArray(v)
-    ? v.map((s: any) => ({
-        title: typeof s?.title === "string" ? s.title : "",
-        productIds: toStrArr(s?.productIds),
-        products: Array.isArray(s?.products) ? s.products : undefined,
-      }))
-    : [];
+
+const toSections = (v: any): TrendingSectionCfg[] => {
+  if (!Array.isArray(v)) return [];
+  return v.map((s: any) => ({
+    title: typeof s?.title === "string" ? s.title : "",
+    productIds: toStrArr(s?.productIds),
+    products: Array.isArray(s?.products) ? s.products : undefined,
+  }));
+};
 
 const cap = (s: string) =>
   (s || "").trim() ? (s.trim().charAt(0).toUpperCase() + s.trim().slice(1)) : "";
@@ -61,7 +62,8 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
       return;
     }
 
-    (async () => {
+    // Fallback fetch if config prop is missing
+    const fetchConfig = async () => {
       try {
         const res = await api.get("/home-config");
         setCfg(res.data || {});
@@ -69,7 +71,8 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
         console.error("Failed to load home-config:", e);
         setCfg({});
       }
-    })();
+    };
+    fetchConfig();
   }, [config]);
 
   const sections = useMemo(() => toSections(cfg?.trendingSections), [cfg]);
@@ -77,6 +80,7 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
   const safeSections = useMemo(() => {
     if (sections.length > 0) return sections;
 
+    // Fallback logic if no sections defined
     const oldIds = toStrArr(cfg?.trendingProductIds);
     const ids = oldIds.length ? oldIds : (products?.slice(0, 6).map((p) => p._id) || []);
 
@@ -84,10 +88,12 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
       {
         title: "All Trending", 
         productIds: ids,
+        products: [], // Placeholder
       },
     ];
   }, [sections, cfg, products]);
 
+  // Reset index if out of bounds
   useEffect(() => {
     if (activeIdx > safeSections.length - 1) setActiveIdx(0);
   }, [activeIdx, safeSections.length]);
@@ -97,19 +103,20 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
   const activeProducts = useMemo(() => {
     if (!products || products.length === 0) return [];
 
-    // 1. If section has pre-loaded products (from backend population)
-    if (activeSection?.products?.length) {
+    // 1. If section has pre-loaded products
+    if (activeSection?.products && activeSection.products.length > 0) {
       return activeSection.products
         .filter((p) => p && typeof p.price === "number")
         .slice(0, 6);
     }
 
-    // 2. Otherwise match from the main 'products' prop
-    const ids = toStrArr(activeSection?.productIds);
-    const picked = ids
+    // 2. Otherwise match from the main 'products' prop using IDs
+    const sectionIds = toStrArr(activeSection?.productIds);
+    const picked = sectionIds
       .map((id) => products.find((p) => p._id === id))
       .filter((p): p is Product => Boolean(p) && typeof p.price === "number");
 
+    // Fallback: just show first 6 products if no IDs match
     return (picked.length ? picked : products.slice(0, 6)).slice(0, 6);
   }, [activeSection, products]);
 
@@ -127,7 +134,7 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
         <div className="section-heading-line"></div>
       </div>
 
-      {/* 2. TABS */}
+      {/* 2. TABS (Only if multiple sections exist) */}
       <div className="trending-head">
         {safeSections.length > 1 && (
           <div className="trending-tabs">
@@ -147,26 +154,25 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
 
       {/* 3. BODY (Grid + Banner) */}
       <div className="trending-body">
+        {/* Product Grid */}
         <div className="trending-grid">
           {activeProducts.map((p) => (
-            // ✅ Pass 'sale_end_time' implicitly via 'p' object
             <TrendingProductCard key={p._id} product={p} />
           ))}
         </div>
 
-        <aside className="trending-banner">
-          {bannerImage ? (
-            bannerLink ? (
+        {/* Banner (Visible on Desktop, Hidden on Mobile) */}
+        {bannerImage && (
+          <aside className="trending-banner">
+            {bannerLink ? (
               <a href={bannerLink} target="_blank" rel="noreferrer">
                 <img src={bannerImage} alt="Trending Banner" />
               </a>
             ) : (
               <img src={bannerImage} alt="Trending Banner" />
-            )
-          ) : (
-            <div className="banner-placeholder" /> 
-          )}
-        </aside>
+            )}
+          </aside>
+        )}
       </div>
     </section>
   );

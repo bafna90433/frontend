@@ -87,67 +87,6 @@
 }
 
 /* =========================================
-   ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT)
-   ========================================= */
-@media (max-width: 768px) {
-  .trustbar {
-    /* Force 4 columns grid */
-    display: grid !important;
-    grid-template-columns: repeat(4, 1fr) !important;
-    gap: 4px !important; /* Gap bohot kam rakha hai taaki fit ho */
-    padding: 10px 5px !important;
-    overflow-x: hidden;
-  }
-
-  .trust-item {
-    flex-direction: column !important; /* Icon top, Text bottom */
-    justify-content: flex-start !important;
-    align-items: center !important;
-    text-align: center !important;
-    padding: 6px 2px !important;
-    border-radius: 8px !important;
-    height: auto !important;
-    box-shadow: none !important;
-    border: 1px solid #f0f0f0 !important;
-    min-height: 85px; /* Minimum height taaki sab barabar dikhein */
-  }
-
-  .trust-icon {
-    width: 28px !important; /* Icon thoda aur chota kiya */
-    height: 28px !important;
-    font-size: 14px !important;
-    border-radius: 8px !important;
-    margin-bottom: 4px !important;
-    margin-right: 0 !important;
-  }
-
-  .trust-text {
-    width: 100%;
-    padding: 0 1px;
-  }
-
-  .trust-text h4 {
-    font-size: 9px !important;
-    font-weight: 800 !important;
-    line-height: 1.1 !important;
-    margin-bottom: 2px !important;
-    white-space: normal !important;
-  }
-
-  /* ✅ Details Text (Description) ab dikhega */
-  .trust-text p {
-    display: block !important; 
-    font-size: 8px !important; /* Font size chota rakha hai */
-    line-height: 1 !important;
-    font-weight: 600 !important;
-    color: #999 !important;
-    white-space: normal !important;
-  }
-}
-
-/* ... (Baaki saara CSS waisa hi rahega) ... */
-
-/* =========================================
    ✅ CATEGORY SECTION (FIXED SCROLLING)
    ========================================= */
 .category-scroll-wrapper {
@@ -162,17 +101,13 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 40px; 
+  gap: 30px; /* Reduced gap from 40px to 30px */
   padding: 30px 40px;
   margin-bottom: 20px;
   scroll-behavior: smooth;
   width: 100%;
-  scrollbar-width: none; 
-  -ms-overflow-style: none;
-}
-
-.category-circles-section::-webkit-scrollbar {
-  display: none;
+  /* PC Scrollbar visible */
+  scrollbar-width: thin; 
 }
 
 .cat-circle-item {
@@ -181,7 +116,7 @@
   align-items: center;
   text-decoration: none;
   flex: 0 0 auto; 
-  min-width: 180px; 
+  min-width: 130px; /* ✅ Reduced from 180px */
   cursor: pointer;
   transition: transform 0.3s ease;
 }
@@ -191,8 +126,8 @@
 }
 
 .cat-circle-img-wrapper {
-  width: 180px;  
-  height: 180px; 
+  width: 130px;  /* ✅ Reduced from 180px */
+  height: 130px; /* ✅ Reduced from 180px */
   border-radius: 50%;
   overflow: hidden;
   border: 5px solid #fff;
@@ -201,7 +136,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 15px;
+  margin-bottom: 12px;
   transition: box-shadow 0.3s ease;
 }
 
@@ -226,17 +161,17 @@
 
 .cat-placeholder {
   color: #ccc;
-  font-size: 60px;
+  font-size: 50px; /* Reduced size */
 }
 
 .cat-circle-name {
-  font-size: 18px; 
+  font-size: 15px; /* ✅ Reduced from 18px */
   font-weight: 800;
   color: var(--kid-text);
   text-align: center;
   line-height: 1.3;
   white-space: normal;
-  max-width: 180px;
+  max-width: 130px; /* Matches new image width */
 }
 
 .cat-circle-skeleton {
@@ -283,8 +218,49 @@
 .prod-scroll-right { right: 0; }
 
 /* =========================================
-   EXISTING STYLES
+   ✅ PRODUCT SCROLL (PC FIXES)
    ========================================= */
+.product-scroll-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.product-scroll {
+  display: flex;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  gap: 0px;
+  padding: 10px 40px 20px 40px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  /* ✅ PC SCROLL FIX: Show scrollbar so it can be dragged */
+  scrollbar-width: thin; 
+}
+
+/* Custom Scrollbar for PC */
+.product-scroll::-webkit-scrollbar {
+  height: 6px;
+  display: block; /* Show on PC */
+}
+.product-scroll::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 3px;
+}
+.product-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.product-link {
+  flex: 0 0 calc((100% - 64px) / 5);
+  max-width: calc((100% - 64px) / 5);
+  scroll-snap-align: start;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Existing Styles */
 .section-heading-wrapper {
   text-align: center;
   margin: 30px 0 10px 0;
@@ -377,45 +353,6 @@
   box-shadow: 0 4px 10px rgba(255, 107, 107, 0.2);
 }
 
-.product-scroll-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.product-scroll {
-  display: flex;
-  flex-wrap: nowrap;
-  overflow-x: auto;
-  gap: 16px;
-  padding: 10px 40px 20px 40px;
-  scroll-snap-type: x mandatory;
-  scroll-behavior: smooth;
-  scrollbar-width: none;
-}
-.product-scroll::-webkit-scrollbar { display: none; }
-
-.product-link {
-  flex: 0 0 calc((100% - 64px) / 5);
-  max-width: calc((100% - 64px) / 5);
-  scroll-snap-align: start;
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-}
-
-.empty-category-message {
-  padding: 40px;
-  text-align: center;
-  width: 100%;
-  font-size: 1.1rem;
-  color: var(--kid-text-light);
-  background: #f9f9f9;
-  border-radius: 20px;
-  margin: 0 20px;
-  border: 2px dashed #eee;
-}
-
 /* ===== FOOTER ===== */
 .home-footer {
   background-color: var(--footer-bg);
@@ -492,13 +429,23 @@
   }
 }
 
-/* ✅ GENERAL MOBILE OVERRIDES */
+/* =========================================
+   ✅ GENERAL MOBILE OVERRIDES (Mobile First)
+   ========================================= */
 @media (max-width: 768px) {
   .home-container { padding-bottom: 60px; }
   .category-header { padding: 0 15px; margin-bottom: 10px; }
   .category-title { font-size: 22px; }
   .view-all-btn { padding: 6px 12px; font-size: 12px; }
-  .product-scroll { padding: 0 10px 10px 10px; gap: 10px; }
+  
+  /* ✅ Product Scroll Gap = 0 */
+  .product-scroll { 
+    padding: 0 10px 10px 10px; 
+    gap: 0px !important; /* Fixed Gap */
+  }
+  
+  /* Hide scrollbar on mobile only */
+  .product-scroll::-webkit-scrollbar { display: none; }
   
   .product-link {
     flex: 0 0 calc((100% - 10px) / 2);
@@ -510,25 +457,82 @@
   .home-footer { padding: 40px 20px 80px 20px; border-radius: 30px 30px 0 0; }
   .footer-links { flex-direction: column; gap: 15px; }
   
-  /* ✅ Mobile Adjustments for Circle Section */
+  /* =========================================
+     ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT)
+     ========================================= */
+  .trustbar {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 4px !important;
+    padding: 10px 5px !important;
+    overflow-x: hidden;
+  }
+
+  .trust-item {
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    align-items: center !important;
+    text-align: center !important;
+    padding: 6px 2px !important;
+    border-radius: 8px !important;
+    height: auto !important;
+    box-shadow: none !important;
+    border: 1px solid #f0f0f0 !important;
+    min-height: 85px;
+  }
+
+  .trust-icon {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: 14px !important;
+    border-radius: 8px !important;
+    margin-bottom: 4px !important;
+    margin-right: 0 !important;
+  }
+
+  .trust-text { width: 100%; padding: 0 1px; }
+
+  .trust-text h4 {
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    line-height: 1.1 !important;
+    margin-bottom: 2px !important;
+    white-space: normal !important;
+  }
+
+  .trust-text p {
+    display: block !important; 
+    font-size: 8px !important;
+    line-height: 1 !important;
+    font-weight: 600 !important;
+    color: #999 !important;
+    white-space: normal !important;
+  }
+
+  /* =========================================
+     ✅ MOBILE CATEGORY CIRCLES FIX (SMALLER)
+     ========================================= */
   .category-scroll-wrapper { padding: 0; } 
-  .category-circles-section { padding: 10px 15px; gap: 15px; }
+  .category-circles-section { padding: 10px 10px; gap: 12px; }
   
-  .cat-circle-item { min-width: 80px; } 
-  .cat-circle-skeleton { min-width: 80px; flex: 0 0 auto; }
+  .cat-circle-item { 
+    min-width: 55px; /* Reduced from 180px */ 
+  } 
   
   .cat-circle-img-wrapper { 
-    width: 80px;  
-    height: 80px; 
-    border-width: 3px;
-    margin-bottom: 6px;
+    width: 55px;  /* Reduced from 80px */
+    height: 55px; 
+    border-width: 2px;
+    margin-bottom: 5px;
   }
   
   .cat-circle-name { 
-    font-size: 13px; 
-    max-width: 90px;
+    font-size: 8px; /* Requested 8px */
+    max-width: 60px;
     font-weight: 700;
+    line-height: 1.1;
   }
   
-  .cat-placeholder { font-size: 24px; }
+  .cat-placeholder { font-size: 20px; }
+  .cat-circle-skeleton { min-width: 55px; flex: 0 0 auto; }
 }

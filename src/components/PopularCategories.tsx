@@ -9,12 +9,20 @@ type Category = {
   imageUrl?: string;
 };
 
+// Updated Props to accept Title & Subtitle from Home.tsx
+interface Props {
+  categories: Category[];
+  title?: string;
+  subtitle?: string;
+}
+
 const getCatImage = (c: Category) => c.image || c.imageUrl || "";
 
-const PopularCategories: React.FC<{ categories: Category[] }> = ({ categories }) => {
+const PopularCategories: React.FC<Props> = ({ categories, title, subtitle }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const list = useMemo(() => (Array.isArray(categories) ? categories : []), [categories]);
+  
   if (!list || list.length === 0) return null;
 
   const scroll = (dir: "left" | "right") => {
@@ -29,8 +37,8 @@ const PopularCategories: React.FC<{ categories: Category[] }> = ({ categories })
   return (
     <section className="pc-section">
       <div className="pc-heading">
-        <h2>Popular Categories</h2>
-        <p>Lorem ipsum dolor sit amet consectetur. Id fames there.</p>
+        <h2>{title || "Popular Categories"}</h2>
+        {subtitle && <p>{subtitle}</p>}
       </div>
 
       <div className="pc-slider-container">

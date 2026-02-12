@@ -435,3 +435,39 @@
   align-items: center;
   z-index: 5;
 }
+/* ... (Aapka purana CSS upar rahega) ... */
+
+/* ✅ MOBILE RESPONSIVE RULES */
+@media (max-width: 1100px) {
+  .trending-body {
+    flex-direction: column;
+  }
+  .trending-grid {
+    grid-template-columns: repeat(2, 1fr); /* Tablet: 2 columns */
+  }
+  
+  /* Banner chota ho jayega tablet pe */
+  .trending-banner img {
+    min-height: 200px; 
+    height: auto;
+  }
+}
+
+/* ✅ MOBILE VIEW (Phone) */
+@media (max-width: 768px) {
+  /* Banner ko hide karein */
+  .trending-banner {
+    display: none !important;
+  }
+
+  /* Grid ko single column ya 2 column rakhein mobile pe */
+  .trending-grid {
+    grid-template-columns: 1fr; /* Ya repeat(2, 1fr) agar 2 chahiye */
+    gap: 12px;
+  }
+
+  /* Padding adjust karein */
+  .trending-wrap {
+    padding: 15px;
+  }
+}

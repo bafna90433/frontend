@@ -16,7 +16,7 @@
 
 .pc-heading h2 {
   margin: 0;
-  font-size: 42px; /* Bigger Heading */
+  font-size: 42px; /* Bigger Heading on PC */
   font-weight: 800;
   color: #0b2b3a;
 }
@@ -31,7 +31,7 @@
 .pc-slider-container {
   position: relative;
   width: 95%;
-  max-width: 1400px; /* Allows it to be wider */
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -42,7 +42,7 @@
 /* THE BIG PILL BACKGROUND */
 .pc-pill {
   flex: 1;
-  background-color: #f0fdfd; /* Light Cyan Color like screenshot */
+  background-color: #f0fdfd; /* Light Cyan Color */
   border-radius: 999px;      /* Full rounded corners */
   padding: 20px 0;           /* Space inside the pill */
   overflow: hidden;          /* Crops the scrollbar */
@@ -61,7 +61,7 @@
 
 /* INDIVIDUAL ITEM */
 .pc-item {
-  flex: 0 0 260px; /* WIDER item (Bada) */
+  flex: 0 0 260px; /* WIDER item on PC */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -90,10 +90,10 @@
 
 /* CIRCLE IMAGE */
 .pc-circle {
-  width: 130px;  /* BIGGER Circle */
-  height: 130px; /* BIGGER Circle */
+  width: 130px;  /* BIGGER Circle on PC */
+  height: 130px;
   border-radius: 50%;
-  background: #ffffff; /* White bg behind image */
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -117,7 +117,7 @@
 
 /* ITEM NAME */
 .pc-name {
-  font-size: 18px; /* Bigger Font */
+  font-size: 18px; /* Bigger Font on PC */
   font-weight: 700;
   color: #0f2230;
   text-align: center;
@@ -130,7 +130,7 @@
 
 /* NAVIGATION ARROWS */
 .pc-arrow {
-  width: 55px;   /* Bigger buttons */
+  width: 55px;   
   height: 55px;
   border-radius: 50%;
   border: none;
@@ -144,7 +144,7 @@
   color: #0b2b3a;
   transition: all 0.2s;
   z-index: 5;
-  flex-shrink: 0; /* Prevents shrinking */
+  flex-shrink: 0;
 }
 
 .pc-arrow:hover {
@@ -154,23 +154,62 @@
 }
 
 /* =========================
-   RESPONSIVE (Mobile)
+   ✅ MOBILE RESPONSIVE FIXES
 ========================= */
 @media (max-width: 768px) {
+  .pc-section {
+    padding: 30px 0 40px; /* Reduce vertical padding */
+  }
+
+  /* 1. Heading Small */
+  .pc-heading {
+    margin-bottom: 20px;
+    padding: 0 15px;
+  }
+  .pc-heading h2 {
+    font-size: 22px; /* ✅ Reduced Heading Size */
+  }
+  .pc-heading p {
+    font-size: 12px;
+    margin-top: 5px;
+  }
+
+  /* 2. Pill Compact */
   .pc-pill {
-    border-radius: 20px; /* Less rounded on mobile */
+    border-radius: 16px; 
+    padding: 15px 0;
+    margin: 0 10px;
   }
+
+  /* 3. Item Size Reduced */
   .pc-item {
-    flex: 0 0 160px; /* Smaller width on mobile */
+    flex: 0 0 90px; /* ✅ Smaller width */
+    padding: 10px 5px;
   }
+
+  /* 4. Circle Image Smaller */
   .pc-circle {
-    width: 90px;
-    height: 90px;
+    width: 60px;  /* ✅ Reduced Image Size */
+    height: 60px;
+    margin-bottom: 8px;
   }
+
+  /* 5. Font Size 8px */
   .pc-name {
-    font-size: 14px;
+    font-size: 8px; /* ✅ Requested 8px */
+    line-height: 1.2;
+    white-space: normal; /* Allow text wrap */
+    max-width: 80px;
   }
+
+  /* Hide Arrows on Mobile */
   .pc-arrow {
-    display: none; /* Hide arrows on mobile, just swipe */
+    display: none; 
+  }
+  
+  /* Adjust separator line for small items */
+  .pc-item::after {
+    top: 20%;
+    height: 60%;
   }
 }
