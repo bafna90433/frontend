@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import api from "./utils/api";
 import { io } from "socket.io-client";
-import axios from "axios"; // ✅ Make sure axios is imported
+import axios from "axios"; // ✅ Axios for Maintenance Check
 
 import { ShopProvider } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -36,6 +36,7 @@ import Cart from "./components/Cart";
 import Wishlist from "./components/Wishlist";
 import Checkout from "./components/Checkout";
 
+// ✅ Hot Deals Page
 import HotDealsPage from "./pages/HotDealsPage";
 
 import Register from "./components/Register";
@@ -52,11 +53,11 @@ import TermsConditions from "./components/TermsConditions";
 import ShippingDelivery from "./components/ShippingDelivery";
 import CancellationRefund from "./components/CancellationRefund";
 
-// --- SOCKET CONFIGURATION ---
+// --- SOCKET & API CONFIGURATION ---
 const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
-// --- API BASE URL FOR MAINTENANCE CHECK ---
 const API_BASE_URL = "https://bafnatoys-backend-production.up.railway.app/api";
 
+// --- LAYOUT WRAPPER (Handles Header/Footer/Auth Checks) ---
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
@@ -101,13 +102,23 @@ const App: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ CHECK MAINTENANCE MODE ON LOAD
+  // ✅ 1. CHECK MAINTENANCE MODE (With Localhost Bypass)
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
         const res = await axios.get(`${API_BASE_URL}/settings/maintenance`);
+        
+        // Detect Localhost
+        const isLocal = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1";
+
         if (res.data && res.data.enabled) {
-          setIsMaintenance(true);
+          if (isLocal) {
+            console.log("🚧 Maintenance Mode is ON (Bypassed for Local Development)");
+            // Do NOT set isMaintenance(true) so you can work
+          } else {
+            // Live Site will show Coming Soon
+            setIsMaintenance(true);
+          }
         }
       } catch (error) {
         console.error("Maintenance check failed", error);
@@ -118,7 +129,7 @@ const App: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // VISITOR TRACKING & SOCKET LOGIC
+  // ✅ 2. VISITOR TRACKING & SOCKET
   useEffect(() => {
     const trackVisitor = async () => {
       try {
@@ -147,19 +158,21 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // Show Loading while checking settings
   if (loadingCheck) {
     return (
       <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-        Loading...
+        <div className="loader">Loading...</div>
       </div>
     );
   }
 
-  // 🔴 BLOCK ACCESS IF MAINTENANCE IS ON
+  // 🔴 SHOW COMING SOON (If Maintenance is ON and NOT Localhost)
   if (isMaintenance) {
     return <ComingSoon />;
   }
 
+  // 🟢 SHOW WEBSITE (Normal Mode)
   return (
     <ShopProvider>
       <ThemeProvider>
