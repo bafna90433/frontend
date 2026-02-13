@@ -7,7 +7,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api";
+import api from "./utils/api"; // ✅ Using your axios instance
 import { io } from "socket.io-client";
 import axios from "axios";
 
@@ -40,7 +40,7 @@ const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
 const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
 const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"));
 const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
-const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute")); // Lazy load wrapper too
+const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute")); 
 
 // --- CONFIGURATION ---
 const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
@@ -72,6 +72,30 @@ const PageLoader = () => (
     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
   </div>
 );
+
+// --- ✅ NEW: PAGE TRACKER COMPONENT (Handles Analytics) ---
+const PageTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const trackPage = async () => {
+      try {
+        // Backend API call to track every page view
+        await api.post("/analytics/track", {
+          path: location.pathname,       // Current Page
+          referrer: document.referrer,   // Where they came from
+        });
+      } catch (error) {
+        // Silently fail if analytics is down, don't disrupt user
+        console.error("Analytics Error:", error);
+      }
+    };
+
+    trackPage();
+  }, [location]); // Runs every time route changes
+
+  return null; // Renders nothing visibly
+};
 
 // --- LAYOUT WRAPPER ---
 const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -120,7 +144,7 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // 1. MAINTENANCE CHECK (Optimized)
+  // 1. MAINTENANCE CHECK
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
@@ -141,29 +165,18 @@ const AppInner: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // 2. ANALYTICS & SOCKET (Deferred Load)
+  // 2. SOCKET CONNECTION (Real-time Online Count)
+  // Note: Analytics logic removed from here as it's now handled by PageTracker
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
 
-    const initAnalyticsAndSocket = async () => {
-      try {
-        if (!sessionStorage.getItem("visited")) {
-          await api.post("/analytics/track");
-          sessionStorage.setItem("visited", "true");
-        }
-      } catch (e) {
-        console.error(e);
-      }
-
-      // Connect Socket AFTER initial render to unblock main thread
+    // Connect Socket slightly delayed to prioritize UI painting
+    const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
         transports: ["websocket"],
         withCredentials: true,
       });
-    };
-
-    // Small delay to prioritize UI painting
-    const timer = setTimeout(initAnalyticsAndSocket, 1500);
+    }, 1500);
 
     return () => {
       clearTimeout(timer);
@@ -176,6 +189,9 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
+      {/* ✅ PageTracker must be inside Router to use useLocation */}
+      <PageTracker />
+
       <LayoutWrapper>
         <Routes>
           {/* Public Routes */}
