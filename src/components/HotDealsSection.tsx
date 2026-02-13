@@ -1,9 +1,10 @@
-import React, { useMemo } from "react"; // useEffect aur useState hata diya
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
 import ProductCard from "./ProductCard"; 
 import "../styles/HotDealsSection.css";
 
 /* --- TYPES --- */
+// ✅ Updated Interface to match ProductCard expectations
 type Product = {
   _id: string;
   name: string;
@@ -13,6 +14,10 @@ type Product = {
   slug?: string;
   stock?: number;
   tagline?: string;
+  // Optional fields jo clone karte waqt add honge
+  sale_end_time?: string;
+  hotDealValue?: number;
+  hotDealType?: string;
 };
 
 type DealType = "none" | "percent" | "flat" | "NONE" | "PERCENT" | "FLAT";
@@ -32,34 +37,11 @@ type HotCfg = {
   hotDealsItems?: HotDealItem[];
 };
 
-/* --- HELPERS --- */
-const calcDealPrice = (base: number, it: HotDealItem) => {
-  const v = Number(it.discountValue || 0);
-  const type = String(it.discountType || "NONE").toUpperCase();
-
-  if (!v || type === "NONE") return base;
-
-  if (type === "PERCENT") {
-    const off = (base * v) / 100;
-    return Math.max(1, Math.round(base - off));
-  }
-
-  if (type === "FLAT") {
-    return Math.max(1, Math.round(base - v));
-  }
-
-  return base;
-};
-
-/* --- SUB-COMPONENT: CARD WRAPPER (Timer Removed) --- */
+/* --- SUB-COMPONENT --- */
 const HotDealCard: React.FC<{ item: HotDealItem }> = ({ item }) => {
-  // ❌ Maine yahan se duplicate Timer Logic hata diya hai
-
   if (!item.product) return null;
-
   return (
     <div className="hd-cardWrap">
-      {/* Ab sirf ProductCard dikhega, uska internal timer use hoga */}
       <ProductCard product={item.product as any} />
     </div>
   );
@@ -78,16 +60,24 @@ const HotDealsSection: React.FC<{ allProducts: Product[]; cfg: HotCfg }> = ({
 
     return raw
       .map((it) => {
+        // Find original product
         const p = it.product || allProducts.find((x) => x._id === it.productId) || null;
         if (!p) return null;
 
-        const dealPrice = calcDealPrice(p.price, it);
-
-        // Product Clone logic
+        // ✅ FIX: Hum Price yahan calculate NAHI karenge.
+        // Hum bas 'Deal Info' pass karenge taaki ProductCard khud calculate kare (99 -> 89).
+        
         const cloned: Product = {
           ...p,
-          mrp: p.mrp || (dealPrice < p.price ? p.price : p.mrp),
-          price: dealPrice,
+          // 1. Timer ke liye mapping (Bahut Zaroori)
+          sale_end_time: it.endsAt || undefined,
+
+          // 2. Deal Value pass karein (ProductCard logic trigger karne ke liye)
+          hotDealValue: it.discountValue,
+          hotDealType: it.discountType,
+
+          // Note: Price aur MRP ko same rehne de (99 aur 175). 
+          // ProductCard ab apne aap 99 ko 89 dikhayega.
         };
 
         return { ...it, product: cloned };

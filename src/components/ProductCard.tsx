@@ -36,8 +36,15 @@ interface Product {
   sale_end_time?: string;
 }
 
+export type Deal = {
+  discountType: "NONE" | "PERCENT" | "FLAT";
+  discountValue: number;
+  endsAt?: string | null;
+};
+
 interface ProductCardProps {
   product: Product;
+  deal?: Deal; // ✅ NEW
   userRole?: "admin" | "customer";
   index?: number;
 }
@@ -97,8 +104,11 @@ const getOptimizedImageUrl = (
 
     // Cloudinary full URL -> inject transforms (avoid double-inject)
     if (abs.includes("res.cloudinary.com") && abs.includes("/image/upload/")) {
-      // If already has f_auto/q_auto/w_/h_ etc, keep
-      if (abs.includes("/image/upload/f_auto") || abs.includes("/image/upload/q_") || abs.includes("/image/upload/w_"))
+      if (
+        abs.includes("/image/upload/f_auto") ||
+        abs.includes("/image/upload/q_") ||
+        abs.includes("/image/upload/w_")
+      )
         return abs;
 
       return abs.replace(
@@ -113,7 +123,11 @@ const getOptimizedImageUrl = (
   }
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
+const ProductCard: React.FC<ProductCardProps> = ({
+  product,
+  deal,
+  index = 0,
+}) => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
   const [imgLoaded, setImgLoaded] = useState(false);
@@ -125,10 +139,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
   const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
 
   const handleNavigate = () =>
-    navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
+    navigate(
+      product.slug ? `/product/${product.slug}` : `/product/${product._id}`
+    );
 
   const shareUrl = useMemo(() => {
-    const path = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
+    const path = product.slug
+      ? `/product/${product.slug}`
+      : `/product/${product._id}`;
     return `${window.location.origin}${path}`;
   }, [product._id, product.slug]);
 
@@ -138,7 +156,9 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
       if (navigator.share) {
         await navigator.share({
           title: product.name,
-          text: `Hey! Check out this ${product.name}${product.tagline ? ` - ${product.tagline}` : ""}`,
+          text: `Hey! Check out this ${product.name}${
+            product.tagline ? ` - ${product.tagline}` : ""
+          }`,
           url: shareUrl,
         });
       } else {
@@ -150,9 +170,29 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     }
   };
 
+  // ✅ FINAL PRICE (deal apply)
+  const finalPrice = useMemo(() => {
+    const price = Number(product.price) || 0;
+
+    if (!deal || deal.discountType === "NONE" || !deal.discountValue) return price;
+
+    if (deal.discountType === "PERCENT") {
+      const pct = Math.min(100, Math.max(0, Number(deal.discountValue) || 0));
+      return Math.max(0, Math.round(price * (1 - pct / 100)));
+    }
+
+    if (deal.discountType === "FLAT") {
+      const flat = Math.max(0, Number(deal.discountValue) || 0);
+      return Math.max(0, price - flat);
+    }
+
+    return price;
+  }, [product.price, deal?.discountType, deal?.discountValue]);
+
   const actions = {
     add: (e: React.MouseEvent) => {
       e.stopPropagation();
+      // ✅ cart me original product hi jaaye (backend price same)
       setCartItemQuantity(product, minQty);
     },
     inc: (e: React.MouseEvent) => {
@@ -166,26 +206,32 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     },
   };
 
+  // ✅ Ribbon % (prefer deal percent; else fallback to mrp vs finalPrice)
   const discountPercent = useMemo(() => {
-    if (!product.mrp || product.mrp <= product.price) return 0;
-    return Math.round(((product.mrp - product.price) / product.mrp) * 100);
-  }, [product.mrp, product.price]);
+    if (deal?.discountType === "PERCENT") {
+      return Math.min(99, Math.max(0, Math.round(Number(deal.discountValue) || 0)));
+    }
+    if (product.mrp && product.mrp > finalPrice) {
+      return Math.round(((product.mrp - finalPrice) / product.mrp) * 100);
+    }
+    return 0;
+  }, [deal?.discountType, deal?.discountValue, product.mrp, finalPrice]);
 
   const rating = useMemo(() => safeNum(product.rating, 4.5), [product.rating]);
 
-  // ✅ Serve correct size for PSI (no 400x400)
   const imgSrc = useMemo(
     () => getOptimizedImageUrl(product.images?.[0], IMG_W, IMG_H),
-    [product.images]
+    [product.images?.[0]]
   );
 
-  // ✅ Reduce CLS: keep fixed dimensions (width/height), and keep container aspect ratio in CSS
-  // ✅ Hotdeal timer: keep 1s interval only when sale_end_time exists
+  // ✅ Timer: prefer deal.endsAt; else product.sale_end_time
+  const endsAt = deal?.endsAt || product.sale_end_time || null;
+
   useEffect(() => {
-    if (!product.sale_end_time) return;
+    if (!endsAt) return;
 
     const calculate = () => {
-      const diff = new Date(product.sale_end_time!).getTime() - Date.now();
+      const diff = new Date(endsAt).getTime() - Date.now();
       if (diff <= 0) return null;
 
       const days = Math.floor(diff / (1000 * 60 * 60 * 24));
@@ -206,18 +252,26 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
     }, 1000);
 
     return () => window.clearInterval(timer);
-  }, [product.sale_end_time]);
+  }, [endsAt]);
 
-  // ✅ LCP: first few images can be eager, but not too many
   const eager = index < 2;
 
   return (
     <div className="pc-wrapper">
-      <div className="pc-card" onClick={handleNavigate} role="button" tabIndex={0}>
+      <div
+        className="pc-card"
+        onClick={handleNavigate}
+        role="button"
+        tabIndex={0}
+      >
         {/* Image */}
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
-            <button className="pc-share-btn" onClick={handleShare} aria-label="Share">
+            <button
+              className="pc-share-btn"
+              onClick={handleShare}
+              aria-label="Share"
+            >
               <Share2 size={16} strokeWidth={2.5} />
             </button>
 
@@ -313,12 +367,16 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
             )}
           </div>
 
+          {/* ✅ Price */}
           <div className="pc-price-section">
             <div className="pc-current-price">
               <span className="pc-currency">₹</span>
-              <span className="pc-amount">{product.price.toLocaleString()}</span>
-              {product.mrp && product.mrp > product.price && (
-                <span className="pc-mrp">MRP ₹{product.mrp.toLocaleString()}</span>
+              <span className="pc-amount">{finalPrice.toLocaleString()}</span>
+
+              {product.mrp && product.mrp > finalPrice && (
+                <span className="pc-mrp">
+                  MRP ₹{product.mrp.toLocaleString()}
+                </span>
               )}
             </div>
           </div>
@@ -344,13 +402,17 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, index = 0 }) => {
               <div className="pc-quantity-controls">
                 <div className="pc-qty-info">
                   <span className="pc-qty-label">Total:</span>
+                  {/* ✅ Total uses finalPrice */}
                   <span className="pc-qty-total">
-                    ₹{(itemCount * product.price).toLocaleString()}
+                    ₹{(itemCount * finalPrice).toLocaleString()}
                   </span>
                 </div>
 
                 <div className="pc-quantity-buttons">
-                  <button onClick={actions.dec} className="pc-qty-btn pc-qty-btn--decrease">
+                  <button
+                    onClick={actions.dec}
+                    className="pc-qty-btn pc-qty-btn--decrease"
+                  >
                     {itemCount === minQty ? "Del" : <Minus size={14} strokeWidth={3} />}
                   </button>
 
