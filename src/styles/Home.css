@@ -582,38 +582,39 @@
     white-space: normal !important;
   }
 
-  /* ✅ MOBILE CATEGORY CIRCLES FIX (SMALLER) */
+  /* ✅ MOBILE CATEGORY CIRCLES FIX (BIGGER THAN BEFORE) */
   .category-scroll-wrapper {
     padding: 0;
   }
   .category-circles-section {
-    padding: 10px 10px;
-    gap: 12px;
+    padding: 12px 10px;
+    gap: 14px;
   }
 
   .cat-circle-item {
-    min-width: 55px;
+    min-width: 68px; /* was 55px */
   }
 
   .cat-circle-img-wrapper {
-    width: 55px;
-    height: 55px;
+    width: 68px; /* was 55px */
+    height: 68px; /* was 55px */
     border-width: 2px;
-    margin-bottom: 5px;
+    margin-bottom: 6px;
   }
 
   .cat-circle-name {
-    font-size: 8px;
-    max-width: 60px;
+    font-size: 9px; /* was 8px */
+    max-width: 72px;
     font-weight: 700;
     line-height: 1.1;
   }
 
   .cat-placeholder {
-    font-size: 20px;
+    font-size: 24px; /* was 20px */
   }
+
   .cat-circle-skeleton {
-    min-width: 55px;
+    min-width: 68px; /* was 55px */
     flex: 0 0 auto;
   }
 }

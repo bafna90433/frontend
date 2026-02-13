@@ -81,16 +81,6 @@ const optimizeCloudinary = (url: string, w: number, h: number) => {
   if (!url) return "";
   if (!url.includes("res.cloudinary.com")) return url;
 
-  // if already has transformations, keep it
-  if (
-    url.includes("/image/upload/") &&
-    url.split("/image/upload/")[1]?.includes("/")
-  ) {
-    // still ok, but we want to ensure our transform is applied:
-    // If your URLs already have transforms you can return url directly.
-    // Here we force a small transform for category icons.
-  }
-
   const TRANSFORM = `f_auto,q_auto,w_${w},h_${h},c_fill,g_auto`;
   return url.replace("/image/upload/", `/image/upload/${TRANSFORM}/`);
 };
@@ -162,10 +152,7 @@ const Home: React.FC = () => {
 
   if (error) {
     return (
-      <ErrorMessage
-        message={error}
-        onRetry={() => window.location.reload()}
-      />
+      <ErrorMessage message={error} onRetry={() => window.location.reload()} />
     );
   }
 
@@ -228,8 +215,14 @@ const Home: React.FC = () => {
           <div className="category-circles-section">
             {categories.map((cat) => {
               const raw = cat.image || cat.imageUrl || "";
-              // ✅ desktop 130, mobile 55 => we can load 160x160 (perfect)
-              const img = optimizeCloudinary(raw, 160, 160);
+
+              // ✅ Desktop bigger, Mobile smaller (but optimized)
+              const isMobile =
+                typeof window !== "undefined" &&
+                window.matchMedia("(max-width: 768px)").matches;
+
+              // mobile circle ~68px => 96 is crisp without being heavy
+              const img = optimizeCloudinary(raw, isMobile ? 96 : 160, isMobile ? 96 : 160);
 
               return (
                 <Link
@@ -243,8 +236,6 @@ const Home: React.FC = () => {
                         src={img}
                         alt={cat.name}
                         className="cat-circle-img"
-                        width={130}
-                        height={130}
                         loading="lazy"
                         decoding="async"
                       />
@@ -270,7 +261,7 @@ const Home: React.FC = () => {
                 variant="circular"
                 width={130}
                 height={130}
-                sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }}
+                sx={{ "@media (max-width: 768px)": { width: 68, height: 68 } }}
               />
               <Skeleton variant="text" width={50} />
             </div>
