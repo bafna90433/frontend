@@ -11,12 +11,7 @@ import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 
-import {
-  FiChevronLeft,
-  FiChevronRight,
-  FiArrowRight,
-  FiImage,
-} from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
@@ -55,11 +50,7 @@ type HomeCfg = {
 
   trendingTitle?: string;
   trendingProductIds?: string[];
-  trendingSections?: {
-    title: string;
-    productIds: string[];
-    products?: Product[];
-  }[];
+  trendingSections?: { title: string; productIds: string[]; products?: Product[] }[];
 
   bannerImage?: string;
   bannerLink?: string;
@@ -73,24 +64,12 @@ type HomeCfg = {
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
-const safeStrArr = (v: any): string[] =>
-  Array.isArray(v) ? v.map(String) : [];
+const safeStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
 
 // ✅ Cloudinary optimizer (works only for Cloudinary URLs)
 const optimizeCloudinary = (url: string, w: number, h: number) => {
   if (!url) return "";
   if (!url.includes("res.cloudinary.com")) return url;
-
-  // if already has transformations, keep it
-  if (
-    url.includes("/image/upload/") &&
-    url.split("/image/upload/")[1]?.includes("/")
-  ) {
-    // still ok, but we want to ensure our transform is applied:
-    // If your URLs already have transforms you can return url directly.
-    // Here we force a small transform for category icons.
-  }
-
   const TRANSFORM = `f_auto,q_auto,w_${w},h_${h},c_fill,g_auto`;
   return url.replace("/image/upload/", `/image/upload/${TRANSFORM}/`);
 };
@@ -127,15 +106,9 @@ const Home: React.FC = () => {
           api.get("/home-config"),
         ]);
 
-        setCategories(
-          safeArr<Category>(catRes.data?.categories || catRes.data || [])
-        );
-        setProducts(
-          safeArr<Product>(prodRes.data?.products || prodRes.data || [])
-        );
-        setBanners(
-          safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || [])
-        );
+        setCategories(safeArr<Category>(catRes.data?.categories || catRes.data || []));
+        setProducts(safeArr<Product>(prodRes.data?.products || prodRes.data || []));
+        setBanners(safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || []));
         setHomeCfg(cfgRes.data || null);
       } catch (err: any) {
         console.error("Fetch error:", err);
@@ -149,10 +122,7 @@ const Home: React.FC = () => {
 
   const popularCats = useMemo(() => {
     if (!homeCfg) return [];
-    if (
-      Array.isArray(homeCfg.popularCategories) &&
-      homeCfg.popularCategories.length > 0
-    ) {
+    if (Array.isArray(homeCfg.popularCategories) && homeCfg.popularCategories.length > 0) {
       return homeCfg.popularCategories;
     }
     const ids = safeStrArr(homeCfg.popularCategoryIds);
@@ -161,12 +131,7 @@ const Home: React.FC = () => {
   }, [homeCfg, categories]);
 
   if (error) {
-    return (
-      <ErrorMessage
-        message={error}
-        onRetry={() => window.location.reload()}
-      />
-    );
+    return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
   }
 
   return (
@@ -228,15 +193,10 @@ const Home: React.FC = () => {
           <div className="category-circles-section">
             {categories.map((cat) => {
               const raw = cat.image || cat.imageUrl || "";
-              // ✅ desktop 130, mobile 55 => we can load 160x160 (perfect)
               const img = optimizeCloudinary(raw, 160, 160);
 
               return (
-                <Link
-                  key={cat._id}
-                  to={`/products?category=${cat._id}`}
-                  className="cat-circle-item"
-                >
+                <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
                   <div className="cat-circle-img-wrapper">
                     {raw ? (
                       <img
@@ -309,19 +269,13 @@ const Home: React.FC = () => {
                 <h2 className="category-title">
                   <span className="title-highlight">{cat.name}</span>
                 </h2>
-                <Link
-                  to={`/products?category=${cat._id}`}
-                  className="view-all-btn"
-                >
+                <Link to={`/products?category=${cat._id}`} className="view-all-btn">
                   View All <FiArrowRight />
                 </Link>
               </div>
 
               <div className="product-scroll-wrapper">
-                <button
-                  className="scroll-btn scroll-btn--left"
-                  onClick={() => scrollContainer(cat._id, "left")}
-                >
+                <button className="scroll-btn scroll-btn--left" onClick={() => scrollContainer(cat._id, "left")}>
                   <FiChevronLeft size={22} />
                 </button>
 
@@ -333,10 +287,7 @@ const Home: React.FC = () => {
                   ))}
                 </div>
 
-                <button
-                  className="scroll-btn scroll-btn--right"
-                  onClick={() => scrollContainer(cat._id, "right")}
-                >
+                <button className="scroll-btn scroll-btn--right" onClick={() => scrollContainer(cat._id, "right")}>
                   <FiChevronRight size={22} />
                 </button>
               </div>
@@ -346,28 +297,51 @@ const Home: React.FC = () => {
 
       <FloatingCheckoutButton />
 
+      {/* ✅ FOOTER WITH YOUTUBE + INSTAGRAM */}
       <footer className="home-footer">
         <div className="footer-content">
-          <div className="footer-links-container">
-            <h3>Quick Links</h3>
-            <ul className="footer-links">
-              <li>
-                <Link to="/privacy-policy">Privacy Policy</Link>
-              </li>
-              <li>
-                <Link to="/terms-conditions">Terms & Conditions</Link>
-              </li>
-              <li>
-                <Link to="/shipping-delivery">Shipping & Delivery</Link>
-              </li>
-              <li>
-                <Link to="/cancellation-refund">Cancellation & Refund</Link>
-              </li>
-            </ul>
+          <div className="footer-top">
+            <div className="footer-brand">
+              <h3>Bafna Toys</h3>
+              <p>Best toys, best deals — safe & fast delivery.</p>
+            </div>
+
+            <div className="footer-links-container">
+              <h4>Quick Links</h4>
+              <ul className="footer-links">
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-social">
+              <h4>Follow Us</h4>
+              <div className="social-row">
+                <a
+                  className="social-btn insta"
+                  href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  Instagram
+                </a>
+
+                <a
+                  className="social-btn youtube"
+                  href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  YouTube
+                </a>
+              </div>
+            </div>
           </div>
 
-          <div className="footer-copyright">
-            <p>© {new Date().getFullYear()} Bafna Toys</p>
+          <div className="footer-bottom">
+            <p>© {new Date().getFullYear()} Bafna Toys. All rights reserved.</p>
           </div>
         </div>
       </footer>
