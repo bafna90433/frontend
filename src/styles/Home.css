@@ -20,7 +20,8 @@
 .home-container {
   width: 100%;
   margin: 0;
-  padding: 0 0 80px;
+  padding: 0;              /* ✅ changed */
+  padding-bottom: 20px;    /* ✅ changed */
   background-color: var(--kid-bg);
   color: var(--kid-text);
   font-family: var(--kid-font);
@@ -228,7 +229,6 @@
   transform: translateY(-50%) scale(1.15);
 }
 
-/* ✅ Your buttons are: scroll-btn--left / scroll-btn--right */
 .scroll-btn--left {
   left: 10px;
 }
@@ -236,7 +236,6 @@
   right: 10px;
 }
 
-/* (Keeping old classes if used somewhere else) */
 .cat-scroll-left {
   left: 10px;
 }
@@ -262,16 +261,13 @@
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-
-  gap: 0px; /* isko change mat karo */
-
+  gap: 0px;
   padding: 10px 40px 20px 40px;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   scrollbar-width: thin;
 }
 
-/* Custom Scrollbar for PC */
 .product-scroll::-webkit-scrollbar {
   height: 6px;
   display: block;
@@ -406,7 +402,13 @@
   text-align: center;
   position: relative;
   overflow: hidden;
+
+  /* ✅ CLS FIX */
+  min-height: 260px;
+  contain: layout paint;
+  content-visibility: auto;
 }
+
 .home-footer::before {
   content: "";
   position: absolute;
@@ -422,12 +424,14 @@
     var(--kid-blue)
   );
 }
+
 .footer-links-container h3 {
   font-size: 1.4rem;
   font-weight: 800;
   margin-bottom: 20px;
   color: var(--kid-primary);
 }
+
 .footer-links {
   list-style: none;
   padding: 0;
@@ -437,6 +441,7 @@
   gap: 25px;
   margin-bottom: 30px;
 }
+
 .footer-links li a {
   color: var(--footer-text);
   text-decoration: none;
@@ -444,9 +449,11 @@
   font-size: 1rem;
   transition: color 0.2s;
 }
+
 .footer-links li a:hover {
   color: var(--kid-primary);
 }
+
 .footer-copyright {
   border-top: 2px dashed rgba(0, 0, 0, 0.1);
   padding-top: 25px;
@@ -486,8 +493,9 @@
    ========================================= */
 @media (max-width: 768px) {
   .home-container {
-    padding-bottom: 60px;
+    padding-bottom: 20px; /* ✅ changed */
   }
+
   .category-header {
     padding: 0 15px;
     margin-bottom: 10px;
@@ -500,13 +508,11 @@
     font-size: 12px;
   }
 
-  /* ✅ Product Scroll Gap = 0 (same as desktop) */
   .product-scroll {
     padding: 0 10px 10px 10px;
     gap: 0px !important;
   }
 
-  /* Hide scrollbar on mobile only */
   .product-scroll::-webkit-scrollbar {
     display: none;
   }
@@ -523,13 +529,18 @@
   .home-footer {
     padding: 40px 20px 80px 20px;
     border-radius: 30px 30px 0 0;
+
+    /* ✅ CLS FIX (mobile) */
+    min-height: 240px;
+    contain: layout paint;
+    content-visibility: auto;
   }
+
   .footer-links {
     flex-direction: column;
     gap: 15px;
   }
 
-  /* ✅ MOBILE TRUSTBAR OVERRIDES (4 COLUMNS + TEXT) */
   .trustbar {
     display: grid !important;
     grid-template-columns: repeat(4, 1fr) !important;
@@ -582,7 +593,6 @@
     white-space: normal !important;
   }
 
-  /* ✅ MOBILE CATEGORY CIRCLES FIX (BIGGER THAN BEFORE) */
   .category-scroll-wrapper {
     padding: 0;
   }
@@ -592,29 +602,29 @@
   }
 
   .cat-circle-item {
-    min-width: 68px; /* was 55px */
+    min-width: 68px;
   }
 
   .cat-circle-img-wrapper {
-    width: 68px; /* was 55px */
-    height: 68px; /* was 55px */
+    width: 68px;
+    height: 68px;
     border-width: 2px;
     margin-bottom: 6px;
   }
 
   .cat-circle-name {
-    font-size: 9px; /* was 8px */
+    font-size: 9px;
     max-width: 72px;
     font-weight: 700;
     line-height: 1.1;
   }
 
   .cat-placeholder {
-    font-size: 24px; /* was 20px */
+    font-size: 24px;
   }
 
   .cat-circle-skeleton {
-    min-width: 68px; /* was 55px */
+    min-width: 68px;
     flex: 0 0 auto;
   }
 }

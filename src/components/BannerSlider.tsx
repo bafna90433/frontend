@@ -22,7 +22,7 @@ const IMAGE_BASE_URL =
 const BannerSlider: React.FC<Props> = ({ banners }) => {
   const settings = {
     dots: false,
-    infinite: true,
+    infinite: false, // ✅ LCP fix (avoid slick clones)
     speed: 800,
     slidesToShow: 3,
     slidesToScroll: 1,
@@ -72,14 +72,14 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
     return `${IMAGE_BASE_URL}/uploads/${url}`;
   };
 
-  const getImgProps = (index: number) => {
+  const getImgProps = (index: number): Record<string, any> => {
     const isLCP = index === 0; // ✅ first banner is LCP
     return {
       width: 500,
       height: 300,
-      loading: isLCP ? ("eager" as const) : ("lazy" as const),
-      fetchPriority: isLCP ? ("high" as const) : ("auto" as const),
-      decoding: "async" as const,
+      loading: isLCP ? "eager" : "lazy",
+      fetchpriority: isLCP ? "high" : "auto", // ✅ correct attribute (lowercase)
+      decoding: "async",
     };
   };
 
@@ -90,6 +90,16 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
           const imgProps = getImgProps(index);
 
+          const Img = (
+            <img
+              src={bannerUrl}
+              alt={`Banner ${index + 1}`}
+              className="banner-row-img blur-up"
+              onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+              {...imgProps}
+            />
+          );
+
           return (
             <div key={index} className="banner-slide">
               {b.link ? (
@@ -99,20 +109,10 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
                   rel="noopener noreferrer"
                   className="banner-link"
                 >
-                  <img
-                    src={bannerUrl}
-                    alt={`Banner ${index + 1}`}
-                    className="banner-row-img blur-up"
-                    {...imgProps}
-                  />
+                  {Img}
                 </a>
               ) : (
-                <img
-                  src={bannerUrl}
-                  alt={`Banner ${index + 1}`}
-                  className="banner-row-img blur-up"
-                  {...imgProps}
-                />
+                Img
               )}
             </div>
           );

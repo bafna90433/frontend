@@ -20,7 +20,10 @@
 
     <!-- ✅ Open Graph -->
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
+    <meta
+      property="og:title"
+      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
+    />
     <meta
       property="og:description"
       content="We manufacture and supply PVC dolls, windup toys, squeeze toys, pullback cars, and educational toys at wholesale factory prices from Coimbatore, India."
@@ -30,7 +33,10 @@
 
     <!-- ✅ Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
+    <meta
+      name="twitter:title"
+      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
+    />
     <meta
       name="twitter:description"
       content="Buy toys directly from manufacturer — PVC dolls, windup key toys, pullback cars & more at wholesale rates. Factory outlet in Coimbatore."
@@ -45,23 +51,20 @@
     <!-- ✅ Favicons -->
     <link rel="icon" href="/favicon.webp" type="image/webp" />
 
-    <!-- ✅ PERFORMANCE: Preconnect (Cloudinary + API) -->
+    <!-- ✅ PERFORMANCE: Preconnect -->
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-    <!-- if you use any API domain, add it too (example):
-    <link rel="preconnect" href="https://api.bafnatoys.com" crossorigin />
-    -->
 
-    <!-- ✅ PERFORMANCE: Preload Logo (FCP faster) -->
+    <!-- ✅ PERFORMANCE: Preload critical logo (FCP/LCP help) -->
     <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
 
-    <!-- ✅ IMPORTANT: Avoid Google Fonts (it was causing CLS due to font swap)
-         Use system font stack globally instead -->
+    <!-- ✅ System fonts only (avoid CLS due to font swap) -->
     <style>
       :root {
-        --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial,
-          "Noto Sans", "Helvetica Neue", sans-serif;
+        --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
+          Arial, "Noto Sans", "Helvetica Neue", sans-serif;
       }
+
       html,
       body {
         margin: 0;
@@ -73,6 +76,7 @@
       #root {
         min-height: 100vh;
       }
+
       .app-loading {
         min-height: 100vh; /* ✅ CLS reduce */
         display: flex;
@@ -83,9 +87,14 @@
         text-align: center;
         padding: 40px;
       }
+
+      /* ✅ Remove loading UI once app mounts (optional safety) */
+      .app-loaded .app-loading {
+        display: none;
+      }
     </style>
 
-    <!-- ✅ LocalBusiness Schema (Toy Manufacturer + Wholesale Supplier) -->
+    <!-- ✅ Schema -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
