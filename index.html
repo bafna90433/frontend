@@ -58,11 +58,21 @@
     <!-- ✅ PERFORMANCE: Preload critical logo (FCP/LCP help) -->
     <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
 
+    <!-- ✅ PERFORMANCE: Preload LCP Banner Image (DYNAMIC - REPLACE WITH ACTUAL BANNER ID) -->
+    <link 
+      rel="preload" 
+      as="image" 
+      href="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_1000,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID" 
+      fetchpriority="high"
+    />
+
     <!-- ✅ System fonts only (avoid CLS due to font swap) -->
     <style>
       :root {
         --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
           Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+        --banner-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        --banner-border: 1px solid transparent;
       }
 
       html,
@@ -78,7 +88,7 @@
       }
 
       .app-loading {
-        min-height: 100vh; /* ✅ CLS reduce */
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -88,7 +98,47 @@
         padding: 40px;
       }
 
-      /* ✅ Remove loading UI once app mounts (optional safety) */
+      /* ✅ Critical banner styles for LCP */
+      .lcp-banner-container {
+        width: 100%;
+        margin: 20px auto;
+        padding: 10px 0;
+        overflow: hidden;
+      }
+
+      .lcp-banner {
+        padding: 0 8px;
+        box-sizing: border-box;
+        max-width: 100%;
+      }
+
+      .banner-row-img {
+        width: 100%;
+        aspect-ratio: 5 / 3;
+        height: auto;
+        object-fit: cover;
+        display: block;
+        border-radius: 10px;
+        box-shadow: var(--banner-shadow);
+        border: var(--banner-border);
+        transition: transform 0.25s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .blur-up {
+        filter: blur(10px);
+        transition: filter 0.35s ease;
+      }
+
+      .blur-up.is-loaded {
+        filter: blur(0);
+      }
+
+      .banner-link {
+        display: block;
+        text-decoration: none;
+      }
+
+      /* ✅ Remove loading UI once app mounts */
       .app-loaded .app-loading {
         display: none;
       }
@@ -138,6 +188,26 @@
         </p>
       </noscript>
 
+      <!-- ✅ LCP Banner - Statically rendered for immediate visibility -->
+      <div class="lcp-banner-container">
+        <div class="lcp-banner">
+          <a href="https://bafnatoys.com/shop" class="banner-link">
+            <img
+              src="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_1000,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID"
+              alt="Bafna Toys Special Offer - Shop Now"
+              width="500"
+              height="300"
+              fetchpriority="high"
+              loading="eager"
+              decoding="async"
+              class="banner-row-img blur-up"
+              onload="this.classList.add('is-loaded')"
+            />
+          </a>
+        </div>
+      </div>
+
+      <!-- ✅ Loading indicator (hidden after app loads) -->
       <div class="app-loading">
         <img
           src="/logo.webp"
@@ -145,12 +215,19 @@
           width="80"
           height="80"
           style="opacity: 0.85"
-          fetchpriority="high"
+          fetchpriority="low"
           decoding="async"
         />
         <p>Loading BafnaToys…</p>
       </div>
     </div>
+
+    <script>
+      // ✅ Remove loading indicator when app is ready
+      window.addEventListener('load', function() {
+        document.getElementById('root').classList.add('app-loaded');
+      });
+    </script>
 
     <!-- ✅ Vite entry -->
     <script type="module" src="/src/index.tsx"></script>

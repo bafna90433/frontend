@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
@@ -11,6 +11,7 @@ interface Banner {
 
 interface Props {
   banners: Banner[];
+  hideFirstBanner?: boolean; // ✅ New prop to skip first banner if already rendered
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -19,10 +20,18 @@ const API_BASE =
 const IMAGE_BASE_URL =
   import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
-const BannerSlider: React.FC<Props> = ({ banners }) => {
+const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => {
+  // Filter out first banner if it's already rendered statically
+  const sliderBanners = hideFirstBanner ? banners.slice(1) : banners;
+
+  useEffect(() => {
+    // ✅ Mark app as loaded to hide loading indicator
+    document.getElementById('root')?.classList.add('app-loaded');
+  }, []);
+
   const settings = {
     dots: false,
-    infinite: false, // ✅ LCP fix (avoid slick clones)
+    infinite: false,
     speed: 800,
     slidesToShow: 3,
     slidesToScroll: 1,
@@ -31,6 +40,7 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
+    lazyLoad: 'ondemand', // ✅ Lazy load non-critical slides
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
       { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
@@ -49,14 +59,11 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
   const getBannerUrl = (url: string): string => {
     if (!url) return "https://via.placeholder.com/500x300?text=No+Banner";
 
-    // ✅ Cloudinary public id -> optimize
     if (!url.startsWith("http") && cloudName) {
       return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_1000,c_limit/${url}`;
     }
 
-    // ✅ Absolute URL
     if (url.startsWith("http")) {
-      // If Cloudinary URL, inject optimization
       if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
         if (url.includes("/image/upload/f_auto")) return url;
         return url.replace(
@@ -67,33 +74,35 @@ const BannerSlider: React.FC<Props> = ({ banners }) => {
       return url;
     }
 
-    // ✅ Your server uploads
     if (url.includes("/uploads/")) return `${API_BASE}${url}`;
     return `${IMAGE_BASE_URL}/uploads/${url}`;
   };
 
   const getImgProps = (index: number): Record<string, any> => {
-    const isLCP = index === 0; // ✅ first banner is LCP
+    // ✅ Since first banner is already rendered statically,
+    // all slider images can be lazy loaded
     return {
       width: 500,
       height: 300,
-      loading: isLCP ? "eager" : "lazy",
-      fetchpriority: isLCP ? "high" : "auto", // ✅ correct attribute (lowercase)
+      loading: "lazy",
+      fetchPriority: "auto",
       decoding: "async",
     };
   };
 
+  if (sliderBanners.length === 0) return null;
+
   return (
     <div className="banner-slider-row">
       <Slider {...settings}>
-        {banners.map((b, index) => {
+        {sliderBanners.map((b, index) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
           const imgProps = getImgProps(index);
 
           const Img = (
             <img
               src={bannerUrl}
-              alt={`Banner ${index + 1}`}
+              alt={`Banner ${hideFirstBanner ? index + 2 : index + 1}`}
               className="banner-row-img blur-up"
               onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
               {...imgProps}
