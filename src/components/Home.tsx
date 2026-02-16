@@ -42,6 +42,14 @@ interface Banner {
   link?: string;
 }
 
+// ✅ NEW: Promo types (as per backend response)
+type PromoBanner = { image: string; link?: string };
+type PromoBlock = {
+  sideBanners?: PromoBanner[];
+  bestSellingProducts?: Product[];
+  onSaleProducts?: Product[];
+};
+
 type HomeCfg = {
   popularTitle?: string;
   popularSubtitle?: string;
@@ -61,6 +69,9 @@ type HomeCfg = {
   hotDealsEndsAt?: string | null;
   hotDealsProductIds?: string[];
   hotDealsProducts?: Product[];
+
+  // ✅ NEW
+  promo?: PromoBlock;
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
@@ -129,6 +140,11 @@ const Home: React.FC = () => {
     if (!ids.length) return [];
     return categories.filter((c) => ids.includes(c._id));
   }, [homeCfg, categories]);
+
+  // ✅ NEW: Promo data
+  const promoSideBanners = useMemo(() => safeArr<PromoBanner>(homeCfg?.promo?.sideBanners), [homeCfg]);
+  const bestSellingProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.bestSellingProducts), [homeCfg]);
+  const onSaleProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.onSaleProducts), [homeCfg]);
 
   if (error) {
     return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
@@ -247,6 +263,83 @@ const Home: React.FC = () => {
       {!loading && products.length > 0 && homeCfg && (
         <section className="two-col-mobile two-col-mobile--hotdeals">
           <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
+        </section>
+      )}
+
+      {/* ✅ NEW PROMO SECTION (2 banners + Best Selling + On Sale) */}
+      {!loading && homeCfg?.promo && (promoSideBanners.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
+        <section className="home-promo-wrap">
+          <div className="promo-grid">
+            {/* Left banners */}
+            <div className="promo-banners">
+              {[0, 1].map((i) => {
+                const b = promoSideBanners[i];
+                if (!b?.image) return null;
+
+                const optimized = optimizeCloudinary(b.image, 316, 351);
+                const content = (
+                  <img
+                    src={optimized}
+                    alt={`Promo Banner ${i + 1}`}
+                    className="promo-banner-img"
+                    width={316}
+                    height={351}
+                    loading="lazy"
+                    decoding="async"
+                  />
+                );
+
+                return b.link ? (
+                  <Link key={i} to={b.link} className="promo-banner-card">
+                    {content}
+                  </Link>
+                ) : (
+                  <div key={i} className="promo-banner-card">
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Right products */}
+            <div className="promo-products">
+              {/* Best Selling */}
+              {bestSellingProducts.length > 0 && (
+                <div className="promo-product-block">
+                  <div className="promo-head">
+                    <h3>Best Selling</h3>
+                    <div className="promo-head-line" />
+                  </div>
+
+                  <div className="promo-product-grid">
+                    {bestSellingProducts.slice(0, 4).map((p) => (
+                      <div key={p._id} className="promo-product-card">
+                        <ProductCard product={p as any} userRole="customer" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* On Sale */}
+              {onSaleProducts.length > 0 && (
+                <div className="promo-product-block">
+                  <div className="promo-head">
+                    <h3>On Sale</h3>
+                    <div className="promo-head-line" />
+                  </div>
+
+                  <div className="promo-product-grid">
+                    {onSaleProducts.slice(0, 4).map((p) => (
+                      <div key={p._id} className="promo-product-card">
+                        <ProductCard product={p as any} userRole="customer" />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
         </section>
       )}
 

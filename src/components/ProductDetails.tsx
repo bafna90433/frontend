@@ -25,6 +25,7 @@ import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import { getImageUrl } from "../utils/image";
 import ProductSEO from "./ProductSEO";
 import ProductCard from "./ProductCard";
+import ReviewSection from "../components/ReviewSection"; // ✅ NEW IMPORT
 
 interface BulkTier {
   inner: string;
@@ -387,6 +388,11 @@ const ProductDetails: React.FC = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* ✅ ADDED: Review Section (Placed between Details and Related Products) */}
+      <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '0 16px' }}>
+          <ReviewSection productId={product._id} />
       </div>
 
       {product.relatedProducts && product.relatedProducts.length > 0 && (
