@@ -11,6 +11,9 @@ import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 
+// ✅ NEW COMPONENT (row based promo)
+import HomePromoSection from "../components/HomePromoSection";
+
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
@@ -34,6 +37,8 @@ interface Product {
   images: string[];
   slug?: string;
   mrp?: number;
+  rating?: number; // optional (for promo row stars)
+  ratingCount?: number; // optional
 }
 
 interface Banner {
@@ -42,7 +47,7 @@ interface Banner {
   link?: string;
 }
 
-// ✅ NEW: Promo types (as per backend response)
+// ✅ Promo types
 type PromoBanner = { image: string; link?: string };
 type PromoBlock = {
   sideBanners?: PromoBanner[];
@@ -70,14 +75,13 @@ type HomeCfg = {
   hotDealsProductIds?: string[];
   hotDealsProducts?: Product[];
 
-  // ✅ NEW
   promo?: PromoBlock;
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
 const safeStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
 
-// ✅ Cloudinary optimizer (works only for Cloudinary URLs)
+// ✅ Cloudinary optimizer
 const optimizeCloudinary = (url: string, w: number, h: number) => {
   if (!url) return "";
   if (!url.includes("res.cloudinary.com")) return url;
@@ -141,10 +145,18 @@ const Home: React.FC = () => {
     return categories.filter((c) => ids.includes(c._id));
   }, [homeCfg, categories]);
 
-  // ✅ NEW: Promo data
+  // ✅ Promo data
   const promoSideBanners = useMemo(() => safeArr<PromoBanner>(homeCfg?.promo?.sideBanners), [homeCfg]);
   const bestSellingProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.bestSellingProducts), [homeCfg]);
   const onSaleProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.onSaleProducts), [homeCfg]);
+
+  // ✅ optimize promo banners urls
+  const promoSideBannersOptimized = useMemo(() => {
+    return promoSideBanners.slice(0, 2).map((b) => ({
+      ...b,
+      image: optimizeCloudinary(b.image, 400, 520),
+    }));
+  }, [promoSideBanners]);
 
   if (error) {
     return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
@@ -198,7 +210,7 @@ const Home: React.FC = () => {
         </div>
       )}
 
-      {/* 2️⃣ Shop By Category */}
+      {/* Shop By Category */}
       {!loading && categories.length > 0 && (
         <>
           <div className="section-heading-wrapper">
@@ -242,12 +254,7 @@ const Home: React.FC = () => {
         <div className="category-circles-section">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="cat-circle-skeleton">
-              <Skeleton
-                variant="circular"
-                width={130}
-                height={130}
-                sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }}
-              />
+              <Skeleton variant="circular" width={130} height={130} sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }} />
               <Skeleton variant="text" width={50} />
             </div>
           ))}
@@ -266,82 +273,16 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* ✅ NEW PROMO SECTION (2 banners + Best Selling + On Sale) */}
-      {!loading && homeCfg?.promo && (promoSideBanners.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
-        <section className="home-promo-wrap">
-          <div className="promo-grid">
-            {/* Left banners */}
-            <div className="promo-banners">
-              {[0, 1].map((i) => {
-                const b = promoSideBanners[i];
-                if (!b?.image) return null;
-
-                const optimized = optimizeCloudinary(b.image, 316, 351);
-                const content = (
-                  <img
-                    src={optimized}
-                    alt={`Promo Banner ${i + 1}`}
-                    className="promo-banner-img"
-                    width={316}
-                    height={351}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                );
-
-                return b.link ? (
-                  <Link key={i} to={b.link} className="promo-banner-card">
-                    {content}
-                  </Link>
-                ) : (
-                  <div key={i} className="promo-banner-card">
-                    {content}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Right products */}
-            <div className="promo-products">
-              {/* Best Selling */}
-              {bestSellingProducts.length > 0 && (
-                <div className="promo-product-block">
-                  <div className="promo-head">
-                    <h3>Best Selling</h3>
-                    <div className="promo-head-line" />
-                  </div>
-
-                  <div className="promo-product-grid">
-                    {bestSellingProducts.slice(0, 4).map((p) => (
-                      <div key={p._id} className="promo-product-card">
-                        <ProductCard product={p as any} userRole="customer" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* On Sale */}
-              {onSaleProducts.length > 0 && (
-                <div className="promo-product-block">
-                  <div className="promo-head">
-                    <h3>On Sale</h3>
-                    <div className="promo-head-line" />
-                  </div>
-
-                  <div className="promo-product-grid">
-                    {onSaleProducts.slice(0, 4).map((p) => (
-                      <div key={p._id} className="promo-product-card">
-                        <ProductCard product={p as any} userRole="customer" />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
-      )}
+      {/* ✅ FINAL PROMO SECTION (REFERENCE DESIGN - rows) */}
+      {!loading &&
+        homeCfg?.promo &&
+        (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
+          <HomePromoSection
+            sideBanners={promoSideBannersOptimized as any}
+            bestSelling={bestSellingProducts as any}
+            onSale={onSaleProducts as any}
+          />
+        )}
 
       {!loading && popularCats.length > 0 && (
         <PopularCategories
@@ -390,7 +331,7 @@ const Home: React.FC = () => {
 
       <FloatingCheckoutButton />
 
-      {/* ✅ FOOTER WITH YOUTUBE + INSTAGRAM */}
+      {/* FOOTER */}
       <footer className="home-footer">
         <div className="footer-content">
           <div className="footer-top">
@@ -402,31 +343,28 @@ const Home: React.FC = () => {
             <div className="footer-links-container">
               <h4>Quick Links</h4>
               <ul className="footer-links">
-                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+                <li>
+                  <Link to="/privacy-policy">Privacy Policy</Link>
+                </li>
+                <li>
+                  <Link to="/terms-conditions">Terms & Conditions</Link>
+                </li>
+                <li>
+                  <Link to="/shipping-delivery">Shipping & Delivery</Link>
+                </li>
+                <li>
+                  <Link to="/cancellation-refund">Cancellation & Refund</Link>
+                </li>
               </ul>
             </div>
 
             <div className="footer-social">
               <h4>Follow Us</h4>
               <div className="social-row">
-                <a
-                  className="social-btn insta"
-                  href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw==" target="_blank" rel="noreferrer">
                   Instagram
                 </a>
-
-                <a
-                  className="social-btn youtube"
-                  href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA"
-                  target="_blank"
-                  rel="noreferrer"
-                >
+                <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">
                   YouTube
                 </a>
               </div>
