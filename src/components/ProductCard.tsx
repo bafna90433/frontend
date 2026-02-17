@@ -16,7 +16,6 @@ import {
   Sparkles,
   Tag,
   Clock,
-  Share2,
 } from "lucide-react";
 import "../styles/ProductCard.css";
 
@@ -143,38 +142,12 @@ const ProductCard: React.FC<ProductCardProps> = ({
       product.slug ? `/product/${product.slug}` : `/product/${product._id}`
     );
 
-  const shareUrl = useMemo(() => {
-    const path = product.slug
-      ? `/product/${product.slug}`
-      : `/product/${product._id}`;
-    return `${window.location.origin}${path}`;
-  }, [product._id, product.slug]);
-
-  const handleShare = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: product.name,
-          text: `Hey! Check out this ${product.name}${
-            product.tagline ? ` - ${product.tagline}` : ""
-          }`,
-          url: shareUrl,
-        });
-      } else {
-        await navigator.clipboard.writeText(shareUrl);
-        alert("Link copied to clipboard!");
-      }
-    } catch (err) {
-      console.error("Error sharing:", err);
-    }
-  };
-
   // ✅ FINAL PRICE (deal apply)
   const finalPrice = useMemo(() => {
     const price = Number(product.price) || 0;
 
-    if (!deal || deal.discountType === "NONE" || !deal.discountValue) return price;
+    if (!deal || deal.discountType === "NONE" || !deal.discountValue)
+      return price;
 
     if (deal.discountType === "PERCENT") {
       const pct = Math.min(100, Math.max(0, Number(deal.discountValue) || 0));
@@ -209,7 +182,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
   // ✅ Ribbon % (prefer deal percent; else fallback to mrp vs finalPrice)
   const discountPercent = useMemo(() => {
     if (deal?.discountType === "PERCENT") {
-      return Math.min(99, Math.max(0, Math.round(Number(deal.discountValue) || 0)));
+      return Math.min(
+        99,
+        Math.max(0, Math.round(Number(deal.discountValue) || 0))
+      );
     }
     if (product.mrp && product.mrp > finalPrice) {
       return Math.round(((product.mrp - finalPrice) / product.mrp) * 100);
@@ -267,14 +243,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
         {/* Image */}
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
-            <button
-              className="pc-share-btn"
-              onClick={handleShare}
-              aria-label="Share"
-            >
-              <Share2 size={16} strokeWidth={2.5} />
-            </button>
-
             {timeLeft ? (
               <div className="pc-hotdeal-timer">
                 <Clock size={12} strokeWidth={3} color="#fbbf24" />
@@ -413,7 +381,11 @@ const ProductCard: React.FC<ProductCardProps> = ({
                     onClick={actions.dec}
                     className="pc-qty-btn pc-qty-btn--decrease"
                   >
-                    {itemCount === minQty ? "Del" : <Minus size={14} strokeWidth={3} />}
+                    {itemCount === minQty ? (
+                      "Del"
+                    ) : (
+                      <Minus size={14} strokeWidth={3} />
+                    )}
                   </button>
 
                   <span className="pc-qty-val">{itemCount}</span>
@@ -421,7 +393,9 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   <button
                     onClick={actions.inc}
                     className="pc-qty-btn pc-qty-btn--increase"
-                    disabled={product.stock !== undefined && itemCount >= product.stock}
+                    disabled={
+                      product.stock !== undefined && itemCount >= product.stock
+                    }
                   >
                     <Plus size={14} strokeWidth={3} />
                   </button>
