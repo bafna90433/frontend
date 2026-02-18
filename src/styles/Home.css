@@ -944,3 +944,33 @@ body, #root {
     margin-bottom: 34px !important;
   }
 }
+/* =========================================================
+   ✅ MOBILE: Deals Of The Day size same as other sections
+   Paste at END of Home.css
+========================================================= */
+
+/* Mobile (<=768px) */
+@media (max-width: 768px) {
+  /* All product sections: 2 cards per row size (same) */
+  .product-link {
+    flex: 0 0 calc((100% - 10px) / 2) !important;
+    max-width: calc((100% - 10px) / 2) !important;
+  }
+
+  /* Keep padding consistent */
+  .product-scroll {
+    padding: 0 10px 10px !important;
+  }
+}
+
+/* Very small phones (<=380px) : little wider cards */
+@media (max-width: 380px) {
+  .product-link {
+    flex: 0 0 calc((100% - 8px) / 2) !important;
+    max-width: calc((100% - 8px) / 2) !important;
+  }
+
+  .product-scroll {
+    padding: 0 8px 10px !important;
+  }
+}
