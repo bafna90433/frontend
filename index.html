@@ -2,7 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- ✅ VIEWPORT (Zoom Disable Added) -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
 
     <!-- ✅ SEO Title -->
     <title>
@@ -59,10 +64,10 @@
     <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
 
     <!-- ✅ PERFORMANCE: Preload LCP Banner Image (DYNAMIC - REPLACE WITH ACTUAL BANNER ID) -->
-    <link 
-      rel="preload" 
-      as="image" 
-      href="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_1000,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID" 
+    <link
+      rel="preload"
+      as="image"
+      href="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_1000,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID"
       fetchpriority="high"
     />
 
@@ -224,9 +229,62 @@
 
     <script>
       // ✅ Remove loading indicator when app is ready
-      window.addEventListener('load', function() {
-        document.getElementById('root').classList.add('app-loaded');
+      window.addEventListener("load", function () {
+        document.getElementById("root").classList.add("app-loaded");
       });
+
+      // ✅ Disable Mobile Zoom (Pinch + Double Tap)
+      (function () {
+        const isTouch =
+          "ontouchstart" in window ||
+          (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+
+        if (!isTouch) return;
+
+        // Block pinch zoom (2 finger)
+        document.addEventListener(
+          "touchmove",
+          function (e) {
+            if (e.touches && e.touches.length > 1) e.preventDefault();
+          },
+          { passive: false }
+        );
+
+        // Block double tap zoom
+        let lastTouchEnd = 0;
+        document.addEventListener(
+          "touchend",
+          function (e) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) e.preventDefault();
+            lastTouchEnd = now;
+          },
+          { passive: false }
+        );
+
+        // iOS Safari gesture events
+        document.addEventListener(
+          "gesturestart",
+          function (e) {
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+        document.addEventListener(
+          "gesturechange",
+          function (e) {
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+        document.addEventListener(
+          "gestureend",
+          function (e) {
+            e.preventDefault();
+          },
+          { passive: false }
+        );
+      })();
     </script>
 
     <!-- ✅ Vite entry -->

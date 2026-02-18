@@ -853,3 +853,94 @@ img, video, canvas, svg {
 body, #root {
   overflow: visible !important;
 }
+/* =========================================================
+   ✅ HOME MOBILE FONT SIZE (FINAL)
+   Paste at END of Home.css
+========================================================= */
+@media (max-width: 768px){
+
+  /* Base text size smaller + clean */
+  .home-container{
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  /* SECTION HEADINGS */
+  .section-heading{
+    font-size: 20px !important;
+    font-weight: 1000 !important;
+  }
+  .section-heading-line{
+    width: 58px !important;
+    height: 5px !important;
+    margin-top: 10px !important;
+  }
+
+  /* CATEGORY HEADER */
+  .category-title{
+    font-size: 18px !important;
+    font-weight: 1100 !important;
+  }
+  .view-all-btn{
+    font-size: 11px !important;
+    padding: 7px 10px !important;
+  }
+
+  /* TRUSTBAR text smaller */
+  .trust-text h4{
+    font-size: 9px !important;
+    font-weight: 1000 !important;
+  }
+  .trust-text p{
+    font-size: 8px !important;
+    font-weight: 900 !important;
+  }
+
+  /* CATEGORY CIRCLE name smaller */
+  .cat-circle-name{
+    font-size: 9px !important;
+    font-weight: 1000 !important;
+    line-height: 1.2 !important;
+  }
+
+  /* PROMO section headings */
+  .promo-head h3{
+    font-size: 13px !important;
+    font-weight: 1100 !important;
+  }
+
+  /* FOOTER smaller */
+  .footer-brand h3{
+    font-size: 20px !important;
+    font-weight: 1100 !important;
+  }
+  .footer-brand p{
+    font-size: 12px !important;
+    font-weight: 900 !important;
+  }
+  .footer-links-container h4,
+  .footer-social h4{
+    font-size: 13px !important;
+    font-weight: 1100 !important;
+  }
+  .footer-links li a{
+    font-size: 12px !important;
+    font-weight: 1000 !important;
+  }
+  .social-btn{
+    font-size: 12px !important;
+    padding: 8px 14px !important;
+  }
+  .footer-bottom{
+    font-size: 12px !important;
+    font-weight: 1000 !important;
+  }
+
+  /* Optional: reduce extra spacing on mobile */
+  .section-heading-wrapper{
+    margin: 18px 0 8px !important;
+  }
+  .category-block{
+    margin-bottom: 34px !important;
+  }
+}
