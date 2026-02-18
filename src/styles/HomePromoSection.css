@@ -428,3 +428,655 @@
     min-width: 86px;
   }
 }
+/* =========================
+   ✅ MOBILE REDESIGN (NEW)
+   Only for <=768px
+========================= */
+@media (max-width: 768px) {
+  .hp-container {
+    padding: 14px 10px;
+    background: #f8fafc;
+  }
+
+  .hp-inner {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .hp-list-card {
+    border-radius: 16px;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    border: 1px solid #eef2f7;
+    overflow: hidden;
+  }
+
+  .hp-card-header {
+    padding: 12px 12px;
+    background: #fff;
+  }
+
+  .hp-card-header h3 {
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .hp-explore-btn {
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .hp-list-content {
+    padding: 10px 10px;
+    gap: 10px;
+  }
+
+  /* ✅ Row becomes compact card */
+  .hp-row {
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 72px; /* thumb | text | add */
+    gap: 10px;
+    align-items: center;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+  }
+
+  .hp-row:last-child {
+    border-bottom: none;
+  }
+
+  /* ✅ Thumb */
+  .hp-thumb-container {
+    width: 76px;
+    height: 76px;
+  }
+
+  .hp-thumb {
+    border-radius: 12px;
+  }
+
+  .hp-discount-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    bottom: 6px;
+    right: 6px;
+  }
+
+  .hp-wish-overlay {
+    width: 26px;
+    height: 26px;
+    top: 6px;
+    right: 6px;
+  }
+
+  /* ✅ Middle section */
+  .hp-mid {
+    gap: 4px;
+  }
+
+  .hp-top-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: nowrap; /* ✅ no wrap mess */
+    overflow: hidden;
+  }
+
+  .hp-row-timer,
+  .hp-min-tag {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .hp-name {
+    font-size: 13px;
+    font-weight: 800;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+  }
+
+  /* ✅ Chips: only 1 line */
+  .hp-meta-badges {
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow: hidden;
+  }
+
+  .hp-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .hp-badge--yellow {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hp-price-now {
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .hp-price-mrp {
+    font-size: 11px;
+  }
+
+  /* ✅ Right (Add button stays in same row) */
+  .hp-right {
+    grid-column: auto;
+    justify-content: flex-end;
+    padding-left: 0;
+    margin-top: 0;
+  }
+
+  .hp-cart-btn {
+    width: 72px;
+    height: 34px;
+    padding: 0;
+    border-radius: 10px;
+    font-size: 12px;
+    font-weight: 900;
+    box-shadow: none;
+  }
+
+  /* ✅ Qty controls compact */
+  .hp-qty-wrapper {
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .hp-total-label {
+    font-size: 10px;
+  }
+
+  .hp-qty-controls {
+    gap: 6px;
+    padding: 3px;
+    border-radius: 10px;
+  }
+
+  .qty-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+  }
+
+  .qty-num {
+    font-size: 12px;
+    min-width: 16px;
+  }
+}
+
+/* ✅ Extra small phones */
+@media (max-width: 380px) {
+  .hp-row {
+    grid-template-columns: 70px minmax(0, 1fr) 66px;
+    padding: 9px;
+  }
+
+  .hp-thumb-container {
+    width: 70px;
+    height: 70px;
+  }
+
+  .hp-cart-btn {
+    width: 66px;
+    height: 34px;
+    font-size: 11px;
+  }
+}
+/* =========================
+   ✅ HOME PROMO LIST - MOBILE FINAL
+   Bigger image + clean fonts
+========================= */
+@media (max-width: 768px) {
+  .hp-row{
+    grid-template-columns: 92px minmax(0, 1fr) 76px; /* ✅ thumb bigger */
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .hp-thumb-container{
+    width: 92px;
+    height: 92px;                /* ✅ bigger image */
+  }
+
+  .hp-thumb{
+    border-radius: 14px;
+  }
+
+  /* ✅ timers + min smaller and cleaner */
+  .hp-row-timer,
+  .hp-min-tag{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+
+  /* ✅ product name clean + small */
+  .hp-name{
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.25;
+  }
+
+  /* ✅ badges smaller */
+  .hp-badge{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+  }
+
+  /* ✅ price smaller */
+  .hp-price-now{ font-size: 14px; font-weight: 900; }
+  .hp-price-mrp{ font-size: 11px; }
+
+  /* ✅ Add button compact */
+  .hp-cart-btn{
+    width: 76px;
+    height: 34px;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 900;
+    border-radius: 10px;
+  }
+}
+/* ✅ MOBILE NEW LAYOUT: Image left + details right + Add button full width bottom */
+@media (max-width: 768px){
+
+  .hp-container{
+    padding: 14px 12px;
+  }
+
+  .hp-inner{
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hp-card-header{
+    padding: 12px 14px;
+  }
+
+  /* ✅ Row as 2 column + bottom action bar */
+  .hp-row{
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr);
+    grid-template-rows: auto auto;   /* 2nd row for button */
+    gap: 10px 12px;
+    padding: 12px;
+    border: 1px solid #eef2f7;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06);
+  }
+
+  /* ✅ Image container left */
+  .hp-thumb-container{
+    width: 96px;
+    height: 96px;
+  }
+
+  .hp-thumb{
+    border-radius: 14px;
+  }
+
+  /* ✅ Right details */
+  .hp-mid{
+    gap: 4px;
+  }
+
+  .hp-name{
+    font-size: 12.5px;
+    font-weight: 700;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+  }
+
+  .hp-top-meta{
+    gap: 6px;
+    margin-bottom: 2px;
+  }
+
+  .hp-row-timer{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .hp-min-tag{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 6px;
+  }
+
+  .hp-meta-badges{
+    gap: 6px;
+    margin: 4px 0 2px;
+  }
+
+  .hp-badge{
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 8px;
+  }
+
+  .hp-price-now{
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .hp-price-mrp{
+    font-size: 11px;
+  }
+
+  /* ✅ Hide wishlist on mobile */
+  .hp-wish-overlay{
+    display: none !important;
+  }
+
+  /* ✅ Move button/qty to bottom full width */
+  .hp-right{
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 6px;
+  }
+
+  /* ✅ Add button bottom-right (compact) */
+  .hp-cart-btn{
+    height: 34px;
+    padding: 0 18px;
+    font-size: 12px;
+    border-radius: 12px;
+    min-width: 110px;
+  }
+
+  /* ✅ Qty controls bottom-right */
+  .hp-qty-wrapper{
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .hp-total-label{
+    font-size: 11px;
+    font-weight: 700;
+    color: #64748b;
+  }
+
+  .hp-qty-controls{
+    gap: 6px;
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .qty-btn{
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+  }
+
+  .qty-num{
+    font-size: 12px;
+    font-weight: 900;
+  }
+}
+
+/* ✅ Extra small phones */
+@media (max-width: 380px){
+  .hp-row{
+    grid-template-columns: 88px minmax(0, 1fr);
+    padding: 10px;
+  }
+
+  .hp-thumb-container{
+    width: 88px;
+    height: 88px;
+  }
+
+  .hp-cart-btn{
+    min-width: 100px;
+  }
+}
+/* =========================
+   ✅ MOBILE FINAL (DRAWING LAYOUT)
+   Left: Image + Add Button (stack)
+   Right: Details
+========================= */
+@media (max-width: 768px) {
+
+  /* container spacing */
+  .hp-container{
+    padding: 14px 12px;
+    background: #f8fafc;
+  }
+
+  .hp-inner{
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hp-list-card{
+    height: auto;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 10px 22px rgba(15, 23, 42, 0.06);
+    border: 1px solid #eef2f7;
+    background: #fff;
+  }
+
+  .hp-card-header{
+    padding: 12px 14px;
+  }
+
+  .hp-card-header h3{
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .hp-explore-btn{
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .hp-list-content{
+    padding: 10px 10px;
+    gap: 10px;
+  }
+
+  /* ✅ ROW GRID = 2 columns (left block + right details) */
+  .hp-row{
+    background: #fff;
+    border: 1px solid #eef2f7;
+    border-radius: 14px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: 118px minmax(0, 1fr); /* LEFT | RIGHT */
+    grid-template-rows: auto auto;              /* row1 thumb, row2 add */
+    column-gap: 12px;
+    row-gap: 10px;
+    align-items: start;
+    box-shadow: 0 6px 14px rgba(15, 23, 42, 0.04);
+  }
+
+  /* ✅ LEFT TOP = image */
+  .hp-thumb-container{
+    grid-column: 1;
+    grid-row: 1;
+    width: 118px;
+    height: 118px;
+    position: relative;
+  }
+
+  .hp-thumb{
+    width: 118px;
+    height: 118px;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid #eef2f7;
+    background: #fff;
+  }
+
+  .hp-thumb img{
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #fff;
+  }
+
+  /* ✅ discount badge small */
+  .hp-discount-tag{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    right: 6px;
+    bottom: 6px;
+  }
+
+  /* ✅ HIDE wishlist on mobile */
+  .hp-wish-overlay{
+    display: none !important;
+  }
+
+  /* ✅ RIGHT = details full height */
+  .hp-mid{
+    grid-column: 2;
+    grid-row: 1 / span 2; /* take both rows on right */
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 2px;
+  }
+
+  .hp-top-meta{
+    gap: 6px;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+  }
+
+  .hp-row-timer,
+  .hp-min-tag{
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .hp-name{
+    font-size: 12.5px;
+    font-weight: 800;
+    line-height: 1.25;
+    -webkit-line-clamp: 2;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hp-meta-badges{
+    gap: 6px;
+    margin: 4px 0 2px;
+    flex-wrap: wrap;
+  }
+
+  .hp-badge{
+    font-size: 9px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .hp-price-now{
+    font-size: 14px;
+    font-weight: 900;
+    color: #00bfa5;
+  }
+
+  .hp-price-mrp{
+    font-size: 11px;
+    margin-left: 6px;
+  }
+
+  /* ✅ LEFT BOTTOM = Add/QTY (niche) */
+  .hp-right{
+    grid-column: 1;
+    grid-row: 2;
+    width: 118px;
+    display: flex;
+    justify-content: stretch;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Add button full width under image */
+  .hp-cart-btn{
+    width: 100%;
+    height: 34px;
+    padding: 0;
+    font-size: 12px;
+    font-weight: 900;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(255, 112, 67, 0.18);
+  }
+
+  /* Qty controls full width under image */
+  .hp-qty-wrapper{
+    width: 100%;
+    align-items: stretch;
+    gap: 6px;
+  }
+
+  .hp-total-label{
+    font-size: 10px;
+    text-align: left;
+    color: #64748b;
+  }
+
+  .hp-qty-controls{
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 12px;
+  }
+
+  .qty-btn{
+    width: 30px;
+    height: 30px;
+    border-radius: 10px;
+  }
+
+  .qty-num{
+    font-size: 12px;
+    font-weight: 900;
+    min-width: 18px;
+    text-align: center;
+  }
+}
+
+/* ✅ extra small phones */
+@media (max-width: 380px){
+  .hp-row{
+    grid-template-columns: 108px minmax(0, 1fr);
+  }
+  .hp-thumb-container,
+  .hp-thumb{
+    width: 108px;
+    height: 108px;
+  }
+  .hp-right{
+    width: 108px;
+  }
+}
