@@ -346,8 +346,8 @@ body.dark {
 
   /* ✅ grid bhi edge-to-edge */
   .products-grid{
-    padding-left: 0 !important;
-    padding-right: 0 !important;
+   padding-left: 8px !important;
+   padding-right: 8px !important;
   }
 
   /* ✅ remove ProductCard wrapper padding */
