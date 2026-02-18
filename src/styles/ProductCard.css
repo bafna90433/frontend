@@ -1,4 +1,4 @@
-/* src/styles/ProductCard.css */
+/* src/styles/ProductCard.css (FINAL) */
 
 /* Clear font + less bold everywhere */
 :root {
@@ -24,8 +24,8 @@
     0 8px 18px rgba(255, 107, 107, 0.12);
 
   /* ✅ Clear font stack */
-  --pc-font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
-    Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+  --pc-font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial,
+    "Noto Sans", sans-serif;
 
   /* ✅ Controlled weights */
   --w-regular: 400;
@@ -258,17 +258,19 @@
   white-space: nowrap;
 }
 
-/* Title */
+/* ✅ Title (12 letters only) */
 .pc-title {
   font-size: 15px;
   font-weight: var(--w-semibold);
   color: var(--pc-dark);
   margin: 0;
   line-height: 1.3;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+
+  max-width: 30ch;          /* ✅ ~12 letters */
+  white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+
   transition: color 0.15s ease;
 }
 
@@ -295,18 +297,9 @@
   border: 1px solid rgba(15, 23, 42, 0.06);
 }
 
-.pc-chip--box {
-  background: #eaf2ff;
-  color: #1d4ed8;
-}
-.pc-chip--rating {
-  background: #fff7ed;
-  color: #b45309;
-}
-.pc-chip--tag {
-  background: #fff7cc;
-  color: #9a6700;
-}
+.pc-chip--box { background: #eaf2ff; color: #1d4ed8; }
+.pc-chip--rating { background: #fff7ed; color: #b45309; }
+.pc-chip--tag { background: #fff7cc; color: #9a6700; }
 
 /* Price Section */
 .pc-price-section {
@@ -342,9 +335,7 @@
 }
 
 /* Buttons */
-.pc-actions {
-  margin-top: 10px;
-}
+.pc-actions { margin-top: 10px; }
 
 .pc-add-to-cart {
   width: 100%;
@@ -403,6 +394,7 @@
   color: #64748b;
   font-weight: var(--w-regular);
 }
+
 .pc-qty-total {
   font-size: 12px;
   color: var(--pc-primary);
@@ -432,6 +424,7 @@
   color: var(--pc-primary);
   box-shadow: 0 6px 12px rgba(15, 23, 42, 0.06);
 }
+
 .pc-qty-btn--increase {
   background: var(--pc-secondary);
   color: #fff;
@@ -473,12 +466,29 @@
   100% { background-position: -200% 0; }
 }
 
-/* Responsive */
+/* ✅ Mobile: smaller font sizes + tighter */
 @media (max-width: 480px) {
-  .pc-wrapper { padding: 6px; }
-  .pc-body { padding: 10px; gap: 6px; }
-  .pc-title { font-size: 13px; }
-  .pc-chip { padding: 3px 6px; font-size: 9px; }
-  .pc-amount { font-size: 18px; }
-  .pc-add-to-cart { font-size: 12px; padding: 9px; }
+  .pc-wrapper { padding: 4px; }
+  .pc-image-container { margin: 6px; border-radius: 14px; }
+  .pc-hotdeal-timer { font-size: 9px; padding: 4px 8px; }
+
+  .pc-body { padding: 8px 8px 10px; gap: 6px; }
+
+  .pc-min-qty { font-size: 9px; padding: 3px 6px; }
+  .pc-stock-status { font-size: 9px; }
+
+  .pc-title { font-size: 12px; max-width: 30ch; }
+
+  .pc-chip { padding: 3px 6px; font-size: 8px; }
+
+  .pc-currency { font-size: 11px; }
+  .pc-amount { font-size: 16px; }
+  .pc-mrp { font-size: 9px; margin-left: 6px; }
+
+  .pc-add-to-cart { font-size: 11px; padding: 8px; }
+  .pc-qty-label { font-size: 9px; }
+  .pc-qty-total { font-size: 10px; }
+
+  .pc-qty-btn { width: 26px; height: 26px; border-radius: 9px; }
+  .pc-qty-val { font-size: 12px; }
 }

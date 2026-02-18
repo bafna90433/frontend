@@ -1,7 +1,10 @@
 /* ================================
    HOT DEALS - FINAL RESPONSIVE CSS
-   Mobile: Always 2 columns ✅
+   Section: uses .hd-grid (4 cols)
+   Page: uses .hd-pageGrid (5 cols)
 ================================ */
+
+/* ========= SECTION (HotDealsSection) ========= */
 
 /* Wrapper */
 .hd-wrap{
@@ -71,14 +74,10 @@
   transform:translateY(-2px);
 }
 
-/* =====================
-   GRID (Desktop Default)
-===================== */
+/* Section Grid (Desktop: 4 columns) */
 .hd-grid{
   position:relative;
   display:grid;
-
-  /* Desktop me 4 column */
   grid-template-columns:repeat(4, minmax(0, 1fr));
   gap:20px;
 }
@@ -93,11 +92,7 @@
   transform:translateY(-5px);
 }
 
-/* =====================
-   RESPONSIVE BREAKPOINTS
-===================== */
-
-/* <=1024px : 3 columns */
+/* Section Responsive */
 @media (max-width:1024px){
   .hd-grid{
     grid-template-columns:repeat(3, minmax(0, 1fr));
@@ -105,7 +100,6 @@
   }
 }
 
-/* <=768px : 2 columns */
 @media (max-width:768px){
   .hd-wrap{
     padding:14px 12px;
@@ -113,23 +107,15 @@
     border-radius:18px;
   }
 
-  .hd-title{
-    font-size:18px;
-  }
-
-  .hd-viewall{
-    font-size:12px;
-    padding:6px 12px;
-  }
+  .hd-title{ font-size:18px; }
+  .hd-viewall{ font-size:12px; padding:6px 12px; }
 
   .hd-grid{
-    /* ✅ Always 2 columns on mobile/tablet */
     grid-template-columns:repeat(2, minmax(0, 1fr));
     gap:12px;
   }
 }
 
-/* <=480px : Still 2 columns (more compact) ✅ */
 @media (max-width:480px){
   .hd-wrap{
     width:96%;
@@ -138,22 +124,11 @@
     border-radius:16px;
   }
 
-  .hd-head{
-    margin-bottom:14px;
-    padding-bottom:10px;
-  }
-
-  .hd-title{
-    font-size:16px;
-  }
-
-  .hd-viewall{
-    font-size:11px;
-    padding:6px 10px;
-  }
+  .hd-head{ margin-bottom:14px; padding-bottom:10px; }
+  .hd-title{ font-size:16px; }
+  .hd-viewall{ font-size:11px; padding:6px 10px; }
 
   .hd-grid{
-    /* ✅ Forced 2 columns */
     grid-template-columns:repeat(2, minmax(0, 1fr));
     gap:10px;
   }
@@ -180,7 +155,9 @@
   50%{transform:scale(1.05)}
   100%{transform:scale(1)}
 }
-/* Page */
+
+/* ========= PAGE (HotDealsPage) ========= */
+
 .hd-page{
   min-height:80vh;
   background:#f9fafb;
@@ -217,15 +194,11 @@
   color:#6b7280;
 }
 
-/* Grid */
-.hd-grid{
+/* ✅ Page Grid (Desktop: 5 columns) */
+.hd-pageGrid{
   display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
+  grid-template-columns:repeat(5, minmax(0, 1fr));
   gap:20px;
-}
-
-.hd-cardWrap{
-  min-width:0;
 }
 
 /* Empty */
@@ -236,26 +209,84 @@
   font-size:18px;
 }
 
-/* Responsive */
+/* Page Responsive */
+@media (max-width:1280px){
+  .hd-pageGrid{ grid-template-columns:repeat(4, minmax(0,1fr)); }
+}
+
 @media (max-width:1024px){
-  .hd-grid{ grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .hd-pageGrid{ grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px; }
 }
 
 @media (max-width:768px){
   .hd-page{ padding:16px 4%; }
   .hd-pageTitle{ font-size:20px; }
-  .hd-grid{
-    grid-template-columns:repeat(2, minmax(0,1fr)); /* ✅ 2 columns */
-    gap:12px;
-  }
+  .hd-pageGrid{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:12px; }
 }
 
-/* ✅ Mobile always 2 columns */
 @media (max-width:480px){
   .hd-page{ padding:14px 3%; }
   .hd-pageTitle{ font-size:18px; }
-  .hd-grid{
-    grid-template-columns:repeat(2, minmax(0,1fr)); /* ✅ force 2 */
-    gap:10px;
+  .hd-pageGrid{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+}
+/* Page Wrapper */
+.hd-page{
+  width:100%;
+  min-height:80vh;
+  background:#f9fafb;
+  padding:30px 40px;   /* side padding only */
+  box-sizing:border-box;
+}
+
+/* Remove max-width restriction */
+.hd-pageInner{
+  width:100%;
+}
+
+/* =========================
+   FULL WIDTH GRID
+========================= */
+.hd-pageGrid{
+  width:100%;
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);   /* ✅ 5 columns desktop */
+  gap:24px;
+}
+
+/* 4 columns large laptop */
+@media (max-width:1400px){
+  .hd-pageGrid{
+    grid-template-columns:repeat(4, 1fr);
+  }
+}
+
+/* 3 columns tablet landscape */
+@media (max-width:1100px){
+  .hd-pageGrid{
+    grid-template-columns:repeat(3, 1fr);
+  }
+}
+
+/* 2 columns tablet */
+@media (max-width:768px){
+  .hd-page{
+    padding:20px;
+  }
+
+  .hd-pageGrid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:14px;
+  }
+}
+
+/* Mobile always 2 */
+@media (max-width:480px){
+  .hd-page{
+    padding:16px;
+  }
+
+  .hd-pageGrid{
+    grid-template-columns:repeat(2, 1fr);
+    gap:12px;
   }
 }

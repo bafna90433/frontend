@@ -90,7 +90,7 @@ const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
         </p>
 
         <button onClick={close} style={styles.btn}>
-          Skip
+          Ok
         </button>
       </div>
     </div>
