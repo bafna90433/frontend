@@ -32,7 +32,7 @@ workflows:
         script: |
           cd android
           ./gradlew bundleRelease
-          ./gradlew assembleRelease  # <--- YE LINE APK BANAYEGI
+          ./gradlew assembleDebug  # <--- YAHAN DHYAN DEIN: Maine Release ko hata kar Debug kar diya hai
 
     artifacts:
       - android/app/build/outputs/**/*.aab
