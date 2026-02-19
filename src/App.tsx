@@ -7,7 +7,7 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api"; // ✅ Using your axios instance
+import api from "./utils/api"; // ✅ axios instance
 import { io } from "socket.io-client";
 import axios from "axios";
 
@@ -38,13 +38,22 @@ const Orders = React.lazy(() => import("./components/Orders"));
 const ManageAddresses = React.lazy(() => import("./components/ManageAddresses"));
 const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
 const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
-const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"));
-const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
-const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute")); 
+const ShippingDelivery = React.lazy(
+  () => import("./components/ShippingDelivery")
+);
+const CancellationRefund = React.lazy(
+  () => import("./components/CancellationRefund")
+);
+const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 
-// --- CONFIGURATION ---
-const SOCKET_URL = "https://bafnatoys-backend-production.up.railway.app";
-const API_BASE_URL = "https://bafnatoys-backend-production.up.railway.app/api";
+// --- CONFIGURATION (✅ env-based) ---
+const SOCKET_URL: string =
+  (import.meta as any).env?.VITE_SOCKET_URL ||
+  "https://bafnatoys-backend-production.up.railway.app";
+
+const API_BASE_URL: string =
+  (import.meta as any).env?.VITE_API_BASE_URL ||
+  "https://bafnatoys-backend-production.up.railway.app/api";
 
 // --- LOADER COMPONENT ---
 const PageLoader = () => (
@@ -68,37 +77,40 @@ const PageLoader = () => (
         height: "40px",
         animation: "spin 1s linear infinite",
       }}
-    ></div>
+    />
     <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
   </div>
 );
 
-// --- ✅ NEW: PAGE TRACKER COMPONENT (Handles Analytics) ---
+// --- ✅ PAGE TRACKER COMPONENT (Analytics) ---
 const PageTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // ✅ offline me request mat bhejo
+    if (!navigator.onLine) return;
+
     const trackPage = async () => {
       try {
-        // Backend API call to track every page view
         await api.post("/analytics/track", {
-          path: location.pathname,       // Current Page
-          referrer: document.referrer,   // Where they came from
+          path: location.pathname,
+          referrer: document.referrer,
         });
       } catch (error) {
-        // Silently fail if analytics is down, don't disrupt user
         console.error("Analytics Error:", error);
       }
     };
 
     trackPage();
-  }, [location]); // Runs every time route changes
+  }, [location]);
 
-  return null; // Renders nothing visibly
+  return null;
 };
 
 // --- LAYOUT WRAPPER ---
-const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
   const { cartTotal, freeShippingThreshold } = useShop();
@@ -129,7 +141,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =>
       <Header />
 
       <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
-        {/* Suspense handles the loading state while lazy chunk is fetched */}
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
 
@@ -144,7 +155,21 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // 1. MAINTENANCE CHECK
+  // ✅ PWA-like UX: online/offline banner
+  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
+
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => {
+      window.removeEventListener("online", on);
+      window.removeEventListener("offline", off);
+    };
+  }, []);
+
+  // 1) MAINTENANCE CHECK
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
@@ -165,12 +190,10 @@ const AppInner: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // 2. SOCKET CONNECTION (Real-time Online Count)
-  // Note: Analytics logic removed from here as it's now handled by PageTracker
+  // 2) SOCKET CONNECTION (Real-time Online Count)
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
 
-    // Connect Socket slightly delayed to prioritize UI painting
     const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
         transports: ["websocket"],
@@ -189,7 +212,25 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
-      {/* ✅ PageTracker must be inside Router to use useLocation */}
+      {!isOnline && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            padding: "10px 12px",
+            textAlign: "center",
+            background: "#111827",
+            color: "#fff",
+            fontSize: 14,
+          }}
+        >
+          You are offline. Some features may not work.
+        </div>
+      )}
+
       <PageTracker />
 
       <LayoutWrapper>
@@ -210,10 +251,7 @@ const AppInner: React.FC = () => {
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-conditions" element={<TermsConditions />} />
           <Route path="/shipping-delivery" element={<ShippingDelivery />} />
-          <Route
-            path="/cancellation-refund"
-            element={<CancellationRefund />}
-          />
+          <Route path="/cancellation-refund" element={<CancellationRefund />} />
 
           {/* Protected Routes */}
           <Route
