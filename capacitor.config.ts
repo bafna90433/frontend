@@ -6,10 +6,16 @@ const config: CapacitorConfig = {
   webDir: "dist",
   bundledWebRuntime: false,
   
-  // 👇 Ye CORS fix karne wala naya block hai 👇
   server: {
     hostname: "bafnatoys.com",
     androidScheme: "https"
+  },
+  
+  // 👇 Ye naya code Android ki strict security ko bypass karega 👇
+  plugins: {
+    CapacitorHttp: {
+      enabled: true
+    }
   }
 };
 
