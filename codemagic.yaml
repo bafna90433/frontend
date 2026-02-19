@@ -15,6 +15,13 @@ workflows:
           npm install
           npm install -g @capacitor/cli
 
+      # YAHAN DHYAN DEIN: Ye naya step aapki app mein data load karega
+      - name: Create .env file
+        script: |
+          echo "VITE_API_URL=https://bafnatoys-backend-production.up.railway.app/api" > .env
+          echo "VITE_IMAGE_BASE_URL=https://bafnatoys-backend-production.up.railway.app" >> .env
+          echo "VITE_RAZORPAY_KEY=rzp_live_S81sOEbV1qBfkK" >> .env
+
       - name: Build web app
         script: |
           npm run build
@@ -32,7 +39,7 @@ workflows:
         script: |
           cd android
           ./gradlew bundleRelease
-          ./gradlew assembleDebug  # <--- YAHAN DHYAN DEIN: Maine Release ko hata kar Debug kar diya hai
+          ./gradlew assembleDebug
 
     artifacts:
       - android/app/build/outputs/**/*.aab
