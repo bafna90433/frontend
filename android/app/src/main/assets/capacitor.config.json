@@ -1,0 +1,6 @@
+{
+	"appId": "com.bafnatoys.app",
+	"appName": "Bafna Toys",
+	"webDir": "dist",
+	"bundledWebRuntime": false
+}
