@@ -14,8 +14,6 @@ import axios from "axios";
 import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-import InstallPWA from "./components/InstallPWA"; // ✅ NEW
-
 // --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
@@ -139,7 +137,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <>
-      <InstallPWA /> {/* ✅ NEW: open hote hi popup */}
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
 
