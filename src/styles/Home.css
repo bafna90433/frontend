@@ -981,8 +981,8 @@ body, #root {
 ========================================================= */
 @media (max-width: 768px) {
   :root{
-    --m-card-w: 140px;  /* ✅ first card jaisa */
-    --m-card-h: 340px;  /* ✅ first card jaisa */
+    --m-card-w: 152px;  /* ✅ first card jaisa */
+    --m-card-h: 352px;  /* ✅ first card jaisa */
     --m-card-gap: 10px;
   }
 

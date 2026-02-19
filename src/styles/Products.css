@@ -355,3 +355,270 @@ body.dark {
     padding: 0 !important;
   }
 }
+/* src/styles/ProductsPage.css - Cosmic Tech Theme */
+
+/* ---- Theme variables ---- */
+:root {
+  /* Light Mode (Clean Tech) */
+  --gap: 18px;
+  
+  --card-bg: #ffffff;
+  --card-radius: 16px;
+  --card-border: #e0e7ff;       /* Light Indigo */
+  
+  --text-main: #1e1b4b;         /* Deep Navy */
+  --text-muted: #64748b;        /* Slate */
+  
+  --accent: #7c3aed;            /* Electric Violet */
+  --accent-hover: #6d28d9;
+  
+  --shadow-1: 0 8px 20px rgba(124, 58, 237, 0.05);
+  --shadow-hover: 0 14px 32px rgba(124, 58, 237, 0.15);
+  
+  --qty-bg: #f8fafc;
+  --qty-border: #e2e8f0;
+}
+
+/* Dark Mode Overrides (Cosmic Deep Space) */
+body.dark {
+  --card-bg: #0f1026;           /* Glassy Dark Navy */
+  --card-border: #1e1b4b;       /* Dark Indigo Border */
+  
+  --text-main: #f8fafc;         /* White */
+  --text-muted: #94a3b8;        /* Blue-Grey */
+  
+  --accent: #a78bfa;            /* Light Violet */
+  --accent-hover: #8b5cf6;
+  
+  --shadow-1: 0 8px 20px rgba(0, 0, 0, 0.5);
+  --shadow-hover: 0 14px 32px rgba(124, 58, 237, 0.25);
+  
+  --qty-bg: #1e1b4b;
+  --qty-border: #312e81;
+}
+
+/* ---- Page container ---- */
+.products-page {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 16px 24px;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---- Grid ---- */
+.products-grid {
+  display: grid;
+  gap: var(--gap);
+  /* ✅ 5 columns by default */
+  grid-template-columns: repeat(5, 1fr);
+  width: 100%;
+}
+
+/* ---- Card Wrapper in Grid ---- */
+/* Ensure wrapper doesn't add extra padding on desktop unless needed */
+.products-grid .pc-wrapper {
+  padding: 0 !important;
+  height: 100%;
+  width: 100%;
+}
+
+/* ---- Responsive ---- */
+
+/* Wider tablets -> 4 columns */
+@media (max-width: 1200px) {
+  .products-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+/* Tablet screens -> 3 columns */
+@media (max-width: 992px) {
+  .products-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* =========================================
+   ✅ MOBILE OPTIMIZATION (Fix Gap Issue)
+========================================= */
+@media (max-width: 600px) {
+  /* 1. Reset Page Padding (Use tighter spacing) */
+  .products-page, 
+  .products-page[style] {
+    padding: 10px 8px !important; /* Top/Bottom: 10px, Left/Right: 8px */
+  }
+
+  /* 2. Grid Layout - Tighter Gap */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important; /* Reduced from 14px/10px to 8px */
+    padding: 0 !important; /* Grid padding handled by page container */
+    width: 100% !important;
+  }
+
+  /* 3. Card Wrapper - No Padding */
+  .products-grid .pc-wrapper {
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* 4. FORCE FULL WIDTH CARD (Override Home.css fixed width) */
+  /* This fixes the "jayada gap" by making card fill the column */
+  .products-grid .pc-card {
+    width: 100% !important;
+    min-height: auto !important; /* Allow height to adapt */
+  }
+  
+  /* Optional: Make internal card spacing tighter on mobile if needed */
+  .products-grid .pc-image-container {
+    margin: 4px !important;
+  }
+}
+
+/* Extra small screens (iPhone SE etc) */
+@media (max-width: 360px) {
+  .products-grid {
+    gap: 6px !important;
+  }
+  .products-page, .products-page[style] {
+    padding: 10px 6px !important;
+  }
+}/* src/styles/ProductsPage.css - Cosmic Tech Theme */
+
+/* ---- Theme variables ---- */
+:root {
+  --gap: 18px;
+  --card-bg: #ffffff;
+  --card-radius: 16px;
+  --card-border: #e0e7ff; 
+  --text-main: #1e1b4b;
+  --text-muted: #64748b;
+  --accent: #7c3aed;
+  --accent-hover: #6d28d9;
+  --shadow-1: 0 8px 20px rgba(124, 58, 237, 0.05);
+  --shadow-hover: 0 14px 32px rgba(124, 58, 237, 0.15);
+  --qty-bg: #f8fafc;
+  --qty-border: #e2e8f0;
+}
+
+body.dark {
+  --card-bg: #0f1026;
+  --card-border: #1e1b4b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent: #a78bfa;
+  --accent-hover: #8b5cf6;
+  --shadow-1: 0 8px 20px rgba(0, 0, 0, 0.5);
+  --qty-bg: #1e1b4b;
+  --qty-border: #312e81;
+}
+
+/* ---- Page container ---- */
+.products-page {
+  width: 100%;
+  max-width: 100%;
+  margin: 0;
+  padding: 16px 24px;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+}
+
+/* ---- Grid ---- */
+.products-grid {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: repeat(5, 1fr);
+  width: 100%;
+}
+
+/* Ensure wrapper fills space but adds no padding */
+.products-grid .pc-wrapper {
+  padding: 0 !important;
+  width: 100%;
+}
+
+/* ---- Responsive Desktop/Tablet ---- */
+@media (max-width: 1200px) {
+  .products-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+@media (max-width: 992px) {
+  .products-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* =========================================
+   ✅ MOBILE COMPACT MODE (Final Fix)
+   Cards will be smaller, gaps tighter
+========================================= */
+@media (max-width: 600px) {
+  
+  /* 1. Page Padding Reduced */
+  .products-page, 
+  .products-page[style] {
+    padding: 10px 8px !important;
+  }
+
+  /* 2. Grid Tighter */
+  .products-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important; /* Gap reduced */
+  }
+
+  /* 3. Force Card Compactness (Override default PC styles) */
+  .products-grid .pc-card {
+    width: 100% !important;
+    min-height: 0 !important; /* Remove huge height */
+    border-radius: 12px !important; /* Smaller radius */
+  }
+
+  /* 4. Compact Image Area */
+  .products-grid .pc-image-container {
+    margin: 4px !important; /* Tight margin around image */
+    border-radius: 8px !important;
+  }
+
+  /* 5. Compact Body Padding */
+  .products-grid .pc-body {
+    padding: 6px 8px 10px !important; /* Less whitespace inside */
+    gap: 4px !important;
+  }
+
+  /* 6. Smaller Fonts for Compact Feel */
+  .products-grid .pc-title {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+    margin-bottom: 2px !important;
+  }
+
+  .products-grid .pc-currency { font-size: 10px !important; }
+  .products-grid .pc-amount { font-size: 15px !important; }
+  
+  .products-grid .pc-stock-status { font-size: 8px !important; }
+  .products-grid .pc-min-qty { font-size: 8px !important; padding: 2px 4px !important; }
+
+  /* 7. Smaller Buttons */
+  .products-grid .pc-add-to-cart {
+    padding: 6px !important;
+    font-size: 10px !important;
+    height: 28px !important;
+    margin-top: 4px !important;
+  }
+  
+  .products-grid .pc-qty-btn {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .products-grid .pc-qty-val {
+    font-size: 11px !important;
+  }
+}
+
+/* Extra Small Phones */
+@media (max-width: 360px) {
+  .products-grid {
+    gap: 6px !important;
+  }
+}
