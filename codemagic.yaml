@@ -5,7 +5,7 @@ workflows:
 
     environment:
       node: 22
-      java: 21  # <--- YE LINE SABSE ZAROORI HAI!
+      java: 21
       android_signing:
         - bafnatoys_android_release
 
@@ -28,10 +28,11 @@ workflows:
           cd android
           chmod +x gradlew
 
-      - name: Build Android AAB
+      - name: Build Android AAB and APK
         script: |
           cd android
           ./gradlew bundleRelease
+          ./gradlew assembleRelease  # <--- YE LINE APK BANAYEGI
 
     artifacts:
       - android/app/build/outputs/**/*.aab
