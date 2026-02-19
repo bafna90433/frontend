@@ -1,96 +1,78 @@
 /* src/styles/Header.css */
 
 :root {
-  /* --- Professional Palette --- */
-  --header-primary: #e63946;  /* Sophisticated Red for Actions */
-  --header-secondary: #1d3557; /* Navy Blue for Trust/Text */
-  --header-accent: #f1faee;    /* Off-white background */
-  --header-text: #2b2d42;      /* Charcoal for text (softer than black) */
-  --header-text-muted: #8d99ae;
-  
-  --bg-surface: #ffffff;
-  --bg-input: #f8f9fa;
-  --border-light: #e9ecef;
-  
-  --header-height: 72px; /* Standard professional height */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-pill: 50px;
-  
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
-  --shadow-float: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  /* Inherit the playful palette from ProductCard.css context if available,
+     otherwise define here for standalone safety */
+  --kid-primary: #ff6b6b; /* Strawberry */
+  --kid-secondary: #4ecdc4; /* Mint */
+  --kid-accent: #ffd93d; /* Yellow */
+  --kid-blue: #45aaf2; /* Sky Blue */
+  --kid-dark: #2d3436;
+
+  --header-bg: #ffffff;
+  --header-height: 80px;
+
+  --kid-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  --kid-radius: 50px; /* Fully rounded/pill shape */
 }
 
-/* Dark Mode Overrides */
+/* Dark Mode */
 body.dark {
-  --header-primary: #ff6b6b;
-  --header-secondary: #a8dadc;
-  --header-text: #edf2f4;
-  --header-text-muted: #8d99ae;
-  --bg-surface: #1a1a2e;
-  --bg-input: #16213e;
-  --border-light: #2d3436;
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --header-bg: #1a1a2e;
+  --kid-dark: #f0f0f0;
+  --kid-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
 }
 
-/* --- Base Layout --- */
+/* --- Base Header --- */
 .kid-header {
-  background: var(--bg-surface);
-  height: var(--header-height);
+  background: var(--header-bg);
+  box-shadow: var(--kid-shadow);
   position: sticky;
   top: 0;
-  z-index: 1000;
-  border-bottom: 1px solid var(--border-light);
+  z-index: 9999;
   transition: all 0.3s ease;
-  font-family: var(--font-sans);
+  padding: 5px 0;
 }
 
 .kid-header--scrolled {
-  box-shadow: var(--shadow-sm);
-  background: rgba(255, 255, 255, 0.98);
-  backdrop-filter: blur(10px);
+  padding: 0; /* Shrink slightly on scroll */
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
 }
-body.dark .kid-header--scrolled {
-  background: rgba(26, 26, 46, 0.98);
+
+.kid-header__main {
+  width: 100%;
 }
 
 .kid-header__container {
-  max-width: 1280px; /* Wider standard container */
+  max-width: 1200px;
   margin: 0 auto;
-  height: 100%;
-  padding: 0 24px;
+  padding: 10px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 32px;
+  gap: 20px;
 }
 
-/* --- Branding --- */
+/* --- Logo --- */
 .kid-logo {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  text-decoration: none;
-  transition: opacity 0.2s;
+  transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 .kid-logo:hover {
-  opacity: 0.9;
-  /* Removed the "wiggle" for a more stable, pro feel */
-}
+  transform: scale(1.05) rotate(-2deg);
+} /* Fun wiggle */
 
 .kid-logo__img {
-  height: 32px;
-  width: auto;
   display: block;
+  width: auto;
+  height: 45px;
 }
 
-/* --- Search Bar (Modern & Sleek) --- */
+/* --- Search Bar (Pill Shape) --- */
 .kid-search__desktop-wrapper {
   flex: 1;
-  max-width: 600px;
+  max-width: 500px;
+  margin: 0 20px;
 }
 
 .kid-search {
@@ -101,244 +83,345 @@ body.dark .kid-header--scrolled {
 .kid-search__wrapper {
   display: flex;
   align-items: center;
-  background: var(--bg-input);
-  border: 1px solid transparent;
-  border-radius: var(--radius-md); /* Soft rect, not pill */
-  padding: 0 12px;
-  height: 44px; /* Standard touch target height */
-  transition: all 0.2s ease;
+  background: #f0f2f5;
+  border-radius: var(--kid-radius);
+  padding: 4px;
+  border: 2px solid transparent;
+  transition: all 0.3s;
 }
 
-/* Professional Focus State: Glow + Border */
+body.dark .kid-search__wrapper {
+  background: #252840;
+}
+
+/* Focus state makes it pop with primary color */
 .kid-search:focus-within .kid-search__wrapper {
-  background: var(--bg-surface);
-  border-color: var(--header-primary);
-  box-shadow: 0 0 0 3px rgba(230, 57, 70, 0.15);
+  border-color: var(--kid-primary);
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.15);
 }
 
 .kid-search__input {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 0 12px;
-  font-size: 14px;
-  color: var(--header-text);
-  font-weight: 500;
+  padding: 10px 20px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--kid-dark);
   outline: none;
-}
-.kid-search__input::placeholder {
-  color: var(--header-text-muted);
-  font-weight: 400;
+  font-family: inherit;
 }
 
-/* Icons within search */
-.kid-voice-btn, 
 .kid-search__btn {
-  background: transparent;
+  background: var(--kid-primary);
   border: none;
-  width: 36px;
-  height: 36px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  border-radius: var(--radius-sm);
-  color: var(--header-text-muted);
-  transition: all 0.2s;
+  transition: transform 0.2s;
+  margin-right: 2px;
 }
 
-.kid-voice-btn:hover { color: var(--header-primary); background: rgba(0,0,0,0.03); }
-.kid-search__btn:hover { color: var(--header-primary); background: rgba(0,0,0,0.03); }
-
-.kid-voice-btn.is-listening {
-  color: #d00000;
-  animation: pulse 1.5s infinite;
+.kid-search__btn:hover {
+  transform: scale(1.1);
+  background: #ff5252;
 }
-@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-/* SVG Icon sizing */
-.icon-svg { width: 20px; height: 20px; stroke-width: 2px; }
+.kid-search__icon {
+  width: 20px;
+  height: 20px;
+  fill: white;
+}
 
-/* --- Suggestions Dropdown (Refined) --- */
+/* --- Suggestions Dropdown --- */
 .kid-suggest {
   position: absolute;
-  top: calc(100% + 8px);
+  top: calc(100% + 10px);
   left: 0;
   right: 0;
-  background: var(--bg-surface);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-float);
-  border: 1px solid var(--border-light);
+  background: var(--header-bg);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border: 2px solid #f0f0f0;
   overflow: hidden;
-  z-index: 1100;
-  padding: 8px 0;
+  z-index: 1000;
 }
 
-.kid-suggest__list { list-style: none; margin: 0; padding: 0; }
+.kid-suggest__loading,
+.kid-suggest__empty {
+  padding: 20px;
+  text-align: center;
+  color: #888;
+  font-weight: 600;
+}
+
+.kid-suggest__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 400px;
+  overflow-y: auto;
+}
 
 .kid-suggest__item {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 10px 16px;
+  gap: 12px;
+  padding: 10px 15px;
   cursor: pointer;
-  border-bottom: 1px solid transparent;
-  transition: background 0.15s;
+  border-bottom: 1px dashed #eee;
+  transition: background 0.2s;
 }
 
 .kid-suggest__item:hover,
 .kid-suggest__item.is-active {
-  background: var(--bg-input);
+  background: #fff9e6; /* Light yellow hover */
 }
 
 .kid-suggest__thumb {
-  width: 40px;
-  height: 40px;
-  border-radius: 6px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   object-fit: cover;
-  border: 1px solid var(--border-light);
-  background: #fff;
+  border: 1px solid #eee;
+  background: #f4f6f8;
 }
 
-.kid-suggest__name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--header-text);
+.kid-suggest__thumb--ph {
+  background: #f1f5f9;
 }
-.kid-suggest__price {
-  font-size: 13px;
+
+.kid-suggest__meta {
+  flex: 1;
+  min-width: 0;
+}
+.kid-suggest__name {
   font-weight: 700;
-  color: var(--header-primary);
+  color: var(--kid-dark);
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .kid-suggest__sku {
   font-size: 11px;
-  color: var(--header-text-muted);
+  color: #999;
+}
+.kid-suggest__price {
+  font-weight: 800;
+  color: var(--kid-primary);
+  white-space: nowrap;
 }
 
-/* --- Actions Navigation --- */
+.kid-suggest__more {
+  width: 100%;
+  padding: 12px;
+  background: #f9f9f9;
+  border: none;
+  font-weight: 700;
+  color: var(--kid-secondary);
+  cursor: pointer;
+}
+.kid-suggest__more:hover {
+  background: #f0f0f0;
+}
+
+/* Spinner (optional, if you want it visible) */
+.kid-spinner {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.15);
+  border-top-color: rgba(0, 0, 0, 0.45);
+  display: inline-block;
+  margin-right: 8px;
+  animation: kidSpin 0.8s linear infinite;
+}
+@keyframes kidSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* --- Navigation Actions --- */
 .kid-actions {
   display: flex;
   align-items: center;
-  gap: 8px; /* Tighter gap, more cohesive */
+  gap: 15px;
 }
 
-/* Generic Action Button */
 .kid-action-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: none;
   border: none;
   cursor: pointer;
   text-decoration: none;
-  color: var(--header-text);
-  padding: 8px 12px;
-  border-radius: var(--radius-sm);
-  transition: all 0.2s;
-  gap: 4px;
+  color: var(--kid-dark);
+  transition: transform 0.2s;
+  padding: 5px;
 }
 
 .kid-action-btn:hover {
-  background: var(--bg-input);
-  color: var(--header-primary);
-  transform: translateY(0); /* Removed the jump */
+  transform: translateY(-2px);
+  color: var(--kid-primary);
 }
 
+.kid-ico {
+  font-size: 20px;
+  margin-bottom: 2px;
+}
 .kid-btn-text {
   font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.3px;
-  text-transform: uppercase;
+  font-weight: 700;
 }
 
-/* Theme Toggle - Minimalist */
+/* Theme Button - Simple Circle */
 .kid-theme-btn {
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  padding: 0;
+  background: #f0f2f5;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--header-text-muted);
+  font-size: 18px;
 }
-.kid-theme-btn:hover { background: var(--bg-input); color: var(--header-text); }
+body.dark .kid-theme-btn {
+  background: #252840;
+}
 
-/* Cart Button - Professional & High Contrast */
+/* Cart Button - The Star Attraction */
 .kid-cart-btn {
-  background: var(--header-primary);
+  background: var(--kid-secondary);
   color: white;
-  padding: 0 20px;
-  height: 44px;
-  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  border-radius: 30px;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
-  font-weight: 600;
-  font-size: 14px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 10px rgba(230, 57, 70, 0.3); /* Colored glow instead of 3d border */
-  margin-left: 8px;
-}
-
-.kid-cart-btn:hover {
-  background: #d62839;
-  transform: translateY(-1px);
-  box-shadow: 0 6px 15px rgba(230, 57, 70, 0.4);
+  font-weight: 800;
+  box-shadow: 0 4px 0 #3eb3a8; /* 3D Effect */
+  transition: all 0.1s;
 }
 
 .kid-cart-btn:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 5px rgba(230, 57, 70, 0.3);
+  transform: translateY(4px);
+  box-shadow: none;
 }
 
-.kid-cart-icon-wrap { position: relative; display: flex; }
+.kid-cart-icon-wrap {
+  position: relative;
+  font-size: 18px;
+}
 
 .kid-cart-badge {
   position: absolute;
   top: -8px;
   right: -8px;
-  background: #ffffff;
-  color: var(--header-primary);
+  background: var(--kid-accent);
+  color: #333;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 900;
   width: 18px;
   height: 18px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: 2px solid white;
 }
 
-/* --- Mobile Adjustments --- */
-.kid-search--mobile { display: none; padding: 10px 16px; border-bottom: 1px solid var(--border-light); background: var(--bg-surface); }
-.mobile-hide { display: flex; }
+/* --- Mobile Styling --- */
+.kid-search--mobile {
+  display: none;
+  padding: 0 15px 15px;
+}
+
+.mobile-hide {
+  display: flex;
+}
 
 @media (max-width: 900px) {
-  .mobile-hide { display: none; }
-  
-  .kid-header__container { padding: 0 16px; gap: 16px; }
-  
-  .kid-search__desktop-wrapper { display: none; }
-  .kid-search--mobile { display: block; }
-  
-  .kid-btn-text { display: none; }
-  
-  .kid-cart-btn {
-    padding: 0;
-    width: 40px;
-    height: 40px;
-    background: transparent;
-    color: var(--header-text);
-    box-shadow: none;
-    justify-content: center;
+  .mobile-hide {
+    display: none;
   }
-  .kid-cart-btn:hover { background: var(--bg-input); box-shadow: none; }
-  .kid-cart-badge { background: var(--header-primary); color: white; border: 2px solid var(--bg-surface); top: 0; right: 0; }
 
-  /* Keep logo sane size */
-  .kid-logo__img { height: 28px !important; }
+  /* Make header container very compact */
+  .kid-header__container {
+    gap: 10px;
+    padding: 5px 12px; /* Reduced vertical padding */
+    min-height: 50px; /* Force shorter height */
+  }
+
+  /* Force logo to be smaller on mobile */
+  .kid-logo__img {
+    height: 30px !important; /* Override the JSX attribute */
+    width: auto;
+  }
+
+  /* Hide text, smaller icons */
+  .kid-btn-text {
+    display: none;
+  }
+  .kid-ico {
+    font-size: 18px;
+  }
+
+  /* Compact Theme Button */
+  .kid-theme-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 14px;
+  }
+
+  /* Compact Cart Button */
+  .kid-cart-btn {
+    padding: 6px 10px; /* Smaller padding */
+    border-radius: 12px;
+    box-shadow: 0 2px 0 #3eb3a8; /* Smaller shadow */
+    font-size: 12px;
+  }
+  .kid-cart-icon-wrap {
+    font-size: 16px;
+  }
+
+  /* Generic Action buttons (Login/User) */
+  .kid-action-btn {
+    padding: 4px;
+    margin: 0;
+  }
+
+  .kid-search__desktop-wrapper {
+    display: none;
+  }
+
+  /* Compact Mobile Search Bar */
+  .kid-search--mobile {
+    display: block;
+    padding: 5px 12px 10px; /* Reduced padding around search */
+  }
+
+  .kid-search__wrapper {
+    height: 38px; /* Slightly slimmer input box */
+    padding: 2px;
+  }
+
+  .kid-search__btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .kid-search__input {
+    padding: 5px 15px;
+    font-size: 14px;
+  }
 }

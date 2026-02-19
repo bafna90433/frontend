@@ -6,7 +6,7 @@ import { useShop } from "../context/ShopContext";
 import { useTheme } from "../context/ThemeContext";
 import "../styles/Header.css";
 
-const LOGO_IMG = "/logo.webp"; 
+const LOGO_IMG = "/logo.webp"; // Ensure this logo is colorful!
 
 type Suggestion = {
   _id: string;
@@ -16,7 +16,6 @@ type Suggestion = {
   price?: number;
 };
 
-// ... [Keep your IMAGE_BASE and getThumb helper functions exactly as they are] ...
 const IMAGE_BASE =
   (import.meta as any).env?.VITE_IMAGE_BASE_URL ||
   (import.meta as any).env?.VITE_MEDIA_URL ||
@@ -26,44 +25,24 @@ const IMAGE_BASE =
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
+
+  // Absolute URL
   if (/^https?:\/\//i.test(f)) return f;
+
+  // If IMAGE_BASE is provided
   if (IMAGE_BASE) {
     const base = IMAGE_BASE.replace(/\/+$/, "");
     return `${base}/${f.replace(/^\/+/, "")}`;
   }
+
+  // If backend relative path like /uploads/...
   if (f.includes("/uploads/")) {
     const root = API_ROOT.replace(/\/+$/, "");
     return `${root}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
   }
-  return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
-};
 
-/* --- Professional Icons (Inline SVGs) --- */
-const Icons = {
-  Search: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-  ),
-  Mic: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
-  ),
-  User: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-  ),
-  Login: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-  ),
-  Box: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-  ),
-  Cart: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-  ),
-  Moon: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-  ),
-  Sun: () => (
-    <svg className="icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-  )
+  // Other relative
+  return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
 const SearchForm = React.forwardRef(function SearchForm(
@@ -98,52 +77,6 @@ const SearchForm = React.forwardRef(function SearchForm(
     navigate,
   } = props;
 
-  // Voice Search Logic (Unchanged)
-  const SpeechRecognitionCtor =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-  const voiceSupported = !!SpeechRecognitionCtor;
-  const recognitionRef = useRef<any>(null);
-  const [listening, setListening] = useState(false);
-  const inputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!voiceSupported) return;
-    const rec = new SpeechRecognitionCtor();
-    recognitionRef.current = rec;
-    rec.continuous = false;
-    rec.interimResults = true;
-    rec.lang = "en-IN"; 
-    rec.onstart = () => setListening(true);
-    rec.onresult = (event: any) => {
-      let transcript = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript;
-      }
-      const clean = transcript.trim();
-      if (clean) setQ(clean);
-    };
-    rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
-    return () => {
-        // cleanup
-    };
-  }, [voiceSupported, setQ]);
-
-  const toggleVoice = () => {
-    if (!voiceSupported) return;
-    setOpenSug(false);
-    setActiveIdx(-1);
-    inputRef.current?.focus();
-    try {
-      const rec = recognitionRef.current;
-      if (!rec) return;
-      if (listening) rec.stop();
-      else rec.start();
-    } catch {
-      setListening(false);
-    }
-  };
-
   return (
     <form
       className={`kid-search ${mobile ? "is-mobile" : ""}`}
@@ -153,49 +86,39 @@ const SearchForm = React.forwardRef(function SearchForm(
     >
       <div className="kid-search__wrapper">
         <input
-          ref={inputRef}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => sug.length > 0 && setOpenSug(true)}
           onKeyDown={onKeyDown}
           className="kid-search__input"
-          placeholder="Search for toys, brands..."
+          placeholder="Search for toys, games..."
           aria-label="Search"
         />
-
-        <button
-          className={`kid-voice-btn ${listening ? "is-listening" : ""}`}
-          type="button"
-          onClick={toggleVoice}
-          disabled={!voiceSupported}
-          aria-label={voiceSupported ? (listening ? "Stop voice search" : "Start voice search") : "Not supported"}
-        >
-          <Icons.Mic />
-        </button>
-
         <button className="kid-search__btn" type="submit" aria-label="Search">
-           <Icons.Search />
+          <svg className="kid-search__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+          </svg>
         </button>
       </div>
 
-      {/* Suggestions Dropdown */}
+      {/* Suggestions Dropdown (Playful Style) */}
       {openSug && (
         <div className="kid-suggest">
           {loadingSug && (
             <div className="kid-suggest__loading">
               <div className="kid-spinner"></div>
-              Loading...
+              Looking for toys...
             </div>
           )}
 
           {!loadingSug && sug.length === 0 && (
             <div className="kid-suggest__empty">
-              No results found.
+              😕 No toys found. Try "car" or "doll"?
             </div>
           )}
 
           {!loadingSug && sug.length > 0 && (
-            <ul className="kid-suggest__list" role="listbox">
+            <ul className="kid-suggest__list" role="listbox" aria-label="Search suggestions">
               {sug.map((p, idx) => (
                 <li
                   key={p._id}
@@ -210,16 +133,24 @@ const SearchForm = React.forwardRef(function SearchForm(
                   aria-selected={idx === activeIdx}
                 >
                   {getThumb(p) ? (
-                    <img src={getThumb(p)!} alt="" className="kid-suggest__thumb" loading="lazy" />
+                    <img
+                      src={getThumb(p)!}
+                      alt=""
+                      className="kid-suggest__thumb"
+                      loading="lazy"
+                      width={44}
+                      height={44}
+                    />
                   ) : (
                     <div className="kid-suggest__thumb kid-suggest__thumb--ph" />
                   )}
 
                   <div className="kid-suggest__meta">
                     <div className="kid-suggest__name">{p.name}</div>
-                    {p.sku && <div className="kid-suggest__sku">SKU: {p.sku}</div>}
+                    {p.sku && <div className="kid-suggest__sku">#{p.sku}</div>}
                   </div>
-                  <div className="kid-suggest__price">{p.price ? `₹${p.price.toLocaleString()}` : ""}</div>
+
+                  <div className="kid-suggest__price">{p.price ? `₹${p.price}` : ""}</div>
                 </li>
               ))}
             </ul>
@@ -236,7 +167,7 @@ const SearchForm = React.forwardRef(function SearchForm(
                 navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
               }}
             >
-              View all results
+              See all results
             </button>
           )}
         </div>
@@ -251,7 +182,6 @@ const Header: React.FC = () => {
   const { cartItems } = useShop();
   const { theme, toggleTheme } = useTheme();
 
-  // ... [Keep your cartCount, search logic, user parsing, etc. intact] ...
   const cartCount = useMemo(() => {
     if (!Array.isArray(cartItems)) return 0;
     return cartItems.reduce((sum: number, it: any) => {
@@ -274,25 +204,101 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  // ... [Rest of your useEffects for Search Logic and Listeners] ...
-  // (Assuming you keep the exact logic for search fetching from your original code)
-  
-  // Re-implementing logic blocks for brevity in display, ensure you copy your existing logic here.
-  // ... [Search Logic Code Block] ...
-  // ... [Outside Click Logic Block] ...
-  // ... [Scroll Logic Block] ...
-  
-  const [user, setUser] = useState<any | null>(null); // Simplified for display
-  // Add your user parsing logic back here.
+  const parseUser = (): any | null => {
+    try {
+      const raw = localStorage.getItem("user");
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch {
+      return null;
+    }
+  };
 
-  const [scrolled, setScrolled] = useState(false);
+  const [user, setUser] = useState<any | null>(() => parseUser());
+
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 10); // Trigger earlier
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    const onStorage = () => setUser(parseUser());
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("user-changed", onStorage as EventListener);
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("user-changed", onStorage as EventListener);
+    };
   }, []);
 
-  // Handlers
+  // Search Logic
+  useEffect(() => {
+    let t: any;
+    let alive = true;
+
+    const run = async () => {
+      const needle = q.trim();
+
+      if (needle.length < 2) {
+        if (alive) {
+          setSug([]);
+          setOpenSug(false);
+          setActiveIdx(-1);
+        }
+        return;
+      }
+
+      setLoadingSug(true);
+      try {
+        const res = await api.get("/products", {
+          params: { search: needle, limit: 10 },
+        });
+
+        if (!alive) return;
+
+        const arr: Suggestion[] = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray((res.data as any)?.products)
+          ? (res.data as any).products
+          : [];
+
+        const n = needle.toLowerCase();
+        const filtered = arr.filter(
+          (p) =>
+            (p.name || "").toLowerCase().includes(n) ||
+            (p.sku || "").toLowerCase().includes(n)
+        );
+
+        setSug(filtered.slice(0, 8));
+        setOpenSug(true);
+        setActiveIdx(-1);
+      } catch {
+        if (alive) {
+          setSug([]);
+          setOpenSug(true);
+          setActiveIdx(-1);
+        }
+      } finally {
+        if (alive) setLoadingSug(false);
+      }
+    };
+
+    t = setTimeout(run, 200);
+
+    return () => {
+      alive = false;
+      clearTimeout(t);
+    };
+  }, [q]);
+
+  useEffect(() => {
+    const onDoc = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const insideDesk = deskRef.current?.contains(target);
+      const insideMob = mobRef.current?.contains(target);
+      if (insideDesk || insideMob) return;
+      setOpenSug(false);
+      setActiveIdx(-1);
+    };
+    document.addEventListener("mousedown", onDoc);
+    return () => document.removeEventListener("mousedown", onDoc);
+  }, []);
+
   const onSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const query = q.trim();
@@ -301,8 +307,35 @@ const Header: React.FC = () => {
   };
 
   const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    // ... [Keep your existing logic] ...
+    if (!openSug || (!sug.length && !loadingSug)) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => (i + 1 >= sug.length ? 0 : i + 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => (i - 1 < 0 ? sug.length - 1 : i - 1));
+    } else if (e.key === "Enter") {
+      if (activeIdx >= 0 && sug[activeIdx]) {
+        setOpenSug(false);
+        navigate(`/product/${sug[activeIdx]._id}`);
+      } else {
+        setOpenSug(false);
+        const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
+        navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+      }
+    } else if (e.key === "Escape") {
+      setOpenSug(false);
+      setActiveIdx(-1);
+    }
   };
+
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <header className={`kid-header ${scrolled ? "kid-header--scrolled" : ""}`}>
@@ -314,8 +347,11 @@ const Header: React.FC = () => {
               src={LOGO_IMG}
               alt="BAFNA TOYS"
               className="kid-logo__img"
-              width={160} // Slightly smaller for professional look
-              height={40}
+              width={188}
+              height={45}
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
             />
           </Link>
 
@@ -337,7 +373,7 @@ const Header: React.FC = () => {
             />
           </div>
 
-          {/* Action Buttons */}
+          {/* Action Buttons (Icons + Text) */}
           <nav className="kid-actions" aria-label="Header actions">
             {/* Theme Toggle */}
             <button
@@ -346,7 +382,7 @@ const Header: React.FC = () => {
               aria-label="Toggle Theme"
               type="button"
             >
-              {theme === "light" ? <Icons.Moon /> : <Icons.Sun />}
+              {theme === "light" ? "🌙" : "☀️"}
             </button>
 
             {/* Account / Login */}
@@ -356,12 +392,16 @@ const Header: React.FC = () => {
                 onClick={() => navigate("/my-account")}
                 type="button"
               >
-                <Icons.User />
+                <span className="kid-ico" aria-hidden>
+                  👤
+                </span>
                 <span className="kid-btn-text">Account</span>
               </button>
             ) : (
               <Link className="kid-action-btn" to="/login">
-                <Icons.Login />
+                <span className="kid-ico" aria-hidden>
+                  🔑
+                </span>
                 <span className="kid-btn-text">Login</span>
               </Link>
             )}
@@ -369,15 +409,17 @@ const Header: React.FC = () => {
             {/* My Orders */}
             {user && (
               <Link className="kid-action-btn mobile-hide" to="/orders">
-                <Icons.Box />
+                <span className="kid-ico" aria-hidden>
+                  📦
+                </span>
                 <span className="kid-btn-text">Orders</span>
               </Link>
             )}
 
             {/* Cart Button */}
             <Link className="kid-cart-btn" to="/cart" aria-label="Cart">
-              <div className="kid-cart-icon-wrap">
-                <Icons.Cart />
+              <div className="kid-cart-icon-wrap" aria-hidden>
+                🛒
                 {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
               </div>
               <span className="kid-btn-text">Cart</span>
