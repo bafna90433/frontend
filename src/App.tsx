@@ -11,6 +11,9 @@ import api from "./utils/api"; // ✅ axios instance
 import { io } from "socket.io-client";
 import axios from "axios";
 
+// ✅ YAHAN STATUS BAR PLUGIN IMPORT KIYA HAI
+import { StatusBar } from "@capacitor/status-bar";
+
 import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
@@ -167,6 +170,20 @@ const AppInner: React.FC = () => {
       window.removeEventListener("online", on);
       window.removeEventListener("offline", off);
     };
+  }, []);
+
+  // ✅ YAHAN APP KHULTE HI STATUS BAR HIDE KARNE KA CODE HAI
+  useEffect(() => {
+    const hideStatusBar = async () => {
+      try {
+        await StatusBar.hide();
+      } catch (error) {
+        // Ye error tab aayega jab aap laptop (browser) par check karenge, 
+        // phone mein ye bilkul sahi chalega.
+        console.log("Status bar feature works only on mobile devices:", error);
+      }
+    };
+    hideStatusBar();
   }, []);
 
   // 1) MAINTENANCE CHECK
