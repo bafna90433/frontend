@@ -5,29 +5,36 @@ workflows:
 
     environment:
       node: 22
-
-    android_signing:
-      - keystore_reference: bafnatoys_android_release
+      android_signing:
+        - bafnatoys_android_release
 
     scripts:
       - name: Install dependencies
         script: |
-          npm ci
-          npm i -g @capacitor/cli
+          cd frontend
+          npm install
+          npm install -g @capacitor/cli
 
       - name: Build web app
         script: |
+          cd frontend
           npm run build
 
       - name: Capacitor sync
         script: |
+          cd frontend
           npx cap sync android
+
+      - name: Fix gradlew permission
+        script: |
+          cd frontend/android
+          chmod +x gradlew
 
       - name: Build Android AAB
         script: |
-          cd android
+          cd frontend/android
           ./gradlew bundleRelease
 
     artifacts:
-      - android/app/build/outputs/**/*.aab
-      - android/app/build/outputs/**/*.apk
+      - frontend/android/app/build/outputs/**/*.aab
+      - frontend/android/app/build/outputs/**/*.apk
