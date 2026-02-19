@@ -974,3 +974,40 @@ body, #root {
     padding: 0 8px 10px !important;
   }
 }
+/* =========================================================
+   ✅ MOBILE: SAME PRODUCT CARD SIZE FOR ALL SECTIONS
+   (Deals + Pullback + Any category scroll)
+   Paste at END of Home.css
+========================================================= */
+@media (max-width: 768px) {
+  :root{
+    --m-card-w: 140px;  /* ✅ first card jaisa */
+    --m-card-h: 340px;  /* ✅ first card jaisa */
+    --m-card-gap: 10px;
+  }
+
+  /* ✅ same gap everywhere */
+  .product-scroll{
+    gap: var(--m-card-gap) !important;
+  }
+
+  /* ✅ force same width for every product item */
+  .product-link{
+    flex: 0 0 var(--m-card-w) !important;
+    max-width: var(--m-card-w) !important;
+    width: var(--m-card-w) !important;
+  }
+
+  /* ✅ actual card box size fix (pc-card class as per your screenshot) */
+  .product-link .pc-card,
+  .pc-card{
+    width: var(--m-card-w) !important;
+    min-height: var(--m-card-h) !important;
+  }
+
+  /* ✅ prevent inner content from changing card height */
+  .pc-card *{
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+}

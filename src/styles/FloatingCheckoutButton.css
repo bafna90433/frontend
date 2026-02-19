@@ -6,7 +6,7 @@
   --fc-bg: #ffffff;
   --fc-progress-bg: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
   --fc-bar-bg: #e0e7ff;
-  --fc-bar-fill: #7c3aed;      /* Electric Violet */
+  --fc-bar-fill: #7c3aed;       /* Electric Violet */
   
   --fc-text-primary: #1e1b4b;  /* Deep Navy */
   --fc-text-secondary: #64748b;/* Slate */
@@ -54,32 +54,33 @@ body.dark {
 }
 
 /* =========================================
-   1. PC VIEW (Desktop Default) - LEFT SIDE
+   1. PC VIEW (Desktop Default)
    ========================================= */
 .floating-checkout-container {
-  position: fixed;
-  z-index: 1000;
+  /* ✅ Force Fixed Position for PC */
+  position: fixed !important;
+  z-index: 9999 !important; /* Ensure it's on top of everything */
   
-  /* PC Alignment: Left Side */
+  /* Left Side Placement (Use 'right: 30px; left: auto;' if you want it on the right) */
   bottom: 30px;
   left: 30px;
   right: auto;
-  transform: none;
   
+  transform: translateY(0); /* Reset defaults */
   width: 360px;
   background: var(--fc-bg);
   border-radius: 20px;
   cursor: pointer;
   
-  /* Animation */
-  animation: slideUpPC 0.5s cubic-bezier(0.2, 0, 0, 1);
-  
   /* Shadow & Border */
   box-shadow: var(--fc-shadow);
   border: 1px solid var(--fc-border);
   overflow: hidden;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px); /* Glassmorphism */
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  backdrop-filter: blur(10px);
+  
+  /* Initial Entry Animation */
+  animation: slideUpPC 0.5s cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
 .floating-checkout-container:hover {
@@ -88,8 +89,8 @@ body.dark {
 }
 
 @keyframes slideUpPC {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* --- Internal Styling (Common) --- */
@@ -193,7 +194,6 @@ body.dark .count-number {
   color: #ffffff; 
 }
 
-
 .price-details { display: flex; flex-direction: column; }
 .total-label { font-size: 11px; color: var(--fc-text-secondary); line-height: 1; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
 .total-amount { font-size: 20px; font-weight: 800; color: var(--fc-text-primary); line-height: 1; }
@@ -241,17 +241,21 @@ body.dark .count-number {
 @media (max-width: 768px) {
   .floating-checkout-container {
     /* Mobile Alignment: Center Bottom */
-    left: 50%;
+    position: fixed !important; /* Force sticky here too */
+    left: 50% !important;
     right: auto;
-    bottom: 90px; /* Raised slightly */
-    transform: translateX(-50%);
+    
+    /* Raised above nav bar safe area */
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important;
+    transform: translateX(-50%) !important;
     
     /* Mobile Size: Compact */
-    width: 92%;
-    max-width: 400px;
+    width: 92% !important;
+    max-width: 400px !important;
     border-radius: 16px;
+    z-index: 9999 !important;
     
-    animation: slideUpMobile 0.4s cubic-bezier(0.2, 0, 0, 1);
+    animation: slideUpMobile 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
   }
 
   @keyframes slideUpMobile {
@@ -291,4 +295,11 @@ body.dark .count-number {
   
   .progress-bar-bg { height: 4px; }
   .progress-message { font-size: 11px; }
+}
+
+/* Very Small Screens */
+@media (max-width: 380px) {
+    .floating-checkout-container {
+        width: 95% !important;
+    }
 }
