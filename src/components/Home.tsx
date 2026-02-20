@@ -1,5 +1,5 @@
 // src/pages/Home.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
 
@@ -10,8 +10,6 @@ import PopularCategories from "./PopularCategories";
 import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
-
-// ✅ NEW COMPONENT (row based promo)
 import HomePromoSection from "../components/HomePromoSection";
 
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
@@ -19,7 +17,6 @@ import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
-// ✅ INSTAGRAM ICON ADDED
 import { FaInstagram } from "react-icons/fa"; 
 import { Skeleton } from "@mui/material";
 import "../styles/Home.css";
@@ -39,8 +36,8 @@ interface Product {
   images: string[];
   slug?: string;
   mrp?: number;
-  rating?: number; // optional (for promo row stars)
-  ratingCount?: number; // optional
+  rating?: number;
+  ratingCount?: number;
 }
 
 interface Banner {
@@ -49,7 +46,6 @@ interface Banner {
   link?: string;
 }
 
-// ✅ Promo types
 type PromoBanner = { image: string; link?: string };
 type PromoBlock = {
   sideBanners?: PromoBanner[];
@@ -62,28 +58,23 @@ type HomeCfg = {
   popularSubtitle?: string;
   popularCategoryIds?: string[];
   popularCategories?: Category[];
-
   trendingTitle?: string;
   trendingProductIds?: string[];
   trendingSections?: { title: string; productIds: string[]; products?: Product[] }[];
-
   bannerImage?: string;
   bannerLink?: string;
-
   hotDealsEnabled?: boolean;
   hotDealsPageEnabled?: boolean;
   hotDealsTitle?: string;
   hotDealsEndsAt?: string | null;
   hotDealsProductIds?: string[];
   hotDealsProducts?: Product[];
-
   promo?: PromoBlock;
 };
 
 const safeArr = <T,>(v: any): T[] => (Array.isArray(v) ? v : []);
 const safeStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
 
-// ✅ Cloudinary optimizer
 const optimizeCloudinary = (url: string, w: number, h: number) => {
   if (!url) return "";
   if (!url.includes("res.cloudinary.com")) return url;
@@ -100,8 +91,10 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const scrollContainers = useRef<Map<string, HTMLDivElement>>(new Map());
+
   const scrollContainer = (id: string, direction: "left" | "right") => {
-    const container = document.getElementById(`scroll-${id}`);
+    const container = scrollContainers.current.get(id);
     if (!container) return;
     const scrollAmount = container.clientWidth * 0.8;
     container.scrollBy({
@@ -147,12 +140,10 @@ const Home: React.FC = () => {
     return categories.filter((c) => ids.includes(c._id));
   }, [homeCfg, categories]);
 
-  // ✅ Promo data
   const promoSideBanners = useMemo(() => safeArr<PromoBanner>(homeCfg?.promo?.sideBanners), [homeCfg]);
   const bestSellingProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.bestSellingProducts), [homeCfg]);
   const onSaleProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.onSaleProducts), [homeCfg]);
 
-  // ✅ optimize promo banners urls
   const promoSideBannersOptimized = useMemo(() => {
     return promoSideBanners.slice(0, 2).map((b) => ({
       ...b,
@@ -167,29 +158,75 @@ const Home: React.FC = () => {
   return (
     <div className="home-container">
       
-     {/* ✅ FLOATING CANDY ANNOUNCEMENT BAR */}
-<div className="announcement-wrapper">
-  <a
-    href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
-    target="_blank"
-    rel="noreferrer"
-    className="top-announcement-bar"
-  >
-    <div className="announcement-left">
-      <span className="announcement-badge">▶ Play</span>
-    </div>
-    
-    <span className="announcement-text">
-      Want to see our toys in action? 🎥 Watch videos on our Instagram and come back to shop!
-    </span>
-    
-    <span className="announcement-btn">
-      Watch Now <FaInstagram size={15} />
-    </span>
-  </a>
-</div>
+      {/* Instagram Announcement Bar */}
+      <div className="announcement-wrapper">
+        <a
+          href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
+          target="_blank"
+          rel="noreferrer"
+          className="top-announcement-bar"
+        >
+          <div className="announcement-left">
+            <span className="announcement-badge">▶ Play</span>
+          </div>
+          
+          <span className="announcement-text">
+            Want to see our toys in action? 🎥 Watch videos on our Instagram and come back to shop!
+          </span>
+          
+          <span className="announcement-btn">
+            Watch Now <FaInstagram size={15} />
+          </span>
+        </a>
+      </div>
 
-{/* Niche ka Trustbar aur Banners same rahenge... */}
+      {/* Banner Slider - Integrated here */}
+      {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
+
+      {/* Trust Bar */}
+      {!loading && (
+        <div className="trustbar">
+          <div className="trust-item">
+            <div className="trust-icon" aria-hidden>
+              <FaTruckFast />
+            </div>
+            <div className="trust-text">
+              <h4>Fast Delivery</h4>
+              <p>Quick dispatch</p>
+            </div>
+          </div>
+
+          <div className="trust-item">
+            <div className="trust-icon" aria-hidden>
+              <MdSecurity />
+            </div>
+            <div className="trust-text">
+              <h4>Secure Pay</h4>
+              <p>Safe checkout</p>
+            </div>
+          </div>
+
+          <div className="trust-item">
+            <div className="trust-icon" aria-hidden>
+              <HiBadgeCheck />
+            </div>
+            <div className="trust-text">
+              <h4>Quality</h4>
+              <p>Checked products</p>
+            </div>
+          </div>
+
+          <div className="trust-item">
+            <div className="trust-icon" aria-hidden>
+              <BiSupport />
+            </div>
+            <div className="trust-text">
+              <h4>Support</h4>
+              <p>Help on call</p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Shop By Category */}
       {!loading && categories.length > 0 && (
@@ -254,7 +291,6 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {/* ✅ FINAL PROMO SECTION (REFERENCE DESIGN - rows) */}
       {!loading &&
         homeCfg?.promo &&
         (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
@@ -290,11 +326,22 @@ const Home: React.FC = () => {
               </div>
 
               <div className="product-scroll-wrapper">
-                <button className="scroll-btn scroll-btn--left" onClick={() => scrollContainer(cat._id, "left")}>
+                <button 
+                  className="scroll-btn scroll-btn--left" 
+                  onClick={() => scrollContainer(cat._id, "left")}
+                  aria-label="Scroll left"
+                >
                   <FiChevronLeft size={22} />
                 </button>
 
-                <div id={`scroll-${cat._id}`} className="product-scroll">
+                <div 
+                  id={`scroll-${cat._id}`} 
+                  className="product-scroll"
+                  ref={(el) => {
+                    if (el) scrollContainers.current.set(cat._id, el);
+                    else scrollContainers.current.delete(cat._id);
+                  }}
+                >
                   {items.map((product) => (
                     <div key={product._id} className="product-link">
                       <ProductCard product={product as any} userRole="customer" />
@@ -302,7 +349,11 @@ const Home: React.FC = () => {
                   ))}
                 </div>
 
-                <button className="scroll-btn scroll-btn--right" onClick={() => scrollContainer(cat._id, "right")}>
+                <button 
+                  className="scroll-btn scroll-btn--right" 
+                  onClick={() => scrollContainer(cat._id, "right")}
+                  aria-label="Scroll right"
+                >
                   <FiChevronRight size={22} />
                 </button>
               </div>

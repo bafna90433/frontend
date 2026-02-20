@@ -30,7 +30,7 @@
   --font: "Nunito", "Quicksand", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
 
-/* Global smooth feel */
+/* Global smooth feel - OPTIMIZED */
 * {
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
@@ -43,8 +43,10 @@
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 10px 0; /* Creates the floating effect */
+  padding: 10px 0;
   background: transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .top-announcement-bar {
@@ -63,17 +65,20 @@
   font-size: 14.5px;
   position: relative;
   z-index: 50;
-  border-radius: 50px; /* Pill shape */
-  border: 2px dashed rgba(255, 255, 255, 0.5); /* Carnival Ticket Look */
+  border-radius: 50px;
+  border: 2px dashed rgba(255, 255, 255, 0.5);
   box-shadow: 0 8px 20px rgba(255, 46, 147, 0.3);
   animation: gradient-shift 5s ease infinite, float-bar 3s ease-in-out infinite;
   transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .top-announcement-bar:hover {
   transform: scale(1.02) translateY(-2px);
   border-color: rgba(255, 255, 255, 0.9);
-  animation-play-state: paused; /* Pauses animation on hover */
+  animation-play-state: paused;
 }
 
 .announcement-badge {
@@ -112,10 +117,9 @@
 .top-announcement-bar:hover .announcement-btn {
   background: var(--yellow);
   color: #000;
-  transform: rotate(-2deg) scale(1.05); /* Playful hover effect */
+  transform: rotate(-2deg) scale(1.05);
 }
 
-/* --- ANIMATIONS --- */
 @keyframes gradient-shift {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
@@ -133,7 +137,6 @@
   100% { transform: scale(1.1); }
 }
 
-/* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
   .announcement-wrapper {
     padding: 8px;
@@ -142,10 +145,10 @@
   .top-announcement-bar {
     width: 100%;
     flex-direction: column;
-    border-radius: 20px; /* Adjusted for stacking */
+    border-radius: 20px;
     padding: 15px 12px;
     gap: 10px;
-    animation: gradient-shift 5s ease infinite; /* Removed float for mobile stability */
+    animation: gradient-shift 5s ease infinite;
   }
 
   .announcement-text {
@@ -162,7 +165,8 @@
 }
 
 /* ========================================= */
-
+/* HOME CONTAINER - OPTIMIZED FOR SCROLLING */
+/* ========================================= */
 .home-container {
   width: 100%;
   margin: 0;
@@ -170,17 +174,22 @@
   font-family: var(--font);
   color: var(--text);
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 
-  /* Candy pop background with blobs */
   background:
     radial-gradient(900px 420px at 8% 8%, rgba(255, 46, 147, 0.18), transparent 60%),
     radial-gradient(860px 460px at 92% 10%, rgba(46, 197, 255, 0.20), transparent 62%),
     radial-gradient(760px 420px at 50% 94%, rgba(255, 212, 0, 0.18), transparent 60%),
     linear-gradient(180deg, #fff7ff, #ffffff 55%, #fffdf2);
   position: relative;
+  background-attachment: scroll;
 }
 
-/* cute floating stickers background (subtle) */
 .home-container::before,
 .home-container::after {
   content: "";
@@ -188,6 +197,8 @@
   inset: auto;
   pointer-events: none;
   z-index: 0;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .home-container::before {
@@ -197,7 +208,7 @@
   top: 220px;
   background: radial-gradient(circle, rgba(124,77,255,0.16), transparent 60%);
   filter: blur(0.5px);
-  transform: rotate(10deg);
+  transform: rotate(10deg) translateZ(0);
 }
 
 .home-container::after {
@@ -207,13 +218,14 @@
   top: 680px;
   background: radial-gradient(circle, rgba(38,240,199,0.16), transparent 60%);
   filter: blur(0.5px);
-  transform: rotate(-12deg);
+  transform: rotate(-12deg) translateZ(0);
 }
 
-/* ensure content above background blobs */
 .home-container > * {
   position: relative;
   z-index: 1;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 /* =========================================
@@ -226,6 +238,9 @@
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 14px;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 120px;
 }
 
 .trust-item {
@@ -240,6 +255,9 @@
   transition: transform 0.22s ease, box-shadow 0.22s ease;
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .trust-item::before {
@@ -270,6 +288,7 @@
   color: #fff;
   box-shadow: 0 14px 20px rgba(20, 27, 45, 0.12);
   background: linear-gradient(135deg, var(--pink), var(--purple));
+  transform: translateZ(0);
 }
 
 .trust-item:nth-child(2) .trust-icon {
@@ -302,6 +321,9 @@
 .section-heading-wrapper {
   text-align: center;
   margin: 30px 0 10px;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 80px;
 }
 
 .section-heading {
@@ -311,7 +333,7 @@
   margin: 0;
   position: relative;
   letter-spacing: 0.2px;
-  transform: rotate(-0.3deg);
+  transform: rotate(-0.3deg) translateZ(0);
 }
 
 .section-heading::after {
@@ -319,7 +341,7 @@
   position: absolute;
   left: 50%;
   bottom: -6px;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateZ(0);
   width: 92%;
   height: 14px;
   border-radius: 999px;
@@ -350,6 +372,12 @@
   scroll-behavior: smooth;
   width: 100%;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint;
 }
 
 .category-circles-section::-webkit-scrollbar {
@@ -369,6 +397,9 @@
   min-width: 132px;
   cursor: pointer;
   transition: transform 0.22s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .cat-circle-item:hover {
@@ -381,12 +412,13 @@
   border-radius: 999px;
   overflow: hidden;
   position: relative;
-
-  /* neon ring */
   padding: 5px;
   background: conic-gradient(from 180deg, var(--pink), var(--yellow), var(--blue), var(--mint), var(--pink));
   box-shadow: 0 18px 40px rgba(20, 27, 45, 0.16);
   transition: transform 0.22s ease, box-shadow 0.22s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .cat-circle-img-wrapper::before {
@@ -395,6 +427,7 @@
   inset: 5px;
   border-radius: 999px;
   background: rgba(255,255,255,0.92);
+  transform: translateZ(0);
 }
 
 .cat-circle-img {
@@ -406,6 +439,10 @@
   object-fit: cover;
   display: block;
   transition: transform 0.4s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  contain: layout paint;
 }
 
 .cat-circle-item:hover .cat-circle-img {
@@ -434,6 +471,9 @@
 ========================================= */
 .category-block {
   margin-bottom: 56px;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 500px;
 }
 
 .category-header {
@@ -474,6 +514,9 @@
   border: 1px solid rgba(255,255,255,0.55);
   box-shadow: 0 16px 26px rgba(255,46,147,0.18);
   transition: transform 0.18s ease, box-shadow 0.18s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .view-all-btn:hover {
@@ -487,17 +530,24 @@
 .product-scroll-wrapper {
   position: relative;
   width: 100%;
+  transform: translateZ(0);
 }
 
 .product-scroll {
   display: flex;
   flex-wrap: nowrap;
   overflow-x: auto;
-  gap: 0px; /* keep your original */
+  gap: 0px;
   padding: 12px 44px 22px;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
   scrollbar-width: thin;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+  will-change: scroll-position;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout paint;
 }
 
 .product-scroll::-webkit-scrollbar {
@@ -516,13 +566,16 @@
   flex-direction: column;
   text-decoration: none;
   color: inherit;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 /* candy arrow buttons */
 .scroll-btn {
   position: absolute;
   top: 45%;
-  transform: translateY(-50%);
+  transform: translateY(-50%) translateZ(0);
   z-index: 20;
   width: 50px;
   height: 50px;
@@ -530,18 +583,18 @@
   border: 2px solid rgba(255,255,255,0.7);
   color: #fff;
   cursor: pointer;
-
   background: linear-gradient(135deg, var(--blue), var(--mint));
   box-shadow: 0 18px 34px rgba(20,27,45,0.18);
-
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.18s ease, filter 0.18s ease;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .scroll-btn:hover {
-  transform: translateY(-50%) scale(1.12);
+  transform: translateY(-50%) scale(1.12) translateZ(0);
   filter: saturate(1.2);
 }
 
@@ -555,6 +608,9 @@
   width: 100%;
   margin: 18px 0 12px;
   padding: 0 12px;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 600px;
 }
 
 .promo-grid {
@@ -579,6 +635,9 @@
   box-shadow: var(--shadow-soft);
   text-decoration: none;
   position: relative;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .promo-banner-card::before {
@@ -589,6 +648,7 @@
   opacity: 0;
   transition: opacity 0.2s ease;
   pointer-events: none;
+  transform: translateZ(0);
 }
 
 .promo-banner-card:hover::before {
@@ -601,6 +661,10 @@
   object-fit: cover;
   display: block;
   transition: transform 0.25s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  contain: layout paint;
 }
 
 .promo-banner-card:hover .promo-banner-img {
@@ -619,6 +683,8 @@
   border-radius: var(--radius-xl);
   overflow: hidden;
   box-shadow: var(--shadow-soft);
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .promo-head {
@@ -671,6 +737,12 @@
   border-top: 2px solid rgba(20,27,45,0.08);
   position: relative;
   overflow: hidden;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+  contain: layout paint style;
+  content-visibility: auto;
+  contain-intrinsic-size: 400px;
 }
 
 .home-footer::before {
@@ -679,6 +751,7 @@
   top: 0; left: 0; right: 0;
   height: 8px;
   background: linear-gradient(90deg, var(--pink), var(--yellow), var(--blue), var(--mint), var(--purple));
+  transform: translateZ(0);
 }
 
 .footer-content {
@@ -730,6 +803,9 @@
   color: rgba(20,27,45,0.88);
   display: inline-flex;
   transition: transform .18s ease, color .18s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .footer-links li a:hover {
@@ -754,6 +830,9 @@
   border: 1px solid rgba(255,255,255,0.6);
   box-shadow: 0 18px 30px rgba(255,46,147,0.18);
   transition: transform .18s ease, filter .18s ease;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .social-btn:hover {
@@ -765,7 +844,6 @@
   background: linear-gradient(90deg, #ff0000, #ff4d4d);
 }
 
-/* bottom */
 .footer-bottom {
   margin-top: 30px;
   padding-top: 20px;
@@ -806,9 +884,47 @@
   }
 }
 
-/* mobile */
+/* =========================================
+   ✅ MOBILE OPTIMIZATIONS - ULTRA SMOOTH
+========================================= */
 @media (max-width: 768px) {
-  .home-container { padding-bottom: 60px; }
+  /* Disable heavy animations during scroll */
+  .home-container {
+    padding-bottom: 60px;
+    background-attachment: scroll !important;
+  }
+
+  /* Pause expensive animations on mobile */
+  .top-announcement-bar {
+    animation: none !important;
+  }
+  .announcement-badge {
+    animation: none !important;
+  }
+
+  /* Remove expensive filters/blurs */
+  * {
+    -webkit-filter: none !important;
+    filter: none !important;
+  }
+
+  .home-container::before,
+  .home-container::after,
+  .trust-item::before,
+  .promo-banner-card::before {
+    filter: none !important;
+  }
+
+  /* Remove shadows for smoother scroll */
+  .trust-item,
+  .scroll-btn,
+  .promo-banner-card,
+  .promo-product-block,
+  .cat-circle-img-wrapper,
+  .view-all-btn,
+  .social-btn {
+    box-shadow: none !important;
+  }
 
   .category-header { padding: 0 15px; }
   .category-title { font-size: 22px; }
@@ -828,7 +944,6 @@
 
   .scroll-btn { display: none !important; }
 
-  /* trustbar 4 cols */
   .trustbar {
     grid-template-columns: repeat(4, 1fr) !important;
     gap: 6px !important;
@@ -855,7 +970,6 @@
   .trust-text h4 { font-size: 9px !important; }
   .trust-text p { font-size: 8px !important; color: rgba(20,27,45,0.55) !important; }
 
-  /* categories */
   .category-circles-section {
     padding: 12px 10px 16px;
     gap: 14px;
@@ -864,127 +978,18 @@
   .cat-circle-img-wrapper { width: 72px; height: 72px; padding: 3px; }
   .cat-circle-name { font-size: 9px; max-width: 78px; font-weight: 1000; }
 
-  /* promo responsive */
   .promo-grid { grid-template-columns: 1fr; }
   .promo-banners { grid-template-columns: 1fr; grid-template-rows: auto; }
   .promo-banner-img { height: 210px; }
   .promo-products { grid-template-columns: 1fr; }
   .promo-product-grid { grid-template-columns: 1fr; }
 
-  /* footer */
   .footer-top {
     grid-template-columns: 1fr;
     text-align: center;
   }
   .social-row { justify-content: center; }
   .home-footer { padding: 46px 16px 85px; border-radius: 30px 30px 0 0; }
-}
-/* =========================================================
-   ✅ MOBILE SIDE-CROP / HORIZONTAL OVERFLOW FIX (FINAL)
-   Paste this at END of Home.css
-========================================================= */
-
-/* 1) Hard stop for any horizontal overflow */
-html, body, #root {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-}
-
-/* 2) Ensure every section respects screen width */
-.home-container,
-.home-container * {
-  box-sizing: border-box;
-}
-
-/* 3) Common culprits: images/cards/grids taking extra width */
-img, video, canvas, svg {
-  max-width: 100%;
-  height: auto;
-}
-
-/* 4) Flex/grid children can overflow if min-width not reset */
-.product-scroll-wrapper,
-.category-scroll-wrapper,
-.category-block,
-.promo-grid,
-.promo-products,
-.promo-banners,
-.footer-content,
-.footer-top,
-.trustbar {
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-}
-
-/* 5) If any component uses 100vw, it creates overflow due to scrollbar.
-      This forces it back inside */
-.home-container [class*="slider"],
-.home-container [class*="banner"],
-.home-container [class*="Banner"] {
-  max-width: 100%;
-  width: 100%;
-}
-
-/* 6) Mobile padding fix (big paddings cause cut feel) */
-@media (max-width: 768px) {
-  .home-container {
-    padding-left: 0 !important;
-    padding-right: 0 !important;
-  }
-
-  .trustbar {
-    padding-left: 6px !important;
-    padding-right: 6px !important;
-  }
-
-  .category-header {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-  }
-
-  /* category strip */
-  .category-circles-section {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  /* product rows (these often cause overflow) */
-  .product-scroll {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  /* promo area */
-  .home-promo-wrap {
-    padding-left: 10px !important;
-    padding-right: 10px !important;
-  }
-
-  .promo-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-
-/* 7) Safety: prevent any child from creating horizontal scroll */
-.home-container {
-  overflow-x: clip; /* better than hidden: avoids layout cut issues in many cases */
-}
-
-/* fallback for browsers that don't support clip well */
-@supports not (overflow: clip) {
-  .home-container { overflow-x: hidden; }
-}
-/* If sticky not working due to parent overflow */
-body, #root {
-  overflow: visible !important;
-}
-/* =========================================================
-   ✅ HOME MOBILE FONT SIZE (FINAL)
-   Paste at END of Home.css
-========================================================= */
-@media (max-width: 768px){
 
   /* Base text size smaller + clean */
   .home-container{
@@ -992,7 +997,6 @@ body, #root {
     line-height: 1.35;
   }
 
-  /* SECTION HEADINGS */
   .section-heading{
     font-size: 20px !important;
     font-weight: 1000 !important;
@@ -1003,17 +1007,11 @@ body, #root {
     margin-top: 10px !important;
   }
 
-  /* CATEGORY HEADER */
   .category-title{
     font-size: 18px !important;
     font-weight: 1100 !important;
   }
-  .view-all-btn{
-    font-size: 11px !important;
-    padding: 7px 10px !important;
-  }
 
-  /* TRUSTBAR text smaller */
   .trust-text h4{
     font-size: 9px !important;
     font-weight: 1000 !important;
@@ -1023,20 +1021,17 @@ body, #root {
     font-weight: 900 !important;
   }
 
-  /* CATEGORY CIRCLE name smaller */
   .cat-circle-name{
     font-size: 9px !important;
     font-weight: 1000 !important;
     line-height: 1.2 !important;
   }
 
-  /* PROMO section headings */
   .promo-head h3{
     font-size: 13px !important;
     font-weight: 1100 !important;
   }
 
-  /* FOOTER smaller */
   .footer-brand h3{
     font-size: 20px !important;
     font-weight: 1100 !important;
@@ -1063,34 +1058,46 @@ body, #root {
     font-weight: 1000 !important;
   }
 
-  /* Optional: reduce extra spacing on mobile */
   .section-heading-wrapper{
     margin: 18px 0 8px !important;
   }
   .category-block{
     margin-bottom: 34px !important;
   }
-}
-/* =========================================================
-   ✅ MOBILE: Deals Of The Day size same as other sections
-   Paste at END of Home.css
-========================================================= */
 
-/* Mobile (<=768px) */
-@media (max-width: 768px) {
-  /* All product sections: 2 cards per row size (same) */
-  .product-link {
-    flex: 0 0 calc((100% - 10px) / 2) !important;
-    max-width: calc((100% - 10px) / 2) !important;
+  :root{
+    --m-card-w: 152px;
+    --m-card-h: 352px;
+    --m-card-gap: 10px;
   }
 
-  /* Keep padding consistent */
-  .product-scroll {
-    padding: 0 10px 10px !important;
+  .product-scroll{
+    gap: var(--m-card-gap) !important;
+  }
+
+  .product-link{
+    flex: 0 0 var(--m-card-w) !important;
+    max-width: var(--m-card-w) !important;
+    width: var(--m-card-w) !important;
+  }
+
+  .product-link .pc-card,
+  .pc-card{
+    width: var(--m-card-w) !important;
+    min-height: var(--m-card-h) !important;
+  }
+
+  .pc-card *{
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .product-scroll,
+  .category-circles-section {
+    scroll-snap-type: x proximity;
   }
 }
 
-/* Very small phones (<=380px) : little wider cards */
 @media (max-width: 380px) {
   .product-link {
     flex: 0 0 calc((100% - 8px) / 2) !important;
@@ -1101,40 +1108,68 @@ body, #root {
     padding: 0 8px 10px !important;
   }
 }
+
 /* =========================================================
-   ✅ MOBILE: SAME PRODUCT CARD SIZE FOR ALL SECTIONS
-   (Deals + Pullback + Any category scroll)
-   Paste at END of Home.css
+   ✅ GLOBAL FIXES - ULTRA SMOOTH SCROLL
 ========================================================= */
-@media (max-width: 768px) {
-  :root{
-    --m-card-w: 152px;  /* ✅ first card jaisa */
-    --m-card-h: 352px;  /* ✅ first card jaisa */
-    --m-card-gap: 10px;
-  }
+html, body, #root {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
 
-  /* ✅ same gap everywhere */
-  .product-scroll{
-    gap: var(--m-card-gap) !important;
-  }
+img, video, canvas, svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  contain: layout paint;
+}
 
-  /* ✅ force same width for every product item */
-  .product-link{
-    flex: 0 0 var(--m-card-w) !important;
-    max-width: var(--m-card-w) !important;
-    width: var(--m-card-w) !important;
-  }
+.product-scroll-wrapper,
+.category-scroll-wrapper,
+.category-block,
+.promo-grid,
+.promo-products,
+.promo-banners,
+.footer-content,
+.footer-top,
+.trustbar {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
 
-  /* ✅ actual card box size fix (pc-card class as per your screenshot) */
-  .product-link .pc-card,
-  .pc-card{
-    width: var(--m-card-w) !important;
-    min-height: var(--m-card-h) !important;
-  }
+.home-container [class*="slider"],
+.home-container [class*="banner"],
+.home-container [class*="Banner"] {
+  max-width: 100%;
+  width: 100%;
+}
 
-  /* ✅ prevent inner content from changing card height */
-  .pc-card *{
-    max-width: 100%;
-    box-sizing: border-box;
+.home-container {
+  overflow-x: clip;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+@supports not (overflow: clip) {
+  .home-container { overflow-x: hidden; }
+}
+
+body, #root {
+  overflow: visible !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
   }
 }
