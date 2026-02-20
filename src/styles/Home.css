@@ -36,6 +36,133 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+/* =========================================
+   ✅ FLOATING CANDY ANNOUNCEMENT BAR
+========================================= */
+.announcement-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  padding: 10px 0; /* Creates the floating effect */
+  background: transparent;
+}
+
+.top-announcement-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 95%;
+  max-width: 1200px;
+  gap: 15px;
+  padding: 10px 24px;
+  background: linear-gradient(45deg, var(--pink), var(--purple), var(--pink));
+  background-size: 200% 200%;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 14.5px;
+  position: relative;
+  z-index: 50;
+  border-radius: 50px; /* Pill shape */
+  border: 2px dashed rgba(255, 255, 255, 0.5); /* Carnival Ticket Look */
+  box-shadow: 0 8px 20px rgba(255, 46, 147, 0.3);
+  animation: gradient-shift 5s ease infinite, float-bar 3s ease-in-out infinite;
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.top-announcement-bar:hover {
+  transform: scale(1.02) translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.9);
+  animation-play-state: paused; /* Pauses animation on hover */
+}
+
+.announcement-badge {
+  background: var(--yellow);
+  color: #000;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 900;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(255, 212, 0, 0.6);
+  animation: pulse-badge 1.5s infinite alternate;
+}
+
+.announcement-text {
+  flex: 1;
+  text-align: center;
+  letter-spacing: 0.5px;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.announcement-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #fff;
+  color: var(--pink);
+  padding: 6px 16px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+}
+
+.top-announcement-bar:hover .announcement-btn {
+  background: var(--yellow);
+  color: #000;
+  transform: rotate(-2deg) scale(1.05); /* Playful hover effect */
+}
+
+/* --- ANIMATIONS --- */
+@keyframes gradient-shift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float-bar {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-4px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes pulse-badge {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .announcement-wrapper {
+    padding: 8px;
+  }
+  
+  .top-announcement-bar {
+    width: 100%;
+    flex-direction: column;
+    border-radius: 20px; /* Adjusted for stacking */
+    padding: 15px 12px;
+    gap: 10px;
+    animation: gradient-shift 5s ease infinite; /* Removed float for mobile stability */
+  }
+
+  .announcement-text {
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .announcement-btn {
+    width: 100%;
+    justify-content: center;
+    padding: 10px;
+    font-size: 14px;
+  }
+}
+
+/* ========================================= */
+
 .home-container {
   width: 100%;
   margin: 0;

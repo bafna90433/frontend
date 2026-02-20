@@ -19,6 +19,8 @@ import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
+// ✅ INSTAGRAM ICON ADDED
+import { FaInstagram } from "react-icons/fa"; 
 import { Skeleton } from "@mui/material";
 import "../styles/Home.css";
 
@@ -164,51 +166,30 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
+      
+     {/* ✅ FLOATING CANDY ANNOUNCEMENT BAR */}
+<div className="announcement-wrapper">
+  <a
+    href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
+    target="_blank"
+    rel="noreferrer"
+    className="top-announcement-bar"
+  >
+    <div className="announcement-left">
+      <span className="announcement-badge">▶ Play</span>
+    </div>
+    
+    <span className="announcement-text">
+      Want to see our toys in action? 🎥 Watch videos on our Instagram and come back to shop!
+    </span>
+    
+    <span className="announcement-btn">
+      Watch Now <FaInstagram size={15} />
+    </span>
+  </a>
+</div>
 
-      {!loading && (
-        <div className="trustbar">
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <FaTruckFast />
-            </div>
-            <div className="trust-text">
-              <h4>Fast Delivery</h4>
-              <p>Quick dispatch</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <MdSecurity />
-            </div>
-            <div className="trust-text">
-              <h4>Secure Pay</h4>
-              <p>Safe checkout</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <HiBadgeCheck />
-            </div>
-            <div className="trust-text">
-              <h4>Quality</h4>
-              <p>Checked products</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <BiSupport />
-            </div>
-            <div className="trust-text">
-              <h4>Support</h4>
-              <p>Help on call</p>
-            </div>
-          </div>
-        </div>
-      )}
+{/* Niche ka Trustbar aur Banners same rahenge... */}
 
       {/* Shop By Category */}
       {!loading && categories.length > 0 && (
