@@ -1,3 +1,4 @@
+// src/components/TrendingSection.tsx
 import React, { useMemo, useState, useEffect } from "react";
 import api from "../utils/api";
 import TrendingProductCard from "./TrendingProductCard";
@@ -34,9 +35,7 @@ type HomeConfig = {
 
 const toStrArr = (v: any): string[] => (Array.isArray(v) ? v.map(String) : []);
 const cap = (s: string) =>
-  (s || "").trim()
-    ? s.trim().charAt(0).toUpperCase() + s.trim().slice(1)
-    : "";
+  (s || "").trim() ? s.trim().charAt(0).toUpperCase() + s.trim().slice(1) : "";
 
 type Props = {
   products: Product[];
@@ -94,7 +93,6 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
   const activeProducts = useMemo(() => {
     if (!products?.length) return [];
 
-    // If section has preloaded products
     if (activeSection?.products?.length) {
       return activeSection.products
         .filter((p) => p && typeof p.price === "number")
@@ -117,13 +115,13 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
 
   return (
     <section className="trending-wrap">
-      {/* Heading */}
+      {/* Premium Heading */}
       <div className="trending-heading">
         <h3 className="trending-title">{mainTitle}</h3>
         <div className="trending-line" />
       </div>
 
-      {/* Tabs */}
+      {/* Modern Pill Tabs */}
       {safeSections.length > 1 && (
         <div className="trending-tabs">
           {safeSections.map((s, idx) => (
@@ -139,7 +137,7 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
         </div>
       )}
 
-      {/* Body */}
+      {/* Grid & Banner Layout */}
       <div className="trending-body">
         <div className="trending-grid">
           {activeProducts.map((p) => (

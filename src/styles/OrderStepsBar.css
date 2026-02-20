@@ -1,115 +1,147 @@
-.osb-wrap{
+/* src/styles/OrderStepsBar.css */
+
+/* =========================================
+   ✅ PREMIUM ORDER STEPS BAR
+   Clean, Trust-building, and Professional
+========================================= */
+
+.osb-wrap {
   width: 100%;
   display: flex;
   justify-content: center;
-  padding: 14px 0;
+  padding: 20px 0;
 }
 
-.osb{
+.osb {
   width: 95%;
-  max-width: 1200px;
-  background: rgba(255,255,255,0.92);
-  border: 2px dashed rgba(20,27,45,0.10);
-  border-radius: 18px;
-  padding: 14px 14px;
-  box-shadow: 0 12px 26px rgba(20,27,45,0.10);
+  max-width: 1100px;
+  background: #FFFFFF;
+  border: 1px solid rgba(28, 31, 46, 0.06);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 4px 12px rgba(28, 31, 46, 0.04);
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 
-.osb-step{
+.osb-step {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 14px;
   min-height: 54px;
-  padding: 10px 10px;
-  border-radius: 14px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  transition: transform 0.2s ease;
 }
 
-.osb-icon{
-  width: 42px;
-  height: 42px;
-  border-radius: 999px;
+.osb-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 18px;
   color: #fff;
   flex: 0 0 auto;
-  box-shadow: 0 10px 18px rgba(20,27,45,0.12);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
 }
 
-.osb-text{
+.osb-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.1;
+  line-height: 1.3;
 }
 
-.osb-title{
-  font-weight: 1100;
-  font-size: 14px;
-  color: #141b2d;
+.osb-title {
+  font-weight: 800;
+  font-size: 15px;
+  color: #1C1F2E;
+  letter-spacing: 0.2px;
 }
 
-.osb-date{
-  margin-top: 4px;
-  font-weight: 900;
-  font-size: 12px;
-  color: rgba(20,27,45,0.75);
+.osb-date {
+  margin-top: 2px;
+  font-weight: 600;
+  font-size: 12.5px;
+  color: #6B7280;
 }
 
-/* connector line */
-.osb-line{
+/* Connector Line - Desktop */
+.osb-line {
   position: absolute;
-  right: -12px;
+  right: -16px;
   top: 50%;
   transform: translateY(-50%);
   width: 24px;
   height: 3px;
-  border-radius: 999px;
-  background: rgba(20,27,45,0.12);
+  border-radius: 4px;
+  background: rgba(28, 31, 46, 0.08);
+  z-index: 1;
 }
 
-/* statuses */
-.osb-done .osb-icon{
-  background: linear-gradient(135deg, #26f0c7, #7c4dff);
-}
-.osb-active .osb-icon{
-  background: linear-gradient(135deg, #2ec5ff, #26f0c7);
-}
-.osb-upcoming .osb-icon{
-  background: linear-gradient(135deg, #ff2e93, #7c4dff);
-  opacity: 0.75;
+/* =========================================
+   ✅ STATUS STYLES (Professional E-commerce look)
+========================================= */
+
+/* Done: Successful Mint/Blue gradient */
+.osb-done .osb-icon {
+  background: linear-gradient(135deg, #00E5B5, #00B4FF);
 }
 
-@media (max-width: 768px){
-  .osb{
-    grid-template-columns: 1fr;
-    gap: 10px;
-    padding: 12px;
+/* Active: Highlighted Brand Pink/Purple */
+.osb-active .osb-icon {
+  background: linear-gradient(135deg, #FF2A75, #8C52FF);
+  box-shadow: 0 8px 20px rgba(255, 42, 117, 0.2);
+}
+.osb-active .osb-title {
+  color: #FF2A75;
+}
+
+/* Upcoming: Professional Gray/Muted */
+.osb-upcoming .osb-icon {
+  background: #F3F4F6;
+  color: #9CA3AF;
+  box-shadow: none;
+  border: 1px solid #E5E7EB;
+}
+.osb-upcoming .osb-title {
+  color: #9CA3AF;
+}
+.osb-upcoming .osb-date {
+  color: #9CA3AF;
+  opacity: 0.8;
+}
+
+/* =========================================
+   📱 MOBILE VIEW (Strictly Preserved Layout)
+========================================= */
+@media (max-width: 768px) {
+  .osb-wrap {
+    padding: 10px 0;
   }
-  .osb-line{ display: none; }
-}@media (max-width: 768px) {
+
   .osb {
-    /* 1. Force 3 columns on mobile */
+    /* Force 3 columns on mobile */
     grid-template-columns: repeat(3, 1fr);
     gap: 4px;
     padding: 12px 6px;
+    border-radius: 12px;
   }
   
   .osb-step {
-    /* 2. Stack icon and text vertically to save horizontal space */
+    /* Stack icon and text vertically to save horizontal space */
     flex-direction: column;
     justify-content: flex-start;
     text-align: center;
-    padding: 6px 4px;
-    gap: 6px;
+    padding: 8px 4px;
+    gap: 8px;
   }
   
   .osb-icon {
-    /* 3. Make icons slightly smaller */
+    /* Make icons slightly smaller */
     width: 36px;
     height: 36px;
     font-size: 14px;
@@ -121,13 +153,51 @@
   
   .osb-title {
     font-size: 11px; /* Smaller text to fit 3 columns */
+    line-height: 1.2;
   }
   
   .osb-date {
     font-size: 10px; /* Smaller date text */
+    margin-top: 4px;
   }
   
   .osb-line { 
     display: none; /* Keep lines hidden on mobile to avoid clutter */
   }
+}/* =========================================
+   ✅ STATUS STYLES (Colorful & Premium)
+========================================= */
+
+/* 1. Done (Order Placed): Fresh Mint & Blue */
+.osb-done .osb-icon {
+  background: linear-gradient(135deg, #00E5B5, #00B4FF);
+  color: #fff;
+}
+.osb-done .osb-title {
+  color: #1C1F2E;
+}
+
+/* 2. Active (Order Dispatched): Highlighted Pink & Purple */
+.osb-active .osb-icon {
+  background: linear-gradient(135deg, #FF2A75, #8C52FF);
+  box-shadow: 0 8px 20px rgba(255, 42, 117, 0.2);
+  color: #fff;
+}
+.osb-active .osb-title {
+  color: #FF2A75; /* Highlighted text color */
+}
+
+/* 3. Upcoming (Delivered): Warm Yellow & Orange (Colored!) */
+.osb-upcoming .osb-icon {
+  background: linear-gradient(135deg, #FFC000, #FF8A00);
+  box-shadow: 0 6px 16px rgba(255, 138, 0, 0.15);
+  color: #fff;
+  border: none;
+  opacity: 0.85; /* Thoda sa light rakha hai taaki 'upcoming' feel aaye */
+}
+.osb-upcoming .osb-title {
+  color: #1C1F2E; /* Wapas dark kar diya hai, grey nahi lagega */
+}
+.osb-upcoming .osb-date {
+  color: #6B7280;
 }

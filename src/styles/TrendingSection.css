@@ -1,370 +1,141 @@
-/* =========================
-   TRENDING WRAP
-========================= */
+/* src/styles/TrendingSection.css */
 
-.trending-wrap{
+/* =========================================
+   ✅ TRENDING WRAPPER (Premium Card Look)
+========================================= */
+.trending-wrap {
   width: 100%;
-  margin: 26px 0;
-  padding: 22px 26px 26px;
-  border-radius: 16px;
-  background: #eaf8f8;
+  margin: 30px 0;
+  padding: 24px 30px 30px;
+  border-radius: 20px;
+  background: #FFFFFF;
+  border: 1px solid rgba(28, 31, 46, 0.06);
+  box-shadow: 0 4px 16px rgba(28, 31, 46, 0.03);
   box-sizing: border-box;
 }
 
-.trending-head{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap: 18px;
-  margin-bottom: 18px;
+/* =========================================
+   ✅ HEADING & TABS
+========================================= */
+.trending-heading {
+  text-align: center;
+  margin-bottom: 20px;
 }
 
-.trending-title{
-  margin:0;
-  font-size: 30px;
+.trending-title {
+  margin: 0;
+  font-size: 28px;
   font-weight: 800;
-  color: #0b2b3a;
+  color: #1C1F2E;
+  text-transform: capitalize;
 }
 
-/* Tabs */
-.trending-tabs{
-  display:flex;
-  gap: 18px;
-  align-items:center;
+.trending-line {
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, #FF2A75, #8C52FF);
+  border-radius: 99px;
+  margin: 10px auto 0;
+}
+
+.trending-tabs {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
   flex-wrap: wrap;
+  margin: 0 0 24px;
 }
 
-.t-tab{
-  border: 0;
-  background: transparent;
-  color: #2e4050;
-  font-weight: 600;
-  font-size: 13px;
-  opacity: .75;
+.t-tab {
+  border: 1px solid rgba(28, 31, 46, 0.1);
+  background: #fff;
+  color: #6B7280;
+  font-weight: 700;
+  font-size: 14px;
+  padding: 8px 20px;
+  border-radius: 99px;
   cursor: pointer;
-  padding: 6px 4px;
-  position: relative;
-}
-.t-tab.active{ opacity: 1; }
-.t-tab.active::after{
-  content:"";
-  position:absolute;
-  left:0; right:0; bottom:-6px;
-  height: 2px;
-  background:#0b2b3a;
-  border-radius: 2px;
+  transition: all 0.2s ease;
 }
 
-/* =========================
-   LAYOUT
-========================= */
+.t-tab:hover {
+  background: #F8F9FA;
+  color: #1C1F2E;
+}
 
-.trending-body{
-  display:flex;
-  gap: 22px;
+.t-tab.active {
+  background: linear-gradient(135deg, #FF2A75, #8C52FF);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(255, 42, 117, 0.2);
+}
+
+/* =========================================
+   ✅ LAYOUT (Grid & Banner)
+========================================= */
+.trending-body {
+  display: flex;
+  gap: 20px;
   align-items: stretch;
 }
 
-.trending-grid{
+.trending-grid {
   flex: 3;
-  display:grid;
+  display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
 }
 
-.trending-banner{
+.trending-banner {
   flex: 1;
-  border-radius: 14px;
-  overflow:hidden;
-  background: rgba(255,255,255,0.55);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
-.trending-banner img{
-  width:100%;
-  height:100%;
-  min-height: 420px;
+.trending-banner img {
+  width: 100%;
+  height: 100%;
+  min-height: 380px;
   object-fit: cover;
-  display:block;
+  display: block;
+  transition: transform 0.3s ease;
 }
 
-/* =========================
-   CARD
-========================= */
+.trending-banner:hover img {
+  transform: scale(1.03);
+}
 
-.t-card{
-  display:flex;
-  align-items:center;
-  gap: 14px;
+/* =========================================
+   ✅ TRENDING CARD STYLES
+========================================= */
+.t-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   padding: 14px;
-  border-radius: 14px;
-  background: rgba(255,255,255,0.88);
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.04);
-  cursor:pointer;
-  transition: transform .12s ease, box-shadow .2s ease;
-}
-.t-card:hover{
-  transform: translateY(-1px);
-  box-shadow: 0 12px 24px rgba(0,0,0,0.06);
-}
-
-.t-imgbox{
-  width: 92px;
-  height: 78px;
-  border-radius: 12px;
-  background: #f4f6f8;
-  position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-/* image skeleton */
-.t-img-skel{
-  position:absolute;
-  inset:0;
-  background: linear-gradient(90deg, #f2f2f2, #fafafa, #f2f2f2);
-  animation: tShimmer 1.2s infinite linear;
-}
-@keyframes tShimmer{
-  0%{ transform: translateX(-30%); }
-  100%{ transform: translateX(30%); }
-}
-
-.t-img{
-  width:100%;
-  height:100%;
-  object-fit: contain;
-  padding: 6px;
-  opacity:0;
-  transition: opacity .2s ease;
-}
-.t-img.loaded{ opacity:1; }
-
-/* right info */
-.t-info{ flex: 1; min-width: 0; }
-
-/* top row for stock */
-.t-toprow{
-  display:flex;
-  justify-content: space-between;
-  align-items:center;
-  gap: 10px;
-}
-.t-spacer{ flex: 1; }
-
-.t-stock-mini{
-  font-size: 12px;
-  font-weight: 800;
-  color: #2e4050;
-  opacity: 0.9;
-  white-space: nowrap;
-}
-.t-stock-mini span{
-  display:flex;
-  align-items:center;
-  gap: 6px;
-}
-
-/* title */
-.t-name{
-  margin: 8px 0 10px;
-  font-size: 13px;
-  font-weight: 800;
-  color:#162a36;
-  line-height: 1.25;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-/* price row */
-.t-priceRow{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 10px;
-}
-
-.t-price{
-  font-size: 16px;
-  font-weight: 900;
-  color:#182b37;
-  white-space: nowrap;
-}
-
-.t-mrp{
-  margin-left: 8px;
-  font-size: 12px;
-  font-weight: 700;
-  color:#8a97a3;
-  text-decoration: line-through;
-}
-
-/* add button */
-.t-btn{
-  border: 0;
-  background:#0aa88f;
-  color:#fff;
-  font-weight: 800;
-  font-size: 12px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  display:flex;
-  align-items:center;
-  gap: 8px;
-  cursor:pointer;
-  white-space: nowrap;
-  transition: transform .08s ease, background .2s ease, opacity .2s ease;
-}
-.t-btn:hover{ background:#078e79; }
-.t-btn:active{ transform: scale(.98); }
-.t-btn:disabled{ opacity: 0.6; cursor: not-allowed; }
-
-/* =========================
-   QTY CONTROLS
-========================= */
-
-.t-qty-controls{
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
-
-.t-qty-btn{
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,0,0,0.10);
-  background: #ffffff;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: 16px;
+  background: #FFFFFF;
+  border: 1px solid rgba(28, 31, 46, 0.08);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
   cursor: pointer;
-  font-weight: 900;
-  transition: transform .08s ease, box-shadow .2s ease, opacity .2s ease;
-}
-.t-qty-btn:hover{
-  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
-}
-.t-qty-btn:active{
-  transform: scale(0.96);
-}
-.t-qty-btn:disabled{
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.t-qty-val{
-  min-width: 18px;
-  text-align: center;
-  font-weight: 900;
-  color: #162a36;
-}
-
-/* bottom row: min qty / total */
-.t-actions-row{
-  margin-top: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.t-min-qty{
-  font-size: 12px;
-  font-weight: 700;
-  color: #2e4050;
-  opacity: 0.85;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.t-total{
-  font-size: 12px;
-  font-weight: 900;
-  color: #1a2d38;
-  opacity: 0.9;
-  white-space: nowrap;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1100px){
-  .trending-body{ flex-direction: column; }
-  .trending-grid{ grid-template-columns: 1fr; }
-  .trending-banner img{ min-height: 260px; }
-}
-
-@media (max-width: 600px){
-  .trending-wrap{ padding: 18px 14px; }
-  .trending-title{ font-size: 24px; }
-  .t-card{ padding: 12px; }
-  .t-actions-row{
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-.t-imgbox{
-  width: 120px;      /* ✅ pehle 92px */
-  height: 110px;     /* ✅ pehle 78px */
-  border-radius: 14px;
-  background: #f4f6f8;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
-  overflow: hidden;
-  flex-shrink: 0;
-  display:flex;
-  align-items:center;
-  justify-content:center;
 }
 
-.t-img{
-  width:100%;
-  height:100%;
-  object-fit: contain;
-  padding: 4px;      /* ✅ pehle 6px (image zyada area le) */
-  opacity:0;
-  transition: opacity .2s ease;
-}
-.trending-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:14px;
-  margin-bottom: 14px;
+.t-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 24px rgba(28, 31, 46, 0.08);
 }
 
-.trending-title{
-  margin:0;
-  font-size: 28px;
-  font-weight: 900;
-  color:#0b2b3a;
-  text-transform: capitalize;
-  display:block;          /* ✅ */
-  visibility: visible;    /* ✅ */
-  opacity: 1;             /* ✅ */
-}
-/* ... Existing Styles ... */
-
-/* =========================
-   UPDATED IMAGE BOX & BADGES
-========================= */
-
+/* Image Box Dimensions */
 .t-imgbox {
   width: 120px;
   height: 110px;
-  border-radius: 14px;
-  background: #f4f6f8;
-  position: relative; /* Badge positioning ke liye zaroori */
+  border-radius: 12px;
+  background: #F8F9FA;
+  position: relative;
   overflow: hidden;
   flex-shrink: 0;
   display: flex;
@@ -378,11 +149,110 @@
   object-fit: contain;
   padding: 4px;
   opacity: 0;
-  transition: opacity .2s ease;
+  transition: opacity 0.2s ease;
 }
 .t-img.loaded { opacity: 1; }
 
-/* --- Badges Container (Top Left) --- */
+/* Product Info Container */
+.t-info { 
+  flex: 1; 
+  min-width: 0; 
+}
+
+/* Stock Row */
+.t-toprow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.t-spacer { flex: 1; }
+
+.t-stock-mini {
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.t-stock-mini span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Product Title */
+.t-name {
+  margin: 0 0 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #1C1F2E;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Price Row */
+.t-priceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between; /* Space out price and buttons */
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.t-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: #1C1F2E;
+}
+
+.t-mrp {
+  font-size: 13px;
+  font-weight: 600;
+  color: #9CA3AF;
+  text-decoration: line-through;
+  margin-left: 6px;
+}
+
+/* =========================================
+   ✅ PER PACKET BADGES (Yellow & Blue)
+========================================= */
+.t-packet-badges {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.t-badge-yellow {
+  background: #FFF8E1;
+  color: #B97700;
+  border: 1px solid #FFE082;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.t-badge-blue {
+  background: #EBF5FF;
+  color: #0056B3;
+  border: 1px solid #Cce5ff;
+  font-size: 9px;
+  font-weight: 800;
+  padding: 3px 6px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* =========================================
+   ✅ BADGES & SHARE (Timer, Featured, % OFF)
+========================================= */
 .t-badges {
   position: absolute;
   top: 6px;
@@ -393,258 +263,156 @@
   gap: 4px;
 }
 
-/* --- Base Badge Style --- */
 .t-badge {
   font-size: 9px;
   font-weight: 800;
-  padding: 3px 6px;
+  padding: 4px 8px;
   border-radius: 6px;
   text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.15);
-  backdrop-filter: blur(2px);
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   width: fit-content;
 }
 
-/* --- Red Timer Badge --- */
-.t-badge--timer {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
+.t-badge--timer { background: linear-gradient(135deg, #FF2A75, #FF5E5E); }
+.t-badge--featured { background: linear-gradient(135deg, #00B4FF, #007BFF); }
 
-/* --- Blue Featured Badge --- */
-.t-badge--featured {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-/* --- Discount Ribbon (Bottom Right) --- */
 .t-discount {
   position: absolute;
   bottom: 0;
   right: 0;
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
-  color: #059669; /* Dark Green Text */
-  font-size: 9px;
+  background: #E8F5E9;
+  color: #2E7D32;
+  font-size: 10px;
   font-weight: 800;
-  padding: 2px 6px;
-  border-top-left-radius: 8px;
-  display: flex;
-  align-items: center;
+  padding: 4px 8px;
+  border-top-left-radius: 12px;
   z-index: 5;
 }
-/* ... (Aapka purana CSS upar rahega) ... */
 
-/* ✅ MOBILE RESPONSIVE RULES */
-@media (max-width: 1100px) {
-  .trending-body {
-    flex-direction: column;
-  }
-  .trending-grid {
-    grid-template-columns: repeat(2, 1fr); /* Tablet: 2 columns */
-  }
-  
-  /* Banner chota ho jayega tablet pe */
-  .trending-banner img {
-    min-height: 200px; 
-    height: auto;
-  }
+/* =========================================
+   ✅ BUTTONS & QTY CONTROLS
+========================================= */
+/* Initial Add Button */
+.t-btn {
+  border: 0;
+  background: linear-gradient(135deg, #00B4FF, #00E5B5);
+  color: #fff;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 8px 16px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.1s ease, filter 0.2s ease;
 }
 
-/* ✅ MOBILE VIEW (Phone) */
-@media (max-width: 768px) {
-  /* Banner ko hide karein */
-  .trending-banner {
-    display: none !important;
-  }
+.t-btn:hover { filter: brightness(1.05); }
+.t-btn:active { transform: scale(0.95); }
 
-  /* Grid ko single column ya 2 column rakhein mobile pe */
-  .trending-grid {
-    grid-template-columns: 1fr; /* Ya repeat(2, 1fr) agar 2 chahiye */
-    gap: 12px;
-  }
+/* Updated Square Quantity Controls */
+.t-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
-  /* Padding adjust karein */
-  .trending-wrap {
-    padding: 15px;
-  }
-}/* ... Your existing styles ... */
-
-/* Share Button Styling */
-.t-share-btn {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  z-index: 10;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(2px);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+.t-qty-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid #E5E7EB;
+  background: #F9FAFB;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ff6b6b;
   cursor: pointer;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  color: #1C1F2E;
   transition: all 0.2s ease;
   padding: 0;
 }
 
-.t-share-btn:hover {
-  background: #ff6b6b;
-  color: white;
-  transform: scale(1.1);
+.t-qty-btn:hover {
+  background: #F3F4F6;
+  border-color: #D1D5DB;
 }
 
-.t-share-btn:active {
-  transform: scale(0.9);
+.t-qty-btn:active {
+  transform: scale(0.95);
 }
 
-/* Ensure image box is relative */
-.t-imgbox {
-  position: relative;
-  /* ... existing styles ... */
-}/* =========================
-   WRAP
-========================= */
-.trending-wrap {
-  width: 100%;
-  margin: 26px 0;
-  padding: 18px 18px 20px;
-  border-radius: 16px;
-  background: #eaf8f8;
-  box-sizing: border-box;
+.t-qty-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
-/* Heading */
-.trending-heading {
+.t-qty-val {
+  min-width: 20px;
   text-align: center;
-  margin-bottom: 14px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #1C1F2E;
 }
 
-.trending-title {
-  margin: 0;
-  font-size: 26px;
-  font-weight: 900;
-  color: #0b2b3a;
-}
-
-.trending-line {
-  width: 60px;
-  height: 4px;
-  background: #0aa88f;
-  border-radius: 99px;
-  margin: 10px auto 0;
-}
-
-/* Tabs */
-.trending-tabs {
+/* =========================================
+   ✅ BOTTOM ROW (Min Order & Total)
+========================================= */
+.t-actions-row {
+  margin-top: 10px;
   display: flex;
-  gap: 14px;
+  justify-content: space-between;
   align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  margin: 12px 0 16px;
+  gap: 10px;
 }
 
-.t-tab {
-  border: 0;
-  background: transparent;
-  color: #2e4050;
+.t-min-qty {
+  font-size: 11px;
   font-weight: 700;
-  font-size: 13px;
-  opacity: 0.7;
-  cursor: pointer;
-  padding: 6px 4px;
-  position: relative;
-}
-
-.t-tab.active {
-  opacity: 1;
-}
-
-.t-tab.active::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: -6px;
-  height: 2px;
-  background: #0b2b3a;
-  border-radius: 2px;
-}
-
-/* =========================
-   LAYOUT
-========================= */
-.trending-body {
+  color: #6B7280;
   display: flex;
-  gap: 18px;
-  align-items: stretch;
+  align-items: center;
+  gap: 4px;
 }
 
-.trending-grid {
-  flex: 3;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+.t-total {
+  font-size: 13px;
+  font-weight: 800;
+  color: #1C1F2E;
 }
 
-/* Banner */
-.trending-banner {
-  flex: 1;
-  border-radius: 14px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.6);
-}
-
-.trending-banner img {
-  width: 100%;
-  height: 100%;
-  min-height: 360px;
-  object-fit: cover;
-  display: block;
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
+/* =========================================
+   📱 RESPONSIVE RULES (STRICTLY PRESERVED)
+========================================= */
 @media (max-width: 1100px) {
-  .trending-body {
-    flex-direction: column;
-  }
-
-  .trending-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .trending-banner img {
-    min-height: 220px;
-    height: auto;
-  }
+  .trending-body { flex-direction: column; }
+  .trending-grid { grid-template-columns: repeat(2, 1fr); }
+  .trending-banner img { min-height: 220px; height: auto; }
 }
 
 @media (max-width: 768px) {
   .trending-wrap {
-    padding: 14px;
+    padding: 16px;
+    margin: 16px 0;
   }
 
-  /* ✅ banner hide on mobile */
-  .trending-banner {
-    display: none !important;
-  }
+  .trending-title { font-size: 22px; }
+  
+  /* Banner explicitly hidden */
+  .trending-banner { display: none !important; }
 
-  /* ✅ mobile 1 column */
+  /* Single Column Card Layout Preserved */
   .trending-grid {
     grid-template-columns: 1fr;
     gap: 12px;
   }
 
-  .trending-title {
-    font-size: 22px;
+  .t-card { padding: 12px; gap: 12px; }
+  
+  .t-actions-row {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }

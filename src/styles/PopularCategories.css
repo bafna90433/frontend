@@ -1,106 +1,122 @@
-/* =========================
-   POPULAR CATEGORIES (BIG VERSION)
-========================= */
+/* src/styles/PopularCategories.css */
+
+/* =========================================
+   ✅ POPULAR CATEGORIES (PREMIUM VERSION)
+========================================= */
 
 .pc-section {
   width: 100%;
-  padding: 60px 0 80px; /* Increased vertical padding */
-  background: #ffffff;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 50px 0 60px;
+  background: transparent; /* Blends with Home.css background */
+  font-family: 'Nunito', 'Segoe UI', Tahoma, sans-serif;
 }
 
 .pc-heading {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 30px;
 }
 
 .pc-heading h2 {
   margin: 0;
-  font-size: 42px; /* Bigger Heading on PC */
+  font-size: 32px; 
   font-weight: 800;
-  color: #0b2b3a;
+  color: #1C1F2E;
 }
 
 .pc-heading p {
-  margin: 12px auto 0;
-  font-size: 16px;
-  color: #7b8a97;
+  margin: 8px auto 0;
+  font-size: 15px;
+  color: #6B7280;
+  font-weight: 600;
 }
 
-/* Container to hold Arrows + Pill */
+.pc-heading-line {
+  width: 60px;
+  height: 4px;
+  margin: 12px auto 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, #FF2A75, #8C52FF); /* Premium brand gradient */
+}
+
+/* =========================================
+   ✅ SLIDER & PILL CONTAINER
+========================================= */
 .pc-slider-container {
   position: relative;
   width: 95%;
-  max-width: 1400px;
+  max-width: 1300px;
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 20px;
+  gap: 16px;
 }
 
-/* THE BIG PILL BACKGROUND */
+/* THE PREMIUM PILL BACKGROUND */
 .pc-pill {
   flex: 1;
-  background-color: #f0fdfd; /* Light Cyan Color */
-  border-radius: 999px;      /* Full rounded corners */
-  padding: 20px 0;           /* Space inside the pill */
-  overflow: hidden;          /* Crops the scrollbar */
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.05);
+  background-color: #FFFFFF; /* Clean White */
+  border: 1px solid rgba(28, 31, 46, 0.05); /* Subtle border */
+  border-radius: 999px;      
+  padding: 20px 0;           
+  overflow: hidden;          
+  box-shadow: 0 12px 32px rgba(28, 31, 46, 0.04); /* Soft shadow */
 }
 
-/* The Scrollable Area */
 .pc-slider {
   display: flex;
   align-items: stretch;
   overflow-x: auto;
   scroll-behavior: smooth;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none; 
 }
-.pc-slider::-webkit-scrollbar { display: none; /* Chrome/Safari */ }
+.pc-slider::-webkit-scrollbar { display: none; }
 
-/* INDIVIDUAL ITEM */
+/* =========================================
+   ✅ INDIVIDUAL CATEGORY ITEM
+========================================= */
 .pc-item {
-  flex: 0 0 260px; /* WIDER item on PC */
+  flex: 0 0 220px; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
-  padding: 20px 10px;
+  padding: 10px 10px;
   cursor: pointer;
-  transition: background 0.2s;
+  text-decoration: none;
+  transition: all 0.2s ease;
 }
 
-/* White Vertical Separator Line */
+/* Subtle Separator Line */
 .pc-item::after {
   content: "";
   position: absolute;
   right: 0;
-  top: 10%;
-  height: 80%;
-  width: 2px;
-  background-color: #ffffff; /* The white line */
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  background-color: rgba(28, 31, 46, 0.08); /* Soft grey line instead of white */
 }
 
-/* Remove line from last item */
 .pc-item:last-child::after {
   display: none;
 }
 
 /* CIRCLE IMAGE */
 .pc-circle {
-  width: 130px;  /* BIGGER Circle on PC */
-  height: 130px;
+  width: 120px;  
+  height: 120px;
   border-radius: 50%;
-  background: #ffffff;
+  background: #F8F9FA;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  margin-bottom: 18px;
-  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
-  transition: transform 0.3s ease;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  border: 4px solid #fff;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .pc-circle img {
@@ -117,88 +133,104 @@
 
 /* ITEM NAME */
 .pc-name {
-  font-size: 18px; /* Bigger Font on PC */
-  font-weight: 700;
-  color: #0f2230;
+  font-size: 16px; 
+  font-weight: 800;
+  color: #1C1F2E;
   text-align: center;
+  transition: color 0.2s ease;
 }
 
 /* HOVER EFFECTS */
 .pc-item:hover .pc-circle {
-  transform: scale(1.08); /* Pops up slightly */
+  transform: translateY(-4px) scale(1.05); 
+  box-shadow: 0 12px 24px rgba(255, 42, 117, 0.15); /* Pink glow */
 }
 
-/* NAVIGATION ARROWS */
+.pc-item:hover .pc-name {
+  color: #FF2A75; /* Brand Pink on hover */
+}
+
+/* =========================================
+   ✅ NAVIGATION ARROWS
+========================================= */
 .pc-arrow {
-  width: 55px;   
-  height: 55px;
+  width: 50px;   
+  height: 50px;
   border-radius: 50%;
-  border: none;
+  border: 1px solid rgba(28, 31, 46, 0.05);
   background: #ffffff;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
   font-size: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #0b2b3a;
-  transition: all 0.2s;
+  color: #1C1F2E;
+  transition: all 0.2s ease;
   z-index: 5;
   flex-shrink: 0;
 }
 
 .pc-arrow:hover {
-  background: #0b2b3a;
+  background: #FF2A75;
   color: #fff;
+  border-color: #FF2A75;
   transform: scale(1.1);
 }
 
-/* =========================
-   ✅ MOBILE RESPONSIVE FIXES
-========================= */
+/* =========================================
+   📱 MOBILE RESPONSIVE (STRICTLY PRESERVED)
+========================================= */
 @media (max-width: 768px) {
   .pc-section {
-    padding: 30px 0 40px; /* Reduce vertical padding */
+    padding: 20px 0 30px; 
   }
 
-  /* 1. Heading Small */
+  /* Heading Small */
   .pc-heading {
-    margin-bottom: 20px;
+    margin-bottom: 16px;
     padding: 0 15px;
   }
   .pc-heading h2 {
-    font-size: 22px; /* ✅ Reduced Heading Size */
+    font-size: 22px; 
   }
   .pc-heading p {
     font-size: 12px;
     margin-top: 5px;
   }
-
-  /* 2. Pill Compact */
-  .pc-pill {
-    border-radius: 16px; 
-    padding: 15px 0;
-    margin: 0 10px;
+  .pc-heading-line {
+    width: 40px;
+    height: 3px;
   }
 
-  /* 3. Item Size Reduced */
+  /* Pill Compact */
+  .pc-pill {
+    border-radius: 16px; 
+    padding: 12px 0;
+    margin: 0 10px;
+    border: none;
+    box-shadow: 0 4px 12px rgba(28, 31, 46, 0.03);
+  }
+
+  /* Item Size Reduced */
   .pc-item {
-    flex: 0 0 90px; /* ✅ Smaller width */
+    flex: 0 0 90px; /* ✅ Strictly kept your 90px */
     padding: 10px 5px;
   }
 
-  /* 4. Circle Image Smaller */
+  /* Circle Image Smaller */
   .pc-circle {
-    width: 60px;  /* ✅ Reduced Image Size */
+    width: 60px;  /* ✅ Strictly kept your 60px */
     height: 60px;
     margin-bottom: 8px;
+    border-width: 2px;
   }
 
-  /* 5. Font Size 8px */
+  /* Font Size 8px */
   .pc-name {
     font-size: 8px; /* ✅ Requested 8px */
     line-height: 1.2;
-    white-space: normal; /* Allow text wrap */
+    white-space: normal; 
     max-width: 80px;
   }
 

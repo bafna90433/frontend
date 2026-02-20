@@ -25,21 +25,18 @@ const IMAGE_BASE_URL =
 
 const getCatImageRaw = (c: Category) => c.image || c.imageUrl || "";
 
-const getOptimizedCatImage = (url: string, size = 80) => {
+const getOptimizedCatImage = (url: string, size = 200) => { // ✅ Increased to 200 for HD Crispness
   if (!url) return "";
 
-  // ✅ If you store cloudinary public_id (no http)
   if (!url.startsWith("http") && cloudName) {
     return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,dpr_auto,w_${size},h_${size},c_fill,g_auto/${url}`;
   }
 
-  // ✅ If already cloudinary full url
   if (
     url.startsWith("http") &&
     url.includes("res.cloudinary.com") &&
     url.includes("/image/upload/")
   ) {
-    // already optimized
     if (url.includes("/image/upload/f_auto")) return url;
 
     return url.replace(
@@ -48,14 +45,9 @@ const getOptimizedCatImage = (url: string, size = 80) => {
     );
   }
 
-  // ✅ If backend relative path like /uploads/...
-  // (optional: if your backend supports resizing, use it. Otherwise keep as-is)
   if (url.includes("/uploads/")) return `${API_BASE}${url}`;
-
-  // ✅ Other relative
   if (!url.startsWith("http")) return `${IMAGE_BASE_URL}/uploads/${url}`;
 
-  // ✅ Other absolute (keep)
   return url;
 };
 
@@ -83,6 +75,7 @@ const PopularCategories: React.FC<Props> = ({ categories, title, subtitle }) => 
       <div className="pc-heading">
         <h2>{title || "Popular Categories"}</h2>
         {subtitle && <p>{subtitle}</p>}
+        <div className="pc-heading-line"></div> {/* ✅ Added premium underline */}
       </div>
 
       <div className="pc-slider-container">
@@ -99,8 +92,8 @@ const PopularCategories: React.FC<Props> = ({ categories, title, subtitle }) => 
           <div className="pc-slider" ref={scrollRef}>
             {list.map((cat, index) => {
               const raw = getCatImageRaw(cat);
-              // ✅ img is 56x56, load 80 for crisp quality
-              const img = raw ? getOptimizedCatImage(raw, 80) : "";
+              // ✅ Fetching 200px image so it looks crisp on 130px desktop circles
+              const img = raw ? getOptimizedCatImage(raw, 200) : "";
               const eager = index < 8;
 
               return (
@@ -114,11 +107,10 @@ const PopularCategories: React.FC<Props> = ({ categories, title, subtitle }) => 
                       <img
                         src={img}
                         alt={cat.name}
-                        width={56}
-                        height={56}
                         loading={eager ? "eager" : "lazy"}
                         decoding="async"
                         fetchPriority={eager ? "high" : "auto"}
+                        // ✅ Removed hardcoded width/height so CSS can scale it properly
                       />
                     ) : (
                       <div className="pc-noimg">No Img</div>
