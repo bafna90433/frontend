@@ -12,12 +12,15 @@ import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import HomePromoSection from "../components/HomePromoSection";
 
+// Order steps bar
+import OrderStepsBar from "../components/OrderStepsBar";
+
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
-import { FaInstagram } from "react-icons/fa"; 
+import { FaInstagram } from "react-icons/fa";
 import { Skeleton } from "@mui/material";
 import "../styles/Home.css";
 
@@ -157,8 +160,7 @@ const Home: React.FC = () => {
 
   return (
     <div className="home-container">
-      
-      {/* Instagram Announcement Bar */}
+      {/* Premium Instagram Announcement Bar */}
       <div className="announcement-wrapper">
         <a
           href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
@@ -169,64 +171,17 @@ const Home: React.FC = () => {
           <div className="announcement-left">
             <span className="announcement-badge">▶ Play</span>
           </div>
-          
           <span className="announcement-text">
             Want to see our toys in action? 🎥 Watch videos on our Instagram and come back to shop!
           </span>
-          
           <span className="announcement-btn">
             Watch Now <FaInstagram size={15} />
           </span>
         </a>
       </div>
 
-      {/* Banner Slider - Integrated here */}
       {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
-
-      {/* Trust Bar */}
-      {!loading && (
-        <div className="trustbar">
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <FaTruckFast />
-            </div>
-            <div className="trust-text">
-              <h4>Fast Delivery</h4>
-              <p>Quick dispatch</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <MdSecurity />
-            </div>
-            <div className="trust-text">
-              <h4>Secure Pay</h4>
-              <p>Safe checkout</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <HiBadgeCheck />
-            </div>
-            <div className="trust-text">
-              <h4>Quality</h4>
-              <p>Checked products</p>
-            </div>
-          </div>
-
-          <div className="trust-item">
-            <div className="trust-icon" aria-hidden>
-              <BiSupport />
-            </div>
-            <div className="trust-text">
-              <h4>Support</h4>
-              <p>Help on call</p>
-            </div>
-          </div>
-        </div>
-      )}
+      {!loading && <OrderStepsBar />}
 
       {/* Shop By Category */}
       {!loading && categories.length > 0 && (
@@ -272,10 +227,51 @@ const Home: React.FC = () => {
         <div className="category-circles-section">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="cat-circle-skeleton">
-              <Skeleton variant="circular" width={130} height={130} sx={{ "@media (max-width: 768px)": { width: 55, height: 55 } }} />
-              <Skeleton variant="text" width={50} />
+              <Skeleton
+                variant="circular"
+                width={130}
+                height={130}
+                sx={{ "@media (max-width: 768px)": { width: 65, height: 65 } }}
+              />
+              <Skeleton variant="text" width={60} sx={{ mt: 1 }} />
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Clean Trust Bar */}
+      {!loading && (
+        <div className="trustbar-container">
+          <div className="trustbar">
+            <div className="trust-item">
+              <div className="trust-icon" aria-hidden><FaTruckFast /></div>
+              <div className="trust-text">
+                <h4>Fast Delivery</h4>
+                <p>Quick dispatch</p>
+              </div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-icon" aria-hidden><MdSecurity /></div>
+              <div className="trust-text">
+                <h4>Secure Pay</h4>
+                <p>Safe checkout</p>
+              </div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-icon" aria-hidden><HiBadgeCheck /></div>
+              <div className="trust-text">
+                <h4>Quality</h4>
+                <p>Checked products</p>
+              </div>
+            </div>
+            <div className="trust-item">
+              <div className="trust-icon" aria-hidden><BiSupport /></div>
+              <div className="trust-text">
+                <h4>Support</h4>
+                <p>Help on call</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -291,15 +287,13 @@ const Home: React.FC = () => {
         </section>
       )}
 
-      {!loading &&
-        homeCfg?.promo &&
-        (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
-          <HomePromoSection
-            sideBanners={promoSideBannersOptimized as any}
-            bestSelling={bestSellingProducts as any}
-            onSale={onSaleProducts as any}
-          />
-        )}
+      {!loading && homeCfg?.promo && (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
+        <HomePromoSection
+          sideBanners={promoSideBannersOptimized as any}
+          bestSelling={bestSellingProducts as any}
+          onSale={onSaleProducts as any}
+        />
+      )}
 
       {!loading && popularCats.length > 0 && (
         <PopularCategories
@@ -309,100 +303,69 @@ const Home: React.FC = () => {
         />
       )}
 
-      {!loading &&
-        categories.map((cat) => {
-          const items = products.filter((p) => p.category?._id === cat._id);
-          if (!items.length) return null;
+      {!loading && categories.map((cat) => {
+        const items = products.filter((p) => p.category?._id === cat._id);
+        if (!items.length) return null;
 
-          return (
-            <div key={cat._id} className="category-block">
-              <div className="category-header">
-                <h2 className="category-title">
-                  <span className="title-highlight">{cat.name}</span>
-                </h2>
-                <Link to={`/products?category=${cat._id}`} className="view-all-btn">
-                  View All <FiArrowRight />
-                </Link>
-              </div>
-
-              <div className="product-scroll-wrapper">
-                <button 
-                  className="scroll-btn scroll-btn--left" 
-                  onClick={() => scrollContainer(cat._id, "left")}
-                  aria-label="Scroll left"
-                >
-                  <FiChevronLeft size={22} />
-                </button>
-
-                <div 
-                  id={`scroll-${cat._id}`} 
-                  className="product-scroll"
-                  ref={(el) => {
-                    if (el) scrollContainers.current.set(cat._id, el);
-                    else scrollContainers.current.delete(cat._id);
-                  }}
-                >
-                  {items.map((product) => (
-                    <div key={product._id} className="product-link">
-                      <ProductCard product={product as any} userRole="customer" />
-                    </div>
-                  ))}
-                </div>
-
-                <button 
-                  className="scroll-btn scroll-btn--right" 
-                  onClick={() => scrollContainer(cat._id, "right")}
-                  aria-label="Scroll right"
-                >
-                  <FiChevronRight size={22} />
-                </button>
-              </div>
+        return (
+          <div key={cat._id} className="category-block">
+            <div className="category-header">
+              <h2 className="category-title">{cat.name}</h2>
+              <Link to={`/products?category=${cat._id}`} className="view-all-btn">
+                View All <FiArrowRight />
+              </Link>
             </div>
-          );
-        })}
+
+            <div className="product-scroll-wrapper">
+              <button className="scroll-btn scroll-btn--left" onClick={() => scrollContainer(cat._id, "left")} aria-label="Scroll left">
+                <FiChevronLeft size={22} />
+              </button>
+
+              <div id={`scroll-${cat._id}`} className="product-scroll" ref={(el) => { if (el) scrollContainers.current.set(cat._id, el); else scrollContainers.current.delete(cat._id); }}>
+                {items.map((product) => (
+                  <div key={product._id} className="product-link">
+                    <ProductCard product={product as any} userRole="customer" />
+                  </div>
+                ))}
+              </div>
+
+              <button className="scroll-btn scroll-btn--right" onClick={() => scrollContainer(cat._id, "right")} aria-label="Scroll right">
+                <FiChevronRight size={22} />
+              </button>
+            </div>
+          </div>
+        );
+      })}
 
       <FloatingCheckoutButton />
 
-      {/* FOOTER */}
+      {/* Premium Footer */}
       <footer className="home-footer">
         <div className="footer-content">
           <div className="footer-top">
             <div className="footer-brand">
               <h3>Bafna Toys</h3>
-              <p>Best toys, best deals — safe & fast delivery.</p>
+              <p>Inspiring imagination through play. The best toys, best deals, delivered safely and fast.</p>
             </div>
 
             <div className="footer-links-container">
               <h4>Quick Links</h4>
               <ul className="footer-links">
-                <li>
-                  <Link to="/privacy-policy">Privacy Policy</Link>
-                </li>
-                <li>
-                  <Link to="/terms-conditions">Terms & Conditions</Link>
-                </li>
-                <li>
-                  <Link to="/shipping-delivery">Shipping & Delivery</Link>
-                </li>
-                <li>
-                  <Link to="/cancellation-refund">Cancellation & Refund</Link>
-                </li>
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
               </ul>
             </div>
 
             <div className="footer-social">
-              <h4>Follow Us</h4>
+              <h4>Connect With Us</h4>
               <div className="social-row">
-                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw==" target="_blank" rel="noreferrer">
-                  Instagram
-                </a>
-                <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">
-                  YouTube
-                </a>
+                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw==" target="_blank" rel="noreferrer">Instagram</a>
+                <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">YouTube</a>
               </div>
             </div>
           </div>
-
           <div className="footer-bottom">
             <p>© {new Date().getFullYear()} Bafna Toys. All rights reserved.</p>
           </div>
