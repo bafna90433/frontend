@@ -163,7 +163,7 @@ const Home: React.FC = () => {
       {/* Premium Instagram Announcement Bar */}
       <div className="announcement-wrapper">
         <a
-          href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw=="
+          href="https://www.instagram.com/bafna_toys/"
           target="_blank"
           rel="noreferrer"
           className="top-announcement-bar"
@@ -361,7 +361,7 @@ const Home: React.FC = () => {
             <div className="footer-social">
               <h4>Connect With Us</h4>
               <div className="social-row">
-                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys?igsh=MXRmNWs3dmZyYTJmbw==" target="_blank" rel="noreferrer">Instagram</a>
+                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer">Instagram</a>
                 <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">YouTube</a>
               </div>
             </div>
