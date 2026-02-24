@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { MapPin, Store, Smartphone, MessageCircle, ArrowRight, ShieldCheck, ShoppingBag } from "lucide-react";
-import "../styles/AuthStyles.css"; // ✅ IMPORTANT: Connects to shared CSS
+import "../styles/AuthStyles.css";
 
 const RAW = (import.meta.env.VITE_API_URL || "http://localhost:5000").replace(/\/+$/, "");
 const API_BASE = RAW.endsWith("/api") ? RAW : `${RAW}/api`;
@@ -23,7 +23,7 @@ const Register: React.FC = () => {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  
+
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
 
@@ -33,24 +33,70 @@ const Register: React.FC = () => {
     return digits.length > 10 ? digits.slice(-10) : digits;
   };
 
+  // ✅ 91 + 10 digits normalize ("91XXXXXXXXXX") else ""
+  const normalizeTo91 = (raw: string) => {
+    const digits = String(raw || "").replace(/\D/g, "");
+    const ten = digits.startsWith("91") ? digits.slice(2) : digits;
+    const last10 = ten.length > 10 ? ten.slice(-10) : ten;
+    if (last10.length !== 10) return "";
+    return `91${last10}`;
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
+
     if (!form.shopName.trim()) newErrors.shopName = "Shop Name is required";
     if (!addr.street.trim()) newErrors.street = "Street Address is required";
     if (!addr.city.trim()) newErrors.city = "City is required";
     if (!addr.state.trim()) newErrors.state = "State is required";
     if (!addr.pincode.trim()) newErrors.pincode = "Pincode is required";
     else if (addr.pincode.length !== 6) newErrors.pincode = "Invalid Pincode (6 digits)";
-    
+
     const phone = normalizeTo10(form.otpMobile);
     if (phone.length !== 10) newErrors.otpMobile = "Valid Mobile Number required";
+
+    // ✅ WhatsApp compulsory + must become 91 + 10 digits
+    if (!form.whatsapp.trim()) newErrors.whatsapp = "WhatsApp Number is required";
+    else if (!normalizeTo91(form.whatsapp)) newErrors.whatsapp = "Enter valid WhatsApp number (10 digits)";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const deleteError = (field: string) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  };
+
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+
+    // ✅ WhatsApp: auto "91" prefix, digits only, max 12, 91 delete blocked via input onKeyDown
+    if (name === "whatsapp") {
+      const digits = String(value || "").replace(/\D/g, "");
+
+      let next = digits;
+
+      // always keep prefix visible
+      if (!next) next = "91";
+
+      // ensure starts with 91
+      if (!next.startsWith("91")) {
+        const last10 = next.length > 10 ? next.slice(-10) : next;
+        next = "91" + last10;
+      }
+
+      // limit total length 12
+      next = next.slice(0, 12);
+
+      setForm((prev) => ({ ...prev, whatsapp: next }));
+      if (errors[name]) deleteError(name);
+      return;
+    }
+
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) deleteError(name);
   };
@@ -62,15 +108,11 @@ const Register: React.FC = () => {
     if (errors[name]) deleteError(name);
   };
 
-  const deleteError = (field: string) => {
-    setErrors((prev) => { const newErrors = { ...prev }; delete newErrors[field]; return newErrors; });
-  };
-
   // --- OTP Logic ---
   const handleOtpChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
     if (!val && e.target.value !== "") return;
-    
+
     const newOtp = otp.split("");
     while (newOtp.length < 6) newOtp.push("");
     newOtp[index] = val;
@@ -95,7 +137,7 @@ const Register: React.FC = () => {
       const phone = normalizeTo10(form.otpMobile);
       const res = await axios.post(`${API_BASE}/otp/send`, { phone });
       setLoading(false);
-      
+
       if (res.data?.success) {
         setOtpSent(true);
         Swal.fire({ title: "OTP Sent!", text: "Check your SMS.", icon: "success", timer: 2000, showConfirmButton: false });
@@ -115,6 +157,9 @@ const Register: React.FC = () => {
 
     try {
       const phone = normalizeTo10(form.otpMobile);
+      const wa91 = normalizeTo91(form.whatsapp); // ✅ always 91XXXXXXXXXX
+      if (!wa91) { Swal.fire("Error", "Enter valid WhatsApp number", "error"); return; }
+
       setLoading(true);
 
       // 1. Verify OTP
@@ -130,9 +175,9 @@ const Register: React.FC = () => {
       const formData = new FormData();
       formData.append("shopName", form.shopName);
       formData.append("otpMobile", phone);
-      formData.append("whatsapp", form.whatsapp);
+      formData.append("whatsapp", wa91); // ✅ send with 91
       formData.append("address", fullAddress);
-      
+
       // 3. Register
       const res = await axios.post(`${API_BASE}/registrations/register`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       setLoading(false);
@@ -146,7 +191,7 @@ const Register: React.FC = () => {
       const newUser = res.data?.user || { name: form.shopName, phone: phone, role: "customer", isApproved: true, _id: res.data?._id || "new-user-id" };
       newUser.isApproved = true;
       localStorage.setItem("user", JSON.stringify(newUser));
-      
+
       Swal.fire({ title: "Success!", text: "Registration Complete.", icon: "success", timer: 2000, showConfirmButton: false });
       setTimeout(() => { window.location.href = "/"; }, 1500);
 
@@ -165,11 +210,11 @@ const Register: React.FC = () => {
             <Store size={36} color="#fff" />
             <h1>Bafna Toys</h1>
           </div>
-          <h2>Join the Fun! 🚀 <br/> Start Your Toy Story.</h2>
+          <h2>Join the Fun! 🚀 <br /> Start Your Toy Story.</h2>
           <p>Register your shop in seconds and start stocking the best toys in town.</p>
           <div className="brand-badges">
-             <span className="brand-badge"><ShieldCheck size={18}/> Secure</span>
-             <span className="brand-badge"><ShoppingBag size={18}/> Easy Orders</span>
+            <span className="brand-badge"><ShieldCheck size={18} /> Secure</span>
+            <span className="brand-badge"><ShoppingBag size={18} /> Easy Orders</span>
           </div>
         </div>
         <div className="circle c1"></div>
@@ -189,12 +234,12 @@ const Register: React.FC = () => {
             <label>Shop Name</label>
             <div className="input-wrapper">
               <Store size={18} className="input-icon" />
-              <input 
-                className={`auth-input ${errors.shopName ? "error" : ""}`} 
-                name="shopName" 
-                placeholder="Ex: Rahul General Store" 
-                value={form.shopName} 
-                onChange={handleChange} 
+              <input
+                className={`auth-input ${errors.shopName ? "error" : ""}`}
+                name="shopName"
+                placeholder="Ex: Rahul General Store"
+                value={form.shopName}
+                onChange={handleChange}
               />
             </div>
             {errors.shopName && <small className="err-msg">{errors.shopName}</small>}
@@ -204,33 +249,45 @@ const Register: React.FC = () => {
             <label>Mobile Number</label>
             <div className="input-wrapper">
               <Smartphone size={18} className="input-icon" />
-              <input 
+              <input
                 className={`auth-input ${errors.otpMobile ? "error" : ""}`}
-                name="otpMobile" 
-                placeholder="10-digit Mobile" 
-                value={form.otpMobile} 
-                onChange={handleChange} 
-                type="tel" 
-                maxLength={10} 
+                name="otpMobile"
+                placeholder="10-digit Mobile"
+                value={form.otpMobile}
+                onChange={handleChange}
+                type="tel"
+                maxLength={10}
               />
             </div>
             {errors.otpMobile && <small className="err-msg">{errors.otpMobile}</small>}
           </div>
 
           <div className="form-group">
-             <label>WhatsApp (Optional)</label>
-             <div className="input-wrapper">
-                <MessageCircle size={18} className="input-icon" />
-                <input 
-                  className="auth-input" 
-                  name="whatsapp" 
-                  placeholder="WhatsApp Number" 
-                  value={form.whatsapp} 
-                  onChange={handleChange} 
-                  type="tel" 
-                  maxLength={10} 
-                />
-             </div>
+            <label>WhatsApp *</label>
+            <div className="input-wrapper">
+              <MessageCircle size={18} className="input-icon" />
+              <input
+                className={`auth-input ${errors.whatsapp ? "error" : ""}`}
+                name="whatsapp"
+                placeholder="91XXXXXXXXXX"
+                value={form.whatsapp}
+                onChange={handleChange}
+                onFocus={() => {
+                  if (!form.whatsapp) setForm((p) => ({ ...p, whatsapp: "91" }));
+                }}
+                onKeyDown={(e) => {
+                  // ✅ prevent deleting prefix "91"
+                  const start = e.currentTarget.selectionStart ?? 0;
+                  const end = e.currentTarget.selectionEnd ?? 0;
+                  if (e.key === "Backspace" && start <= 2 && end <= 2) {
+                    e.preventDefault();
+                  }
+                }}
+                type="tel"
+                maxLength={12}
+              />
+            </div>
+            {errors.whatsapp && <small className="err-msg">{errors.whatsapp}</small>}
           </div>
 
           <div className="divider">Shop Address</div>
@@ -238,60 +295,60 @@ const Register: React.FC = () => {
           <div className="form-group">
             <div className="input-wrapper">
               <MapPin size={18} className="input-icon" />
-              <input 
+              <input
                 className={`auth-input ${errors.street ? "error" : ""}`}
-                name="street" 
-                placeholder="Shop No, Street, Building" 
-                value={addr.street} 
-                onChange={handleAddrChange} 
+                name="street"
+                placeholder="Shop No, Street, Building"
+                value={addr.street}
+                onChange={handleAddrChange}
               />
             </div>
             {errors.street && <small className="err-msg">{errors.street}</small>}
           </div>
 
           <div className="row">
-             <div className="col">
-                <input 
-                  className="auth-input plain-input" 
-                  name="area" 
-                  placeholder="Area / Colony" 
-                  value={addr.area} 
-                  onChange={handleAddrChange} 
-                />
-             </div>
-             <div className="col">
-                <input 
-                  className={`auth-input plain-input ${errors.city ? "error" : ""}`} 
-                  name="city" 
-                  placeholder="City *" 
-                  value={addr.city} 
-                  onChange={handleAddrChange} 
-                />
-             </div>
+            <div className="col">
+              <input
+                className="auth-input plain-input"
+                name="area"
+                placeholder="Area / Colony"
+                value={addr.area}
+                onChange={handleAddrChange}
+              />
+            </div>
+            <div className="col">
+              <input
+                className={`auth-input plain-input ${errors.city ? "error" : ""}`}
+                name="city"
+                placeholder="City *"
+                value={addr.city}
+                onChange={handleAddrChange}
+              />
+            </div>
           </div>
 
           <div className="row" style={{ marginTop: "12px" }}>
-             <div className="col" style={{ flex: 2 }}>
-                <select 
-                  className={`auth-input plain-input ${errors.state ? "error" : ""}`} 
-                  name="state" 
-                  value={addr.state} 
-                  onChange={handleAddrChange}
-                >
-                  <option value="">Select State</option>
-                  {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
-                </select>
-             </div>
-             <div className="col">
-                <input 
-                  className={`auth-input plain-input ${errors.pincode ? "error" : ""}`} 
-                  name="pincode" 
-                  placeholder="Pin *" 
-                  value={addr.pincode} 
-                  onChange={handleAddrChange} 
-                  maxLength={6} 
-                />
-             </div>
+            <div className="col" style={{ flex: 2 }}>
+              <select
+                className={`auth-input plain-input ${errors.state ? "error" : ""}`}
+                name="state"
+                value={addr.state}
+                onChange={handleAddrChange}
+              >
+                <option value="">Select State</option>
+                {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+              </select>
+            </div>
+            <div className="col">
+              <input
+                className={`auth-input plain-input ${errors.pincode ? "error" : ""}`}
+                name="pincode"
+                placeholder="Pin *"
+                value={addr.pincode}
+                onChange={handleAddrChange}
+                maxLength={6}
+              />
+            </div>
           </div>
           {(errors.city || errors.state || errors.pincode) && <small className="err-msg">Check address fields</small>}
 
@@ -305,20 +362,20 @@ const Register: React.FC = () => {
               <label>Enter OTP Sent to {form.otpMobile}</label>
               <div className="otp-inputs">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <input 
-                    key={i} 
-                    ref={(el) => (otpRefs.current[i] = el)} 
-                    type="tel" 
-                    maxLength={1} 
+                  <input
+                    key={i}
+                    ref={(el) => (otpRefs.current[i] = el)}
+                    type="tel"
+                    maxLength={1}
                     className="otp-digit"
-                    value={otp[i] || ""} 
-                    onChange={(e) => handleOtpChange(i, e)} 
+                    value={otp[i] || ""}
+                    onChange={(e) => handleOtpChange(i, e)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
                   />
                 ))}
               </div>
               <button onClick={verifyAndRegister} disabled={loading} className="auth-btn verify">
-                 {loading ? "Verifying..." : "Verify & Register"}
+                {loading ? "Verifying..." : "Verify & Register"}
               </button>
             </div>
           )}
