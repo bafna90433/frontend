@@ -154,6 +154,10 @@ const Home: React.FC = () => {
     }));
   }, [promoSideBanners]);
 
+  // Extract Rattles category and products for the special VIP section
+  const rattlesCategory = useMemo(() => categories.find(c => c.name.toLowerCase().includes("rattle")), [categories]);
+  const rattlesProducts = useMemo(() => rattlesCategory ? products.filter(p => p.category?._id === rattlesCategory._id) : [], [products, rattlesCategory]);
+
   if (error) {
     return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
   }
@@ -275,6 +279,72 @@ const Home: React.FC = () => {
         </div>
       )}
 
+      {/* 🏠 ✨ VIP PREMIUM SECTION: HOUSE OF RATTLES */}
+      {!loading && rattlesProducts.length > 0 && (
+        <section className="house-of-rattles-section">
+          <div className="hor-header">
+            
+            {/* ✅ BIG LOGO MOVED TO LEFT CORNER */}
+            <img 
+              src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1772200542/D13_viaowv.webp" 
+              alt="Rattles Logo" 
+              className="hor-logo"
+            />
+
+            {/* TEXT CONTENT CENTERED */}
+            <div className="hor-header-content">
+              <div className="hor-badges-wrapper">
+                <span className="hor-badge-primary">🌟 #1 Best Seller</span>
+                <span className="hor-badge-secondary">🔥 Retailers' Choice</span>
+              </div>
+              <h2 className="hor-title">
+                <span className="rattle-icon left" aria-hidden="true">🪇</span>
+                The House of Rattles
+                <span className="rattle-icon right" aria-hidden="true">🪇</span>
+              </h2>
+              <p className="hor-subtitle">Shake, Play & Smile! 👶 Discover the premium collection everyone is talking about.</p>
+            </div>
+            
+            {/* BUTTON IN RIGHT CORNER */}
+            <div className="hor-action">
+              <Link to={`/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn">
+                Explore All Rattles <span className="btn-icon-animate">✨</span>
+              </Link>
+            </div>
+          </div>
+
+          <div className="hor-products-wrapper">
+            <button 
+              className="scroll-btn scroll-btn--left hor-scroll" 
+              onClick={() => scrollContainer('rattles-special', "left")} 
+              aria-label="Scroll left"
+            >
+              <FiChevronLeft size={22} />
+            </button>
+
+            <div 
+              id="scroll-rattles-special" 
+              className="product-scroll hor-scroll-container" 
+              ref={(el) => { if (el) scrollContainers.current.set('rattles-special', el); else scrollContainers.current.delete('rattles-special'); }}
+            >
+              {rattlesProducts.map((product) => (
+                <div key={product._id} className="product-link">
+                  <ProductCard product={product as any} userRole="customer" />
+                </div>
+              ))}
+            </div>
+
+            <button 
+              className="scroll-btn scroll-btn--right hor-scroll" 
+              onClick={() => scrollContainer('rattles-special', "right")} 
+              aria-label="Scroll right"
+            >
+              <FiChevronRight size={22} />
+            </button>
+          </div>
+        </section>
+      )}
+
       {!loading && products.length > 0 && (
         <section className="two-col-mobile two-col-mobile--trending">
           <TrendingSection products={products as any} config={homeCfg as any} />
@@ -304,6 +374,9 @@ const Home: React.FC = () => {
       )}
 
       {!loading && categories.map((cat) => {
+        // Skip Rattles here so it doesn't duplicate the premium VIP section above
+        if (cat.name.toLowerCase().includes("rattle")) return null;
+
         const items = products.filter((p) => p.category?._id === cat._id);
         if (!items.length) return null;
 
@@ -344,7 +417,7 @@ const Home: React.FC = () => {
         <div className="footer-content">
           <div className="footer-top">
             <div className="footer-brand">
-              <h3>Bafna Toys</h3>
+              <h3>BafnaToys</h3>
               <p>Inspiring imagination through play. The best toys, best deals, delivered safely and fast.</p>
             </div>
 
@@ -367,7 +440,7 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="footer-bottom">
-            <p>© {new Date().getFullYear()} Bafna Toys. All rights reserved.</p>
+            <p>© {new Date().getFullYear()} BafnaToys. All rights reserved.</p>
           </div>
         </div>
       </footer>

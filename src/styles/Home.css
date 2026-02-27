@@ -208,7 +208,7 @@
   overflow-x: auto;
   gap: 24px;
   padding: 10px 40px 30px;
-  scrollbar-width: none; /* Hide scrollbar for clean look */
+  scrollbar-width: none;
 }
 .category-circles-section::-webkit-scrollbar { display: none; }
 
@@ -240,7 +240,7 @@
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #fff; /* Clean white ring inside */
+  border: 3px solid #fff;
 }
 
 .cat-circle-name {
@@ -343,7 +343,7 @@
 .home-footer {
   margin-top: 60px;
   padding: 60px 40px 40px;
-  background: #1C1F2E; /* Dark elegant footer */
+  background: #1C1F2E;
   color: #fff;
   border-top: 4px solid var(--pink);
 }
@@ -425,17 +425,211 @@
 }
 
 /* =========================================
+   🏠 ✨ HOUSE OF RATTLES (VIP HIGHLIGHT SECTION)
+========================================= */
+.house-of-rattles-section {
+  background: linear-gradient(135deg, #FFF0F5, #E6F2FF);
+  padding: 60px 0 70px;
+  margin: 50px 0;
+  border-top: 4px solid var(--pink);
+  border-bottom: 4px solid var(--blue);
+  box-shadow: 0 10px 40px rgba(255, 42, 117, 0.08);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Header Container */
+.hor-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 40px;
+  margin-bottom: 30px;
+  width: 100%;
+  min-height: 140px; /* Provides space for absolute logo/button */
+}
+
+/* ✅ BADA LOGO IN LEFT CORNER */
+.hor-logo {
+  position: absolute;
+  left: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 120px; /* Made the logo big */
+  width: auto;
+  object-fit: contain;
+  z-index: 5;
+}
+
+/* Center Text Content */
+.hor-header-content {
+  text-align: center;
+  z-index: 2;
+}
+
+/* ✅ BUTTON IN RIGHT CORNER */
+.hor-action {
+  position: absolute;
+  right: 40px;
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 5;
+}
+
+.hor-badges-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.hor-badge-primary {
+  background: var(--pink);
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  box-shadow: 0 4px 12px rgba(255, 42, 117, 0.4);
+}
+
+.hor-badge-secondary {
+  background: #FFF;
+  color: var(--text);
+  border: 1px solid var(--yellow);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(255, 192, 0, 0.2);
+}
+
+/* 🪇 Shake Animation */
+@keyframes rattle-shake {
+  0% { transform: rotate(0deg); }
+  25% { transform: rotate(-20deg); }
+  50% { transform: rotate(20deg); }
+  75% { transform: rotate(-20deg); }
+  100% { transform: rotate(0deg); }
+}
+
+.rattle-icon {
+  display: inline-block;
+  animation: rattle-shake 2.5s infinite ease-in-out;
+  margin: 0 12px;
+  font-size: 32px;
+}
+.rattle-icon.left { transform-origin: bottom center; }
+.rattle-icon.right { transform-origin: bottom center; animation-delay: 0.5s; }
+
+.hor-title {
+  font-size: 42px;
+  font-weight: 900;
+  color: var(--text);
+  margin: 0 0 12px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hor-subtitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #4B5563;
+  margin: 0;
+}
+
+.hor-products-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.hor-scroll-container {
+  padding-top: 15px;
+  padding-bottom: 25px;
+}
+
+.hor-view-all-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: linear-gradient(135deg, var(--pink), var(--purple));
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 99px;
+  font-size: 16px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(140, 82, 255, 0.3);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+@keyframes star-twinkle {
+  0% { opacity: 0.5; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.5; transform: scale(0.8); }
+}
+.btn-icon-animate {
+  animation: star-twinkle 1.5s infinite ease-in-out;
+}
+
+.hor-view-all-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 36px rgba(140, 82, 255, 0.45);
+  color: #fff;
+}
+
+/* =========================================
    ✅ DESKTOP RESPONSIVE
 ========================================= */
 @media (max-width: 1440px) {
   .product-link { flex: 0 0 calc((100% - 64px) / 5); max-width: calc((100% - 64px) / 5); }
 }
+
 @media (max-width: 1280px) {
   .product-link { flex: 0 0 calc((100% - 48px) / 4); max-width: calc((100% - 48px) / 4); }
+  .hor-view-all-btn { padding: 12px 20px; font-size: 14px; }
+  .hor-logo { height: 90px; } /* Shrink logo slightly on smaller screens */
 }
+
+/* Tablet Screens: Stack elements centrally to avoid overlapping */
 @media (max-width: 1024px) {
   .product-link { flex: 0 0 calc((100% - 32px) / 3); max-width: calc((100% - 32px) / 3); }
   .trustbar { grid-template-columns: repeat(2, 1fr); }
+  
+  .hor-header {
+    flex-direction: column;
+    min-height: auto;
+  }
+  
+  /* Reset Logo for stacked view */
+  .hor-logo {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    height: 90px;
+    margin-bottom: 20px;
+  }
+  
+  /* Reset Button for stacked view */
+  .hor-action {
+    position: relative;
+    right: auto;
+    top: auto;
+    transform: none;
+    margin-top: 20px;
+  }
 }
 
 /* =========================================
@@ -475,7 +669,43 @@
   .social-row { justify-content: center; }
   .home-footer { padding: 40px 20px 80px; }
 
-  .scroll-btn { display: none !important; } /* Hide arrows on mobile */
+  .scroll-btn { display: none !important; }
+
+  /* VIP House of Rattles mobile styles */
+  .house-of-rattles-section {
+    padding: 40px 0 50px;
+    margin: 25px 0;
+  }
+  .hor-header {
+    margin-bottom: 20px;
+    padding: 0 20px;
+  }
+  .hor-title {
+    font-size: 26px;
+  }
+  .rattle-icon {
+    font-size: 22px;
+    margin: 0 8px;
+  }
+  .hor-subtitle {
+    font-size: 15px;
+    padding: 0 10px;
+  }
+  .hor-action {
+    margin-top: 20px;
+  }
+  .hor-view-all-btn {
+    font-size: 15px;
+    padding: 14px 30px;
+  }
+  .hor-badges-wrapper { gap: 6px; }
+  .hor-badge-primary, .hor-badge-secondary { font-size: 11px; padding: 5px 12px; }
+
+  /* Logo size on mobile */
+  .hor-logo {
+    height: 70px; 
+    margin-bottom: 15px;
+  }
 
   /* 🚫 YOUR EXACT MOBILE PRODUCT CARD RULES - DO NOT TOUCH 🚫 */
   :root {

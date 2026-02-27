@@ -27,7 +27,6 @@ const Sidebar: React.FC = () => {
         {/* Header Section */}
         <div className="sidebar__header">
           <div className="brand-logo">B</div>
-          <h2 className="sidebar__title">Namaste 🙏</h2>
         </div>
 
         {/* Navigation Section */}

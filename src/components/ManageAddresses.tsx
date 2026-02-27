@@ -1,4 +1,3 @@
-// src/components/ManageAddresses.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom"; 
 import api from "../utils/api";
@@ -127,7 +126,6 @@ const ManageAddresses: React.FC = () => {
       setLoading(true);
       let list = await get();
 
-      // Agar addresses list empty hai, to Register wala address fetch karo
       if (list.length === 0 && currentUser?.address) {
           const regAddr = parseRegisterAddress(currentUser.address, currentUser);
           if (regAddr) {
@@ -138,7 +136,6 @@ const ManageAddresses: React.FC = () => {
       setItems(list);
       setLoading(false);
 
-      // Agar checkout se redirect hokar aaye hain to Add Modal open karo
       if (redirectTarget === "checkout") {
           startAdd();
       }

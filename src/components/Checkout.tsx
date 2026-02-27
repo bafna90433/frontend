@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import api, { MEDIA_URL } from "../utils/api";
 import "../styles/Checkout.css";
-// ✅ Added 'Tag' icon for discount
 import { Trash2, Plus, Minus, FileText, MapPin, User as UserIcon, CreditCard, Package, AlertCircle, Truck, Tag } from "lucide-react";
 
 // --- Types ---
@@ -44,13 +43,21 @@ interface OrderData {
   advancePaid?: number;
   itemsPrice?: number;
   shippingPrice?: number;
-  discountAmount?: number; // Added for Invoice
+  discountAmount?: number;
 }
 
 interface DiscountRule {
   minAmount: number;
   discountPercentage: number;
 }
+
+const INDIAN_STATES = [
+  "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", "Chhattisgarh", "Goa", "Gujarat", 
+  "Haryana", "Himachal Pradesh", "Jharkhand", "Karnataka", "Kerala", "Madhya Pradesh", 
+  "Maharashtra", "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Punjab", 
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Uttarakhand", "West Bengal", "Delhi", "Jammu and Kashmir", "Ladakh", "Puducherry"
+];
 
 // --- Helper function for minimum quantity ---
 const getMinimumQuantity = (price: number): number => {
@@ -64,12 +71,7 @@ const getItemValues = (item: Item) => {
   const minQty = getMinimumQuantity(unitPrice);
   const totalPrice = innerCount * unitPrice * (item.piecesPerInner || item.innerQty || 1);
 
-  return {
-    innerCount,
-    unitPrice,
-    totalPrice,
-    minQty
-  };
+  return { innerCount, unitPrice, totalPrice, minQty };
 };
 
 // --- Razorpay Script Loader ---
@@ -101,9 +103,7 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
 
   const currentDate = new Date();
   const formattedDate = currentDate.toLocaleDateString("en-IN", {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric'
+    day: 'numeric', month: 'long', year: 'numeric'
   });
 
   const addr = orderData.shippingAddress;
@@ -142,8 +142,6 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   const advancePaid = orderData.advancePaid || 0;
   const balanceAmount = Math.max(totalAmount - advancePaid, 0);
   const discount = orderData.discountAmount || 0;
-  // Calculate Subtotal (Items Price) by adding discount back to total (approximate logic if original item total not stored)
-  // Ideally orderData should have itemsTotal. Using orderData.itemsPrice if available.
   const subTotal = orderData.itemsPrice || (totalAmount + discount - (orderData.shippingPrice || 0));
 
 
@@ -227,11 +225,9 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
 const Checkout: React.FC = () => {
   const {
     cartItems,
-    setCartItemQuantity,
     clearCart,
     cartTotal,
     shippingFee,
-    finalTotal: originalFinalTotal, // We will calculate our own final total with discount
     freeShippingThreshold
   } = useShop();
 
@@ -245,7 +241,13 @@ const Checkout: React.FC = () => {
   const [paymentMode, setPaymentMode] = useState<"ONLINE" | "COD">("ONLINE");
   const [codAdvance, setCodAdvance] = useState<number>(0);
   
-  // ✅ Discount States
+  // Inline Address States
+  const [isAddingAddress, setIsAddingAddress] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
+  const [addressForm, setAddressForm] = useState<Partial<Address>>({
+    fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Home"
+  });
+
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [appliedDiscount, setAppliedDiscount] = useState<{ amount: number, percentage: number } | null>(null);
 
@@ -271,7 +273,7 @@ const Checkout: React.FC = () => {
     }
 
     fetchCodSettings();
-    fetchDiscountRules(); // ✅ Load rules on mount
+    fetchDiscountRules();
   }, []);
 
   const fetchCodSettings = async () => {
@@ -289,7 +291,6 @@ const Checkout: React.FC = () => {
     try {
       const { data } = await api.get("/discount-rules");
       if (Array.isArray(data)) {
-        // Sort descending to find highest applicable rule easily
         setDiscountRules(data.sort((a, b) => b.minAmount - a.minAmount));
       }
     } catch (error) {
@@ -297,16 +298,13 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // ✅ Recalculate Discount whenever cartTotal or Rules change
   useEffect(() => {
     if (discountRules.length > 0 && cartTotal > 0) {
-      // Find the best rule
       const rule = discountRules.find(r => cartTotal >= r.minAmount);
-      
       if (rule) {
         const discountVal = (cartTotal * rule.discountPercentage) / 100;
         setAppliedDiscount({ 
-          amount: Math.floor(discountVal), // Round down
+          amount: Math.floor(discountVal),
           percentage: rule.discountPercentage 
         });
       } else {
@@ -316,7 +314,6 @@ const Checkout: React.FC = () => {
         setAppliedDiscount(null);
     }
   }, [cartTotal, discountRules]);
-
 
   useEffect(() => {
     const invalidItems = cartItems.filter(item => {
@@ -344,9 +341,42 @@ const Checkout: React.FC = () => {
     }
   };
 
-  const handleChooseAddress = () => navigate("/addresses?select=true");
+  // --- Inline Address Handlers ---
+  const handleAddAddressClick = () => {
+    setAddressForm({
+      fullName: user?.shopName || "",
+      phone: user?.otpMobile || "",
+      street: "", area: "", city: "", state: "", pincode: "", type: "Home"
+    });
+    setIsAddingAddress(true);
+  };
 
-  // ✅ CALCULATE FINAL PAYABLE AMOUNT WITH DISCOUNT
+  const handleAddressFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    if ((name === "phone" || name === "pincode") && !/^\d*$/.test(value)) return;
+    setAddressForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveNewAddress = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingAddress(true);
+    try {
+      const { data } = await api.post("/addresses", { ...addressForm, isDefault: true });
+      setSelectedAddress(data);
+      setIsAddingAddress(false);
+    } catch (error) {
+      // Fallback for local storage
+      const newAddr = { ...addressForm, _id: crypto.randomUUID(), isDefault: true } as Address;
+      const raw = localStorage.getItem("bt.addresses");
+      const list = raw ? JSON.parse(raw) : [];
+      localStorage.setItem("bt.addresses", JSON.stringify([...list, newAddr]));
+      setSelectedAddress(newAddr);
+      setIsAddingAddress(false);
+    } finally {
+      setSavingAddress(false);
+    }
+  };
+
   const discountAmt = appliedDiscount ? appliedDiscount.amount : 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
 
@@ -369,167 +399,75 @@ const Checkout: React.FC = () => {
     const applicableAdvance = paymentMode === "COD" ? Math.min(codAdvance, finalTotalWithDiscount) : 0;
     const isCodDirect = paymentMode === "COD" && applicableAdvance <= 0;
 
-    // --- Scenario 1: PURE COD ---
     if (isCodDirect) {
       try {
         setPlacing(true);
-
         const items = cartItems.map((item: any) => ({
-          productId: item._id,
-          name: item.name,
-          qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1),
-          innerQty: item.piecesPerInner || item.innerQty || 1,
-          inners: item.quantity || 0,
-          price: item.price || 0,
-          image: item.image || "",
+          productId: item._id, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "",
         }));
 
         const { data } = await api.post("/orders", {
-          customerId: user._id,
-          items,
-          itemsPrice: cartTotal,
-          shippingPrice: shippingFee,
-          discountAmount: discountAmt, // ✅ Send discount info
-          total: finalTotalWithDiscount, // ✅ Send discounted total
-          shippingAddress: selectedAddress,
-          paymentMode: "COD",
-          paymentId: null,
-          codAdvancePaid: 0,
-          codRemainingAmount: finalTotalWithDiscount
+          customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode: "COD", paymentId: null, codAdvancePaid: 0, codRemainingAmount: finalTotalWithDiscount
         });
 
         const orderNum = data.order?.orderNumber || data.orderNumber;
         setOrderNumber(orderNum);
         setOrderDetails({
-          orderNumber: orderNum,
-          items,
-          total: finalTotalWithDiscount,
-          itemsPrice: cartTotal,
-          shippingPrice: shippingFee,
-          discountAmount: discountAmt,
-          date: new Date().toISOString(),
-          paymentMode: "COD",
-          shippingAddress: selectedAddress,
-          advancePaid: 0
+          orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode: "COD", shippingAddress: selectedAddress, advancePaid: 0
         });
 
-        setOrderPlaced(true);
-        clearCart();
-        localStorage.removeItem("temp_checkout_address");
-        setPlacing(false);
+        setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address"); setPlacing(false);
       } catch (err: any) {
-        console.error(err);
-        alert("Failed to place COD order.");
-        setPlacing(false);
+        console.error(err); alert("Failed to place COD order."); setPlacing(false);
       }
       return;
     }
 
-    // --- Scenario 2: Razorpay ---
     try {
       setPlacing(true);
       const payAmount = paymentMode === "ONLINE" ? finalTotalWithDiscount : applicableAdvance;
-
       const res = await loadRazorpay();
-      if (!res) {
-        alert("Payment gateway failed to load.");
-        setPlacing(false);
-        return;
-      }
+      if (!res) { alert("Payment gateway failed to load."); setPlacing(false); return; }
 
-      const { data: razorOrder } = await api.post("/payments/create-order", {
-        amount: payAmount,
-      });
+      const { data: razorOrder } = await api.post("/payments/create-order", { amount: payAmount });
 
       const options = {
         key: (import.meta as any).env.VITE_RAZORPAY_KEY || "rzp_test_YOUR_KEY_HERE",
-        amount: razorOrder.amount,
-        currency: "INR",
-        name: "Bafna Toys",
+        amount: razorOrder.amount, currency: "INR", name: "Bafna Toys",
         description: paymentMode === "COD" ? `Advance Payment` : `Order Payment`,
         order_id: razorOrder.id,
-
         handler: async function (response: any) {
           try {
             const verifyRes = await api.post("/payments/verify", response);
-            if (verifyRes.data?.success !== true) {
-              alert("Payment verification failed.");
-              setPlacing(false);
-              return;
-            }
+            if (verifyRes.data?.success !== true) { alert("Payment verification failed."); setPlacing(false); return; }
 
             const items = cartItems.map((item: any) => ({
-              productId: item._id,
-              name: item.name,
-              qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1),
-              innerQty: item.piecesPerInner || item.innerQty || 1,
-              inners: item.quantity || 0,
-              price: item.price || 0,
-              image: item.image || "",
+              productId: item._id, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "",
             }));
 
             const advancePaid = paymentMode === "COD" ? applicableAdvance : 0;
             const remaining = Math.max(finalTotalWithDiscount - advancePaid, 0);
 
             const { data } = await api.post("/orders", {
-              customerId: user._id,
-              items,
-              itemsPrice: cartTotal,
-              shippingPrice: shippingFee,
-              discountAmount: discountAmt, // ✅ Send Discount
-              total: finalTotalWithDiscount, // ✅ Send Discounted Total
-              shippingAddress: selectedAddress,
-              paymentMode: paymentMode,
-              paymentId: response.razorpay_payment_id,
-              codAdvancePaid: advancePaid,
-              codRemainingAmount: remaining
+              customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode: paymentMode, paymentId: response.razorpay_payment_id, codAdvancePaid: advancePaid, codRemainingAmount: remaining
             });
 
             const orderNum = data.order?.orderNumber || data.orderNumber;
             setOrderNumber(orderNum);
             setOrderDetails({
-              orderNumber: orderNum,
-              items,
-              total: finalTotalWithDiscount,
-              itemsPrice: cartTotal,
-              shippingPrice: shippingFee,
-              discountAmount: discountAmt,
-              date: new Date().toISOString(),
-              paymentMode: paymentMode,
-              paymentId: response.razorpay_payment_id,
-              shippingAddress: selectedAddress,
-              advancePaid: advancePaid
+              orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode: paymentMode, paymentId: response.razorpay_payment_id, shippingAddress: selectedAddress, advancePaid: advancePaid
             });
 
-            setOrderPlaced(true);
-            clearCart();
-            localStorage.removeItem("temp_checkout_address");
-          } catch (err) {
-            console.error(err);
-            alert("Order creation failed after payment.");
-          } finally {
-            setPlacing(false);
-          }
+            setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
+          } catch (err) { console.error(err); alert("Order creation failed after payment."); } finally { setPlacing(false); }
         },
-        prefill: {
-          name: selectedAddress.fullName,
-          contact: selectedAddress.phone,
-          email: user.email || ""
-        },
+        prefill: { name: selectedAddress.fullName, contact: selectedAddress.phone, email: user.email || "" },
         theme: { color: "#2c5aa0" },
-        modal: {
-          ondismiss: function() { setPlacing(false); },
-          escape: false
-        }
+        modal: { ondismiss: function() { setPlacing(false); }, escape: false }
       };
 
-      const rzp = new (window as any).Razorpay(options);
-      rzp.open();
-    } catch (err: any) {
-      console.error(err);
-      alert("Failed to initiate payment.");
-      setPlacing(false);
-    }
+      const rzp = new (window as any).Razorpay(options); rzp.open();
+    } catch (err: any) { console.error(err); alert("Failed to initiate payment."); setPlacing(false); }
   };
 
   if (orderPlaced) {
@@ -577,9 +515,10 @@ const Checkout: React.FC = () => {
     return innerCount >= minQty;
   });
 
-  // FREE SHIPPING PROGRESS
   const neededForFree = freeShippingThreshold - cartTotal;
   const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
+
+  const inputStyle = { width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0', fontSize: '14px', outline: 'none' };
 
   return (
     <div className="checkout-container">
@@ -604,11 +543,8 @@ const Checkout: React.FC = () => {
           </div>
           <div style={{width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden'}}>
              <div style={{
-                width: `${progressPercent}%`,
-                height: '100%',
-                background: neededForFree > 0 ? '#3b82f6' : '#22c55e',
-                transition: 'width 0.5s ease',
-                borderRadius: '4px'
+                width: `${progressPercent}%`, height: '100%',
+                background: neededForFree > 0 ? '#3b82f6' : '#22c55e', transition: 'width 0.5s ease', borderRadius: '4px'
              }} />
           </div>
         </div>
@@ -631,10 +567,7 @@ const Checkout: React.FC = () => {
           <div className="checkout-section payment-mode-card">
             <div className="section-header"><h2>📦 Select Payment Method</h2></div>
             <div className="payment-options">
-              <div
-                className={`payment-option ${paymentMode === "COD" ? "selected" : ""}`}
-                onClick={() => setPaymentMode("COD")}
-              >
+              <div className={`payment-option ${paymentMode === "COD" ? "selected" : ""}`} onClick={() => setPaymentMode("COD")}>
                 <div className="payment-icon"><Package size={24} /></div>
                 <div className="payment-info">
                   <h3>Cash on Delivery</h3>
@@ -645,14 +578,11 @@ const Checkout: React.FC = () => {
                 <div className="payment-radio"><div className={`radio-circle ${paymentMode === "COD" ? "active" : ""}`} /></div>
               </div>
 
-              <div
-                className={`payment-option ${paymentMode === "ONLINE" ? "selected" : ""}`}
-                onClick={() => setPaymentMode("ONLINE")}
-              >
+              <div className={`payment-option ${paymentMode === "ONLINE" ? "selected" : ""}`} onClick={() => setPaymentMode("ONLINE")}>
                 <div className="payment-icon"><CreditCard size={24} /></div>
                 <div className="payment-info">
                   <h3>Online Payment</h3>
-                  <p>Pay securely with Razorpay</p>
+                  <p>Pay securely</p>
                 </div>
                 <div className="payment-radio"><div className={`radio-circle ${paymentMode === "ONLINE" ? "active" : ""}`} /></div>
               </div>
@@ -661,15 +591,51 @@ const Checkout: React.FC = () => {
 
           {/* Address */}
           <div className="checkout-section address-card">
-            <div className="section-header">
+            <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2><MapPin size={20} className="icon-mr"/> Shipping Address</h2>
-              <button className="change-addr-btn" onClick={handleChooseAddress}>
-                {selectedAddress ? "Change" : "Choose"}
-              </button>
+              
+              {/* ✅ FIX: Yahan "Add New" aur "Change Address" dono show honge jab address select ho chuka ho */}
+              {!isAddingAddress && selectedAddress && (
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={handleAddAddressClick} style={{ background: '#2c5aa0', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+                    <Plus size={14} /> Add New
+                  </button>
+                  <button onClick={() => navigate("/addresses?select=true")} style={{ background: 'transparent', color: '#2c5aa0', border: '1px solid #2c5aa0', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}>
+                    Change Address
+                  </button>
+                </div>
+              )}
             </div>
+            
             <div className="address-content">
-              {selectedAddress ? (
-                <div className="selected-addr-view">
+              {isAddingAddress ? (
+                /* Inline Address Form */
+                <form onSubmit={handleSaveNewAddress} style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '15px', background: '#f8fafc', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                      <input required placeholder="Full Name *" name="fullName" value={addressForm.fullName} onChange={handleAddressFormChange} style={{...inputStyle, gridColumn: 'span 2'}} />
+                      <input required placeholder="Phone *" name="phone" maxLength={10} value={addressForm.phone} onChange={handleAddressFormChange} style={inputStyle} />
+                      <input required placeholder="Pincode *" name="pincode" maxLength={6} value={addressForm.pincode} onChange={handleAddressFormChange} style={inputStyle} />
+                      <input required placeholder="Street / Shop No. *" name="street" value={addressForm.street} onChange={handleAddressFormChange} style={{...inputStyle, gridColumn: 'span 2'}} />
+                      <input placeholder="Area / Landmark" name="area" value={addressForm.area} onChange={handleAddressFormChange} style={{...inputStyle, gridColumn: 'span 2'}} />
+                      <input required placeholder="City *" name="city" value={addressForm.city} onChange={handleAddressFormChange} style={inputStyle} />
+                      <select required name="state" value={addressForm.state} onChange={handleAddressFormChange} style={inputStyle}>
+                          <option value="">Select State *</option>
+                          {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                      </select>
+                      <select name="type" value={addressForm.type} onChange={handleAddressFormChange} style={{...inputStyle, gridColumn: 'span 2'}}>
+                          <option>Home</option><option>Office</option><option>Other</option>
+                      </select>
+                   </div>
+                   <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '10px' }}>
+                      <button type="button" onClick={() => setIsAddingAddress(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                      <button type="submit" disabled={savingAddress} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2c5aa0', color: 'white', cursor: 'pointer', fontWeight: 600 }}>
+                          {savingAddress ? "Saving..." : "Save & Deliver Here"}
+                      </button>
+                   </div>
+                </form>
+              ) : selectedAddress ? (
+                /* Selected Address Detail View */
+                <div className="selected-addr-view" style={{ marginTop: '10px' }}>
                   <div className="user-info-row">
                     <UserIcon size={16} /> <strong>{selectedAddress.fullName}</strong>
                     <span className={`addr-tag`}>{selectedAddress.type}</span>
@@ -678,7 +644,23 @@ const Checkout: React.FC = () => {
                   <p>{selectedAddress.city} - <strong>{selectedAddress.pincode}</strong></p>
                   <p>📞 {selectedAddress.phone}</p>
                 </div>
-              ) : (<div className="no-addr-selected">No address selected.</div>)}
+              ) : (
+                /* NO Address Selected State */
+                <div className="no-addr-selected" style={{ padding: '30px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', marginTop: '10px', border: '1.5px dashed #cbd5e1' }}>
+                  <p style={{ marginBottom: '20px', color: '#64748b', fontSize: '15px' }}>No address selected.</p>
+                  
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                      <button onClick={handleAddAddressClick} style={{ background: '#2c5aa0', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <Plus size={16} /> Add New Address
+                      </button>
+                      
+                      {/* ✅ FIX: popup hatane ke liye `redirect=checkout` url se nikal diya */}
+                      <button onClick={() => navigate("/addresses?select=true")} style={{ background: 'transparent', color: '#2c5aa0', border: '1.5px solid #2c5aa0', padding: '12px 24px', borderRadius: '8px', fontSize: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
+                        Choose Saved Address
+                      </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -744,10 +726,11 @@ const Checkout: React.FC = () => {
             <button
               className={`place-order-btn ${placing ? "processing" : ""} ${!allItemsMeetMinQty ? "disabled" : ""}`}
               onClick={handlePlaceOrder}
-              disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty}
+              disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty || isAddingAddress}
             >
               {placing ? "Processing..." : (paymentMode === "COD" ? "Place COD Order" : "Pay Now")}
             </button>
+            {isAddingAddress && <p style={{ color: '#dc2626', fontSize: '13px', textAlign: 'center', marginTop: '10px', fontWeight: 500 }}>Please save your address first.</p>}
           </div>
         </div>
       </div>

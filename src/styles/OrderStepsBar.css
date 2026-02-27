@@ -1,5 +1,3 @@
-/* src/styles/OrderStepsBar.css */
-
 /* =========================================
    ✅ PREMIUM ORDER STEPS BAR
    Clean, Trust-building, and Professional
@@ -33,7 +31,7 @@
   min-height: 54px;
   padding: 10px 14px;
   border-radius: 12px;
-  transition: transform 0.2s ease;
+  z-index: 2;
 }
 
 .osb-icon {
@@ -47,6 +45,8 @@
   color: #fff;
   flex: 0 0 auto;
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  background-color: #fff; /* Protects icon from road line behind it */
+  z-index: 3;
 }
 
 .osb-text {
@@ -69,102 +69,25 @@
   color: #6B7280;
 }
 
-/* Connector Line - Desktop */
+/* =========================================
+   🛣️ ROAD CONNECTOR (Desktop)
+========================================= */
 .osb-line {
   position: absolute;
-  right: -16px;
+  right: -20px; /* Stretch across the grid gap */
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 3px;
-  border-radius: 4px;
-  background: rgba(28, 31, 46, 0.08);
-  z-index: 1;
+  width: calc(100% - 20px); /* Adjust dynamically */
+  height: 4px;
+  
+  /* Dashed Road Effect */
+  background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%);
+  background-size: 12px 4px;
+  background-repeat: repeat-x;
+  z-index: 1; /* Stay behind the icon */
 }
 
 /* =========================================
-   ✅ STATUS STYLES (Professional E-commerce look)
-========================================= */
-
-/* Done: Successful Mint/Blue gradient */
-.osb-done .osb-icon {
-  background: linear-gradient(135deg, #00E5B5, #00B4FF);
-}
-
-/* Active: Highlighted Brand Pink/Purple */
-.osb-active .osb-icon {
-  background: linear-gradient(135deg, #FF2A75, #8C52FF);
-  box-shadow: 0 8px 20px rgba(255, 42, 117, 0.2);
-}
-.osb-active .osb-title {
-  color: #FF2A75;
-}
-
-/* Upcoming: Professional Gray/Muted */
-.osb-upcoming .osb-icon {
-  background: #F3F4F6;
-  color: #9CA3AF;
-  box-shadow: none;
-  border: 1px solid #E5E7EB;
-}
-.osb-upcoming .osb-title {
-  color: #9CA3AF;
-}
-.osb-upcoming .osb-date {
-  color: #9CA3AF;
-  opacity: 0.8;
-}
-
-/* =========================================
-   📱 MOBILE VIEW (Strictly Preserved Layout)
-========================================= */
-@media (max-width: 768px) {
-  .osb-wrap {
-    padding: 10px 0;
-  }
-
-  .osb {
-    /* Force 3 columns on mobile */
-    grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
-    padding: 12px 6px;
-    border-radius: 12px;
-  }
-  
-  .osb-step {
-    /* Stack icon and text vertically to save horizontal space */
-    flex-direction: column;
-    justify-content: flex-start;
-    text-align: center;
-    padding: 8px 4px;
-    gap: 8px;
-  }
-  
-  .osb-icon {
-    /* Make icons slightly smaller */
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-  
-  .osb-text {
-    align-items: center;
-  }
-  
-  .osb-title {
-    font-size: 11px; /* Smaller text to fit 3 columns */
-    line-height: 1.2;
-  }
-  
-  .osb-date {
-    font-size: 10px; /* Smaller date text */
-    margin-top: 4px;
-  }
-  
-  .osb-line { 
-    display: none; /* Keep lines hidden on mobile to avoid clutter */
-  }
-}/* =========================================
    ✅ STATUS STYLES (Colorful & Premium)
 ========================================= */
 
@@ -184,20 +107,79 @@
   color: #fff;
 }
 .osb-active .osb-title {
-  color: #FF2A75; /* Highlighted text color */
+  color: #FF2A75;
 }
 
-/* 3. Upcoming (Delivered): Warm Yellow & Orange (Colored!) */
+/* 3. Upcoming (Delivered): Warm Yellow & Orange */
 .osb-upcoming .osb-icon {
   background: linear-gradient(135deg, #FFC000, #FF8A00);
   box-shadow: 0 6px 16px rgba(255, 138, 0, 0.15);
   color: #fff;
   border: none;
-  opacity: 0.85; /* Thoda sa light rakha hai taaki 'upcoming' feel aaye */
+  opacity: 0.85;
 }
 .osb-upcoming .osb-title {
-  color: #1C1F2E; /* Wapas dark kar diya hai, grey nahi lagega */
+  color: #1C1F2E;
 }
 .osb-upcoming .osb-date {
   color: #6B7280;
+}
+
+/* =========================================
+   📱 MOBILE VIEW (Strictly Preserved Layout)
+========================================= */
+@media (max-width: 768px) {
+  .osb-wrap {
+    padding: 10px 0;
+  }
+
+  .osb {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    padding: 12px 6px;
+    border-radius: 12px;
+  }
+  
+  .osb-step {
+    flex-direction: column;
+    justify-content: flex-start;
+    text-align: center;
+    padding: 8px 4px;
+    gap: 8px;
+    position: relative;
+  }
+  
+  .osb-icon {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+  
+  .osb-text {
+    align-items: center;
+  }
+  
+  .osb-title {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+  
+  .osb-date {
+    font-size: 10px;
+    margin-top: 4px;
+  }
+  
+  /* 🛣️ Mobile Road View */
+  .osb-line { 
+    display: block;
+    position: absolute;
+    top: 26px; /* Align with the center of the mobile icon */
+    right: -50%; /* Stretch to connect to the next column */
+    width: 100%;
+    height: 3px;
+    background-image: linear-gradient(to right, #cbd5e1 50%, transparent 50%);
+    background-size: 8px 3px;
+    transform: none; /* Remove desktop vertical centering */
+    z-index: 1;
+  }
 }
