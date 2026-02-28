@@ -191,7 +191,15 @@ const Home: React.FC = () => {
         </a>
       </div>
 
-      {!loading && banners.length > 0 && <BannerSlider banners={banners} />}
+      {/* ✅ LCP & CLS FIX: Show Banner Skeleton while loading */}
+      {loading ? (
+        <div style={{ width: '100%', padding: '10px 0', margin: '20px auto', overflow: 'hidden' }}>
+          <Skeleton variant="rectangular" width="100%" height="300px" sx={{ borderRadius: "10px" }} />
+        </div>
+      ) : (
+        banners.length > 0 && <BannerSlider banners={banners} />
+      )}
+      
       {!loading && <OrderStepsBar />}
 
       {/* Shop By Category */}

@@ -104,20 +104,22 @@
 }
 
 /* =========================================
-   HOME CONTAINER
+   HOME CONTAINER (✅ CLS JUMP FIX APPLIED)
 ========================================= */
 .home-container {
   width: 100%;
   margin: 0;
-  padding: 0 0 90px;
+  padding: 0; /* removed bottom padding */
   font-family: var(--font);
   color: var(--text);
   background: var(--bg);
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   
-  /* ✅ CLS FIX: Prevents footer from jumping up and down during data load */
-  min-height: 200vh;
+  /* ✅ MAGIC FIX: Makes sure the page is at least full screen height and locks footer at bottom */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* =========================================
@@ -349,16 +351,18 @@
 .scroll-btn--right { right: 16px; }
 
 /* =========================================
-   ✅ PREMIUM FOOTER
+   ✅ PREMIUM FOOTER (✅ CLS JUMP FIX APPLIED)
 ========================================= */
 .home-footer {
-  margin-top: 60px;
+  /* ✅ MAGIC FIX: Pushes the footer to the absolute bottom perfectly */
+  margin-top: auto; 
+  
   padding: 60px 40px 40px;
   background: #1C1F2E;
   color: #fff;
   border-top: 4px solid var(--pink);
   
-  /* ✅ CLS & PERFORMANCE FIX: Stops the footer from jumping around on load */
+  /* Stops the footer from jumping around on load */
   content-visibility: auto;
   contain-intrinsic-size: 350px;
   min-height: 350px;
