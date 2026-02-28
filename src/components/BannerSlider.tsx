@@ -11,7 +11,7 @@ interface Banner {
 
 interface Props {
   banners: Banner[];
-  hideFirstBanner?: boolean; // ✅ Prop to skip first banner if already rendered
+  hideFirstBanner?: boolean; // ✅ New prop to skip first banner if already rendered
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -40,7 +40,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
-    lazyLoad: 'ondemand', // ✅ Slick carousel lazy loading
+    lazyLoad: 'ondemand', // ✅ Lazy load non-critical slides
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
       { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
@@ -57,11 +57,11 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getBannerUrl = (url: string): string => {
-    if (!url) return "https://via.placeholder.com/1000x600?text=No+Banner";
+    if (!url) return "https://via.placeholder.com/600x360?text=No+Banner";
 
     if (!url.startsWith("http") && cloudName) {
-      // ✅ Using w_1000 for good quality on larger screens
-      return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_1000,c_limit/${url}`;
+      // ✅ CHANGED: w_1000 to w_600 for massive payload savings and faster LCP
+      return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_600,c_limit/${url}`;
     }
 
     if (url.startsWith("http")) {
@@ -69,7 +69,8 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
         if (url.includes("/image/upload/f_auto")) return url;
         return url.replace(
           "/image/upload/",
-          "/image/upload/f_auto,q_auto,w_1000,c_limit/"
+          // ✅ CHANGED: w_1000 to w_600 here too
+          "/image/upload/f_auto,q_auto,w_600,c_limit/"
         );
       }
       return url;
@@ -80,16 +81,15 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getImgProps = (index: number): Record<string, any> => {
-    // ✅ LCP Fix: Agar hideFirstBanner false hai, toh index 0 wali image sabse pehle dikhegi.
-    // Isliye usko eager load karna hai. Baki sab lazy load hongi.
-    const isLcpImage = !hideFirstBanner && index === 0;
+    // ✅ LCP FIX: Make sure the first visible banner always eager loads
+    const isLcp = !hideFirstBanner && index === 0;
 
     return {
-      width: 1000, // CLS Fix: Exact width
-      height: 600, // CLS Fix: Exact height (5:3 aspect ratio)
-      loading: isLcpImage ? "eager" : "lazy", // Pehla banner turant load ho
-      fetchPriority: isLcpImage ? "high" : "auto", // Browser ko bataye ki ye important hai
-      decoding: isLcpImage ? "sync" : "async",
+      width: 600,
+      height: 360, // Maintained 5:3 Aspect Ratio
+      loading: isLcp ? "eager" : "lazy",
+      fetchPriority: isLcp ? "high" : "auto",
+      decoding: isLcp ? "sync" : "async",
     };
   };
 

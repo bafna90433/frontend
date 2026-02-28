@@ -39,20 +39,21 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: "/index.html",
+          // ✅ Cloudinary images ko cache karega jisse bar-bar download na ho
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'cloudinary-images',
-                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, 
+                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, // 30 Days cache
               },
             },
           ],
         },
       }),
 
-      // ✅ Gzip + Brotli 
+      // ✅ Gzip + Brotli dono banayege (Safe fallback ke liye)
       ...(isProd
         ? [
             viteCompression({ algorithm: "gzip", ext: ".gz" }),
@@ -63,14 +64,15 @@ export default defineConfig(({ mode }) => {
 
     build: {
       outDir: "dist",
-      target: "es2020", // ✅ Changed from 'esnext' to 'es2020' for better compatibility
+      target: "es2020", // ✅ Changed to 'es2020' for better compatibility without legacy bloat
       minify: "esbuild", 
       cssMinify: true, 
       sourcemap: false,
-      chunkSizeWarningLimit: 1500, // Warning limit ko set kiya
-      // ❌ REMOVED aggressive manualChunks which caused the blank screen error
+      chunkSizeWarningLimit: 1500, // Warning limit badha di gayi hai
+      // ❌ Aggressive manualChunks hata diya hai blank screen error rokne ke liye
     },
 
+    // ✅ Production mein console.log aur debugger automatically remove karega
     esbuild: {
       drop: isProd ? ["console", "debugger"] : [],
     },

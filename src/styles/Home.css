@@ -5,6 +5,8 @@
    Professional, clean, and vibrant
 ========================================= */
 
+/* ✅ FONT FIX: No more @import here. Import it directly in index.html for faster loading! */
+
 :root {
   /* Cleaner background for products to stand out */
   --bg: #F8F9FA; 
@@ -113,6 +115,9 @@
   background: var(--bg);
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
+  
+  /* ✅ CLS FIX: Prevents footer from jumping up and down during data load */
+  min-height: 200vh;
 }
 
 /* =========================================
