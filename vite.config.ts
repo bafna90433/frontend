@@ -3,7 +3,6 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 import { VitePWA } from "vite-plugin-pwa";
-// ❌ legacy plugin hata diya gaya hai bundle size aadi karne ke liye
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
@@ -13,7 +12,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       
-      // ✅ PWA (Slightly optimized with Cloudinary caching)
+      // ✅ PWA (Optimized with Cloudinary caching)
       VitePWA({
         registerType: "autoUpdate",
         devOptions: { enabled: !isProd }, 
@@ -40,21 +39,20 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: "/index.html",
-          // ✅ Cloudinary images ko cache karega jisse bar-bar download na ho
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
               handler: 'CacheFirst',
               options: {
                 cacheName: 'cloudinary-images',
-                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, // 30 Days cache
+                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, 
               },
             },
           ],
         },
       }),
 
-      // ✅ Gzip + Brotli dono banayege (Safe fallback ke liye)
+      // ✅ Gzip + Brotli 
       ...(isProd
         ? [
             viteCompression({ algorithm: "gzip", ext: ".gz" }),
@@ -65,29 +63,14 @@ export default defineConfig(({ mode }) => {
 
     build: {
       outDir: "dist",
-      target: "esnext",
+      target: "es2020", // ✅ Changed from 'esnext' to 'es2020' for better compatibility
       minify: "esbuild", 
       cssMinify: true, 
       sourcemap: false,
-      chunkSizeWarningLimit: 1000, // Warning limit badhai hai thodi
-      rollupOptions: {
-        output: {
-          // ✅ ADVANCED CHUNK SPLITTING: Heavy libraries ko alag-alag tukdon me todega
-          manualChunks: (id) => {
-            if (id.includes("node_modules")) {
-              if (id.includes("react") || id.includes("react-dom")) return "vendor-react";
-              if (id.includes("react-router")) return "vendor-router";
-              if (id.includes("@mui")) return "vendor-mui"; // MUI bahut heavy hoti hai
-              if (id.includes("react-icons")) return "vendor-icons";
-              if (id.includes("react-slick") || id.includes("slick-carousel")) return "vendor-slider";
-              return "vendor-core"; // Baki bachi hui libraries
-            }
-          },
-        },
-      },
+      chunkSizeWarningLimit: 1500, // Warning limit ko set kiya
+      // ❌ REMOVED aggressive manualChunks which caused the blank screen error
     },
 
-    // ✅ Production mein console.log aur debugger automatically remove karega
     esbuild: {
       drop: isProd ? ["console", "debugger"] : [],
     },
