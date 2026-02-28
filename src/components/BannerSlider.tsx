@@ -81,8 +81,8 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getImgProps = (index: number): Record<string, any> => {
-    // ✅ LCP FIX: Make sure the first visible banner always eager loads
-    const isLcp = !hideFirstBanner && index === 0;
+    // ✅ LCP FIX: Desktop par 3 banners dikhte hain, isliye pehle 3 ko eager load karna zaroori hai.
+    const isLcp = !hideFirstBanner && index < 3;
 
     return {
       width: 600,

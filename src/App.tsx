@@ -143,7 +143,17 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
 
-      <main style={{ paddingBottom: "60px", minHeight: "80vh" }}>
+      {/* ✅ CLS FIX: Changed from minHeight: '80vh' to Flexbox with 100vh to stop layout jump */}
+      <main 
+        style={{ 
+          paddingBottom: "60px", 
+          minHeight: "100vh", 
+          display: "flex", 
+          flexDirection: "column", 
+          flexGrow: 1, 
+          position: "relative" 
+        }}
+      >
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
 
