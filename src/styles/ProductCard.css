@@ -1,4 +1,4 @@
-/* src/styles/ProductCard.css (FINAL) */
+/* src/styles/ProductCard.css (FINAL OPTIMIZED) */
 
 /* Clear font + less bold everywhere */
 :root {
@@ -42,6 +42,10 @@
   font-family: var(--pc-font);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* ✅ PERFORMANCE FIX: Extremely important for reducing main-thread work */
+  content-visibility: auto;
+  contain-intrinsic-size: 350px; /* Adjust if your card is generally taller/shorter */
 }
 
 /* Card Container */
@@ -50,14 +54,16 @@
   border-radius: var(--pc-radius-card);
   overflow: hidden;
   position: relative;
-  transition: all 0.25s ease;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
   box-shadow: var(--pc-shadow-sm);
   height: 100%;
   display: flex;
   flex-direction: column;
   border: 1px solid #eef2f7;
   cursor: pointer;
-  contain: layout paint; /* ✅ small performance help */
+  /* ✅ GPU Acceleration + Strict containment */
+  contain: layout paint style; 
+  will-change: transform, box-shadow;
 }
 
 .pc-card:hover {
@@ -74,6 +80,8 @@
   background: #f8fafc;
   margin: 8px;
   border-radius: 16px;
+  /* Fix Safari border-radius overflow bug */
+  transform: translateZ(0); 
 }
 
 .pc-image-wrapper {
@@ -92,6 +100,8 @@
   display: block;
   transition: transform 0.45s ease, opacity 0.2s ease;
   opacity: 0;
+  /* Hardware acceleration for scale animation */
+  will-change: transform, opacity; 
 }
 
 .pc-img.pc-img--loaded {
@@ -153,6 +163,7 @@
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px); /* Safari support */
   border: 1px solid rgba(15, 23, 42, 0.06);
   display: flex;
   align-items: center;
@@ -160,7 +171,8 @@
   color: #ff6b6b;
   cursor: pointer;
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.1);
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease, background-color 0.15s ease, color 0.15s ease;
+  will-change: transform;
 }
 
 .pc-share-btn:hover {
@@ -266,7 +278,7 @@
   margin: 0;
   line-height: 1.3;
 
-  max-width: 30ch;          /* ✅ ~12 letters */
+  max-width: 30ch;         /* ✅ ~12 letters */
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -354,6 +366,7 @@
   box-shadow: 0 8px 18px rgba(255, 107, 107, 0.25);
   transition: transform 0.12s ease, box-shadow 0.12s ease;
   margin-bottom: 4px;
+  will-change: transform, box-shadow;
 }
 
 .pc-add-to-cart:hover {
@@ -417,6 +430,7 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.12s ease, box-shadow 0.12s ease;
+  will-change: transform;
 }
 
 .pc-qty-btn--decrease {
@@ -466,70 +480,36 @@
   100% { background-position: -200% 0; }
 }
 
-/* ✅ Mobile: smaller font sizes + tighter */
-@media (max-width: 480px) {
-  .pc-wrapper { padding: 4px; }
-  .pc-image-container { margin: 6px; border-radius: 14px; }
-  .pc-hotdeal-timer { font-size: 9px; padding: 4px 8px; }
-
-  .pc-body { padding: 8px 8px 10px; gap: 6px; }
-
-  .pc-min-qty { font-size: 9px; padding: 3px 6px; }
-  .pc-stock-status { font-size: 9px; }
-
-  .pc-title { font-size: 12px; max-width: 30ch; }
-
-  .pc-chip { padding: 3px 6px; font-size: 8px; }
-
-  .pc-currency { font-size: 11px; }
-  .pc-amount { font-size: 16px; }
-  .pc-mrp { font-size: 9px; margin-left: 6px; }
-
-  .pc-add-to-cart { font-size: 11px; padding: 8px; }
-  .pc-qty-label { font-size: 9px; }
-  .pc-qty-total { font-size: 10px; }
-
-  .pc-qty-btn { width: 26px; height: 26px; border-radius: 9px; }
-  .pc-qty-val { font-size: 12px; }
-}
-/* src/styles/ProductCard.css */
-
-/* ... keep all your existing CSS ... */
-
 /* =========================================
-   ✅ MOBILE CARD COMPACT FIX (Paste at the very bottom)
+   ✅ MOBILE OPTIMIZATIONS
 ========================================= */
 @media (max-width: 600px) {
-  /* 1. Remove Wrapper Padding here too just in case */
   .pc-wrapper {
     padding: 0 !important; 
+    contain-intrinsic-size: 300px; /* Shorter for mobile */
   }
 
-  /* 2. Tighter Card Layout */
   .pc-image-container {
-    margin: 4px !important; /* Smaller margin around image */
+    margin: 4px !important; 
     border-radius: 10px !important;
   }
   
-  /* 3. Compact Body */
   .pc-body {
-    padding: 8px 6px 10px !important; /* Less internal whitespace */
+    padding: 8px 6px 10px !important; 
     gap: 4px !important;
   }
 
-  /* 4. Font Sizing for Mobile */
   .pc-title {
     font-size: 13px !important;
     line-height: 1.3 !important;
-    height: 34px; /* Force 2 lines max height */
+    height: 34px; 
     overflow: hidden;
-    white-space: normal !important; /* Allow text to wrap to 2nd line */
+    white-space: normal !important; 
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
   }
 
-  /* 5. Price Section Compact */
   .pc-price-section {
     padding-top: 4px !important;
   }
@@ -537,16 +517,26 @@
   .pc-amount { font-size: 16px !important; }
   .pc-mrp { font-size: 10px !important; display: block; margin-left: 0 !important; }
 
-  /* 6. Button Compact */
   .pc-add-to-cart {
     padding: 8px 4px !important;
     font-size: 11px !important;
     height: 32px !important;
   }
 
-  /* 7. Hide unnecessary badges on very small screens if needed */
   .pc-min-qty {
     font-size: 9px !important;
     padding: 2px 4px !important;
   }
+  
+  .pc-hotdeal-timer { font-size: 9px; padding: 4px 8px; }
+  .pc-stock-status { font-size: 9px; }
+  .pc-chip { padding: 3px 6px; font-size: 8px; }
+  .pc-qty-label { font-size: 9px; }
+  .pc-qty-total { font-size: 10px; }
+  .pc-qty-btn { width: 26px; height: 26px; border-radius: 9px; }
+  .pc-qty-val { font-size: 12px; }
+}
+
+@media (max-width: 380px) {
+  /* No specific styles needed here yet, grid is handled by parent container */
 }

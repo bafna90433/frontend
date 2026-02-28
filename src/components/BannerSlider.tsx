@@ -11,7 +11,7 @@ interface Banner {
 
 interface Props {
   banners: Banner[];
-  hideFirstBanner?: boolean; // ✅ New prop to skip first banner if already rendered
+  hideFirstBanner?: boolean; // ✅ Prop to skip first banner if already rendered
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -40,7 +40,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
-    lazyLoad: 'ondemand', // ✅ Lazy load non-critical slides
+    lazyLoad: 'ondemand', // ✅ Slick carousel lazy loading
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
       { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
@@ -57,9 +57,10 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getBannerUrl = (url: string): string => {
-    if (!url) return "https://via.placeholder.com/500x300?text=No+Banner";
+    if (!url) return "https://via.placeholder.com/1000x600?text=No+Banner";
 
     if (!url.startsWith("http") && cloudName) {
+      // ✅ Using w_1000 for good quality on larger screens
       return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_1000,c_limit/${url}`;
     }
 
@@ -79,14 +80,16 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getImgProps = (index: number): Record<string, any> => {
-    // ✅ Since first banner is already rendered statically,
-    // all slider images can be lazy loaded
+    // ✅ LCP Fix: Agar hideFirstBanner false hai, toh index 0 wali image sabse pehle dikhegi.
+    // Isliye usko eager load karna hai. Baki sab lazy load hongi.
+    const isLcpImage = !hideFirstBanner && index === 0;
+
     return {
-      width: 500,
-      height: 300,
-      loading: "lazy",
-      fetchPriority: "auto",
-      decoding: "async",
+      width: 1000, // CLS Fix: Exact width
+      height: 600, // CLS Fix: Exact height (5:3 aspect ratio)
+      loading: isLcpImage ? "eager" : "lazy", // Pehla banner turant load ho
+      fetchPriority: isLcpImage ? "high" : "auto", // Browser ko bataye ki ye important hai
+      decoding: isLcpImage ? "sync" : "async",
     };
   };
 

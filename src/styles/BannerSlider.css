@@ -1,11 +1,16 @@
+/* src/styles/BannerSlider.css */
+
 :root {
   --banner-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   --banner-border: 1px solid transparent;
+  /* ✅ Skeleton/Placeholder color add kiya hai jab tak image load ho */
+  --banner-placeholder: #e2e8f0; 
 }
 
 body.dark {
   --banner-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
   --banner-border: 1px solid #333333;
+  --banner-placeholder: #2d3748;
 }
 
 .banner-slider-row {
@@ -23,39 +28,50 @@ body.dark {
 .banner-link {
   display: block;
   text-decoration: none;
+  border-radius: 10px;
+  /* ✅ Blur bleed ko rokne ke liye overflow hidden */
+  overflow: hidden; 
 }
 
 /* ✅ Stable size = less CLS + better LCP */
 .banner-row-img {
   width: 100%;
-  aspect-ratio: 5 / 3; /* 500x300 */
+  aspect-ratio: 5 / 3; /* 500x300 - CLS Fix */
   height: auto;
   object-fit: cover;
   display: block;
   border-radius: 10px;
+  background-color: var(--banner-placeholder); /* Dikhne me fast lagta hai */
 
   box-shadow: var(--banner-shadow);
   border: var(--banner-border);
 
-  transition: transform 0.25s ease, opacity 0.2s ease, box-shadow 0.2s ease;
+  /* ✅ PERFORMANCE: Hardware acceleration se browser hang nahi hoga */
+  will-change: transform, filter;
+  transition: transform 0.3s ease, filter 0.35s ease, box-shadow 0.3s ease;
 }
 
+/* Hover effect parent se trigger karna better hai */
+.banner-link:hover .banner-row-img,
 .banner-row-img:hover {
   transform: scale(1.02);
-  opacity: 0.97;
+  /* opacity hta di, taaki browser ko extra paint na karna pade */
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
+body.dark .banner-link:hover .banner-row-img,
 body.dark .banner-row-img:hover {
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
 }
 
-/* ✅ Proper blur-up */
+/* ✅ Proper blur-up without edge bleeding */
 .blur-up {
   filter: blur(10px);
-  transition: filter 0.35s ease;
+  /* Scale thoda bada rakha hai blur ke waqt white edges hatane ke liye */
+  transform: scale(1.05); 
 }
 
 .blur-up.is-loaded {
   filter: blur(0);
+  transform: scale(1); /* Original size par wapas */
 }

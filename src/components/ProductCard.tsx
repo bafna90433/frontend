@@ -1,5 +1,5 @@
 // src/components/ProductCard.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import {
@@ -43,7 +43,7 @@ export type Deal = {
 
 interface ProductCardProps {
   product: Product;
-  deal?: Deal; // ✅ NEW
+  deal?: Deal;
   userRole?: "admin" | "customer";
   index?: number;
 }
@@ -56,7 +56,6 @@ const IMAGE_BASE_URL =
 
 const FALLBACK_IMAGE = "/images/placeholder.webp";
 
-// ✅ Match PageSpeed suggestion (display ~282x282) -> serve 300x300
 const IMG_W = 300;
 const IMG_H = 300;
 
@@ -69,7 +68,6 @@ const toAbsUrl = (raw: string) => {
   if (!raw) return "";
   if (raw.startsWith("http")) return raw;
 
-  // /uploads/xxx or uploads/xxx
   if (raw.includes("/uploads/")) return `${API_BASE}${raw}`;
   const clean = raw.replace(/^\/+/, "");
   const finalPath =
@@ -79,12 +77,6 @@ const toAbsUrl = (raw: string) => {
   return `${IMAGE_BASE_URL}/${finalPath}`;
 };
 
-/**
- * ✅ Optimized URL builder:
- * - Cloudinary full URL -> inject transforms
- * - Cloudinary public_id (no http) -> build URL
- * - local/backend URL -> keep absolute
- */
 const getOptimizedImageUrl = (
   rawUrl: string | undefined,
   width = IMG_W,
@@ -93,7 +85,6 @@ const getOptimizedImageUrl = (
   if (!rawUrl) return FALLBACK_IMAGE;
 
   try {
-    // If public_id stored (no http) and cloudName exists
     if (!rawUrl.startsWith("http") && CLOUD_NAME) {
       const publicId = rawUrl.replace(/^\/+/, "");
       return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/${publicId}`;
@@ -101,7 +92,6 @@ const getOptimizedImageUrl = (
 
     const abs = toAbsUrl(rawUrl);
 
-    // Cloudinary full URL -> inject transforms (avoid double-inject)
     if (abs.includes("res.cloudinary.com") && abs.includes("/image/upload/")) {
       if (
         abs.includes("/image/upload/f_auto") ||
@@ -122,7 +112,8 @@ const getOptimizedImageUrl = (
   }
 };
 
-const ProductCard: React.FC<ProductCardProps> = ({
+// ✅ PERFORMANCE: Wrapped entire component in React.memo to stop useless re-renders
+const ProductCard: React.FC<ProductCardProps> = React.memo(({
   product,
   deal,
   index = 0,
@@ -137,12 +128,10 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
   const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
 
-  const handleNavigate = () =>
-    navigate(
-      product.slug ? `/product/${product.slug}` : `/product/${product._id}`
-    );
+  const handleNavigate = useCallback(() => {
+    navigate(product.slug ? `/product/${product.slug}` : `/product/${product._id}`);
+  }, [navigate, product.slug, product._id]);
 
-  // ✅ FINAL PRICE (deal apply)
   const finalPrice = useMemo(() => {
     const price = Number(product.price) || 0;
 
@@ -160,26 +149,25 @@ const ProductCard: React.FC<ProductCardProps> = ({
     }
 
     return price;
-  }, [product.price, deal?.discountType, deal?.discountValue]);
+  }, [product.price, deal]);
 
-  const actions = {
-    add: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      // ✅ cart me original product hi jaaye (backend price same)
-      setCartItemQuantity(product, minQty);
-    },
-    inc: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      setCartItemQuantity(product, itemCount + 1);
-    },
-    dec: (e: React.MouseEvent) => {
-      e.stopPropagation();
-      const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
-      setCartItemQuantity(product, nextQty);
-    },
-  };
+  // ✅ PERFORMANCE: Cached click handlers
+  const handleAdd = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCartItemQuantity(product, minQty);
+  }, [product, minQty, setCartItemQuantity]);
 
-  // ✅ Ribbon % (prefer deal percent; else fallback to mrp vs finalPrice)
+  const handleInc = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    setCartItemQuantity(product, itemCount + 1);
+  }, [product, itemCount, setCartItemQuantity]);
+
+  const handleDec = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
+    setCartItemQuantity(product, nextQty);
+  }, [product, itemCount, minQty, setCartItemQuantity]);
+
   const discountPercent = useMemo(() => {
     if (deal?.discountType === "PERCENT") {
       return Math.min(
@@ -191,16 +179,15 @@ const ProductCard: React.FC<ProductCardProps> = ({
       return Math.round(((product.mrp - finalPrice) / product.mrp) * 100);
     }
     return 0;
-  }, [deal?.discountType, deal?.discountValue, product.mrp, finalPrice]);
+  }, [deal, product.mrp, finalPrice]);
 
   const rating = useMemo(() => safeNum(product.rating, 4.5), [product.rating]);
 
   const imgSrc = useMemo(
     () => getOptimizedImageUrl(product.images?.[0], IMG_W, IMG_H),
-    [product.images?.[0]]
+    [product.images]
   );
 
-  // ✅ Timer: prefer deal.endsAt; else product.sale_end_time
   const endsAt = deal?.endsAt || product.sale_end_time || null;
 
   useEffect(() => {
@@ -221,6 +208,8 @@ const ProductCard: React.FC<ProductCardProps> = ({
     };
 
     setTimeLeft(calculate());
+    
+    // ✅ PERFORMANCE: Timer cleanup
     const timer = window.setInterval(() => {
       const t = calculate();
       setTimeLeft(t);
@@ -240,7 +229,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
         role="button"
         tabIndex={0}
       >
-        {/* Image */}
         <div className="pc-image-container">
           <div className="pc-image-wrapper">
             {timeLeft ? (
@@ -285,9 +273,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
           )}
         </div>
 
-        {/* Body */}
         <div className="pc-body">
-          {/* TOP ROW */}
           <div className="pc-toprow">
             <div className="pc-topleft">
               <div className="pc-min-qty">
@@ -335,7 +321,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
             )}
           </div>
 
-          {/* ✅ Price */}
           <div className="pc-price-section">
             <div className="pc-current-price">
               <span className="pc-currency">₹</span>
@@ -353,7 +338,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
             {itemCount === 0 ? (
               <button
                 className="pc-add-to-cart"
-                onClick={actions.add}
+                onClick={handleAdd}
                 disabled={product.stock === 0}
               >
                 {product.stock === 0 ? (
@@ -370,7 +355,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
               <div className="pc-quantity-controls">
                 <div className="pc-qty-info">
                   <span className="pc-qty-label">Total:</span>
-                  {/* ✅ Total uses finalPrice */}
                   <span className="pc-qty-total">
                     ₹{(itemCount * finalPrice).toLocaleString()}
                   </span>
@@ -378,7 +362,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
 
                 <div className="pc-quantity-buttons">
                   <button
-                    onClick={actions.dec}
+                    onClick={handleDec}
                     className="pc-qty-btn pc-qty-btn--decrease"
                   >
                     {itemCount === minQty ? (
@@ -391,7 +375,7 @@ const ProductCard: React.FC<ProductCardProps> = ({
                   <span className="pc-qty-val">{itemCount}</span>
 
                   <button
-                    onClick={actions.inc}
+                    onClick={handleInc}
                     className="pc-qty-btn pc-qty-btn--increase"
                     disabled={
                       product.stock !== undefined && itemCount >= product.stock
@@ -407,6 +391,6 @@ const ProductCard: React.FC<ProductCardProps> = ({
       </div>
     </div>
   );
-};
+});
 
 export default ProductCard;

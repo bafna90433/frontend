@@ -30,7 +30,9 @@ body.dark {
   position: sticky;
   top: 0;
   z-index: 9999;
-  transition: all 0.3s ease;
+  /* ✅ PERFORMANCE: Hardware acceleration for smooth scrolling */
+  will-change: padding, box-shadow;
+  transition: padding 0.3s ease, box-shadow 0.3s ease;
   padding: 5px 0;
 }
 
@@ -56,16 +58,22 @@ body.dark {
 /* --- Logo --- */
 .kid-logo {
   flex-shrink: 0;
+  /* ✅ PERFORMANCE: Optimize animation rendering */
+  will-change: transform;
   transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
+
 .kid-logo:hover {
-  transform: scale(1.05) rotate(-2deg);
-} /* Fun wiggle */
+  transform: scale(1.05) rotate(-2deg); /* Fun wiggle */
+} 
 
 .kid-logo__img {
   display: block;
-  width: auto;
+  /* ✅ CLS FIX: Define exact aspect ratio to prevent layout shift */
+  width: 188px; 
   height: 45px;
+  aspect-ratio: 188 / 45;
+  object-fit: contain;
 }
 
 /* --- Search Bar (Pill Shape) --- */
@@ -87,7 +95,7 @@ body.dark {
   border-radius: var(--kid-radius);
   padding: 4px;
   border: 2px solid transparent;
-  transition: all 0.3s;
+  transition: border-color 0.3s, background-color 0.3s, box-shadow 0.3s;
 }
 
 body.dark .kid-search__wrapper {
@@ -123,7 +131,8 @@ body.dark .kid-search__wrapper {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: transform 0.2s;
+  will-change: transform, background-color;
+  transition: transform 0.2s, background-color 0.2s;
   margin-right: 2px;
 }
 
@@ -166,6 +175,8 @@ body.dark .kid-search__wrapper {
   padding: 0;
   max-height: 400px;
   overflow-y: auto;
+  /* ✅ PERFORMANCE: Smoother scrolling inside dropdown */
+  -webkit-overflow-scrolling: touch; 
 }
 
 .kid-suggest__item {
@@ -226,6 +237,7 @@ body.dark .kid-search__wrapper {
   font-weight: 700;
   color: var(--kid-secondary);
   cursor: pointer;
+  transition: background 0.2s;
 }
 .kid-suggest__more:hover {
   background: #f0f0f0;
@@ -265,7 +277,8 @@ body.dark .kid-search__wrapper {
   cursor: pointer;
   text-decoration: none;
   color: var(--kid-dark);
-  transition: transform 0.2s;
+  will-change: transform, color;
+  transition: transform 0.2s, color 0.2s;
   padding: 5px;
 }
 
@@ -310,7 +323,8 @@ body.dark .kid-theme-btn {
   text-decoration: none;
   font-weight: 800;
   box-shadow: 0 4px 0 #3eb3a8; /* 3D Effect */
-  transition: all 0.1s;
+  will-change: transform, box-shadow;
+  transition: transform 0.1s, box-shadow 0.1s;
 }
 
 .kid-cart-btn:active {
@@ -365,7 +379,8 @@ body.dark .kid-theme-btn {
   /* Force logo to be smaller on mobile */
   .kid-logo__img {
     height: 30px !important; /* Override the JSX attribute */
-    width: auto;
+    width: auto !important;
+    aspect-ratio: auto; /* Let the height dictate the width on mobile */
   }
 
   /* Hide text, smaller icons */

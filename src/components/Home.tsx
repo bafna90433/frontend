@@ -1,18 +1,13 @@
 // src/pages/Home.tsx
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef, lazy, Suspense } from "react";
 import { Link } from "react-router-dom";
 import api from "../utils/api";
 
+// ✅ Eager Loads (Initial screen elements)
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import TrendingSection from "./TrendingSection";
-import PopularCategories from "./PopularCategories";
-import HotDealsSection from "./HotDealsSection";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
-import HomePromoSection from "../components/HomePromoSection";
-
-// Order steps bar
 import OrderStepsBar from "../components/OrderStepsBar";
 
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
@@ -23,6 +18,12 @@ import { BiSupport } from "react-icons/bi";
 import { FaInstagram } from "react-icons/fa";
 import { Skeleton } from "@mui/material";
 import "../styles/Home.css";
+
+// ✅ PERFORMANCE: Lazy Load heavy below-the-fold sections
+const TrendingSection = lazy(() => import("./TrendingSection"));
+const PopularCategories = lazy(() => import("./PopularCategories"));
+const HotDealsSection = lazy(() => import("./HotDealsSection"));
+const HomePromoSection = lazy(() => import("../components/HomePromoSection"));
 
 interface Category {
   _id: string;
@@ -84,6 +85,13 @@ const optimizeCloudinary = (url: string, w: number, h: number) => {
   const TRANSFORM = `f_auto,q_auto,w_${w},h_${h},c_fill,g_auto`;
   return url.replace("/image/upload/", `/image/upload/${TRANSFORM}/`);
 };
+
+// Placeholder skeleton component for Lazy loaded sections to prevent CLS
+const SectionSkeleton = ({ height = "400px" }) => (
+  <div style={{ width: "100%", height, padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", background: "var(--bg)" }}>
+    <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: "12px" }} />
+  </div>
+);
 
 const Home: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
@@ -154,7 +162,6 @@ const Home: React.FC = () => {
     }));
   }, [promoSideBanners]);
 
-  // Extract Rattles category and products for the special VIP section
   const rattlesCategory = useMemo(() => categories.find(c => c.name.toLowerCase().includes("rattle")), [categories]);
   const rattlesProducts = useMemo(() => rattlesCategory ? products.filter(p => p.category?._id === rattlesCategory._id) : [], [products, rattlesCategory]);
 
@@ -283,15 +290,12 @@ const Home: React.FC = () => {
       {!loading && rattlesProducts.length > 0 && (
         <section className="house-of-rattles-section">
           <div className="hor-header">
-            
-            {/* ✅ BIG LOGO MOVED TO LEFT CORNER */}
             <img 
               src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1772200542/D13_viaowv.webp" 
               alt="Rattles Logo" 
               className="hor-logo"
+              loading="lazy"
             />
-
-            {/* TEXT CONTENT CENTERED */}
             <div className="hor-header-content">
               <div className="hor-badges-wrapper">
                 <span className="hor-badge-primary">🌟 #1 Best Seller</span>
@@ -302,13 +306,11 @@ const Home: React.FC = () => {
                 The House of Rattles
                 <span className="rattle-icon right" aria-hidden="true">🪇</span>
               </h2>
-              <p className="hor-subtitle">Shake, Play & Smile! 👶 Discover the premium collection everyone is talking about.</p>
+              <p className="hor-subtitle">Shake, Play & Smile! 👶 Discover the premium collection.</p>
             </div>
-            
-            {/* BUTTON IN RIGHT CORNER */}
             <div className="hor-action">
               <Link to={`/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn">
-                Explore All Rattles <span className="btn-icon-animate">✨</span>
+                Explore All <span className="btn-icon-animate">✨</span>
               </Link>
             </div>
           </div>
@@ -321,7 +323,6 @@ const Home: React.FC = () => {
             >
               <FiChevronLeft size={22} />
             </button>
-
             <div 
               id="scroll-rattles-special" 
               className="product-scroll hor-scroll-container" 
@@ -333,7 +334,6 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-
             <button 
               className="scroll-btn scroll-btn--right hor-scroll" 
               onClick={() => scrollContainer('rattles-special', "right")} 
@@ -345,36 +345,44 @@ const Home: React.FC = () => {
         </section>
       )}
 
+      {/* ✅ PERFORMANCE: Suspense boundaries added for lazy loaded components */}
       {!loading && products.length > 0 && (
-        <section className="two-col-mobile two-col-mobile--trending">
-          <TrendingSection products={products as any} config={homeCfg as any} />
-        </section>
+        <Suspense fallback={<SectionSkeleton height="350px" />}>
+          <section className="two-col-mobile two-col-mobile--trending">
+            <TrendingSection products={products as any} config={homeCfg as any} />
+          </section>
+        </Suspense>
       )}
 
       {!loading && products.length > 0 && homeCfg && (
-        <section className="two-col-mobile two-col-mobile--hotdeals">
-          <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
-        </section>
+        <Suspense fallback={<SectionSkeleton height="350px" />}>
+          <section className="two-col-mobile two-col-mobile--hotdeals">
+            <HotDealsSection allProducts={products as any} cfg={homeCfg as any} />
+          </section>
+        </Suspense>
       )}
 
       {!loading && homeCfg?.promo && (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
-        <HomePromoSection
-          sideBanners={promoSideBannersOptimized as any}
-          bestSelling={bestSellingProducts as any}
-          onSale={onSaleProducts as any}
-        />
+        <Suspense fallback={<SectionSkeleton height="450px" />}>
+          <HomePromoSection
+            sideBanners={promoSideBannersOptimized as any}
+            bestSelling={bestSellingProducts as any}
+            onSale={onSaleProducts as any}
+          />
+        </Suspense>
       )}
 
       {!loading && popularCats.length > 0 && (
-        <PopularCategories
-          categories={popularCats}
-          title={homeCfg?.popularTitle || "Popular Categories"}
-          subtitle={homeCfg?.popularSubtitle || ""}
-        />
+        <Suspense fallback={<SectionSkeleton height="300px" />}>
+          <PopularCategories
+            categories={popularCats}
+            title={homeCfg?.popularTitle || "Popular Categories"}
+            subtitle={homeCfg?.popularSubtitle || ""}
+          />
+        </Suspense>
       )}
 
       {!loading && categories.map((cat) => {
-        // Skip Rattles here so it doesn't duplicate the premium VIP section above
         if (cat.name.toLowerCase().includes("rattle")) return null;
 
         const items = products.filter((p) => p.category?._id === cat._id);

@@ -1,5 +1,5 @@
 // src/components/Header.tsx
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api, { API_ROOT, MEDIA_URL } from "../utils/api";
 import { useShop } from "../context/ShopContext";
@@ -26,26 +26,23 @@ const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
 
-  // Absolute URL
   if (/^https?:\/\//i.test(f)) return f;
 
-  // If IMAGE_BASE is provided
   if (IMAGE_BASE) {
     const base = IMAGE_BASE.replace(/\/+$/, "");
     return `${base}/${f.replace(/^\/+/, "")}`;
   }
 
-  // If backend relative path like /uploads/...
   if (f.includes("/uploads/")) {
     const root = API_ROOT.replace(/\/+$/, "");
     return `${root}${f.startsWith("/") ? "" : "/"}${f.replace(/^\/+/, "")}`;
   }
 
-  // Other relative
   return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
-const SearchForm = React.forwardRef(function SearchForm(
+// ✅ PERFORMANCE: Wrapped in React.memo to prevent unnecessary re-renders
+const SearchForm = React.memo(React.forwardRef(function SearchForm(
   props: {
     mobile?: boolean;
     q: string;
@@ -80,7 +77,7 @@ const SearchForm = React.forwardRef(function SearchForm(
   return (
     <form
       className={`kid-search ${mobile ? "is-mobile" : ""}`}
-      onSubmit={(e) => onSubmit(e)}
+      onSubmit={onSubmit}
       role="search"
       ref={ref}
     >
@@ -101,7 +98,6 @@ const SearchForm = React.forwardRef(function SearchForm(
         </button>
       </div>
 
-      {/* Suggestions Dropdown (Playful Style) */}
       {openSug && (
         <div className="kid-suggest">
           {loadingSug && (
@@ -174,7 +170,7 @@ const SearchForm = React.forwardRef(function SearchForm(
       )}
     </form>
   );
-});
+}));
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
@@ -226,7 +222,6 @@ const Header: React.FC = () => {
     };
   }, []);
 
-  // Search Logic
   useEffect(() => {
     let t: any;
     let alive = true;
@@ -295,18 +290,21 @@ const Header: React.FC = () => {
       setOpenSug(false);
       setActiveIdx(-1);
     };
-    document.addEventListener("mousedown", onDoc);
+    // ✅ PERFORMANCE: Added passive: true for faster touch/click handling
+    document.addEventListener("mousedown", onDoc, { passive: true });
     return () => document.removeEventListener("mousedown", onDoc);
   }, []);
 
-  const onSubmit = (e: React.FormEvent) => {
+  // ✅ PERFORMANCE: Wrapped in useCallback to prevent child re-renders
+  const onSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     const query = q.trim();
     setOpenSug(false);
     navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
-  };
+  }, [q, navigate]);
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  // ✅ PERFORMANCE: Wrapped in useCallback
+  const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!openSug || (!sug.length && !loadingSug)) return;
 
     if (e.key === "ArrowDown") {
@@ -328,12 +326,25 @@ const Header: React.FC = () => {
       setOpenSug(false);
       setActiveIdx(-1);
     }
-  };
+  }, [openSug, sug, loadingSug, activeIdx, navigate, q]);
 
   const [scrolled, setScrolled] = useState(false);
+  
+  // ✅ PERFORMANCE: Throttled scroll listener using requestAnimationFrame
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 20);
-    window.addEventListener("scroll", handleScroll);
+    let ticking = false;
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setScrolled(window.scrollY > 20);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+    
+    // Add passive flag so it doesn't block the main thread scroll action
+    window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
