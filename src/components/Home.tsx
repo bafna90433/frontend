@@ -428,38 +428,40 @@ const Home: React.FC = () => {
 
       <FloatingCheckoutButton />
 
-      {/* Premium Footer */}
-      <footer className="home-footer">
-        <div className="footer-content">
-          <div className="footer-top">
-            <div className="footer-brand">
-              <h3>BafnaToys</h3>
-              <p>Inspiring imagination through play. The best toys, best deals, delivered safely and fast.</p>
-            </div>
+      {/* ✅ CLS FIX: Render footer ONLY AFTER loading is complete */}
+      {!loading && (
+        <footer className="home-footer">
+          <div className="footer-content">
+            <div className="footer-top">
+              <div className="footer-brand">
+                <h3>BafnaToys</h3>
+                <p>Inspiring imagination through play. The best toys, best deals, delivered safely and fast.</p>
+              </div>
 
-            <div className="footer-links-container">
-              <h4>Quick Links</h4>
-              <ul className="footer-links">
-                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
-              </ul>
-            </div>
+              <div className="footer-links-container">
+                <h4>Quick Links</h4>
+                <ul className="footer-links">
+                  <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                  <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                  <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                  <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+                </ul>
+              </div>
 
-            <div className="footer-social">
-              <h4>Connect With Us</h4>
-              <div className="social-row">
-                <a className="social-btn insta" href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer">Instagram</a>
-                <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">YouTube</a>
+              <div className="footer-social">
+                <h4>Connect With Us</h4>
+                <div className="social-row">
+                  <a className="social-btn insta" href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer">Instagram</a>
+                  <a className="social-btn youtube" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">YouTube</a>
+                </div>
               </div>
             </div>
+            <div className="footer-bottom">
+              <p>© {new Date().getFullYear()} BafnaToys. All rights reserved.</p>
+            </div>
           </div>
-          <div className="footer-bottom">
-            <p>© {new Date().getFullYear()} BafnaToys. All rights reserved.</p>
-          </div>
-        </div>
-      </footer>
+        </footer>
+      )}
     </div>
   );
 };
