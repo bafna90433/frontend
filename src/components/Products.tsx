@@ -75,13 +75,18 @@ const Products: React.FC = () => {
   const [maxPrice, setMaxPrice] = useState<string>("");
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
-  // ✅ Pagination State
+  // Pagination State
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 20; // Ek page pe 20 products dikhenge (5 cols * 4 rows)
+  const ITEMS_PER_PAGE = 20;
 
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
+
+  // Reset scroll on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname, categoryId]);
 
   useEffect(() => {
     api.get("/categories")
@@ -120,12 +125,10 @@ const Products: React.FC = () => {
     return () => { alive = false; controller.abort(); };
   }, [location.search, categoryId, searchTerm]);
 
-  // ✅ Reset page to 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryId, searchTerm, sortBy, minPrice, maxPrice]);
 
-  // Filter & Sort Logic
   const displayed = useMemo(() => {
     let filtered = [...allProducts];
 
@@ -154,14 +157,12 @@ const Products: React.FC = () => {
     return filtered;
   }, [allProducts, categoryId, searchTerm, sortBy, minPrice, maxPrice]);
 
-  // ✅ Pagination Logic
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
   const paginatedProducts = displayed.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  // Helper to generate page numbers with ellipses (e.g., 1 2 ... 5 6)
   const getPageNumbers = () => {
     const pages = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -176,7 +177,7 @@ const Products: React.FC = () => {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
-    window.scrollTo({ top: 0, behavior: "smooth" }); // ✅ Scroll to top on page change
+    window.scrollTo({ top: 0, behavior: "smooth" }); 
   };
 
   const categoryName = typeof displayed[0]?.category === "object"
@@ -199,7 +200,7 @@ const Products: React.FC = () => {
     <div className="fw-shop-wrapper">
       <CategorySEO title={seoTitle} description={seoDescription} keywords="wholesale toys" url={seoUrl} jsonLd={{}} />
 
-      {/* --- FLAT FULL-HEIGHT SIDEBAR --- */}
+      {/* Sidebar */}
       <aside className={`fw-sidebar ${isMobileFilterOpen ? "open" : ""}`}>
         <div className="sidebar-header mobile-only">
           <h3>Filters</h3>
@@ -261,16 +262,16 @@ const Products: React.FC = () => {
         </div>
       </aside>
 
-      {/* --- MAIN CONTENT AREA --- */}
+      {/* Main Content */}
       <main className="fw-main-content">
         
-        {/* CIRCULAR CATEGORIES ON TOP (Like Home Page) */}
+        {/* Circular Categories - Horizontal Scroll */}
         <div className="fw-top-categories">
           <div className="category-scroll-container">
             <div className="category-track">
               <div className={`category-item ${!categoryId ? "active" : ""}`} onClick={() => navigate("/products")}>
                 <div className="category-circle-wrapper">
-                  <div className="category-circle-inner" style={{ background: '#f8fafc', fontSize: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>🌟</div>
+                  <div className="category-circle-inner">🌟</div>
                 </div>
                 <span>ALL TOYS</span>
               </div>
@@ -283,7 +284,7 @@ const Products: React.FC = () => {
                     <div className="category-circle-wrapper">
                       <img src={imgSrc} alt={cat.name} className="category-img" loading="lazy" decoding="async" />
                     </div>
-                    <span>{cat.name.toUpperCase()}</span>
+                    <span>{cat.name}</span>
                   </div>
                 );
               })}
@@ -291,30 +292,36 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* TOP BAR: Title & Sort */}
+        {/* Top Bar */}
         <div className="fw-top-bar">
-          <div className="fw-top-left">
-            <button className="fw-mobile-filter-btn mobile-only" onClick={() => setIsMobileFilterOpen(true)}>
-              <Filter size={18} /> Filters
+          <div className="fw-top-bar-main">
+            <button className="fw-back-btn" onClick={() => navigate(-1)}>
+              <ChevronLeft size={18} /> <span className="back-text">Back</span>
             </button>
             <h1 className="fw-page-title">
               {searchTerm ? `Search: "${searchTerm}"` : categoryName || "All Products"}
-              {!loading && <span className="fw-item-count">({displayed.length} items)</span>}
+              {!loading && <span className="fw-item-count">({displayed.length})</span>}
             </h1>
           </div>
           
-          <div className="fw-top-right">
-            <span className="fw-sort-label desktop-only">Sort by:</span>
-            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="fw-sort-select">
-              <option value="default">Default</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="name-asc">Name: A to Z</option>
-            </select>
+          <div className="fw-controls-row">
+            <button className="fw-mobile-filter-btn mobile-only" onClick={() => setIsMobileFilterOpen(true)}>
+              <Filter size={16} /> Filters
+            </button>
+            
+            <div className="fw-sort-container">
+              <span className="fw-sort-label desktop-only">Sort by:</span>
+              <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="fw-sort-select">
+                <option value="default">Default</option>
+                <option value="price-low">Price: Low to High</option>
+                <option value="price-high">Price: High to Low</option>
+                <option value="name-asc">Name: A to Z</option>
+              </select>
+            </div>
           </div>
         </div>
 
-        {/* ACTIVE FILTERS */}
+        {/* Active Filters */}
         {(searchTerm || minPrice || maxPrice) && (
           <div className="fw-active-filters">
             {searchTerm && <span className="fw-tag">Search: {searchTerm} <X size={14} onClick={() => navigate(location.pathname)} style={{cursor:'pointer'}} /></span>}
@@ -323,12 +330,12 @@ const Products: React.FC = () => {
           </div>
         )}
 
-        {/* GRID AREA */}
+        {/* Products Grid */}
         {loading ? (
           <div className="fw-products-grid">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div key={i} style={{ width: "100%", padding: "5px" }}>
-                <Skeleton variant="rectangular" width="100%" height={320} sx={{ borderRadius: "12px" }} />
+              <div key={i} style={{ width: "100%", padding: 0 }}>
+                <Skeleton variant="rectangular" width="100%" height={280} sx={{ borderRadius: "8px" }} />
               </div>
             ))}
           </div>
@@ -343,13 +350,12 @@ const Products: React.FC = () => {
         ) : (
           <>
             <div className="fw-products-grid">
-              {/* ✅ Mapped over paginatedProducts instead of displayed */}
               {paginatedProducts.map((p, idx) => (
                 <ProductCard key={p._id} product={p} userRole="customer" index={idx} />
               ))}
             </div>
 
-            {/* ✅ PAGINATION UI */}
+            {/* Pagination */}
             {totalPages > 1 && (
               <div className="fw-pagination">
                 <button 
@@ -357,7 +363,7 @@ const Products: React.FC = () => {
                   disabled={currentPage === 1} 
                   onClick={() => handlePageChange(currentPage - 1)}
                 >
-                  <ChevronLeft size={18} />
+                  <ChevronLeft size={16} />
                 </button>
 
                 {getPageNumbers().map((page, index) => (
@@ -376,7 +382,7 @@ const Products: React.FC = () => {
                   disabled={currentPage === totalPages} 
                   onClick={() => handlePageChange(currentPage + 1)}
                 >
-                  <ChevronRight size={18} />
+                  <ChevronRight size={16} />
                 </button>
               </div>
             )}
@@ -384,7 +390,7 @@ const Products: React.FC = () => {
         )}
       </main>
 
-      {/* Mobile Overlay */}
+      {/* Mobile Filter Overlay */}
       {isMobileFilterOpen && <div className="fw-overlay" onClick={() => setIsMobileFilterOpen(false)}></div>}
 
       <FloatingCheckoutButton />

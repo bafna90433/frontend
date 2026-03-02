@@ -1,15 +1,22 @@
 /* src/styles/Home.css */
-
 /* =========================================
-   🍭 PREMIUM CANDY POP THEME
-   Professional, clean, and vibrant
+   🍭 PREMIUM CANDY POP THEME (SCOPED to HOME ONLY)
+   ✅ This file will NOT break Product Page now
 ========================================= */
 
-/* ✅ FONT FIX: No more @import here. Import it directly in index.html for faster loading! */
+/* ✅ Keep only global reset minimal */
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-:root {
+/* ✅ IMPORTANT:
+   Variables are now on .home-container (not :root)
+   so Product page won't get affected.
+*/
+.home-container {
   /* Cleaner background for products to stand out */
-  --bg: #F8F9FA; 
+  --bg: #F8F9FA;
   --card: #FFFFFF;
 
   /* Brighter, more modern brand colors */
@@ -33,24 +40,33 @@
   --border: rgba(28, 31, 46, 0.06);
 
   --font: "Nunito", "Quicksand", system-ui, -apple-system, Roboto, sans-serif;
-}
 
-* {
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+  width: 100%;
+  margin: 0;
+  padding: 0; /* removed bottom padding */
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+
+  /* ✅ footer bottom fix */
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
 }
 
 /* =========================================
    ✅ FLOATING ANNOUNCEMENT BAR (Sleek)
 ========================================= */
-.announcement-wrapper {
+.home-container .announcement-wrapper {
   width: 100%;
   display: block;
   padding: 0;
   background: var(--bg);
 }
 
-.top-announcement-bar {
+.home-container .top-announcement-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -65,11 +81,11 @@
   transition: opacity 0.3s ease;
 }
 
-.top-announcement-bar:hover {
+.home-container .top-announcement-bar:hover {
   opacity: 0.95;
 }
 
-.announcement-badge {
+.home-container .announcement-badge {
   background: var(--yellow);
   color: #1C1F2E;
   padding: 4px 12px;
@@ -80,12 +96,12 @@
   letter-spacing: 0.5px;
 }
 
-.announcement-text {
+.home-container .announcement-text {
   flex: 1;
   text-align: center;
 }
 
-.announcement-btn {
+.home-container .announcement-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -98,49 +114,29 @@
   transition: background 0.2s ease, transform 0.2s ease;
 }
 
-.top-announcement-bar:hover .announcement-btn {
+.home-container .top-announcement-bar:hover .announcement-btn {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 /* =========================================
-   HOME CONTAINER (✅ CLS JUMP FIX APPLIED)
-========================================= */
-.home-container {
-  width: 100%;
-  margin: 0;
-  padding: 0; /* removed bottom padding */
-  font-family: var(--font);
-  color: var(--text);
-  background: var(--bg);
-  overflow-x: hidden;
-  -webkit-overflow-scrolling: touch;
-  
-  /* ✅ MAGIC FIX: Makes sure the page is at least full screen height and locks footer at bottom */
-  display: flex;
-  flex-direction: column;
-  min-height: 100vh;
-}
-
-/* =========================================
    ✅ PREMIUM TRUST BAR
 ========================================= */
-.trustbar-container {
+.home-container .trustbar-container {
   padding: 20px 40px;
   margin: 10px 0;
-  /* ✅ PERFORMANCE: Skip rendering until scrolled into view */
   content-visibility: auto;
   contain-intrinsic-size: 100px;
 }
 
-.trustbar {
+.home-container .trustbar {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 20px;
 }
 
-.trust-item {
+.home-container .trust-item {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -152,12 +148,12 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.trust-item:hover {
+.home-container .trust-item:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow);
 }
 
-.trust-icon {
+.home-container .trust-icon {
   width: 48px;
   height: 48px;
   border-radius: 14px;
@@ -169,18 +165,18 @@
   background: linear-gradient(135deg, var(--pink), var(--purple));
 }
 
-.trust-item:nth-child(2) .trust-icon { background: linear-gradient(135deg, var(--blue), var(--mint)); }
-.trust-item:nth-child(3) .trust-icon { background: linear-gradient(135deg, var(--yellow), #FFA500); }
-.trust-item:nth-child(4) .trust-icon { background: linear-gradient(135deg, var(--mint), var(--blue)); }
+.home-container .trust-item:nth-child(2) .trust-icon { background: linear-gradient(135deg, var(--blue), var(--mint)); }
+.home-container .trust-item:nth-child(3) .trust-icon { background: linear-gradient(135deg, var(--yellow), #FFA500); }
+.home-container .trust-item:nth-child(4) .trust-icon { background: linear-gradient(135deg, var(--mint), var(--blue)); }
 
-.trust-text h4 {
+.home-container .trust-text h4 {
   margin: 0;
   font-size: 16px;
   font-weight: 800;
   color: var(--text);
 }
 
-.trust-text p {
+.home-container .trust-text p {
   margin: 4px 0 0;
   font-size: 13px;
   font-weight: 600;
@@ -190,19 +186,19 @@
 /* =========================================
    ✅ CLEAN SECTION HEADINGS
 ========================================= */
-.section-heading-wrapper {
+.home-container .section-heading-wrapper {
   text-align: center;
   margin: 40px 0 20px;
 }
 
-.section-heading {
+.home-container .section-heading {
   font-size: 28px;
   font-weight: 800;
   margin: 0;
   color: var(--text);
 }
 
-.section-heading-line {
+.home-container .section-heading-line {
   width: 60px;
   height: 4px;
   margin: 12px auto 0;
@@ -213,16 +209,16 @@
 /* =========================================
    ✅ CATEGORY CIRCLES
 ========================================= */
-.category-circles-section {
+.home-container .category-circles-section {
   display: flex;
   overflow-x: auto;
   gap: 24px;
   padding: 10px 40px 30px;
   scrollbar-width: none;
 }
-.category-circles-section::-webkit-scrollbar { display: none; }
+.home-container .category-circles-section::-webkit-scrollbar { display: none; }
 
-.cat-circle-item {
+.home-container .cat-circle-item {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -231,11 +227,9 @@
   transition: transform 0.2s ease;
 }
 
-.cat-circle-item:hover {
-  transform: translateY(-6px);
-}
+.home-container .cat-circle-item:hover { transform: translateY(-6px); }
 
-.cat-circle-img-wrapper {
+.home-container .cat-circle-img-wrapper {
   width: 120px;
   height: 120px;
   border-radius: 50%;
@@ -245,7 +239,7 @@
   overflow: hidden;
 }
 
-.cat-circle-img {
+.home-container .cat-circle-img {
   width: 100%;
   height: 100%;
   border-radius: 50%;
@@ -253,7 +247,7 @@
   border: 3px solid #fff;
 }
 
-.cat-circle-name {
+.home-container .cat-circle-name {
   margin-top: 12px;
   font-size: 15px;
   font-weight: 800;
@@ -261,17 +255,21 @@
   text-align: center;
 }
 
+.home-container .cat-placeholder {
+  color: #ccc;
+  font-size: 40px;
+}
+
 /* =========================================
-   ✅ PRODUCT SCROLL
+   ✅ PRODUCT SECTIONS (SCOPED)
 ========================================= */
-.category-block {
+.home-container .category-block {
   margin-bottom: 50px;
-  /* ✅ PERFORMANCE FIX: Speeds up initial page load */
   content-visibility: auto;
   contain-intrinsic-size: 400px;
 }
 
-.category-header {
+.home-container .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -279,13 +277,13 @@
   margin-bottom: 20px;
 }
 
-.category-title {
+.home-container .category-title {
   margin: 0;
   font-size: 24px;
   font-weight: 800;
 }
 
-.view-all-btn {
+.home-container .view-all-btn {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -299,33 +297,36 @@
   transition: all 0.2s ease;
 }
 
-.view-all-btn:hover {
+.home-container .view-all-btn:hover {
   background: var(--pink);
   color: #fff;
 }
 
-.product-scroll-wrapper {
+.home-container .product-scroll-wrapper {
   position: relative;
   width: 100%;
 }
 
-.product-scroll {
+/* ✅ THIS was breaking Product Page earlier.
+   Now it's only inside .home-container */
+.home-container .product-scroll {
   display: flex;
   overflow-x: auto;
   gap: 16px;
   padding: 10px 40px 20px;
   scrollbar-width: none;
 }
-.product-scroll::-webkit-scrollbar { display: none; }
+.home-container .product-scroll::-webkit-scrollbar { display: none; }
 
-.product-link {
+.home-container .product-link {
   flex: 0 0 calc((100% - 64px) / 5);
   max-width: calc((100% - 64px) / 5);
   scroll-snap-align: start;
   text-decoration: none;
 }
 
-.scroll-btn {
+/* Scroll Buttons */
+.home-container .scroll-btn {
   position: absolute;
   top: 45%;
   transform: translateY(-50%);
@@ -344,62 +345,61 @@
   transition: transform 0.2s ease;
 }
 
-.scroll-btn:hover {
+.home-container .scroll-btn:hover {
   transform: translateY(-50%) scale(1.1);
 }
-.scroll-btn--left { left: 16px; }
-.scroll-btn--right { right: 16px; }
+
+.home-container .scroll-btn--left { left: 16px; }
+.home-container .scroll-btn--right { right: 16px; }
 
 /* =========================================
-   ✅ PREMIUM FOOTER (✅ CLS JUMP FIX APPLIED)
+   ✅ PREMIUM FOOTER
 ========================================= */
-.home-footer {
-  /* ✅ MAGIC FIX: Pushes the footer to the absolute bottom perfectly */
-  margin-top: auto; 
-  
+.home-container .home-footer {
+  margin-top: auto;
   padding: 60px 40px 40px;
   background: #1C1F2E;
   color: #fff;
   border-top: 4px solid var(--pink);
-  
-  /* Stops the footer from jumping around on load */
+
   content-visibility: auto;
   contain-intrinsic-size: 350px;
   min-height: 350px;
 }
 
-.footer-content {
+.home-container .footer-content {
   max-width: 1200px;
   margin: 0 auto;
 }
 
-.footer-top {
+.home-container .footer-top {
   display: grid;
   grid-template-columns: 1.5fr 1fr 1fr;
   gap: 40px;
 }
 
-.footer-brand h3 {
+.home-container .footer-brand h3 {
   margin: 0 0 16px;
   font-size: 24px;
   font-weight: 800;
   color: #fff;
 }
 
-.footer-brand p {
+.home-container .footer-brand p {
   font-size: 15px;
   color: #A0AEC0;
   line-height: 1.6;
 }
 
-.footer-links-container h4, .footer-social h4 {
+.home-container .footer-links-container h4,
+.home-container .footer-social h4 {
   margin: 0 0 20px;
   font-size: 16px;
   font-weight: 700;
   color: var(--pink);
 }
 
-.footer-links {
+.home-container .footer-links {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -407,21 +407,20 @@
   gap: 12px;
 }
 
-.footer-links li a {
+.home-container .footer-links li a {
   text-decoration: none;
   color: #A0AEC0;
   font-size: 14px;
   transition: color 0.2s ease;
 }
+.home-container .footer-links li a:hover { color: #fff; }
 
-.footer-links li a:hover { color: #fff; }
-
-.social-row {
+.home-container .social-row {
   display: flex;
   gap: 12px;
 }
 
-.social-btn {
+.home-container .social-btn {
   text-decoration: none;
   font-size: 13px;
   font-weight: 700;
@@ -432,10 +431,10 @@
   transition: background 0.2s ease;
 }
 
-.social-btn:hover { background: var(--pink); }
-.social-btn.youtube:hover { background: #FF0000; }
+.home-container .social-btn:hover { background: var(--pink); }
+.home-container .social-btn.youtube:hover { background: #FF0000; }
 
-.footer-bottom {
+.home-container .footer-bottom {
   margin-top: 40px;
   padding-top: 24px;
   border-top: 1px solid rgba(255,255,255,0.1);
@@ -445,9 +444,9 @@
 }
 
 /* =========================================
-   🏠 ✨ HOUSE OF RATTLES (VIP HIGHLIGHT SECTION)
+   🏠 ✨ HOUSE OF RATTLES (VIP)
 ========================================= */
-.house-of-rattles-section {
+.home-container .house-of-rattles-section {
   background: linear-gradient(135deg, #FFF0F5, #E6F2FF);
   padding: 60px 0 70px;
   margin: 50px 0;
@@ -456,14 +455,12 @@
   box-shadow: 0 10px 40px rgba(255, 42, 117, 0.08);
   position: relative;
   overflow: hidden;
-  
-  /* ✅ PERFORMANCE FIX */
+
   content-visibility: auto;
   contain-intrinsic-size: 450px;
 }
 
-/* Header Container */
-.hor-header {
+.home-container .hor-header {
   position: relative;
   display: flex;
   align-items: center;
@@ -471,29 +468,26 @@
   padding: 0 40px;
   margin-bottom: 30px;
   width: 100%;
-  min-height: 140px; /* Provides space for absolute logo/button */
+  min-height: 140px;
 }
 
-/* ✅ BADA LOGO IN LEFT CORNER */
-.hor-logo {
+.home-container .hor-logo {
   position: absolute;
   left: 40px;
   top: 50%;
   transform: translateY(-50%);
-  height: 120px; /* Made the logo big */
+  height: 120px;
   width: auto;
   object-fit: contain;
   z-index: 5;
 }
 
-/* Center Text Content */
-.hor-header-content {
+.home-container .hor-header-content {
   text-align: center;
   z-index: 2;
 }
 
-/* ✅ BUTTON IN RIGHT CORNER */
-.hor-action {
+.home-container .hor-action {
   position: absolute;
   right: 40px;
   top: 50%;
@@ -502,7 +496,7 @@
   z-index: 5;
 }
 
-.hor-badges-wrapper {
+.home-container .hor-badges-wrapper {
   display: flex;
   justify-content: center;
   gap: 10px;
@@ -510,7 +504,7 @@
   flex-wrap: wrap;
 }
 
-.hor-badge-primary {
+.home-container .hor-badge-primary {
   background: var(--pink);
   color: #fff;
   padding: 6px 16px;
@@ -522,7 +516,7 @@
   box-shadow: 0 4px 12px rgba(255, 42, 117, 0.4);
 }
 
-.hor-badge-secondary {
+.home-container .hor-badge-secondary {
   background: #FFF;
   color: var(--text);
   border: 1px solid var(--yellow);
@@ -535,7 +529,6 @@
   box-shadow: 0 4px 12px rgba(255, 192, 0, 0.2);
 }
 
-/* 🪇 Shake Animation */
 @keyframes rattle-shake {
   0% { transform: rotate(0deg); }
   25% { transform: rotate(-20deg); }
@@ -544,16 +537,16 @@
   100% { transform: rotate(0deg); }
 }
 
-.rattle-icon {
+.home-container .rattle-icon {
   display: inline-block;
   animation: rattle-shake 2.5s infinite ease-in-out;
   margin: 0 12px;
   font-size: 32px;
 }
-.rattle-icon.left { transform-origin: bottom center; }
-.rattle-icon.right { transform-origin: bottom center; animation-delay: 0.5s; }
+.home-container .rattle-icon.left { transform-origin: bottom center; }
+.home-container .rattle-icon.right { transform-origin: bottom center; animation-delay: 0.5s; }
 
-.hor-title {
+.home-container .hor-title {
   font-size: 42px;
   font-weight: 900;
   color: var(--text);
@@ -566,24 +559,17 @@
   justify-content: center;
 }
 
-.hor-subtitle {
+.home-container .hor-subtitle {
   font-size: 18px;
   font-weight: 700;
   color: #4B5563;
   margin: 0;
 }
 
-.hor-products-wrapper {
-  position: relative;
-  width: 100%;
-}
+.home-container .hor-products-wrapper { position: relative; width: 100%; }
+.home-container .hor-scroll-container { padding-top: 15px; padding-bottom: 25px; }
 
-.hor-scroll-container {
-  padding-top: 15px;
-  padding-bottom: 25px;
-}
-
-.hor-view-all-btn {
+.home-container .hor-view-all-btn {
   display: inline-flex;
   align-items: center;
   gap: 10px;
@@ -603,41 +589,42 @@
   50% { opacity: 1; transform: scale(1.1); }
   100% { opacity: 0.5; transform: scale(0.8); }
 }
-.btn-icon-animate {
-  animation: star-twinkle 1.5s infinite ease-in-out;
-}
+.home-container .btn-icon-animate { animation: star-twinkle 1.5s infinite ease-in-out; }
 
-.hor-view-all-btn:hover {
+.home-container .hor-view-all-btn:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 36px rgba(140, 82, 255, 0.45);
   color: #fff;
 }
 
 /* =========================================
-   ✅ DESKTOP RESPONSIVE
+   ✅ RESPONSIVE (SCOPED)
 ========================================= */
 @media (max-width: 1440px) {
-  .product-link { flex: 0 0 calc((100% - 64px) / 5); max-width: calc((100% - 64px) / 5); }
+  .home-container .product-link {
+    flex: 0 0 calc((100% - 64px) / 5);
+    max-width: calc((100% - 64px) / 5);
+  }
 }
 
 @media (max-width: 1280px) {
-  .product-link { flex: 0 0 calc((100% - 48px) / 4); max-width: calc((100% - 48px) / 4); }
-  .hor-view-all-btn { padding: 12px 20px; font-size: 14px; }
-  .hor-logo { height: 90px; } /* Shrink logo slightly on smaller screens */
+  .home-container .product-link {
+    flex: 0 0 calc((100% - 48px) / 4);
+    max-width: calc((100% - 48px) / 4);
+  }
+  .home-container .hor-view-all-btn { padding: 12px 20px; font-size: 14px; }
+  .home-container .hor-logo { height: 90px; }
 }
 
-/* Tablet Screens: Stack elements centrally to avoid overlapping */
 @media (max-width: 1024px) {
-  .product-link { flex: 0 0 calc((100% - 32px) / 3); max-width: calc((100% - 32px) / 3); }
-  .trustbar { grid-template-columns: repeat(2, 1fr); }
-  
-  .hor-header {
-    flex-direction: column;
-    min-height: auto;
+  .home-container .product-link {
+    flex: 0 0 calc((100% - 32px) / 3);
+    max-width: calc((100% - 32px) / 3);
   }
-  
-  /* Reset Logo for stacked view */
-  .hor-logo {
+  .home-container .trustbar { grid-template-columns: repeat(2, 1fr); }
+
+  .home-container .hor-header { flex-direction: column; min-height: auto; }
+  .home-container .hor-logo {
     position: relative;
     left: auto;
     top: auto;
@@ -645,9 +632,7 @@
     height: 90px;
     margin-bottom: 20px;
   }
-  
-  /* Reset Button for stacked view */
-  .hor-action {
+  .home-container .hor-action {
     position: relative;
     right: auto;
     top: auto;
@@ -657,118 +642,97 @@
 }
 
 /* =========================================
-   📱 MOBILE OPTIMIZATIONS
-   *** STRICTLY KEEPING YOUR HEIGHT/WIDTH ***
+   📱 MOBILE (SCOPED) — ✅ Product Page safe
 ========================================= */
 @media (max-width: 768px) {
-  .top-announcement-bar {
+  .home-container .top-announcement-bar {
     flex-direction: column;
     padding: 16px;
     gap: 12px;
     text-align: center;
   }
-  .announcement-btn { width: 100%; justify-content: center; }
+  .home-container .announcement-btn { width: 100%; justify-content: center; }
 
-  .trustbar-container { padding: 10px; }
-  .trustbar {
+  .home-container .trustbar-container { padding: 10px; }
+  .home-container .trustbar {
     grid-template-columns: repeat(2, 1fr) !important;
     gap: 10px !important;
   }
-  .trust-item {
+  .home-container .trust-item {
     flex-direction: column;
     text-align: center;
     padding: 16px 10px;
   }
 
-  .category-circles-section { padding: 10px 16px 20px; }
-  .cat-circle-item { min-width: 80px; }
-  .cat-circle-img-wrapper { width: 80px; height: 80px; }
-  .cat-circle-name { font-size: 12px; }
+  .home-container .category-circles-section { padding: 10px 16px 20px; }
+  .home-container .cat-circle-item { min-width: 80px; }
+  .home-container .cat-circle-img-wrapper { width: 80px; height: 80px; }
+  .home-container .cat-circle-name { font-size: 12px; }
 
-  .category-header { padding: 0 16px; }
-  .category-title { font-size: 20px; }
-  .view-all-btn { font-size: 12px; padding: 6px 12px; }
+  .home-container .category-header { padding: 0 16px; }
+  .home-container .category-title { font-size: 20px; }
+  .home-container .view-all-btn { font-size: 12px; padding: 6px 12px; }
 
-  .footer-top { grid-template-columns: 1fr; text-align: center; }
-  .social-row { justify-content: center; }
-  
-  /* Adjusted for mobile footer height */
-  .home-footer { 
-      padding: 40px 20px 80px; 
-      min-height: 500px;
-      contain-intrinsic-size: 500px;
+  .home-container .footer-top { grid-template-columns: 1fr; text-align: center; }
+  .home-container .social-row { justify-content: center; }
+
+  .home-container .home-footer {
+    padding: 40px 20px 80px;
+    min-height: 500px;
+    contain-intrinsic-size: 500px;
   }
 
-  .scroll-btn { display: none !important; }
+  .home-container .scroll-btn { display: none !important; }
 
-  /* VIP House of Rattles mobile styles */
-  .house-of-rattles-section {
+  .home-container .house-of-rattles-section {
     padding: 40px 0 50px;
     margin: 25px 0;
   }
-  .hor-header {
-    margin-bottom: 20px;
-    padding: 0 20px;
-  }
-  .hor-title {
-    font-size: 26px;
-  }
-  .rattle-icon {
-    font-size: 22px;
-    margin: 0 8px;
-  }
-  .hor-subtitle {
-    font-size: 15px;
-    padding: 0 10px;
-  }
-  .hor-action {
-    margin-top: 20px;
-  }
-  .hor-view-all-btn {
-    font-size: 15px;
-    padding: 14px 30px;
-  }
-  .hor-badges-wrapper { gap: 6px; }
-  .hor-badge-primary, .hor-badge-secondary { font-size: 11px; padding: 5px 12px; }
+  .home-container .hor-header { margin-bottom: 20px; padding: 0 20px; }
+  .home-container .hor-title { font-size: 26px; }
+  .home-container .rattle-icon { font-size: 22px; margin: 0 8px; }
+  .home-container .hor-subtitle { font-size: 15px; padding: 0 10px; }
+  .home-container .hor-action { margin-top: 20px; }
+  .home-container .hor-view-all-btn { font-size: 15px; padding: 14px 30px; }
+  .home-container .hor-badges-wrapper { gap: 6px; }
+  .home-container .hor-badge-primary,
+  .home-container .hor-badge-secondary { font-size: 11px; padding: 5px 12px; }
+  .home-container .hor-logo { height: 70px; margin-bottom: 15px; }
 
-  /* Logo size on mobile */
-  .hor-logo {
-    height: 70px; 
-    margin-bottom: 15px;
-  }
-
-  /* 🚫 YOUR EXACT MOBILE PRODUCT CARD RULES - DO NOT TOUCH 🚫 */
-  :root {
+  /* ✅ YOUR STRICT MOBILE PRODUCT CARD RULES
+     Now scoped to HOME only — Product page won't change */
+  .home-container {
     --m-card-w: 152px;
     --m-card-h: 352px;
     --m-card-gap: 10px;
   }
 
-  .product-scroll {
+  .home-container .product-scroll {
     padding: 0 16px 16px !important;
     gap: var(--m-card-gap) !important;
   }
 
-  .product-link {
+  .home-container .product-link {
     flex: 0 0 var(--m-card-w) !important;
     max-width: var(--m-card-w) !important;
     width: var(--m-card-w) !important;
   }
 
-  .product-link .pc-card,
-  .pc-card {
+  .home-container .product-link .pc-card,
+  .home-container .pc-card {
     width: var(--m-card-w) !important;
     min-height: var(--m-card-h) !important;
   }
 
-  .pc-card * {
+  .home-container .pc-card * {
     max-width: 100%;
     box-sizing: border-box;
   }
 }
 
 @media (max-width: 380px) {
-  .product-link {
+  /* ✅ Only for HOME page */
+  .home-container .product-link {
     flex: 0 0 calc((100% - 8px) / 2) !important;
     max-width: calc((100% - 8px) / 2) !important;
   }

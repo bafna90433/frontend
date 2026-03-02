@@ -439,4 +439,10 @@ body.dark .kid-theme-btn {
     padding: 5px 15px;
     font-size: 14px;
   }
+}/* ✅ FORCE FULL WIDTH FOR OLD/OTHER HEADER CONTAINER CLASS */
+.bk-header-container {
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 10px 20px; /* same feel as before */
 }

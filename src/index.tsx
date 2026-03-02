@@ -13,6 +13,6 @@ if (container) {
     </React.StrictMode>
   );
 
-  // ✅ Remove loading UI once React mounts
-  document.documentElement.classList.add("app-loaded");
+  // ✅ Correct: add class to #root (not html)
+  container.classList.add("app-loaded");
 }

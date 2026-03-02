@@ -20,10 +20,7 @@
     <link rel="canonical" href="https://bafnatoys.com/" />
 
     <meta property="og:type" content="website" />
-    <meta
-      property="og:title"
-      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
-    />
+    <meta property="og:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
     <meta
       property="og:description"
       content="We manufacture and supply PVC dolls, windup toys, squeeze toys, pullback cars, and educational toys at wholesale factory prices from Coimbatore, India."
@@ -32,10 +29,7 @@
     <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta
-      name="twitter:title"
-      content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India"
-    />
+    <meta name="twitter:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
     <meta
       name="twitter:description"
       content="Buy toys directly from manufacturer — PVC dolls, windup key toys, pullback cars & more at wholesale rates. Factory outlet in Coimbatore."
@@ -50,13 +44,17 @@
 
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
 
     <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
 
+    <!-- NOTE: Replace YOUR_FIRST_BANNER_PUBLIC_ID with real public id OR remove this preload -->
     <link
       rel="preload"
       as="image"
@@ -66,9 +64,8 @@
 
     <style>
       :root {
-        /* Baloo 2 added to the font stack */
-        --font: 'Baloo 2', ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter,
-          Arial, "Noto Sans", "Helvetica Neue", sans-serif;
+        --font: "Baloo 2", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, Arial,
+          "Noto Sans", "Helvetica Neue", sans-serif;
         --banner-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
         --banner-border: 1px solid transparent;
       }
@@ -83,6 +80,8 @@
       /* ✅ Prevent layout jump while React loads */
       #root {
         min-height: 100vh;
+        width: 100%;
+        max-width: none;
       }
 
       .app-loading {
@@ -137,7 +136,12 @@
       }
 
       /* ✅ Remove loading UI once app mounts */
-      .app-loaded .app-loading {
+      #root.app-loaded .app-loading {
+        display: none;
+      }
+
+      /* ✅ Hide critical banner after app mounts (so it doesn't interfere) */
+      #root.app-loaded .lcp-banner-container {
         display: none;
       }
     </style>
@@ -169,10 +173,7 @@
           { "@type": "Product", "name": "Educational Toys" },
           { "@type": "Product", "name": "Rattles Toys" }
         ],
-        "sameAs": [
-          "https://www.facebook.com/bafnatoys",
-          "https://www.instagram.com/bafnatoys"
-        ]
+        "sameAs": ["https://www.facebook.com/bafnatoys", "https://www.instagram.com/bafnatoys"]
       }
     </script>
   </head>
@@ -218,16 +219,20 @@
     </div>
 
     <script>
-      // ✅ Remove loading indicator when app is ready
-      window.addEventListener("load", function () {
-        document.getElementById("root").classList.add("app-loaded");
-      });
+      // ✅ Robust: hide loader ASAP + fallback on full load
+      (function () {
+        function markLoaded() {
+          var root = document.getElementById("root");
+          if (root) root.classList.add("app-loaded");
+        }
+        document.addEventListener("DOMContentLoaded", markLoaded);
+        window.addEventListener("load", markLoaded);
+      })();
 
       // ✅ Disable Mobile Zoom (Pinch + Double Tap)
       (function () {
         const isTouch =
-          "ontouchstart" in window ||
-          (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+          "ontouchstart" in window || (navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
 
         if (!isTouch) return;
 
