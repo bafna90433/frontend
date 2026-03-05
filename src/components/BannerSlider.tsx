@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import Slider from "react-slick";
+import { useNavigate } from "react-router-dom";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "../styles/BannerSlider.css";
@@ -11,7 +12,7 @@ interface Banner {
 
 interface Props {
   banners: Banner[];
-  hideFirstBanner?: boolean; // ✅ New prop to skip first banner if already rendered
+  hideFirstBanner?: boolean;
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -20,13 +21,25 @@ const API_BASE =
 const IMAGE_BASE_URL =
   import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
+const isExternalUrl = (url: string) => /^https?:\/\//i.test(url);
+
+const toInternalPath = (url: string) => {
+  // If full URL given, convert to path (works for same-domain links too)
+  try {
+    const u = new URL(url);
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return url; // already relative like /products?category=...
+  }
+};
+
 const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => {
-  // Filter out first banner if it's already rendered statically
+  const navigate = useNavigate();
+
   const sliderBanners = hideFirstBanner ? banners.slice(1) : banners;
 
   useEffect(() => {
-    // ✅ Mark app as loaded to hide loading indicator
-    document.getElementById('root')?.classList.add('app-loaded');
+    document.getElementById("root")?.classList.add("app-loaded");
   }, []);
 
   const settings = {
@@ -40,7 +53,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
-    lazyLoad: 'ondemand', // ✅ Lazy load non-critical slides
+    lazyLoad: "ondemand" as const,
     responsive: [
       { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
       { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
@@ -60,7 +73,6 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     if (!url) return "https://via.placeholder.com/600x360?text=No+Banner";
 
     if (!url.startsWith("http") && cloudName) {
-      // ✅ CHANGED: w_1000 to w_600 for massive payload savings and faster LCP
       return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_600,c_limit/${url}`;
     }
 
@@ -69,7 +81,6 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
         if (url.includes("/image/upload/f_auto")) return url;
         return url.replace(
           "/image/upload/",
-          // ✅ CHANGED: w_1000 to w_600 here too
           "/image/upload/f_auto,q_auto,w_600,c_limit/"
         );
       }
@@ -81,16 +92,28 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   };
 
   const getImgProps = (index: number): Record<string, any> => {
-    // ✅ LCP FIX: Desktop par 3 banners dikhte hain, isliye pehle 3 ko eager load karna zaroori hai.
     const isLcp = !hideFirstBanner && index < 3;
-
     return {
       width: 600,
-      height: 360, // Maintained 5:3 Aspect Ratio
+      height: 360,
       loading: isLcp ? "eager" : "lazy",
       fetchPriority: isLcp ? "high" : "auto",
       decoding: isLcp ? "sync" : "async",
     };
+  };
+
+  const handleBannerClick = (e: React.MouseEvent, link: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // External -> same tab
+    if (isExternalUrl(link)) {
+      window.location.href = link;
+      return;
+    }
+
+    // Internal -> SPA same tab (no reload)
+    navigate(toInternalPath(link));
   };
 
   if (sliderBanners.length === 0) return null;
@@ -117,8 +140,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
               {b.link ? (
                 <a
                   href={b.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={(e) => handleBannerClick(e, b.link!)}
                   className="banner-link"
                 >
                   {Img}

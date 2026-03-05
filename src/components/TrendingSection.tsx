@@ -1,5 +1,6 @@
 // src/components/TrendingSection.tsx
 import React, { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import TrendingProductCard from "./TrendingProductCard";
 import "../styles/TrendingSection.css";
@@ -42,7 +43,21 @@ type Props = {
   config?: HomeConfig | null;
 };
 
+const isExternalUrl = (url: string) => /^https?:\/\//i.test(url);
+
+const toInternalPath = (url: string) => {
+  // if full url of same site given, convert to path
+  try {
+    const u = new URL(url);
+    return u.pathname + u.search + u.hash;
+  } catch {
+    return url; // already relative like /products?category=...
+  }
+};
+
 const TrendingSection: React.FC<Props> = ({ products, config }) => {
+  const navigate = useNavigate();
+
   const [cfg, setCfg] = useState<HomeConfig | null>(config ?? null);
   const [activeIdx, setActiveIdx] = useState(0);
 
@@ -113,6 +128,20 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
   const bannerLink = cfg?.bannerLink || "";
   const mainTitle = cfg?.trendingTitle || "Trending Products";
 
+  const handleBannerClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!bannerLink) return;
+
+    // External URL -> open in SAME TAB
+    if (isExternalUrl(bannerLink)) {
+      window.location.href = bannerLink;
+      return;
+    }
+
+    // Internal route -> SPA navigation same tab
+    navigate(toInternalPath(bannerLink));
+  };
+
   return (
     <section className="trending-wrap">
       {/* Premium Heading */}
@@ -148,7 +177,7 @@ const TrendingSection: React.FC<Props> = ({ products, config }) => {
         {bannerImage && (
           <aside className="trending-banner">
             {bannerLink ? (
-              <a href={bannerLink} target="_blank" rel="noreferrer">
+              <a href={bannerLink} onClick={handleBannerClick}>
                 <img src={bannerImage} alt="Trending Banner" loading="lazy" />
               </a>
             ) : (
