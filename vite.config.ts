@@ -3,6 +3,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 import { VitePWA } from "vite-plugin-pwa";
+import sitemap from "vite-plugin-sitemap";
 
 export default defineConfig(({ mode }) => {
   const isProd = mode === "production";
@@ -11,11 +12,24 @@ export default defineConfig(({ mode }) => {
     base: "/",
     plugins: [
       react(),
-      
+
+      // ✅ Sitemap (Google indexing)
+      sitemap({
+        hostname: "https://bafnatoys.com",
+        // Apne public/static routes yahan add karo
+        dynamicRoutes: [
+          "/",
+          "/products",
+          "/categories",
+          "/privacy-policy",
+          "/terms-conditions",
+        ],
+      }),
+
       // ✅ PWA (Optimized with Cloudinary caching)
       VitePWA({
         registerType: "autoUpdate",
-        devOptions: { enabled: !isProd }, 
+        devOptions: { enabled: !isProd },
         includeAssets: ["favicon.ico", "apple-touch-icon.png"],
         manifest: {
           name: "Wholesaler",
@@ -39,40 +53,42 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           navigateFallback: "/index.html",
-          // ✅ Cloudinary images ko cache karega jisse bar-bar download na ho
+          // ✅ Cloudinary images caching
           runtimeCaching: [
             {
               urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
-              handler: 'CacheFirst',
+              handler: "CacheFirst",
               options: {
-                cacheName: 'cloudinary-images',
-                expiration: { maxEntries: 100, maxAgeSeconds: 30 * 24 * 60 * 60 }, // 30 Days cache
+                cacheName: "cloudinary-images",
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                },
               },
             },
           ],
         },
       }),
 
-      // ✅ Gzip + Brotli dono banayege (Safe fallback ke liye)
+      // ✅ Gzip + Brotli (production only)
       ...(isProd
         ? [
             viteCompression({ algorithm: "gzip", ext: ".gz" }),
-            viteCompression({ algorithm: "brotliCompress", ext: ".br" })
+            viteCompression({ algorithm: "brotliCompress", ext: ".br" }),
           ]
         : []),
     ],
 
     build: {
       outDir: "dist",
-      target: "es2020", // ✅ Changed to 'es2020' for better compatibility without legacy bloat
-      minify: "esbuild", 
-      cssMinify: true, 
+      target: "es2020",
+      minify: "esbuild",
+      cssMinify: true,
       sourcemap: false,
-      chunkSizeWarningLimit: 1500, // Warning limit badha di gayi hai
-      // ❌ Aggressive manualChunks hata diya hai blank screen error rokne ke liye
+      chunkSizeWarningLimit: 1500,
     },
 
-    // ✅ Production mein console.log aur debugger automatically remove karega
+    // ✅ Production mein console/debugger remove
     esbuild: {
       drop: isProd ? ["console", "debugger"] : [],
     },
