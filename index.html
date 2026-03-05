@@ -23,7 +23,7 @@
     <meta property="og:title" content="Bafna Toys - Toy Manufacturer & Wholesale Supplier in India" />
     <meta
       property="og:description"
-      content="We manufacture and supply PVC dolls, windup toys, squeeze toys, pullback cars, and educational toys at wholesale factory prices from Coimbatore, India."
+      content="We manufacture and supply PVC dolls, windup toys, squeeze toys, pullback cars, educational toys at wholesale factory prices from Coimbatore, India."
     />
     <meta property="og:url" content="https://bafnatoys.com/" />
     <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
@@ -54,15 +54,13 @@
 
     <link rel="preload" as="image" href="/logo.webp" fetchpriority="high" />
 
-    <!-- ✅ OPTIONAL: If you have a real Cloudinary banner, put it here. Otherwise this block stays disabled. -->
-    <!--
+    <!-- NOTE: Replace YOUR_FIRST_BANNER_PUBLIC_ID with real public id OR remove this preload -->
     <link
       rel="preload"
       as="image"
-      href="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_900,c_limit/REAL_BANNER_PUBLIC_ID"
+      href="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_600,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID"
       fetchpriority="high"
     />
-    -->
 
     <style>
       :root {
@@ -79,6 +77,7 @@
         font-family: var(--font);
       }
 
+      /* ✅ Prevent layout jump while React loads */
       #root {
         min-height: 100vh;
         width: 100%;
@@ -96,6 +95,7 @@
         padding: 40px;
       }
 
+      /* ✅ Critical banner styles for LCP */
       .lcp-banner-container {
         width: 100%;
         margin: 20px auto;
@@ -135,18 +135,18 @@
         text-decoration: none;
       }
 
-      /* ✅ Hide loader only after React marks app-loaded */
+      /* ✅ Remove loading UI once app mounts */
       #root.app-loaded .app-loading {
         display: none;
       }
 
-      /* ✅ Hide critical banner after app mounts */
+      /* ✅ Hide critical banner after app mounts (so it doesn't interfere) */
       #root.app-loaded .lcp-banner-container {
         display: none;
       }
     </style>
 
-    <!-- ✅ Best homepage schema: Organization + LocalBusiness -->
+    <!-- ✅ FIXED: Homepage par Product schema nahi, sirf LocalBusiness/Organization -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -166,7 +166,7 @@
             "image": "https://bafnatoys.com/logo.webp",
             "url": "https://bafnatoys.com/",
             "telephone": "+91-9043347300",
-            "priceRange": "₹100-₹2000",
+            "priceRange": "₹100-₹2000 (Wholesale)",
             "address": {
               "@type": "PostalAddress",
               "streetAddress": "1-12, Sundapalayam Rd, Kalikkanaicken Palayam",
@@ -174,7 +174,8 @@
               "addressRegion": "Tamil Nadu",
               "postalCode": "641007",
               "addressCountry": "IN"
-            }
+            },
+            "parentOrganization": { "@id": "https://bafnatoys.com/#org" }
           }
         ]
       }
@@ -189,16 +190,14 @@
         </p>
       </noscript>
 
-      <!-- ✅ OPTIONAL banner block (only enable if you have REAL banner id) -->
-      <!--
       <div class="lcp-banner-container">
         <div class="lcp-banner">
           <a href="https://bafnatoys.com/shop" class="banner-link">
             <img
-              src="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_900,c_limit/REAL_BANNER_PUBLIC_ID"
+              src="https://res.cloudinary.com/dpdecxqb9/image/upload/f_auto,q_auto,w_600,c_limit/YOUR_FIRST_BANNER_PUBLIC_ID"
               alt="Bafna Toys Special Offer - Shop Now"
-              width="900"
-              height="540"
+              width="600"
+              height="360"
               fetchpriority="high"
               loading="eager"
               decoding="sync"
@@ -208,7 +207,6 @@
           </a>
         </div>
       </div>
-      -->
 
       <div class="app-loading">
         <img
@@ -225,14 +223,14 @@
     </div>
 
     <script>
-      // ✅ Fallback ONLY (if app-loaded not set by React)
+      // ✅ Robust: hide loader ASAP + fallback on full load
       (function () {
-        window.addEventListener("load", function () {
-          setTimeout(function () {
-            var root = document.getElementById("root");
-            if (root && !root.classList.contains("app-loaded")) root.classList.add("app-loaded");
-          }, 4000);
-        });
+        function markLoaded() {
+          var root = document.getElementById("root");
+          if (root) root.classList.add("app-loaded");
+        }
+        document.addEventListener("DOMContentLoaded", markLoaded);
+        window.addEventListener("load", markLoaded);
       })();
 
       // ✅ Disable Mobile Zoom (Pinch + Double Tap)
@@ -242,6 +240,7 @@
 
         if (!isTouch) return;
 
+        // Block pinch zoom (2 finger)
         document.addEventListener(
           "touchmove",
           function (e) {
@@ -250,6 +249,7 @@
           { passive: false }
         );
 
+        // Block double tap zoom
         let lastTouchEnd = 0;
         document.addEventListener(
           "touchend",
@@ -261,6 +261,7 @@
           { passive: false }
         );
 
+        // iOS Safari gesture events
         document.addEventListener(
           "gesturestart",
           function (e) {
