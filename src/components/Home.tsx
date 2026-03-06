@@ -8,7 +8,7 @@ import BannerSlider from "./BannerSlider";
 import ErrorMessage from "./ErrorMessage";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import OrderStepsBar from "../components/OrderStepsBar";
-import HomeSEO from "../components/HomeSEO";
+import HomeSEO from "./HomeSEO";
 
 import { FiChevronLeft, FiChevronRight, FiArrowRight, FiImage } from "react-icons/fi";
 import { FaTruckFast } from "react-icons/fa6";
