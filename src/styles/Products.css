@@ -182,7 +182,6 @@
   border-bottom: 1px solid var(--fw-border);
 }
 
-/* 👉 VISIBLE SCROLLBAR ADDED HERE 👈 */
 .category-scroll-container { 
   width: 100%;
   overflow-x: auto;

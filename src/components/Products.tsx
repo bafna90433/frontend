@@ -254,7 +254,8 @@ const Products: React.FC = () => {
         </div>
 
         <div className="fw-sidebar-content">
-          <div className="fw-sidebar-section">
+          {/* Removed Categories from Mobile View via 'desktop-only' */}
+          <div className="fw-sidebar-section desktop-only">
             <h3 className="fw-sidebar-title">Categories</h3>
             <ul className="fw-cat-list">
               <li
