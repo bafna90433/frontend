@@ -86,20 +86,9 @@ const optimizeCloudinary = (url: string, w: number, h: number) => {
   return url.replace("/image/upload/", `/image/upload/${TRANSFORM}/`);
 };
 
-// Placeholder skeleton component for Lazy loaded sections to prevent CLS
 const SectionSkeleton = ({ height = "400px" }) => (
-  <div
-    style={{
-      width: "100%",
-      height,
-      padding: "20px",
-      display: "flex",
-      justifyContent: "center",
-      alignItems: "center",
-      background: "var(--bg)",
-    }}
-  >
-    <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: "12px" }} />
+  <div style={{ width: "100%", height, padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", background: "var(--bg)" }}>
+    <Skeleton variant="rectangular" width="100%" height="100%" sx={{ borderRadius: "24px" }} />
   </div>
 );
 
@@ -118,10 +107,7 @@ const Home: React.FC = () => {
     const container = scrollContainers.current.get(id);
     if (!container) return;
     const scrollAmount = container.clientWidth * 0.8;
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
+    container.scrollBy({ left: direction === "left" ? -scrollAmount : scrollAmount, behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -129,14 +115,12 @@ const Home: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-
         const [catRes, prodRes, bannerRes, cfgRes] = await Promise.all([
           api.get("/categories"),
           api.get("/products"),
           api.get("/banners"),
           api.get("/home-config"),
         ]);
-
         setCategories(safeArr<Category>(catRes.data?.categories || catRes.data || []));
         setProducts(safeArr<Product>(prodRes.data?.products || prodRes.data || []));
         setBanners(safeArr<Banner>(bannerRes.data?.banners || bannerRes.data || []));
@@ -151,89 +135,68 @@ const Home: React.FC = () => {
     fetchData();
   }, []);
 
+  // 🚀 PERFORMANCE FIX: Pre-group products by category to avoid O(N*M) nesting loops
+  const productsByCategory = useMemo(() => {
+    const map = new Map<string, Product[]>();
+    products.forEach((p) => {
+      const catId = p.category?._id;
+      if (catId) {
+        if (!map.has(catId)) map.set(catId, []);
+        map.get(catId)!.push(p);
+      }
+    });
+    return map;
+  }, [products]);
+
   const popularCats = useMemo(() => {
     if (!homeCfg) return [];
-    if (Array.isArray(homeCfg.popularCategories) && homeCfg.popularCategories.length > 0) {
-      return homeCfg.popularCategories;
-    }
+    if (Array.isArray(homeCfg.popularCategories) && homeCfg.popularCategories.length > 0) return homeCfg.popularCategories;
     const ids = safeStrArr(homeCfg.popularCategoryIds);
     if (!ids.length) return [];
     return categories.filter((c) => ids.includes(c._id));
   }, [homeCfg, categories]);
 
-  const promoSideBanners = useMemo(
-    () => safeArr<PromoBanner>(homeCfg?.promo?.sideBanners),
-    [homeCfg]
-  );
-  const bestSellingProducts = useMemo(
-    () => safeArr<Product>(homeCfg?.promo?.bestSellingProducts),
-    [homeCfg]
-  );
-  const onSaleProducts = useMemo(
-    () => safeArr<Product>(homeCfg?.promo?.onSaleProducts),
-    [homeCfg]
-  );
+  const promoSideBanners = useMemo(() => safeArr<PromoBanner>(homeCfg?.promo?.sideBanners), [homeCfg]);
+  const bestSellingProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.bestSellingProducts), [homeCfg]);
+  const onSaleProducts = useMemo(() => safeArr<Product>(homeCfg?.promo?.onSaleProducts), [homeCfg]);
 
-  const promoSideBannersOptimized = useMemo(() => {
-    return promoSideBanners.slice(0, 2).map((b) => ({
-      ...b,
-      image: optimizeCloudinary(b.image, 400, 520),
-    }));
-  }, [promoSideBanners]);
+  const promoSideBannersOptimized = useMemo(() => promoSideBanners.slice(0, 2).map((b) => ({
+    ...b, image: optimizeCloudinary(b.image, 400, 520)
+  })), [promoSideBanners]);
 
-  const rattlesCategory = useMemo(
-    () => categories.find((c) => c.name.toLowerCase().includes("rattle")),
-    [categories]
-  );
+  const rattlesCategory = useMemo(() => categories.find((c) => c.name.toLowerCase().includes("rattle")), [categories]);
+  const rattlesProducts = useMemo(() => rattlesCategory ? productsByCategory.get(rattlesCategory._id) || [] : [], [productsByCategory, rattlesCategory]);
 
-  const rattlesProducts = useMemo(
-    () => (rattlesCategory ? products.filter((p) => p.category?._id === rattlesCategory._id) : []),
-    [products, rattlesCategory]
-  );
+  const homeSeoCategories = useMemo(() => categories.map((cat) => ({
+    name: cat.name, url: `https://bafnatoys.com/products?category=${cat._id}`
+  })), [categories]);
 
-  const homeSeoCategories = useMemo(
-    () =>
-      categories.map((cat) => ({
-        name: cat.name,
-        url: `https://bafnatoys.com/products?category=${cat._id}`,
-      })),
-    [categories]
-  );
-
-  if (error) {
-    return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
-  }
+  if (error) return <ErrorMessage message={error} onRetry={() => window.location.reload()} />;
 
   return (
     <>
       <HomeSEO url="https://bafnatoys.com/" categories={homeSeoCategories} />
 
       <div className="home-container">
-        {/* Premium Instagram Announcement Bar */}
+        {/* 🎀 Cute Instagram Announcement Bar */}
         <div className="announcement-wrapper">
-          <a
-            href="https://www.instagram.com/bafna_toys/"
-            target="_blank"
-            rel="noreferrer"
-            className="top-announcement-bar"
-          >
+          <a href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer" className="top-announcement-bar">
             <div className="announcement-left">
               <span className="announcement-badge">▶ Play</span>
             </div>
             <span className="announcement-text">
-              Want to see our toys in action? 🎥 Watch videos on our Instagram and come back to
-              shop!
+              See our adorable toys in action! 🎥 Watch reels on Instagram & come back to shop! ✨
             </span>
-            <span className="announcement-btn">
-              Watch Now <FaInstagram size={15} />
+            <span className="announcement-btn bubbly-hover">
+              Watch Now <FaInstagram size={16} />
             </span>
           </a>
         </div>
 
-        {/* ✅ LCP & CLS FIX: Show Banner Skeleton while loading */}
+        {/* Banners */}
         {loading ? (
-          <div style={{ width: "100%", padding: "10px 0", margin: "20px auto", overflow: "hidden" }}>
-            <Skeleton variant="rectangular" width="100%" height="300px" sx={{ borderRadius: "10px" }} />
+          <div style={{ width: "100%", padding: "10px 20px", margin: "10px auto" }}>
+            <Skeleton variant="rectangular" width="100%" height="300px" sx={{ borderRadius: "24px" }} />
           </div>
         ) : (
           banners.length > 0 && <BannerSlider banners={banners} />
@@ -241,7 +204,7 @@ const Home: React.FC = () => {
 
         {!loading && <OrderStepsBar />}
 
-        {/* Shop By Category */}
+        {/* 🍬 CUTE Bubble Categories */}
         {!loading && categories.length > 0 && (
           <>
             <div className="section-heading-wrapper">
@@ -249,165 +212,105 @@ const Home: React.FC = () => {
               <div className="section-heading-line"></div>
             </div>
 
-            <div className="category-circles-section">
-              {categories.map((cat) => {
-                const raw = cat.image || cat.imageUrl || "";
-                const img = optimizeCloudinary(raw, 160, 160);
+            <div className="category-scroll-wrapper">
+              <button className="scroll-btn scroll-btn--left bubbly-hover" onClick={() => scrollContainer("category-circles", "left")}>
+                <FiChevronLeft size={24} />
+              </button>
 
-                return (
-                  <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
-                    <div className="cat-circle-img-wrapper">
-                      {raw ? (
-                        <img
-                          src={img}
-                          alt={cat.name}
-                          className="cat-circle-img"
-                          width={130}
-                          height={130}
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      ) : (
-                        <div className="cat-placeholder">
-                          <FiImage />
-                        </div>
-                      )}
-                    </div>
-                    <span className="cat-circle-name">{cat.name}</span>
-                  </Link>
-                );
-              })}
+              <div id="scroll-category-circles" className="category-circles-section" ref={(el) => el ? scrollContainers.current.set("category-circles", el) : scrollContainers.current.delete("category-circles")}>
+                {categories.map((cat) => {
+                  const raw = cat.image || cat.imageUrl || "";
+                  const img = optimizeCloudinary(raw, 300, 300);
+
+                  return (
+                    <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
+                      <div className="cat-circle-img-wrapper">
+                        {raw ? (
+                          <img src={img} alt={cat.name} className="cat-circle-img" loading="lazy" decoding="async" />
+                        ) : (
+                          <div className="cat-placeholder"><FiImage /></div>
+                        )}
+                      </div>
+                      <span className="cat-circle-name">{cat.name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+
+              <button className="scroll-btn scroll-btn--right bubbly-hover" onClick={() => scrollContainer("category-circles", "right")}>
+                <FiChevronRight size={24} />
+              </button>
             </div>
           </>
         )}
 
-        {loading && (
-          <div className="category-circles-section">
-            {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="cat-circle-skeleton">
-                <Skeleton
-                  variant="circular"
-                  width={130}
-                  height={130}
-                  sx={{ "@media (max-width: 768px)": { width: 65, height: 65 } }}
-                />
-                <Skeleton variant="text" width={60} sx={{ mt: 1 }} />
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Clean Trust Bar */}
+        {/* 🍼 Soft Trust Bar */}
         {!loading && (
           <div className="trustbar-container">
             <div className="trustbar">
-              <div className="trust-item">
-                <div className="trust-icon" aria-hidden>
-                  <FaTruckFast />
-                </div>
-                <div className="trust-text">
-                  <h4>Fast Delivery</h4>
-                  <p>Quick dispatch</p>
-                </div>
+              <div className="trust-item bubbly-hover">
+                <div className="trust-icon pink-tint"><FaTruckFast /></div>
+                <div className="trust-text"><h4>Fast Delivery</h4><p>Zooming to you!</p></div>
               </div>
-              <div className="trust-item">
-                <div className="trust-icon" aria-hidden>
-                  <MdSecurity />
-                </div>
-                <div className="trust-text">
-                  <h4>Secure Pay</h4>
-                  <p>Safe checkout</p>
-                </div>
+              <div className="trust-item bubbly-hover">
+                <div className="trust-icon blue-tint"><MdSecurity /></div>
+                <div className="trust-text"><h4>Secure Pay</h4><p>100% Safe</p></div>
               </div>
-              <div className="trust-item">
-                <div className="trust-icon" aria-hidden>
-                  <HiBadgeCheck />
-                </div>
-                <div className="trust-text">
-                  <h4>Quality</h4>
-                  <p>Checked products</p>
-                </div>
+              <div className="trust-item bubbly-hover">
+                <div className="trust-icon yellow-tint"><HiBadgeCheck /></div>
+                <div className="trust-text"><h4>Top Quality</h4><p>Baby Approved</p></div>
               </div>
-              <div className="trust-item">
-                <div className="trust-icon" aria-hidden>
-                  <BiSupport />
-                </div>
-                <div className="trust-text">
-                  <h4>Support</h4>
-                  <p>Help on call</p>
-                </div>
+              <div className="trust-item bubbly-hover">
+                <div className="trust-icon mint-tint"><BiSupport /></div>
+                <div className="trust-text"><h4>Happy Support</h4><p>Always here</p></div>
               </div>
             </div>
           </div>
         )}
 
-        {/* 🏠 ✨ VIP PREMIUM SECTION: HOUSE OF RATTLES */}
+        {/* 🏠 ✨ CUTE HOUSE OF RATTLES */}
         {!loading && rattlesProducts.length > 0 && (
           <section className="house-of-rattles-section">
+            <div className="hor-floating-bubble b1"></div>
+            <div className="hor-floating-bubble b2"></div>
             <div className="hor-header">
-              <img
-                src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1772200542/D13_viaowv.webp"
-                alt="Rattles Logo"
-                className="hor-logo"
-                loading="lazy"
-              />
+              <img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1772200542/D13_viaowv.webp" alt="Rattles Logo" className="hor-logo" loading="lazy" />
               <div className="hor-header-content">
                 <div className="hor-badges-wrapper">
-                  <span className="hor-badge-primary">🌟 #1 Best Seller</span>
-                  <span className="hor-badge-secondary">🔥 Retailers' Choice</span>
+                  <span className="hor-badge-primary bubbly-hover">🌟 #1 Best Seller</span>
+                  <span className="hor-badge-secondary bubbly-hover">🧸 Cuteness Overload</span>
                 </div>
                 <h2 className="hor-title">
-                  <span className="rattle-icon left" aria-hidden="true">
-                    🪇
-                  </span>
-                  The House of Rattles
-                  <span className="rattle-icon right" aria-hidden="true">
-                    🪇
-                  </span>
+                  <span className="rattle-icon left">🪇</span> The House of Rattles <span className="rattle-icon right">🪇</span>
                 </h2>
-                <p className="hor-subtitle">Shake, Play & Smile! 👶 Discover the premium collection.</p>
+                <p className="hor-subtitle">Shake, Play & Smile! Discover our most adorable collection.</p>
               </div>
               <div className="hor-action">
-                <Link to={`/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn">
+                <Link to={`/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn bubbly-hover">
                   Explore All <span className="btn-icon-animate">✨</span>
                 </Link>
               </div>
             </div>
 
             <div className="hor-products-wrapper">
-              <button
-                className="scroll-btn scroll-btn--left hor-scroll"
-                onClick={() => scrollContainer("rattles-special", "left")}
-                aria-label="Scroll left"
-              >
-                <FiChevronLeft size={22} />
+              <button className="scroll-btn scroll-btn--left bubbly-hover hor-scroll" onClick={() => scrollContainer("rattles-special", "left")}>
+                <FiChevronLeft size={24} />
               </button>
-              <div
-                id="scroll-rattles-special"
-                className="product-scroll hor-scroll-container"
-                ref={(el) => {
-                  if (el) scrollContainers.current.set("rattles-special", el);
-                  else scrollContainers.current.delete("rattles-special");
-                }}
-              >
+              <div id="scroll-rattles-special" className="product-scroll hor-scroll-container" ref={(el) => el ? scrollContainers.current.set("rattles-special", el) : scrollContainers.current.delete("rattles-special")}>
                 {rattlesProducts.map((product) => (
                   <div key={product._id} className="product-link">
                     <ProductCard product={product as any} userRole="customer" />
                   </div>
                 ))}
               </div>
-              <button
-                className="scroll-btn scroll-btn--right hor-scroll"
-                onClick={() => scrollContainer("rattles-special", "right")}
-                aria-label="Scroll right"
-              >
-                <FiChevronRight size={22} />
+              <button className="scroll-btn scroll-btn--right bubbly-hover hor-scroll" onClick={() => scrollContainer("rattles-special", "right")}>
+                <FiChevronRight size={24} />
               </button>
             </div>
           </section>
         )}
 
-        {/* ✅ PERFORMANCE: Suspense boundaries added for lazy loaded components */}
+        {/* Lazy Loaded Sections */}
         {!loading && products.length > 0 && (
           <Suspense fallback={<SectionSkeleton height="350px" />}>
             <section className="two-col-mobile two-col-mobile--trending">
@@ -424,139 +327,82 @@ const Home: React.FC = () => {
           </Suspense>
         )}
 
-        {!loading &&
-          homeCfg?.promo &&
-          (promoSideBannersOptimized.length > 0 ||
-            bestSellingProducts.length > 0 ||
-            onSaleProducts.length > 0) && (
-            <Suspense fallback={<SectionSkeleton height="450px" />}>
-              <HomePromoSection
-                sideBanners={promoSideBannersOptimized as any}
-                bestSelling={bestSellingProducts as any}
-                onSale={onSaleProducts as any}
-              />
-            </Suspense>
-          )}
-
-        {!loading && popularCats.length > 0 && (
-          <Suspense fallback={<SectionSkeleton height="300px" />}>
-            <PopularCategories
-              categories={popularCats}
-              title={homeCfg?.popularTitle || "Popular Categories"}
-              subtitle={homeCfg?.popularSubtitle || ""}
-            />
+        {!loading && homeCfg?.promo && (promoSideBannersOptimized.length > 0 || bestSellingProducts.length > 0 || onSaleProducts.length > 0) && (
+          <Suspense fallback={<SectionSkeleton height="450px" />}>
+            <HomePromoSection sideBanners={promoSideBannersOptimized as any} bestSelling={bestSellingProducts as any} onSale={onSaleProducts as any} />
           </Suspense>
         )}
 
-        {!loading &&
-          categories.map((cat) => {
-            if (cat.name.toLowerCase().includes("rattle")) return null;
+        {!loading && popularCats.length > 0 && (
+          <Suspense fallback={<SectionSkeleton height="300px" />}>
+            <PopularCategories categories={popularCats} title={homeCfg?.popularTitle || "Popular Categories"} subtitle={homeCfg?.popularSubtitle || ""} />
+          </Suspense>
+        )}
 
-            const items = products.filter((p) => p.category?._id === cat._id);
-            if (!items.length) return null;
+        {/* Main Category Rows */}
+        {!loading && categories.map((cat) => {
+          if (cat.name.toLowerCase().includes("rattle")) return null;
+          const items = productsByCategory.get(cat._id) || [];
+          if (!items.length) return null;
 
-            return (
-              <div key={cat._id} className="category-block">
-                <div className="category-header">
-                  <h2 className="category-title">{cat.name}</h2>
-                  <Link to={`/products?category=${cat._id}`} className="view-all-btn">
-                    View All <FiArrowRight />
-                  </Link>
-                </div>
-
-                <div className="product-scroll-wrapper">
-                  <button
-                    className="scroll-btn scroll-btn--left"
-                    onClick={() => scrollContainer(cat._id, "left")}
-                    aria-label="Scroll left"
-                  >
-                    <FiChevronLeft size={22} />
-                  </button>
-
-                  <div
-                    id={`scroll-${cat._id}`}
-                    className="product-scroll"
-                    ref={(el) => {
-                      if (el) scrollContainers.current.set(cat._id, el);
-                      else scrollContainers.current.delete(cat._id);
-                    }}
-                  >
-                    {items.map((product) => (
-                      <div key={product._id} className="product-link">
-                        <ProductCard product={product as any} userRole="customer" />
-                      </div>
-                    ))}
-                  </div>
-
-                  <button
-                    className="scroll-btn scroll-btn--right"
-                    onClick={() => scrollContainer(cat._id, "right")}
-                    aria-label="Scroll right"
-                  >
-                    <FiChevronRight size={22} />
-                  </button>
-                </div>
+          return (
+            <div key={cat._id} className="category-block">
+              <div className="category-header">
+                <h2 className="category-title">{cat.name}</h2>
+                <Link to={`/products?category=${cat._id}`} className="view-all-btn bubbly-hover">
+                  View All <FiArrowRight />
+                </Link>
               </div>
-            );
-          })}
+
+              <div className="product-scroll-wrapper">
+                <button className="scroll-btn scroll-btn--left bubbly-hover" onClick={() => scrollContainer(cat._id, "left")}>
+                  <FiChevronLeft size={24} />
+                </button>
+                <div id={`scroll-${cat._id}`} className="product-scroll" ref={(el) => el ? scrollContainers.current.set(cat._id, el) : scrollContainers.current.delete(cat._id)}>
+                  {items.map((product) => (
+                    <div key={product._id} className="product-link">
+                      <ProductCard product={product as any} userRole="customer" />
+                    </div>
+                  ))}
+                </div>
+                <button className="scroll-btn scroll-btn--right bubbly-hover" onClick={() => scrollContainer(cat._id, "right")}>
+                  <FiChevronRight size={24} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
 
         <FloatingCheckoutButton />
 
-        {/* ✅ CLS FIX: Render footer ONLY AFTER loading is complete */}
+        {/* Footer */}
         {!loading && (
           <footer className="home-footer">
             <div className="footer-content">
               <div className="footer-top">
                 <div className="footer-brand">
-                  <h3>BafnaToys</h3>
-                  <p>
-                    Inspiring imagination through play. The best toys, best deals, delivered safely
-                    and fast.
-                  </p>
+                  <h3>🧸 BafnaToys</h3>
+                  <p>Inspiring imagination through play. The cutest toys, best deals, delivered safely and fast.</p>
                 </div>
-
                 <div className="footer-links-container">
                   <h4>Quick Links</h4>
                   <ul className="footer-links">
-                    <li>
-                      <Link to="/privacy-policy">Privacy Policy</Link>
-                    </li>
-                    <li>
-                      <Link to="/terms-conditions">Terms & Conditions</Link>
-                    </li>
-                    <li>
-                      <Link to="/shipping-delivery">Shipping & Delivery</Link>
-                    </li>
-                    <li>
-                      <Link to="/cancellation-refund">Cancellation & Refund</Link>
-                    </li>
+                    <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                    <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                    <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                    <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
                   </ul>
                 </div>
-
                 <div className="footer-social">
                   <h4>Connect With Us</h4>
                   <div className="social-row">
-                    <a
-                      className="social-btn insta"
-                      href="https://www.instagram.com/bafna_toys/"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      Instagram
-                    </a>
-                    <a
-                      className="social-btn youtube"
-                      href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA"
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      YouTube
-                    </a>
+                    <a className="social-btn insta bubbly-hover" href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer">Instagram</a>
+                    <a className="social-btn youtube bubbly-hover" href="https://www.youtube.com/channel/UCZWOi-W-yK8s_RMb_XF_iUA" target="_blank" rel="noreferrer">YouTube</a>
                   </div>
                 </div>
               </div>
               <div className="footer-bottom">
-                <p>© {new Date().getFullYear()} BafnaToys. All rights reserved.</p>
+                <p>© {new Date().getFullYear()} BafnaToys. Filled with joy & play. All rights reserved.</p>
               </div>
             </div>
           </footer>
