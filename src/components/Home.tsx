@@ -15,7 +15,6 @@ import { FaTruckFast } from "react-icons/fa6";
 import { MdSecurity } from "react-icons/md";
 import { HiBadgeCheck } from "react-icons/hi";
 import { BiSupport } from "react-icons/bi";
-import { FaInstagram } from "react-icons/fa";
 import { Skeleton } from "@mui/material";
 import "../styles/Home.css";
 
@@ -178,21 +177,6 @@ const Home: React.FC = () => {
       <HomeSEO url="https://bafnatoys.com/" categories={homeSeoCategories} />
 
       <div className="home-container">
-        {/* 🎀 Cute Instagram Announcement Bar */}
-        <div className="announcement-wrapper">
-          <a href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer" className="top-announcement-bar">
-            <div className="announcement-left">
-              <span className="announcement-badge">▶ Play</span>
-            </div>
-            <span className="announcement-text">
-              See our adorable toys in action! 🎥 Watch reels on Instagram & come back to shop! ✨
-            </span>
-            <span className="announcement-btn bubbly-hover">
-              Watch Now <FaInstagram size={16} />
-            </span>
-          </a>
-        </div>
-
         {/* Banners */}
         {loading ? (
           <div style={{ width: "100%", padding: "10px 20px", margin: "10px auto" }}>

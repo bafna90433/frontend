@@ -16,26 +16,22 @@ interface Props {
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
-const API_BASE =
-  import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
-const IMAGE_BASE_URL =
-  import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+const API_BASE = import.meta.env.VITE_API_URL?.replace("/api", "") || "http://localhost:8080";
+const IMAGE_BASE_URL = import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const isExternalUrl = (url: string) => /^https?:\/\//i.test(url);
 
 const toInternalPath = (url: string) => {
-  // If full URL given, convert to path (works for same-domain links too)
   try {
     const u = new URL(url);
     return u.pathname + u.search + u.hash;
   } catch {
-    return url; // already relative like /products?category=...
+    return url;
   }
 };
 
 const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => {
   const navigate = useNavigate();
-
   const sliderBanners = hideFirstBanner ? banners.slice(1) : banners;
 
   useEffect(() => {
@@ -44,7 +40,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
 
   const settings = {
     dots: false,
-    infinite: false,
+    infinite: sliderBanners.length > 1,
     speed: 800,
     slidesToShow: 3,
     slidesToScroll: 1,
@@ -53,36 +49,35 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     arrows: false,
     pauseOnHover: true,
     cssEase: "ease-in-out",
-    lazyLoad: "ondemand" as const,
     responsive: [
-      { breakpoint: 1024, settings: { slidesToShow: 2, speed: 600 } },
-      { breakpoint: 768, settings: { slidesToShow: 1, speed: 500 } },
+      { breakpoint: 1024, settings: { slidesToShow: 2 } },
+      { breakpoint: 768, settings: { slidesToShow: 1 } },
       {
         breakpoint: 480,
         settings: {
           slidesToShow: 1,
-          speed: 400,
           centerMode: true,
-          centerPadding: "20px",
+          centerPadding: "25px",
         },
       },
     ],
   };
 
   const getBannerUrl = (url: string): string => {
-    if (!url) return "https://via.placeholder.com/600x360?text=No+Banner";
+    if (!url) return "https://via.placeholder.com/500x200?text=No+Banner";
+
+    // ✅ ULTRA SHARP: 1500px width for 500px display (3x Density)
+    // ✅ AUTO-FILL: Ar_5:3 ensures no stretching
+    const transformations = "f_auto,q_auto:best,w_1500,h_900,c_fill,g_auto,ar_5:3,dpr_auto";
 
     if (!url.startsWith("http") && cloudName) {
-      return `https://res.cloudinary.com/${cloudName}/image/upload/f_auto,q_auto,w_600,c_limit/${url}`;
+      return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${url}`;
     }
 
     if (url.startsWith("http")) {
       if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
         if (url.includes("/image/upload/f_auto")) return url;
-        return url.replace(
-          "/image/upload/",
-          "/image/upload/f_auto,q_auto,w_600,c_limit/"
-        );
+        return url.replace("/image/upload/", `/image/upload/${transformations}/`);
       }
       return url;
     }
@@ -91,29 +86,13 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
     return `${IMAGE_BASE_URL}/uploads/${url}`;
   };
 
-  const getImgProps = (index: number): Record<string, any> => {
-    const isLcp = !hideFirstBanner && index < 3;
-    return {
-      width: 600,
-      height: 360,
-      loading: isLcp ? "eager" : "lazy",
-      fetchPriority: isLcp ? "high" : "auto",
-      decoding: isLcp ? "sync" : "async",
-    };
-  };
-
   const handleBannerClick = (e: React.MouseEvent, link: string) => {
     e.preventDefault();
-    e.stopPropagation();
-
-    // External -> same tab
     if (isExternalUrl(link)) {
       window.location.href = link;
-      return;
+    } else {
+      navigate(toInternalPath(link));
     }
-
-    // Internal -> SPA same tab (no reload)
-    navigate(toInternalPath(link));
   };
 
   if (sliderBanners.length === 0) return null;
@@ -123,31 +102,38 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
       <Slider {...settings}>
         {sliderBanners.map((b, index) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
-          const imgProps = getImgProps(index);
-
-          const Img = (
-            <img
-              src={bannerUrl}
-              alt={`Banner ${hideFirstBanner ? index + 2 : index + 1}`}
-              className="banner-row-img blur-up"
-              onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
-              {...imgProps}
-            />
-          );
+          const isLcp = !hideFirstBanner && index < 3;
 
           return (
             <div key={index} className="banner-slide">
-              {b.link ? (
-                <a
-                  href={b.link}
-                  onClick={(e) => handleBannerClick(e, b.link!)}
-                  className="banner-link"
-                >
-                  {Img}
-                </a>
-              ) : (
-                Img
-              )}
+              <div className="banner-link-wrapper">
+                {b.link ? (
+                  <a href={b.link} onClick={(e) => handleBannerClick(e, b.link!)} className="banner-link">
+                    <img
+                      src={bannerUrl}
+                      alt={`Banner ${index + 1}`}
+                      className="banner-row-img blur-up"
+                      width={500}
+                      height={300}
+                      loading={isLcp ? "eager" : "lazy"}
+                      fetchPriority={isLcp ? "high" : "auto"}
+                      onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+                      ref={(img) => { if (img?.complete) img.classList.add("is-loaded"); }}
+                    />
+                  </a>
+                ) : (
+                  <img
+                    src={bannerUrl}
+                    alt={`Banner ${index + 1}`}
+                    className="banner-row-img blur-up"
+                    width={500}
+                    height={300}
+                    loading={isLcp ? "eager" : "lazy"}
+                    onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
+                    ref={(img) => { if (img?.complete) img.classList.add("is-loaded"); }}
+                  />
+                )}
+              </div>
             </div>
           );
         })}

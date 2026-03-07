@@ -1,77 +1,76 @@
-/* src/styles/BannerSlider.css */
-
 :root {
-  --banner-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-  --banner-border: 1px solid transparent;
-  /* ✅ Skeleton/Placeholder color add kiya hai jab tak image load ho */
-  --banner-placeholder: #e2e8f0; 
+  --banner-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  --banner-border: 1px solid rgba(0,0,0,0.04);
+  --banner-bg: #f8fafc;
 }
 
 body.dark {
-  --banner-shadow: 0 6px 15px rgba(0, 0, 0, 0.6);
-  --banner-border: 1px solid #333333;
-  --banner-placeholder: #2d3748;
+  --banner-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --banner-border: 1px solid #2d3748;
+  --banner-bg: #1a202c;
 }
 
 .banner-slider-row {
   width: 100%;
   margin: 20px auto;
-  overflow: hidden;
   padding: 10px 0;
+  overflow: hidden;
 }
 
 .banner-slide {
-  padding: 0 8px;
+  padding: 0 12px;
   box-sizing: border-box;
+}
+
+.banner-link-wrapper {
+  border-radius: 14px;
+  overflow: hidden;
+  background-color: var(--banner-bg);
+  box-shadow: var(--banner-shadow);
+  border: var(--banner-border);
 }
 
 .banner-link {
   display: block;
   text-decoration: none;
-  border-radius: 10px;
-  /* ✅ Blur bleed ko rokne ke liye overflow hidden */
-  overflow: hidden; 
 }
 
-/* ✅ Stable size = less CLS + better LCP */
+/* ✅ PERFECT QUALITY & FIT */
 .banner-row-img {
   width: 100%;
-  aspect-ratio: 5 / 3; /* 500x300 - CLS Fix */
   height: auto;
+  aspect-ratio: 5 / 3; /* Strictly 500x300 ratio */
   object-fit: cover;
+  object-position: center;
   display: block;
-  border-radius: 10px;
-  background-color: var(--banner-placeholder); /* Dikhne me fast lagta hai */
+  
+  /* Sharpness Fix */
+  image-rendering: -webkit-optimize-contrast;
+  transform: translateZ(0); 
+  backface-visibility: hidden;
 
-  box-shadow: var(--banner-shadow);
-  border: var(--banner-border);
-
-  /* ✅ PERFORMANCE: Hardware acceleration se browser hang nahi hoga */
   will-change: transform, filter;
-  transition: transform 0.3s ease, filter 0.35s ease, box-shadow 0.3s ease;
+  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
+              filter 0.4s ease;
 }
 
-/* Hover effect parent se trigger karna better hai */
-.banner-link:hover .banner-row-img,
-.banner-row-img:hover {
-  transform: scale(1.02);
-  /* opacity hta di, taaki browser ko extra paint na karna pade */
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+/* Hover Effect */
+.banner-link:hover .banner-row-img {
+  transform: scale(1.04);
 }
 
-body.dark .banner-link:hover .banner-row-img,
-body.dark .banner-row-img:hover {
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.8);
-}
-
-/* ✅ Proper blur-up without edge bleeding */
+/* ✅ SMOOTH LOADING BLUR */
 .blur-up {
   filter: blur(10px);
-  /* Scale thoda bada rakha hai blur ke waqt white edges hatane ke liye */
-  transform: scale(1.05); 
 }
 
 .blur-up.is-loaded {
   filter: blur(0);
-  transform: scale(1); /* Original size par wapas */
+}
+
+/* Mobile responsive padding */
+@media (max-width: 480px) {
+  .banner-slide {
+    padding: 0 8px;
+  }
 }

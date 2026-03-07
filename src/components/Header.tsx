@@ -76,49 +76,50 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
 
   return (
     <form
-      className={`kid-search ${mobile ? "is-mobile" : ""}`}
+      className={`modern-search ${mobile ? "is-mobile" : ""}`}
       onSubmit={onSubmit}
       role="search"
       ref={ref}
     >
-      <div className="kid-search__wrapper">
+      <div className="modern-search__wrapper">
+        <svg className="modern-search__icon-left" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
+        </svg>
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => sug.length > 0 && setOpenSug(true)}
           onKeyDown={onKeyDown}
-          className="kid-search__input"
-          placeholder="Search for toys, games..."
+          className="modern-search__input"
+          placeholder={mobile ? "Search toys..." : "Search for toys, games..."}
           aria-label="Search"
         />
-        <button className="kid-search__btn" type="submit" aria-label="Search">
-          <svg className="kid-search__icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-          </svg>
+        <button className="modern-search__btn" type="submit" aria-label="Search">
+          {mobile ? "Go" : "Search"}
         </button>
       </div>
 
       {openSug && (
-        <div className="kid-suggest">
+        <div className="modern-suggest">
           {loadingSug && (
-            <div className="kid-suggest__loading">
-              <div className="kid-spinner"></div>
+            <div className="modern-suggest__loading">
+              <div className="modern-spinner"></div>
               Looking for toys...
             </div>
           )}
 
           {!loadingSug && sug.length === 0 && (
-            <div className="kid-suggest__empty">
+            <div className="modern-suggest__empty">
               😕 No toys found. Try "car" or "doll"?
             </div>
           )}
 
           {!loadingSug && sug.length > 0 && (
-            <ul className="kid-suggest__list" role="listbox" aria-label="Search suggestions">
+            <ul className="modern-suggest__list" role="listbox" aria-label="Search suggestions">
               {sug.map((p, idx) => (
                 <li
                   key={p._id}
-                  className={`kid-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
+                  className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onMouseDown={(e) => {
                     e.preventDefault();
@@ -132,21 +133,21 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                     <img
                       src={getThumb(p)!}
                       alt=""
-                      className="kid-suggest__thumb"
+                      className="modern-suggest__thumb"
                       loading="lazy"
-                      width={44}
-                      height={44}
+                      width={48}
+                      height={48}
                     />
                   ) : (
-                    <div className="kid-suggest__thumb kid-suggest__thumb--ph" />
+                    <div className="modern-suggest__thumb modern-suggest__thumb--ph" />
                   )}
 
-                  <div className="kid-suggest__meta">
-                    <div className="kid-suggest__name">{p.name}</div>
-                    {p.sku && <div className="kid-suggest__sku">#{p.sku}</div>}
+                  <div className="modern-suggest__meta">
+                    <div className="modern-suggest__name">{p.name}</div>
+                    {p.sku && <div className="modern-suggest__sku">#{p.sku}</div>}
                   </div>
 
-                  <div className="kid-suggest__price">{p.price ? `₹${p.price}` : ""}</div>
+                  <div className="modern-suggest__price">{p.price ? `₹${p.price}` : ""}</div>
                 </li>
               ))}
             </ul>
@@ -154,7 +155,7 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
 
           {sug.length > 0 && (
             <button
-              className="kid-suggest__more"
+              className="modern-suggest__more"
               type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => {
@@ -330,34 +331,63 @@ const Header: React.FC = () => {
 
   const [scrolled, setScrolled] = useState(false);
   
-  // ✅ PERFORMANCE: Throttled scroll listener using requestAnimationFrame
+  // ✅ FIXED: Debounced scroll listener to prevent shaking
   useEffect(() => {
     let ticking = false;
+    let lastScrollY = window.scrollY;
+    
     const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      
+      // Only update if scroll position changed significantly (prevents micro-adjustments)
+      if (Math.abs(currentScrollY - lastScrollY) < 5) {
+        return;
+      }
+      
       if (!ticking) {
         window.requestAnimationFrame(() => {
-          setScrolled(window.scrollY > 20);
+          setScrolled(currentScrollY > 20);
+          lastScrollY = currentScrollY;
           ticking = false;
         });
         ticking = true;
       }
     };
     
-    // Add passive flag so it doesn't block the main thread scroll action
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className={`kid-header ${scrolled ? "kid-header--scrolled" : ""}`}>
-      <div className="kid-header__main">
-        <div className="kid-header__container">
+    <header className={`modern-header ${scrolled ? "modern-header--scrolled" : ""}`}>
+      
+      {/* 🌟 NEW INSTAGRAM BANNER 🌟 */}
+      <a 
+        href="https://www.instagram.com/bafna_toys/" 
+        target="_blank" 
+        rel="noopener noreferrer" 
+        className="modern-top-banner"
+        aria-label="Follow us on Instagram"
+      >
+        <div className="modern-top-banner__inner">
+          <svg className="modern-top-banner__icon" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" />
+          </svg>
+          <span className="modern-top-banner__text">
+           See our adorable toys in action! 🎥 Watch reels on Instagram & come back to shop! ✨
+          </span>
+          <span className="modern-top-banner__btn">Watch Now</span>
+        </div>
+      </a>
+
+      <div className="modern-header__main">
+        <div className="modern-header__container bk-header-container">
           {/* Logo */}
-          <Link to="/" className="kid-logo" aria-label="Home">
+          <Link to="/" className="modern-logo" aria-label="Home">
             <img
               src={LOGO_IMG}
               alt="BAFNA TOYS"
-              className="kid-logo__img"
+              className="modern-logo__img"
               width={188}
               height={45}
               loading="eager"
@@ -367,7 +397,7 @@ const Header: React.FC = () => {
           </Link>
 
           {/* Desktop Search */}
-          <div className="kid-search__desktop-wrapper">
+          <div className="modern-search__desktop-wrapper">
             <SearchForm
               ref={deskRef}
               q={q}
@@ -385,10 +415,10 @@ const Header: React.FC = () => {
           </div>
 
           {/* Action Buttons (Icons + Text) */}
-          <nav className="kid-actions" aria-label="Header actions">
+          <nav className="modern-actions" aria-label="Header actions">
             {/* Theme Toggle */}
             <button
-              className="kid-action-btn kid-theme-btn"
+              className="modern-action-btn modern-theme-btn"
               onClick={toggleTheme}
               aria-label="Toggle Theme"
               type="button"
@@ -399,48 +429,40 @@ const Header: React.FC = () => {
             {/* Account / Login */}
             {user ? (
               <button
-                className="kid-action-btn"
+                className="modern-action-btn"
                 onClick={() => navigate("/my-account")}
                 type="button"
               >
-                <span className="kid-ico" aria-hidden>
-                  👤
-                </span>
-                <span className="kid-btn-text">Account</span>
+                <span className="modern-ico" aria-hidden>👤</span>
+                <span className="modern-btn-text">Account</span>
               </button>
             ) : (
-              <Link className="kid-action-btn" to="/login">
-                <span className="kid-ico" aria-hidden>
-                  🔑
-                </span>
-                <span className="kid-btn-text">Login</span>
+              <Link className="modern-action-btn" to="/login">
+                <span className="modern-ico" aria-hidden>🔑</span>
+                <span className="modern-btn-text">Login</span>
               </Link>
             )}
 
             {/* My Orders */}
             {user && (
-              <Link className="kid-action-btn mobile-hide" to="/orders">
-                <span className="kid-ico" aria-hidden>
-                  📦
-                </span>
-                <span className="kid-btn-text">Orders</span>
+              <Link className="modern-action-btn mobile-hide" to="/orders">
+                <span className="modern-ico" aria-hidden>📦</span>
+                <span className="modern-btn-text">Orders</span>
               </Link>
             )}
 
             {/* Cart Button */}
-            <Link className="kid-cart-btn" to="/cart" aria-label="Cart">
-              <div className="kid-cart-icon-wrap" aria-hidden>
-                🛒
-                {cartCount > 0 && <span className="kid-cart-badge">{cartCount}</span>}
-              </div>
-              <span className="kid-btn-text">Cart</span>
+            <Link className="modern-cart-btn" to="/cart" aria-label="Cart">
+              <span className="modern-cart-ico" aria-hidden>🛒</span>
+              <span className="modern-cart-text">Cart</span>
+              {cartCount > 0 && <span className="modern-cart-badge">{cartCount}</span>}
             </Link>
           </nav>
         </div>
       </div>
 
       {/* Mobile Search */}
-      <div className="kid-search--mobile">
+      <div className="modern-search--mobile">
         <SearchForm
           ref={mobRef}
           mobile
