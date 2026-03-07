@@ -43,7 +43,6 @@ body.dark {
 /* --- NAYA TOP ANNOUNCEMENT BANNER --- */
 .modern-top-banner {
   display: block;
-  /* Premium Instagram-style gradient */
   background: linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045, #833ab4);
   background-size: 200% auto;
   animation: instagramGradientShift 4s linear infinite;
@@ -93,14 +92,12 @@ body.dark {
   transition: all 0.2s ease;
 }
 
-/* Hover effect on banner */
 .modern-top-banner:hover .modern-top-banner__btn {
   background: #ffffff;
-  color: #d62976; /* Instagram Pink */
+  color: #d62976;
   transform: scale(1.05);
 }
 
-/* Hide Banner on scroll */
 .modern-header--scrolled .modern-top-banner {
   max-height: 0;
   opacity: 0;
@@ -129,7 +126,6 @@ body.dark {
   gap: 30px;
 }
 
-/* --- Logo --- */
 .modern-logo {
   flex-shrink: 0;
   display: flex;
@@ -146,11 +142,11 @@ body.dark {
   display: block;
   width: 170px; 
   height: auto;
-  aspect-ratio: 188 / 45; /* CLS fix preserved */
+  aspect-ratio: 188 / 45;
   object-fit: contain;
 }
 
-/* --- Search Bar (Modern Rectangle) --- */
+/* --- Search Bar --- */
 .modern-search__desktop-wrapper {
   flex: 1;
   max-width: 600px;
@@ -199,6 +195,22 @@ body.dark {
   color: var(--mod-text-light);
 }
 
+.modern-search__clear-btn {
+  background: transparent;
+  border: none;
+  color: var(--mod-text-light);
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modern-search__clear-btn:hover {
+  color: var(--mod-text);
+}
+
 .modern-search__btn {
   background: var(--mod-primary);
   color: white;
@@ -229,6 +241,23 @@ body.dark {
   z-index: 1000;
 }
 
+/* 🌟 CATEGORY/BRAND HEADINGS (NEW) 🌟 */
+.modern-suggest__group-title {
+  padding: 8px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--mod-text-light);
+  background: var(--mod-bg-hover);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-bottom: 1px solid var(--mod-border);
+  border-top: 1px solid var(--mod-border);
+}
+
+.modern-suggest__group-title:first-child {
+  border-top: none;
+}
+
 .modern-suggest__loading,
 .modern-suggest__empty {
   padding: 24px;
@@ -240,7 +269,7 @@ body.dark {
 .modern-suggest__list {
   list-style: none;
   margin: 0;
-  padding: 8px 0;
+  padding: 0 0 8px 0; /* Adjusted padding to accommodate titles */
   max-height: 400px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch; 
@@ -275,6 +304,10 @@ body.dark {
 
 .modern-suggest__thumb--ph {
   background: var(--mod-bg-hover);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 }
 
 .modern-suggest__meta {
@@ -372,13 +405,11 @@ body.dark .modern-suggest__more:hover {
   font-weight: 600;
 }
 
-/* Theme Button */
 .modern-theme-btn {
   padding: 8px;
   border-radius: 50%;
 }
 
-/* Modern Cart Button */
 .modern-cart-btn {
   position: relative;
   background: var(--mod-secondary);
@@ -441,7 +472,6 @@ body.dark .modern-suggest__more:hover {
   display: flex;
 }
 
-/* Tablet and Mobile Styles */
 @media (max-width: 900px) {
   .mobile-hide {
     display: none;
@@ -534,6 +564,7 @@ body.dark .modern-suggest__more:hover {
   .modern-search--mobile .modern-suggest__thumb {
     width: 36px;
     height: 36px;
+    font-size: 14px;
   }
 
   .modern-search--mobile .modern-suggest__name {
@@ -549,9 +580,7 @@ body.dark .modern-suggest__more:hover {
   }
 }
 
-/* Small mobile devices */
 @media (max-width: 480px) {
-  /* Banner specific tweaks for mobile */
   .modern-top-banner__inner {
     padding: 8px 10px;
     gap: 6px;
@@ -635,10 +664,123 @@ body.dark .modern-suggest__more:hover {
   }
 }
 
-/* ✅ FORCE FULL WIDTH FOR OLD/OTHER HEADER CONTAINER CLASS */
 .bk-header-container {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
   padding: 10px 20px !important;
+}/* 🌟 MEESHO STYLE RECENT & POPULAR SEARCHES (REAL) 🌟 */
+.modern-suggest__empty-state {
+  padding: 16px 20px;
+}
+
+.modern-suggest__section {
+  margin-bottom: 24px;
+}
+
+.modern-suggest__section:last-child {
+  margin-bottom: 8px;
+}
+
+.modern-suggest__section-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--mod-text);
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+/* Recent Searches List */
+.modern-suggest__recent-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.modern-suggest__recent-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  color: var(--mod-text-light);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  border-bottom: 1px solid rgba(0,0,0,0.03);
+}
+
+.modern-suggest__recent-item:last-child {
+  border-bottom: none;
+}
+
+.modern-suggest__recent-item:hover {
+  color: var(--mod-primary);
+}
+
+.modern-suggest__history-icon {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  opacity: 0.7;
+}
+
+/* Popular Searches Pills */
+.modern-suggest__popular-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.modern-suggest__popular-pill {
+  background: transparent;
+  border: 1px solid var(--mod-border);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--mod-text-light);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.modern-suggest__popular-pill:hover {
+  border-color: var(--mod-primary);
+  color: var(--mod-primary);
+  background: rgba(255, 82, 82, 0.05); /* Very light primary background */
+}
+
+/* Clear icon tweaks for input focus */
+.modern-search:focus-within .modern-search__clear-btn {
+  display: flex;
+}/* 🌟 MOBILE CLOSE BUTTON STYLES 🌟 */
+.modern-search__close-mob {
+  display: none; /* Desktop par hidden */
+  background: transparent;
+  border: none;
+  color: var(--mod-text-light);
+  font-size: 18px;
+  padding: 0 10px;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 900px) {
+  /* Jab mobile par search input focus ho ya suggestions open hon */
+  .modern-search.is-mobile.is-suggestions-open .modern-search__close-mob {
+    display: flex;
+    color: var(--mod-primary); /* Focus hone par highlight color */
+  }
+
+  .modern-search--mobile .modern-search__wrapper {
+    position: relative;
+    z-index: 1001; /* Suggestions ke upar dikhne ke liye */
+  }
+
+  /* Clear button ko mobile par hide rakhenge agar X button dikh raha hai */
+  .modern-search.is-mobile.is-suggestions-open .modern-search__clear-btn {
+    display: none;
+  }
 }
