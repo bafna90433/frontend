@@ -38,6 +38,43 @@ const getThumb = (p: Suggestion): string | null => {
   return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
+// 🌟 HELPER FUNCTION: Text Highlighting logic
+const getHighlightedText = (text: string, highlight: string) => {
+  if (!highlight.trim()) return text;
+  const parts = text.split(new RegExp(`(${highlight})`, "gi"));
+  return (
+    <span>
+      {parts.map((part, i) => (
+        <span
+          key={i}
+          className={
+            part.toLowerCase() === highlight.toLowerCase()
+              ? "search-highlight-match"
+              : ""
+          }
+        >
+          {part}
+        </span>
+      ))}
+    </span>
+  );
+};
+
+// 🌟 SKELETON LOADER COMPONENT
+const SuggestionSkeleton = () => (
+  <div className="modern-suggest__skeleton">
+    {[1, 2, 3].map((i) => (
+      <div key={i} className="skeleton-item">
+        <div className="skeleton-thumb" />
+        <div className="skeleton-meta">
+          <div className="skeleton-line skeleton-line--title" />
+          <div className="skeleton-line skeleton-line--subtitle" />
+        </div>
+      </div>
+    ))}
+  </div>
+);
+
 const SearchForm = React.memo(React.forwardRef(function SearchForm(
   props: {
     mobile?: boolean;
@@ -56,13 +93,14 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
     popularSearches: { _id: string; name: string }[];
     handleQuickSearch: (term: string) => void;
     placeholderText: string;
+    clearRecentSearches: () => void;
   },
   ref: React.Ref<HTMLFormElement>
 ) {
   const {
     mobile, q, setQ, onSubmit, onKeyDown, openSug, setOpenSug,
     loadingSug, sug, activeIdx, setActiveIdx, navigate,
-    recentSearches, popularSearches, handleQuickSearch, placeholderText
+    recentSearches, popularSearches, handleQuickSearch, placeholderText, clearRecentSearches
   } = props;
 
   const isQueryEmpty = q.trim().length < 2;
@@ -88,7 +126,6 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
           aria-label="Search"
         />
         
-        {/* 🌟 CLOSE (X) ICON FOR MOBILE WHEN OPEN 🌟 */}
         {mobile && openSug && (
           <button 
             type="button" 
@@ -121,7 +158,10 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
             <div className="modern-suggest__empty-state">
               {recentSearches.length > 0 && (
                 <div className="modern-suggest__section">
-                  <div className="modern-suggest__section-title">Recent Searches</div>
+                  <div className="modern-suggest__section-header">
+                    <span className="modern-suggest__section-title">Recent Searches</span>
+                    <button type="button" className="modern-suggest__clear-all" onClick={clearRecentSearches}>Clear All</button>
+                  </div>
                   <ul className="modern-suggest__recent-list">
                     {recentSearches.map((term, i) => (
                       <li key={i} className="modern-suggest__recent-item" onClick={() => handleQuickSearch(term)}>
@@ -159,66 +199,68 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
             </div>
           ) : (
             <>
-              {loadingSug && (
-                <div className="modern-suggest__loading">
-                  <div className="modern-spinner"></div> Looking for toys...
-                </div>
-              )}
+              {loadingSug ? <SuggestionSkeleton /> : (
+                <>
+                  {!loadingSug && sug.length === 0 && (
+                    <div className="modern-suggest__empty">😕 No results found.</div>
+                  )}
 
-              {!loadingSug && sug.length === 0 && (
-                <div className="modern-suggest__empty">😕 No results found.</div>
-              )}
+                  {!loadingSug && sug.length > 0 && (
+                    <ul className="modern-suggest__list" role="listbox">
+                      {sug.map((p, idx) => {
+                        const isFirstOfType = idx === 0 || sug[idx - 1].type !== p.type;
+                        return (
+                          <React.Fragment key={`${p.type}-${p._id}`}>
+                            {isFirstOfType && (
+                              <div className="modern-suggest__group-title">
+                                {p.type === "category" ? "📁 Categories" : p.type === "brand" ? "🏷️ Brands" : "🧸 Products"}
+                              </div>
+                            )}
+                            <li
+                              className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
+                              onMouseEnter={() => setActiveIdx(idx)}
+                              onMouseDown={(e) => {
+                                e.preventDefault();
+                                setOpenSug(false);
+                                if (p.type === "category") navigate(`/category/${p._id}`);
+                                else if (p.type === "brand") navigate(`/brand/${p._id}`);
+                                else navigate(`/product/${p._id}`);
+                              }}
+                            >
+                              {p.type === "product" && getThumb(p) ? (
+                                <img src={getThumb(p)!} alt="" className="modern-suggest__thumb" loading="lazy" width={48} height={48} />
+                              ) : (
+                                <div className="modern-suggest__thumb modern-suggest__thumb--ph">
+                                  {p.type === "category" ? "📁" : p.type === "brand" ? "🏷️" : "🧸"}
+                                </div>
+                              )}
+                              <div className="modern-suggest__meta">
+                                <div className="modern-suggest__name">
+                                  {getHighlightedText(p.name, q)}
+                                </div>
+                                {p.sku && p.type === "product" && (
+                                  <div className="modern-suggest__sku">#{p.sku}</div>
+                                )}
+                              </div>
+                              {p.price && p.type === "product" ? <div className="modern-suggest__price">₹{p.price}</div> : null}
+                            </li>
+                          </React.Fragment>
+                        );
+                      })}
+                    </ul>
+                  )}
 
-              {!loadingSug && sug.length > 0 && (
-                <ul className="modern-suggest__list" role="listbox">
-                  {sug.map((p, idx) => {
-                    const isFirstOfType = idx === 0 || sug[idx - 1].type !== p.type;
-                    return (
-                      <React.Fragment key={`${p.type}-${p._id}`}>
-                        {isFirstOfType && (
-                          <div className="modern-suggest__group-title">
-                            {p.type === "category" ? "📁 Categories" : p.type === "brand" ? "🏷️ Brands" : "🧸 Products"}
-                          </div>
-                        )}
-                        <li
-                          className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
-                          onMouseEnter={() => setActiveIdx(idx)}
-                          onMouseDown={(e) => {
-                            e.preventDefault();
-                            setOpenSug(false);
-                            if (p.type === "category") navigate(`/category/${p._id}`);
-                            else if (p.type === "brand") navigate(`/brand/${p._id}`);
-                            else navigate(`/product/${p._id}`);
-                          }}
-                        >
-                          {p.type === "product" && getThumb(p) ? (
-                            <img src={getThumb(p)!} alt="" className="modern-suggest__thumb" loading="lazy" width={48} height={48} />
-                          ) : (
-                            <div className="modern-suggest__thumb modern-suggest__thumb--ph">
-                              {p.type === "category" ? "📁" : p.type === "brand" ? "🏷️" : "🧸"}
-                            </div>
-                          )}
-                          <div className="modern-suggest__meta">
-                            <div className="modern-suggest__name">{p.name}</div>
-                            {p.sku && p.type === "product" && <div className="modern-suggest__sku">#{p.sku}</div>}
-                          </div>
-                          {p.price && p.type === "product" ? <div className="modern-suggest__price">₹{p.price}</div> : null}
-                        </li>
-                      </React.Fragment>
-                    );
-                  })}
-                </ul>
-              )}
-
-              {sug.length > 0 && (
-                <button
-                  className="modern-suggest__more"
-                  type="button"
-                  onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => handleQuickSearch(q)}
-                >
-                  See all results
-                </button>
+                  {sug.length > 0 && (
+                    <button
+                      className="modern-suggest__more"
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleQuickSearch(q)}
+                    >
+                      See all results
+                    </button>
+                  )}
+                </>
               )}
             </>
           )}
@@ -271,7 +313,7 @@ const Header: React.FC = () => {
         setCharIdx(prev => prev + 1);
       } else if (isDeleting && charIdx > 0) {
         setPlaceholderText(currentFullWord.substring(0, charIdx - 1));
-        setCharIdx(prev => prev - 1);
+        setCharIdx(prev => prev + 1);
       } else if (!isDeleting && charIdx === currentFullWord.length) {
         setTimeout(() => setIsDeleting(true), 1500);
       } else if (isDeleting && charIdx === 0) {
@@ -288,6 +330,11 @@ const Header: React.FC = () => {
       const saved = localStorage.getItem("bafna_recent_searches");
       if (saved) setRecentSearches(JSON.parse(saved));
     } catch (error) { console.error(error); }
+  }, []);
+
+  const clearRecentSearches = useCallback(() => {
+    localStorage.removeItem("bafna_recent_searches");
+    setRecentSearches([]);
   }, []);
 
   useEffect(() => {
@@ -454,6 +501,7 @@ const Header: React.FC = () => {
               activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
               recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
               placeholderText={placeholderText}
+              clearRecentSearches={clearRecentSearches}
             />
           </div>
 
@@ -482,6 +530,7 @@ const Header: React.FC = () => {
           activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
           recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
           placeholderText={placeholderText}
+          clearRecentSearches={clearRecentSearches}
         />
       </div>
     </header>
