@@ -26,7 +26,7 @@ import FreeDeliveryModal from "./components/FreeDeliveryModal";
 import ComingSoon from "./components/ComingSoon";
 
 // --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
-const Home = React.lazy(() => import("./components/Home"));
+// Home page ko hata diya gaya hai kyunki direct Products dikhana hai
 const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
@@ -263,8 +263,10 @@ const AppInner: React.FC = () => {
       <LayoutWrapper>
         <Routes>
           {/* Public Routes */}
-          <Route path="/" element={<Home />} />
+          {/* ✅ Ye line Home ki jagah seedha Products pe le jayegi */}
+          <Route path="/" element={<Navigate to="/products" replace />} />
           <Route path="/products" element={<Products />} />
+          
           <Route path="/hot-deals" element={<HotDealsPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
           <Route path="/cart" element={<Cart />} />
@@ -333,7 +335,8 @@ const AppInner: React.FC = () => {
           />
 
           {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
+          {/* ✅ Agar koi galat link daale toh ab seedha products page aayega */}
+          <Route path="*" element={<Navigate to="/products" replace />} />
         </Routes>
       </LayoutWrapper>
     </Router>

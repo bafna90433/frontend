@@ -2,10 +2,11 @@ import React, { useEffect, useState, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
+import BannerSlider from "./BannerSlider";
 import "../styles/Products.css";
 import CategorySEO from "./CategorySEO";
 import FloatingCheckoutButton from "./FloatingCheckoutButton";
-import { Filter, X, ChevronRight, ChevronLeft } from "lucide-react";
+import { X, ChevronRight, ChevronLeft } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
 type BulkTier = { inner: number; qty: number; price: number };
@@ -29,6 +30,12 @@ type Category = {
   _id: string;
   name: string;
   image?: string;
+};
+
+type Banner = {
+  _id: string;
+  imageUrl: string;
+  link?: string;
 };
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -78,13 +85,13 @@ const Products: React.FC = () => {
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
+  
   const [loading, setLoading] = useState(true);
+  const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [sortBy, setSortBy] = useState<string>("default");
-  const [minPrice, setMinPrice] = useState<string>("");
-  const [maxPrice, setMaxPrice] = useState<string>("");
-  const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
   const ITEMS_PER_PAGE = 20;
@@ -100,8 +107,19 @@ const Products: React.FC = () => {
   useEffect(() => {
     api
       .get("/categories")
-      .then((res) => setCategories(res.data || []))
+      .then((res) => setCategories(res.data?.categories || res.data || []))
       .catch((err) => console.error("Failed to load categories", err));
+
+    api
+      .get("/banners")
+      .then((res) => {
+        const fetchedBanners = Array.isArray(res.data?.banners) 
+          ? res.data.banners 
+          : (Array.isArray(res.data) ? res.data : []);
+        setBanners(fetchedBanners);
+      })
+      .catch((err) => console.error("Failed to load banners", err))
+      .finally(() => setBannersLoading(false));
   }, []);
 
   useEffect(() => {
@@ -147,7 +165,7 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [categoryId, searchTerm, sortBy, minPrice, maxPrice]);
+  }, [categoryId, searchTerm, sortBy]);
 
   const displayed = useMemo(() => {
     let filtered = [...allProducts];
@@ -169,12 +187,6 @@ const Products: React.FC = () => {
       );
     }
 
-    const min = parseFloat(minPrice);
-    const max = parseFloat(maxPrice);
-
-    if (!isNaN(min)) filtered = filtered.filter((p) => (p.price || 0) >= min);
-    if (!isNaN(max)) filtered = filtered.filter((p) => (p.price || 0) <= max);
-
     if (sortBy === "price-low") {
       filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === "price-high") {
@@ -184,7 +196,7 @@ const Products: React.FC = () => {
     }
 
     return filtered;
-  }, [allProducts, categoryId, searchTerm, sortBy, minPrice, maxPrice]);
+  }, [allProducts, categoryId, searchTerm, sortBy]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
 
@@ -229,8 +241,6 @@ const Products: React.FC = () => {
   const seoUrl = `https://bafnatoys.com${location.pathname}${location.search}`;
 
   const handleClearFilters = () => {
-    setMinPrice("");
-    setMaxPrice("");
     setSortBy("default");
     navigate("/products");
   };
@@ -245,86 +255,18 @@ const Products: React.FC = () => {
         jsonLd={{}}
       />
 
-      <aside className={`fw-sidebar ${isMobileFilterOpen ? "open" : ""}`}>
-        <div className="sidebar-header mobile-only">
-          <h3>Filters</h3>
-          <button onClick={() => setIsMobileFilterOpen(false)}>
-            <X size={20} />
-          </button>
-        </div>
-
-        <div className="fw-sidebar-content">
-          {/* Removed Categories from Mobile View via 'desktop-only' */}
-          <div className="fw-sidebar-section desktop-only">
-            <h3 className="fw-sidebar-title">Categories</h3>
-            <ul className="fw-cat-list">
-              <li
-                className={!categoryId ? "active" : ""}
-                onClick={() => {
-                  navigate("/products");
-                  setIsMobileFilterOpen(false);
-                }}
-              >
-                All Products
-              </li>
-
-              {loading && categories.length === 0 ? (
-                Array.from({ length: 6 }).map((_, i) => (
-                  <li key={i}>
-                    <Skeleton variant="text" width="80%" />
-                  </li>
-                ))
-              ) : (
-                categories.map((cat) => (
-                  <li
-                    key={cat._id}
-                    className={categoryId === cat._id ? "active" : ""}
-                    onClick={() => {
-                      navigate(`/products?category=${cat._id}`);
-                      setIsMobileFilterOpen(false);
-                    }}
-                  >
-                    <span>{cat.name}</span>
-                  </li>
-                ))
-              )}
-            </ul>
-          </div>
-
-          <div className="fw-sidebar-section">
-            <h3 className="fw-sidebar-title">Price Range</h3>
-            <div className="fw-price-inputs">
-              <input
-                type="number"
-                placeholder="Min ₹"
-                value={minPrice}
-                onChange={(e) => setMinPrice(e.target.value)}
-              />
-              <span className="separator">-</span>
-              <input
-                type="number"
-                placeholder="Max ₹"
-                value={maxPrice}
-                onChange={(e) => setMaxPrice(e.target.value)}
-              />
-            </div>
-
-            {(minPrice || maxPrice) && (
-              <button
-                className="fw-clear-btn"
-                onClick={() => {
-                  setMinPrice("");
-                  setMaxPrice("");
-                }}
-              >
-                Clear Price
-              </button>
-            )}
-          </div>
-        </div>
-      </aside>
-
       <main className="fw-main-content">
+        {/* === BANNERS ONLY SHOW WHEN NO CATEGORY AND NO SEARCH IS ACTIVE === */}
+        {!categoryId && !searchTerm && (
+          bannersLoading ? (
+            <div style={{ width: "100%", padding: "10px 20px", margin: "0 auto", boxSizing: "border-box" }}>
+              <Skeleton variant="rectangular" width="100%" height="300px" sx={{ borderRadius: "24px" }} />
+            </div>
+          ) : (
+            banners.length > 0 && <BannerSlider banners={banners} />
+          )
+        )}
+
         <div className="fw-top-categories">
           <div className="category-scroll-container">
             <div className="category-track">
@@ -378,13 +320,6 @@ const Products: React.FC = () => {
           </div>
 
           <div className="fw-controls-row">
-            <button
-              className="fw-mobile-filter-btn mobile-only"
-              onClick={() => setIsMobileFilterOpen(true)}
-            >
-              <Filter size={16} /> Filters
-            </button>
-
             <div className="fw-sort-container">
               <span className="fw-sort-label desktop-only">Sort by:</span>
               <select
@@ -401,33 +336,16 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {(searchTerm || minPrice || maxPrice) && (
+        {searchTerm && (
           <div className="fw-active-filters">
-            {searchTerm && (
-              <span className="fw-tag">
-                Search: {searchTerm}
-                <X
-                  size={14}
-                  onClick={() => navigate(location.pathname)}
-                  style={{ cursor: "pointer" }}
-                />
-              </span>
-            )}
-
-            {(minPrice || maxPrice) && (
-              <span className="fw-tag">
-                Price: ₹{minPrice || "0"} - ₹{maxPrice || "Any"}
-                <X
-                  size={14}
-                  onClick={() => {
-                    setMinPrice("");
-                    setMaxPrice("");
-                  }}
-                  style={{ cursor: "pointer" }}
-                />
-              </span>
-            )}
-
+            <span className="fw-tag">
+              Search: {searchTerm}
+              <X
+                size={14}
+                onClick={() => navigate(location.pathname)}
+                style={{ cursor: "pointer" }}
+              />
+            </span>
             <span className="fw-clear-all" onClick={handleClearFilters}>
               Clear All
             </span>
@@ -452,7 +370,7 @@ const Products: React.FC = () => {
         ) : displayed.length === 0 ? (
           <div className="fw-empty-state">
             <h2>No products found</h2>
-            <p>Try adjusting your price range or selecting a different category.</p>
+            <p>Try adjusting your search or selecting a different category.</p>
             <button onClick={handleClearFilters} className="fw-action-btn">
               View All Products
             </button>
@@ -500,10 +418,6 @@ const Products: React.FC = () => {
           </>
         )}
       </main>
-
-      {isMobileFilterOpen && (
-        <div className="fw-overlay" onClick={() => setIsMobileFilterOpen(false)}></div>
-      )}
 
       <FloatingCheckoutButton />
     </div>
