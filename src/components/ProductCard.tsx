@@ -1,3 +1,4 @@
+// src/components/ProductCard.tsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
@@ -111,6 +112,7 @@ const getOptimizedImageUrl = (
   }
 };
 
+// ✅ PERFORMANCE: Wrapped entire component in React.memo to stop useless re-renders
 const ProductCard: React.FC<ProductCardProps> = React.memo(({
   product,
   deal,
@@ -149,6 +151,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
     return price;
   }, [product.price, deal]);
 
+  // ✅ PERFORMANCE: Cached click handlers
   const handleAdd = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
     setCartItemQuantity(product, minQty);
@@ -206,6 +209,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
 
     setTimeLeft(calculate());
     
+    // ✅ PERFORMANCE: Timer cleanup
     const timer = window.setInterval(() => {
       const t = calculate();
       setTimeLeft(t);
@@ -261,11 +265,10 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
             />
           </div>
 
-          {/* ✅ New Circular MRP Badge (Top-Left) */}
+          {/* ✅ MRP yahan Image ke upar Right Corner me add kiya gaya hai */}
           {product.mrp && product.mrp > finalPrice && (
-            <div className="pc-mrp-circle">
-              <span className="pc-mrp-text">MRP</span>
-              <span className="pc-mrp-price">₹{product.mrp.toLocaleString()}</span>
+            <div className="pc-mrp">
+              MRP ₹{product.mrp.toLocaleString()}
             </div>
           )}
 
@@ -329,6 +332,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
             <div className="pc-current-price">
               <span className="pc-currency">₹</span>
               <span className="pc-amount">{finalPrice.toLocaleString()}</span>
+              {/* ✅ MRP yahan se hata diya gaya hai */}
             </div>
           </div>
 

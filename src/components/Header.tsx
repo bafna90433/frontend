@@ -1,4 +1,3 @@
-// src/components/Header.tsx
 import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import api, { API_ROOT, MEDIA_URL } from "../utils/api";
@@ -17,11 +16,7 @@ type Suggestion = {
   price?: number;
 };
 
-const IMAGE_BASE =
-  (import.meta as any).env?.VITE_IMAGE_BASE_URL ||
-  (import.meta as any).env?.VITE_MEDIA_URL ||
-  MEDIA_URL ||
-  "";
+const IMAGE_BASE = (import.meta as any).env?.VITE_IMAGE_BASE_URL || (import.meta as any).env?.VITE_MEDIA_URL || MEDIA_URL || "";
 
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
@@ -38,21 +33,13 @@ const getThumb = (p: Suggestion): string | null => {
   return `${API_ROOT.replace(/\/+$/, "")}/uploads/${encodeURIComponent(f)}`;
 };
 
-// 🌟 HELPER FUNCTION: Text Highlighting logic
 const getHighlightedText = (text: string, highlight: string) => {
   if (!highlight.trim()) return text;
   const parts = text.split(new RegExp(`(${highlight})`, "gi"));
   return (
     <span>
       {parts.map((part, i) => (
-        <span
-          key={i}
-          className={
-            part.toLowerCase() === highlight.toLowerCase()
-              ? "search-highlight-match"
-              : ""
-          }
-        >
+        <span key={i} className={part.toLowerCase() === highlight.toLowerCase() ? "search-highlight-match" : ""}>
           {part}
         </span>
       ))}
@@ -60,7 +47,6 @@ const getHighlightedText = (text: string, highlight: string) => {
   );
 };
 
-// 🌟 SKELETON LOADER COMPONENT
 const SuggestionSkeleton = () => (
   <div className="modern-suggest__skeleton">
     {[1, 2, 3].map((i) => (
@@ -127,25 +113,11 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
         />
         
         {mobile && openSug && (
-          <button 
-            type="button" 
-            className="modern-search__close-mob"
-            onClick={() => setOpenSug(false)}
-            aria-label="Close search"
-          >
-            ✕
-          </button>
+          <button type="button" className="modern-search__close-mob" onClick={() => setOpenSug(false)} aria-label="Close search">✕</button>
         )}
 
         {q.length > 0 && !mobile && (
-          <button
-            type="button"
-            onClick={() => { setQ(""); setOpenSug(true); }}
-            className="modern-search__clear-btn"
-            aria-label="Clear search"
-          >
-            ✕
-          </button>
+          <button type="button" onClick={() => { setQ(""); setOpenSug(true); }} className="modern-search__clear-btn" aria-label="Clear search">✕</button>
         )}
         <button className="modern-search__btn" type="submit" aria-label="Search">
           {mobile ? "Go" : "Search"}
@@ -165,104 +137,67 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                   <ul className="modern-suggest__recent-list">
                     {recentSearches.map((term, i) => (
                       <li key={i} className="modern-suggest__recent-item" onClick={() => handleQuickSearch(term)}>
-                        <svg className="modern-suggest__history-icon" viewBox="0 0 24 24">
-                          <path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z"/>
-                        </svg>
+                        <svg className="modern-suggest__history-icon" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z"/></svg>
                         {term}
                       </li>
                     ))}
                   </ul>
                 </div>
               )}
-
               {popularSearches.length > 0 && (
                 <div className="modern-suggest__section">
                   <div className="modern-suggest__section-title">Popular Searches</div>
                   <div className="modern-suggest__popular-tags">
                     {popularSearches.map((cat) => (
-                      <button 
-                        type="button" 
-                        key={cat._id} 
-                        className="modern-suggest__popular-pill" 
-                        onClick={() => {
-                          setOpenSug(false);
-                          setQ("");
-                          navigate(`/products?category=${cat._id}`);
-                        }}
-                      >
-                        {cat.name}
-                      </button>
+                      <button type="button" key={cat._id} className="modern-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/products?category=${cat._id}`); }}>{cat.name}</button>
                     ))}
                   </div>
                 </div>
               )}
             </div>
           ) : (
-            <>
-              {loadingSug ? <SuggestionSkeleton /> : (
-                <>
-                  {!loadingSug && sug.length === 0 && (
-                    <div className="modern-suggest__empty">😕 No results found.</div>
-                  )}
-
-                  {!loadingSug && sug.length > 0 && (
-                    <ul className="modern-suggest__list" role="listbox">
-                      {sug.map((p, idx) => {
-                        const isFirstOfType = idx === 0 || sug[idx - 1].type !== p.type;
-                        return (
-                          <React.Fragment key={`${p.type}-${p._id}`}>
-                            {isFirstOfType && (
-                              <div className="modern-suggest__group-title">
-                                {p.type === "category" ? "📁 Categories" : p.type === "brand" ? "🏷️ Brands" : "🧸 Products"}
+            <>{loadingSug ? <SuggestionSkeleton /> : (
+              <>{!loadingSug && sug.length === 0 && <div className="modern-suggest__empty">😕 No results found.</div>}
+                {!loadingSug && sug.length > 0 && (
+                  <ul className="modern-suggest__list" role="listbox">
+                    {sug.map((p, idx) => {
+                      const isFirstOfType = idx === 0 || sug[idx - 1].type !== p.type;
+                      return (
+                        <React.Fragment key={`${p.type}-${p._id}`}>
+                          {isFirstOfType && (
+                            <div className="modern-suggest__group-title">
+                              {p.type === "category" ? "📁 Categories" : p.type === "brand" ? "🏷️ Brands" : "🧸 Products"}
+                            </div>
+                          )}
+                          <li className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`} onMouseEnter={() => setActiveIdx(idx)}
+                            onMouseDown={(e) => {
+                              e.preventDefault();
+                              setOpenSug(false);
+                              if (p.type === "category") navigate(`/category/${p._id}`);
+                              else if (p.type === "brand") navigate(`/brand/${p._id}`);
+                              else navigate(`/product/${p._id}`);
+                            }}>
+                            {p.type === "product" && getThumb(p) ? (
+                              <img src={getThumb(p)!} alt="" className="modern-suggest__thumb" loading="lazy" width={48} height={48} />
+                            ) : (
+                              <div className="modern-suggest__thumb modern-suggest__thumb--ph">
+                                {p.type === "category" ? "📁" : p.type === "brand" ? "🏷️" : "🧸"}
                               </div>
                             )}
-                            <li
-                              className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`}
-                              onMouseEnter={() => setActiveIdx(idx)}
-                              onMouseDown={(e) => {
-                                e.preventDefault();
-                                setOpenSug(false);
-                                if (p.type === "category") navigate(`/category/${p._id}`);
-                                else if (p.type === "brand") navigate(`/brand/${p._id}`);
-                                else navigate(`/product/${p._id}`);
-                              }}
-                            >
-                              {p.type === "product" && getThumb(p) ? (
-                                <img src={getThumb(p)!} alt="" className="modern-suggest__thumb" loading="lazy" width={48} height={48} />
-                              ) : (
-                                <div className="modern-suggest__thumb modern-suggest__thumb--ph">
-                                  {p.type === "category" ? "📁" : p.type === "brand" ? "🏷️" : "🧸"}
-                                </div>
-                              )}
-                              <div className="modern-suggest__meta">
-                                <div className="modern-suggest__name">
-                                  {getHighlightedText(p.name, q)}
-                                </div>
-                                {p.sku && p.type === "product" && (
-                                  <div className="modern-suggest__sku">#{p.sku}</div>
-                                )}
-                              </div>
-                              {p.price && p.type === "product" ? <div className="modern-suggest__price">₹{p.price}</div> : null}
-                            </li>
-                          </React.Fragment>
-                        );
-                      })}
-                    </ul>
-                  )}
-
-                  {sug.length > 0 && (
-                    <button
-                      className="modern-suggest__more"
-                      type="button"
-                      onMouseDown={(e) => e.preventDefault()}
-                      onClick={() => handleQuickSearch(q)}
-                    >
-                      See all results
-                    </button>
-                  )}
-                </>
-              )}
-            </>
+                            <div className="modern-suggest__meta">
+                              <div className="modern-suggest__name">{getHighlightedText(p.name, q)}</div>
+                              {p.sku && p.type === "product" && <div className="modern-suggest__sku">#{p.sku}</div>}
+                            </div>
+                            {p.price && p.type === "product" ? <div className="modern-suggest__price">₹{p.price}</div> : null}
+                          </li>
+                        </React.Fragment>
+                      );
+                    })}
+                  </ul>
+                )}
+                {sug.length > 0 && <button className="modern-suggest__more" type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleQuickSearch(q)}>See all results</button>}
+              </>
+            )}</>
           )}
         </div>
       )}
@@ -292,18 +227,13 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  // Animation States
   const [placeholderText, setPlaceholderText] = useState("");
   const [currentWordIdx, setCurrentWordIdx] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIdx, setCharIdx] = useState(0);
 
-  // Typewriter Effect
   useEffect(() => {
-    const words = popularSearches.length > 0 
-      ? popularSearches.map(cat => `Try "${cat.name}"...`) 
-      : ["Try Saree...", "Try Kurti...", "Search toys..."];
-
+    const words = popularSearches.length > 0 ? popularSearches.map(cat => `Try "${cat.name}"...`) : ["Search toys...", "Try Soft Toys...", "Try RC Cars..."];
     const currentFullWord = words[currentWordIdx % words.length];
     const typingSpeed = isDeleting ? 50 : 100;
 
@@ -313,7 +243,7 @@ const Header: React.FC = () => {
         setCharIdx(prev => prev + 1);
       } else if (isDeleting && charIdx > 0) {
         setPlaceholderText(currentFullWord.substring(0, charIdx - 1));
-        setCharIdx(prev => prev + 1);
+        setCharIdx(prev => prev - 1);
       } else if (!isDeleting && charIdx === currentFullWord.length) {
         setTimeout(() => setIsDeleting(true), 1500);
       } else if (isDeleting && charIdx === 0) {
