@@ -30,6 +30,7 @@ type Category = {
   _id: string;
   name: string;
   image?: string;
+  link?: string; // 👇 Naya: Link field add kiya
 };
 
 type Banner = {
@@ -222,18 +223,20 @@ const Products: React.FC = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const categoryName =
-    typeof displayed[0]?.category === "object"
-      ? displayed[0]?.category?.name
-      : typeof displayed[0]?.category === "string"
-      ? displayed[0]?.category
-      : "";
+  const categoryName = categoryId
+    ? categories.find((c) => c._id === categoryId)?.name ||
+      (typeof displayed[0]?.category === "object"
+        ? displayed[0]?.category?.name
+        : typeof displayed[0]?.category === "string"
+        ? displayed[0]?.category
+        : "")
+    : "";
 
   const seoTitle = categoryName
-    ? `Wholesale ${categoryName} Supplier | Bafna Toys`
+    ? `Wholesale ${categoryName} Supplier | Bafna Toy`
     : searchTerm
     ? `Search results for "${searchTerm}"`
-    : "Shop Wholesale Toys | Bafna Toys";
+    : "Shop Wholesale Toys | Bafna Toy";
 
   const seoDescription =
     "Buy bulk toys including dolls, friction cars, pullback series & more at wholesale prices.";
@@ -243,6 +246,22 @@ const Products: React.FC = () => {
   const handleClearFilters = () => {
     setSortBy("default");
     navigate("/products");
+  };
+
+  // 👇 Naya Function: Category Click Handle Karne Ke Liye
+  const handleCategoryClick = (cat: Category) => {
+    if (cat.link && cat.link.trim() !== "") {
+      // Agar external link hai (http/https se start ho raha hai)
+      if (cat.link.startsWith("http")) {
+        window.open(cat.link, "_blank"); // New tab me open karega
+      } else {
+        // Agar internal page hai (jaise /deals)
+        navigate(cat.link);
+      }
+    } else {
+      // Default behavior (Products filter by category)
+      navigate(`/products?category=${cat._id}`);
+    }
   };
 
   return (
@@ -256,6 +275,17 @@ const Products: React.FC = () => {
       />
 
       <main className="fw-main-content">
+        
+        {/* ================= INSTAGRAM BANNER ================= */}
+        <a 
+          href="https://www.instagram.com/bafna_toys" 
+          target="_blank" 
+          rel="noopener noreferrer" 
+          className="fw-insta-banner"
+        >
+          <span>📸 Follow us on Instagram for latest updates! @bafna_toys</span>
+        </a>
+
         {/* === BANNERS ONLY SHOW WHEN NO CATEGORY AND NO SEARCH IS ACTIVE === */}
         {!categoryId && !searchTerm && (
           bannersLoading ? (
@@ -267,6 +297,7 @@ const Products: React.FC = () => {
           )
         )}
 
+        {/* ================= TOP CATEGORIES ================= */}
         <div className="fw-top-categories">
           <div className="category-scroll-container">
             <div className="category-track">
@@ -288,7 +319,7 @@ const Products: React.FC = () => {
                   <div
                     key={cat._id}
                     className={`category-item ${isActive ? "active" : ""}`}
-                    onClick={() => navigate(`/products?category=${cat._id}`)}
+                    onClick={() => handleCategoryClick(cat)} // 👇 Yahan handleCategoryClick lagaya
                   >
                     <div className="category-circle-wrapper">
                       <img
@@ -307,6 +338,16 @@ const Products: React.FC = () => {
           </div>
         </div>
 
+        {/* ================= CUSTOM PROMO BANNER ================= */}
+        <div className="fw-custom-promo-banner">
+          <img 
+            src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1773037636/h_egxjso.webp" 
+            alt="Bafna Toy Banner" 
+            loading="lazy" 
+          />
+        </div>
+
+        {/* ================= TOP BAR ================= */}
         <div className="fw-top-bar">
           <div className="fw-top-bar-main">
             <button className="fw-back-btn" onClick={() => navigate(-1)}>
@@ -314,7 +355,7 @@ const Products: React.FC = () => {
             </button>
 
             <h1 className="fw-page-title">
-              {searchTerm ? `Search: "${searchTerm}"` : categoryName || "All Products"}
+              {searchTerm ? `Search: "${searchTerm}"` : categoryName || "ALL TOYS"}
               {!loading && <span className="fw-item-count">({displayed.length})</span>}
             </h1>
           </div>

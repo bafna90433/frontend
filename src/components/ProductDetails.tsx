@@ -272,9 +272,7 @@ const ProductDetails: React.FC = () => {
       />
 
       <div className="pd-container">
-        <div
-          className="pd-gallery"
-        >
+        <div className="pd-gallery">
           <div
             className="pd-main-image-frame"
             ref={imageContainerRef}
@@ -299,6 +297,14 @@ const ProductDetails: React.FC = () => {
               width="600"
               height="600"
             />
+
+            {/* ✅ NEW CIRCULAR MRP BADGE ADDED HERE */}
+            {product.mrp && product.mrp > unitPrice && (
+              <div className="pd-mrp-circle">
+                <span className="pd-mrp-text">MRP</span>
+                <span className="pd-mrp-price">₹{product.mrp.toLocaleString()}</span>
+              </div>
+            )}
 
             {product.images && product.images.length > 1 && (
               <div className="pd-swipe-dots">
@@ -415,9 +421,6 @@ const ProductDetails: React.FC = () => {
           <div className="pd-price-block">
             <div className="pd-prices">
               <span className="pd-current-price">₹{unitPrice.toFixed(0)}</span>
-              {product.mrp && product.mrp > unitPrice && (
-                <span className="pd-mrp">MRP ₹{product.mrp.toLocaleString()}</span>
-              )}
             </div>
 
             {hasDiscount && (

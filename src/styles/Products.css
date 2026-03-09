@@ -170,9 +170,32 @@
 .fw-main-content {
   flex-grow: 1;
   min-width: 0;
-  padding: 24px 32px 100px;
+  padding: 12px 32px 100px;
   display: flex;
   flex-direction: column;
+}
+
+/* --- Instagram Banner --- */
+.fw-insta-banner {
+  display: block;
+  width: 100%;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: white;
+  text-align: center;
+  padding: 8px 20px; 
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  border-radius: 12px;
+  margin-bottom: 12px; 
+  box-shadow: var(--fw-shadow-sm);
+  transition: var(--fw-transition);
+}
+
+.fw-insta-banner:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--fw-shadow-md);
+  color: white;
 }
 
 /* Circular Categories */
@@ -186,12 +209,11 @@
   width: 100%;
   overflow-x: auto;
   white-space: nowrap; 
-  scrollbar-width: thin; /* Firefox */
-  scrollbar-color: var(--fw-primary) #f1f5f9; /* Firefox */
-  padding: 10px 0 16px 0; /* Extra bottom padding for scrollbar space */
+  scrollbar-width: thin;
+  scrollbar-color: var(--fw-primary) #f1f5f9;
+  padding: 10px 0 16px 0;
 }
 
-/* Sleek Scrollbar for Chrome/Safari */
 .category-scroll-container::-webkit-scrollbar { 
   height: 6px; 
 }
@@ -207,7 +229,7 @@
 }
 
 .category-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: #e01b62; /* Slightly darker pink on hover */
+  background: #e01b62; 
 }
 
 .category-track { 
@@ -278,6 +300,26 @@
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-transform: uppercase;
+}
+
+/* =========================================
+   CUSTOM PROMO BANNER (BELOW CATEGORIES)
+========================================= */
+.fw-custom-promo-banner {
+  width: 100%;
+  margin-bottom: 24px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: var(--fw-shadow-sm);
+  display: flex;
+}
+
+.fw-custom-promo-banner img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1500 / 200;
+  object-fit: cover;
+  display: block;
 }
 
 /* Desktop Top Bar */
@@ -558,6 +600,20 @@
     padding: 4px 6px 70px !important;
     background: #ffffff;
     width: 100%;
+  }
+
+  /* Instagram Banner mobile fix */
+  .fw-insta-banner {
+    border-radius: 8px;
+    font-size: 13px;
+    padding: 8px; 
+    margin: 4px 0 10px 0;
+  }
+
+  /* Custom Promo Banner mobile adjustment */
+  .fw-custom-promo-banner {
+    border-radius: 8px;
+    margin-bottom: 12px;
   }
   
   .fw-sidebar { 

@@ -82,7 +82,8 @@ body {
   border-radius: var(--pd-radius-lg);
   border: 1px solid var(--pd-border);
   box-shadow: var(--pd-shadow-soft);
-  overflow: hidden;
+  /* ✅ overflow visible taaki badge kate nahi */
+  overflow: visible;
 
   /* ✅ smaller visual */
   width: 100%;
@@ -90,10 +91,43 @@ body {
   aspect-ratio: 1 / 1;
 }
 
+/* ✅ NEW CIRCULAR MRP BADGE (TOP-LEFT) FOR DETAILS PAGE */
+.pd-mrp-circle {
+  position: absolute;
+  top: -12px;
+  left: -12px;
+  z-index: 15;
+  width: 60px; /* Details page ke liye slightly bada */
+  height: 60px;
+  background: #000000;
+  color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  font-family: var(--pd-font);
+}
+
+.pd-mrp-text {
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.pd-mrp-price {
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .pd-skeleton-loader {
   position: absolute;
   inset: 0;
   background: linear-gradient(90deg, #f1f5f9 0%, #f8fafc 40%, #f1f5f9 80%);
+  border-radius: var(--pd-radius-lg);
   animation: shimmer 1.15s infinite linear;
 }
 @keyframes shimmer {
@@ -108,12 +142,13 @@ body {
   padding: 26px; /* ✅ image looks smaller & centered */
   opacity: 0;
   transition: opacity 0.25s ease;
+  border-radius: var(--pd-radius-lg);
 }
 .pd-main-image.loaded { opacity: 1; }
 
 .pd-image-badge {
   position: absolute;
-  top: 14px;
+  bottom: 14px;
   right: 14px;
   background: rgba(255, 90, 107, 0.95);
   color: white;
@@ -299,13 +334,6 @@ body {
   letter-spacing: -0.3px;
 }
 
-.pd-mrp {
-  font-size: 16px;
-  text-decoration: line-through;
-  color: var(--pd-muted);
-  font-weight: 800;
-}
-
 .pd-savings-bubble {
   display: inline-flex;
   align-items: center;
@@ -483,6 +511,17 @@ body {
   .pd-main-image-frame {
     max-width: 100%;
   }
+
+  /* ✅ Mobile me badge thoda chhota hoga */
+  .pd-mrp-circle { 
+    width: 45px; 
+    height: 45px; 
+    top: -8px; 
+    left: -8px; 
+  }
+  .pd-mrp-text { font-size: 9px; }
+  .pd-mrp-price { font-size: 12px; }
+
   .pd-title { font-size: 22px; }
 
   .pd-actions-area {
