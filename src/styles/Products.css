@@ -470,11 +470,11 @@
   color: white;
 }
 
-/* Products Grid */
+/* Products Grid - UPDATED TO 6 COLUMNS */
 .fw-products-grid { 
   display: grid;
   gap: 20px;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   width: 100%;
   align-content: start;
 }
@@ -584,12 +584,13 @@
 .mobile-only { display: none !important; }
 .desktop-only { display: block; }
 
+/* Adjusted Responsive Breakpoints */
 @media (max-width: 1400px) { 
-  .fw-products-grid { grid-template-columns: repeat(4, 1fr); } 
+  .fw-products-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } 
 }
 
 @media (max-width: 1100px) { 
-  .fw-products-grid { grid-template-columns: repeat(3, 1fr); } 
+  .fw-products-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } 
 }
 
 @media (max-width: 992px) {

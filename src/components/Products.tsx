@@ -30,13 +30,21 @@ type Category = {
   _id: string;
   name: string;
   image?: string;
-  link?: string; // 👇 Naya: Link field add kiya
+  link?: string;
 };
 
 type Banner = {
   _id: string;
   imageUrl: string;
   link?: string;
+};
+
+// 👇 NAYA: Deal Type add kiya
+type HotDeal = {
+  productId: string;
+  discountType: "PERCENT" | "FLAT" | "NONE";
+  discountValue: number;
+  endsAt: string | null;
 };
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -88,6 +96,9 @@ const Products: React.FC = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   
+  // 👇 NAYA: Active deals store karne ke liye state
+  const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
+  
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +106,7 @@ const Products: React.FC = () => {
   const [sortBy, setSortBy] = useState<string>("default");
 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 20;
+  const ITEMS_PER_PAGE = 24; // Updated to 24 items per page for a perfect 6x4 grid
 
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
@@ -121,6 +132,21 @@ const Products: React.FC = () => {
       })
       .catch((err) => console.error("Failed to load banners", err))
       .finally(() => setBannersLoading(false));
+
+    // 👇 NAYA: Home config se active deals fetch karein
+    api
+      .get("/home-config")
+      .then((res) => {
+        const items = res.data?.hotDealsItemsResolved || res.data?.hotDealsItems || [];
+        const mappedDeals = items.map((it: any) => ({
+          productId: it.productId || it.product?._id,
+          discountType: it.discountType || "NONE",
+          discountValue: Number(it.discountValue || 0),
+          endsAt: it.endsAt || null,
+        }));
+        setActiveDeals(mappedDeals);
+      })
+      .catch((err) => console.error("Failed to load deals", err));
   }, []);
 
   useEffect(() => {
@@ -188,6 +214,22 @@ const Products: React.FC = () => {
       );
     }
 
+    // 👇 NAYA: Active deals ko products ke upar map/apply karein
+    if (activeDeals.length > 0) {
+      filtered = filtered.map((p) => {
+        const deal = activeDeals.find((d) => d.productId === p._id);
+        if (deal) {
+          return {
+            ...p,
+            hotDealType: deal.discountType,
+            hotDealValue: deal.discountValue,
+            sale_end_time: deal.endsAt || undefined,
+          };
+        }
+        return p;
+      });
+    }
+
     if (sortBy === "price-low") {
       filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === "price-high") {
@@ -197,7 +239,7 @@ const Products: React.FC = () => {
     }
 
     return filtered;
-  }, [allProducts, categoryId, searchTerm, sortBy]);
+  }, [allProducts, categoryId, searchTerm, sortBy, activeDeals]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
 
@@ -248,18 +290,14 @@ const Products: React.FC = () => {
     navigate("/products");
   };
 
-  // 👇 Naya Function: Category Click Handle Karne Ke Liye
   const handleCategoryClick = (cat: Category) => {
     if (cat.link && cat.link.trim() !== "") {
-      // Agar external link hai (http/https se start ho raha hai)
       if (cat.link.startsWith("http")) {
-        window.open(cat.link, "_blank"); // New tab me open karega
+        window.location.href = cat.link;
       } else {
-        // Agar internal page hai (jaise /deals)
         navigate(cat.link);
       }
     } else {
-      // Default behavior (Products filter by category)
       navigate(`/products?category=${cat._id}`);
     }
   };
@@ -275,7 +313,7 @@ const Products: React.FC = () => {
       />
 
       <main className="fw-main-content">
-        
+
         {/* ================= INSTAGRAM BANNER ================= */}
         <a 
           href="https://www.instagram.com/bafna_toys" 
@@ -319,7 +357,7 @@ const Products: React.FC = () => {
                   <div
                     key={cat._id}
                     className={`category-item ${isActive ? "active" : ""}`}
-                    onClick={() => handleCategoryClick(cat)} // 👇 Yahan handleCategoryClick lagaya
+                    onClick={() => handleCategoryClick(cat)}
                   >
                     <div className="category-circle-wrapper">
                       <img
@@ -336,15 +374,6 @@ const Products: React.FC = () => {
               })}
             </div>
           </div>
-        </div>
-
-        {/* ================= CUSTOM PROMO BANNER ================= */}
-        <div className="fw-custom-promo-banner">
-          <img 
-            src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1773037636/h_egxjso.webp" 
-            alt="Bafna Toy Banner" 
-            loading="lazy" 
-          />
         </div>
 
         {/* ================= TOP BAR ================= */}
@@ -395,7 +424,7 @@ const Products: React.FC = () => {
 
         {loading ? (
           <div className="fw-products-grid">
-            {Array.from({ length: 10 }).map((_, i) => (
+            {Array.from({ length: 12 }).map((_, i) => (
               <div key={i} style={{ width: "100%", padding: 0 }}>
                 <Skeleton
                   variant="rectangular"

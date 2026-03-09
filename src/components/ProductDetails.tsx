@@ -52,6 +52,9 @@ interface Product {
   tagline?: string;
   packSize?: string;
   sale_end_time?: string;
+  // 👇 NAYA CODE: Deal properties add ki gayi hain
+  hotDealType?: "PERCENT" | "FLAT" | "NONE";
+  hotDealValue?: number;
 }
 
 const ProductDetails: React.FC = () => {
@@ -82,10 +85,51 @@ const ProductDetails: React.FC = () => {
 
     window.scrollTo(0, 0);
 
-    const fetchProduct = async () => {
+    const fetchData = async () => {
       try {
-        const res = await api.get(`/products/${id}`);
-        setProduct(res.data);
+        // 👇 NAYA CODE: Product aur Deals dono ko ek sath fetch kar rahe hain (Fast Loading ke liye)
+        const [productRes, configRes] = await Promise.all([
+          api.get(`/products/${id}`),
+          api.get("/home-config").catch(() => ({ data: {} })) // Agar config fail ho to crash na ho
+        ]);
+
+        let fetchedProduct = productRes.data;
+        const configData = configRes.data;
+
+        // Deals ko map karna
+        const items = configData?.hotDealsItemsResolved || configData?.hotDealsItems || [];
+        const activeDeals = items.map((it: any) => ({
+          productId: it.productId || it.product?._id,
+          discountType: it.discountType || "NONE",
+          discountValue: Number(it.discountValue || 0),
+          endsAt: it.endsAt || null,
+        }));
+
+        // 👇 NAYA CODE: Main product me deal lagana
+        const mainDeal = activeDeals.find((d: any) => d.productId === fetchedProduct._id);
+        if (mainDeal) {
+          fetchedProduct.hotDealType = mainDeal.discountType;
+          fetchedProduct.hotDealValue = mainDeal.discountValue;
+          fetchedProduct.sale_end_time = mainDeal.endsAt || fetchedProduct.sale_end_time;
+        }
+
+        // 👇 NAYA CODE: Related Products me bhi deals lagana
+        if (fetchedProduct.relatedProducts && fetchedProduct.relatedProducts.length > 0) {
+          fetchedProduct.relatedProducts = fetchedProduct.relatedProducts.map((rel: any) => {
+            const relDeal = activeDeals.find((d: any) => d.productId === rel._id);
+            if (relDeal) {
+              return {
+                ...rel,
+                hotDealType: relDeal.discountType,
+                hotDealValue: relDeal.discountValue,
+                sale_end_time: relDeal.endsAt || rel.sale_end_time,
+              };
+            }
+            return rel;
+          });
+        }
+
+        setProduct(fetchedProduct);
       } catch (err) {
         console.error("❌ Failed loading product", err);
         setError("Failed to load product. Please try again later.");
@@ -94,7 +138,7 @@ const ProductDetails: React.FC = () => {
       }
     };
 
-    fetchProduct();
+    fetchData();
   }, [id]);
 
   useEffect(() => {
@@ -205,9 +249,13 @@ const ProductDetails: React.FC = () => {
     const minQty = product.price < 60 ? 3 : 2;
     const unitPrice = product.price;
 
-    const hasDiscount = !!(product.mrp && product.mrp > unitPrice);
-    const discountPercent = hasDiscount
-      ? Math.round(((product.mrp! - unitPrice) / product.mrp!) * 100)
+    const hasDiscount = !!(product.mrp && product.mrp > unitPrice) || product.hotDealType !== "NONE";
+    
+    // 👇 NAYA CODE: Agar hot deal PERCENT mein hai, to wo value use karega, warna MRP se calculate karega
+    const discountPercent = product.hotDealType === "PERCENT" && product.hotDealValue
+      ? product.hotDealValue
+      : (product.mrp && product.mrp > unitPrice)
+      ? Math.round(((product.mrp - unitPrice) / product.mrp) * 100)
       : 0;
 
     const baseImage = product.images?.[selectedImage] || product.image || "";
@@ -298,7 +346,6 @@ const ProductDetails: React.FC = () => {
               height="600"
             />
 
-            {/* ✅ NEW CIRCULAR MRP BADGE ADDED HERE */}
             {product.mrp && product.mrp > unitPrice && (
               <div className="pd-mrp-circle">
                 <span className="pd-mrp-text">MRP</span>
@@ -317,9 +364,13 @@ const ProductDetails: React.FC = () => {
               </div>
             )}
 
+            {/* 👇 NAYA CODE: Deal badge with PERCENT or FLAT support */}
             {hasDiscount && (
               <div className="pd-image-badge">
-                <FaTag size={10} /> {discountPercent}% OFF
+                <FaTag size={10} /> 
+                {product.hotDealType === "FLAT" 
+                  ? `₹${product.hotDealValue} OFF` 
+                  : `${discountPercent}% OFF`}
               </div>
             )}
           </div>
@@ -423,9 +474,9 @@ const ProductDetails: React.FC = () => {
               <span className="pd-current-price">₹{unitPrice.toFixed(0)}</span>
             </div>
 
-            {hasDiscount && (
+            {hasDiscount && product.mrp && (
               <div className="pd-savings-bubble">
-                You Save ₹{(product.mrp! - unitPrice).toFixed(0)}
+                You Save ₹{(product.mrp - unitPrice).toFixed(0)}
               </div>
             )}
 
