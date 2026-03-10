@@ -6,9 +6,10 @@ const BackFooter: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ❌ Hide Back button on Home & all Account related pages
+  // ❌ Hide Back button on Home, Products & all Account related pages
   if (
     location.pathname === "/" ||
+    location.pathname === "/products" || // ✅ YE LINE ADD KI GAYI HAI
     location.pathname.startsWith("/my-account") ||
     location.pathname.startsWith("/edit-profile") ||
     location.pathname.startsWith("/orders") ||
