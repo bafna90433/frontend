@@ -421,9 +421,10 @@ const Products: React.FC = () => {
           
           {/* Left Text Section */}
           <div className="fw-b2b-left-content">
-            <h2 className="fw-b2b-heading">MANUFACTURER DIRECT</h2>
-            <h3 className="fw-b2b-subheading">B2B ORDERS ONLY</h3>
-            <p className="fw-b2b-desc">FOR TOY STORES, SUPERMARKETS & RETAILERS</p>
+            <h2 className="fw-b2b-heading">DIRECT FROM MANUFACTURER</h2>
+            <h3 className="fw-b2b-subheading">BULK B2B ORDERS ONLY</h3>
+            <p className="fw-b2b-desc">For Toy Stores, Supermarkets, Retail Stores & Resellers</p>
+            <p className="fw-b2b-delivery" style={{ marginTop: '10px', fontWeight: 'bold' }}>🚚 Free Door Delivery on Orders Above ₹5000</p>
           </div>
 
           {/* Right Gold Ribbon Section */}
@@ -438,7 +439,7 @@ const Products: React.FC = () => {
               </div>
             </div>
             
-            <div className="fw-ribbon-text-bottom">B2B ORDERS ONLY</div>
+            <div className="fw-ribbon-text-bottom">BULK B2B ORDERS ONLY</div>
           </div>
 
         </div>

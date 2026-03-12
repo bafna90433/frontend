@@ -263,6 +263,19 @@
   margin-top: 5px;
 }
 
+/* --- NEW: Free Delivery Text Styling --- */
+.fw-b2b-delivery {
+  color: #fbe49c; /* Brighter gold to make the offer pop */
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0;
+  margin-top: 10px;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .fw-b2b-right-ribbon {
   background: linear-gradient(135deg, #a47b38 0%, #fbe49c 35%, #d6a74b 70%, #8a6327 100%);
   padding: 25px 50px 25px 60px;
@@ -288,7 +301,7 @@
 
 .fw-offer-number { color: #3b280b; font-size: 72px; font-weight: 900; line-height: 1; letter-spacing: -2px; }
 .fw-offer-text-stacked { display: flex; flex-direction: column; color: #3b280b; font-weight: 800; font-size: 18px; line-height: 1.1; }
-.fw-ribbon-text-bottom { color: #3b280b; font-weight: 800; font-size: 14px; letter-spacing: 1px; margin-top: 5px; }
+.fw-ribbon-text-bottom { color: #3b280b; font-weight: 800; font-size: 22px; letter-spacing: 1px; margin-top: 5px; }
 
 /* Mobile Responsiveness For Banner */
 @media (max-width: 992px) {
@@ -297,6 +310,7 @@
   .fw-b2b-heading { font-size: 22px; }
   .fw-b2b-subheading { font-size: 16px; }
   .fw-b2b-desc { font-size: 12px; margin-top: 2px; }
+  .fw-b2b-delivery { font-size: 14px; margin-top: 8px; justify-content: center; } /* Center text on tablet/mobile */
   .fw-b2b-right-ribbon { width: 100%; border-radius: 0 0 12px 12px; padding: 16px; box-shadow: 0 -4px 15px rgba(0,0,0,0.2); }
   .fw-ribbon-main-offer { gap: 8px; }
   .fw-offer-number { font-size: 48px; }
@@ -309,6 +323,7 @@
   .fw-b2b-heading { font-size: 18px; }
   .fw-b2b-subheading { font-size: 14px; }
   .fw-b2b-desc { font-size: 10px; }
+  .fw-b2b-delivery { font-size: 12px; margin-top: 6px; } /* Scale down delivery text for smaller phones */
   .fw-offer-number { font-size: 38px; }
   .fw-offer-text-stacked { font-size: 12px; }
   .fw-b2b-right-ribbon { padding: 12px; }
