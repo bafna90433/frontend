@@ -115,17 +115,18 @@ const Products: React.FC = () => {
   const searchTerm = params.get("search") || params.get("q") || "";
 
   // Marquee items data
-  const marqueeItems = [
-    { icon: "📦", text: "Small MOQ Ordering" },
-    { icon: "🧸", text: "400+ Toy Products" },
-    { icon: "🚚", text: "All-India Door Delivery" },
-    { icon: "💵", text: "Higher Retail Margins" },
-    { icon: "🏭", text: "Factory Direct Supply" },
-    { icon: "📊", text: "Fast Moving Toys" },
-    { icon: "🎁", text: "Attractive Packaging" },
-    { icon: "🧾", text: "Easy Ordering for Retailers" },
-    { icon: "🔁", text: "Regular New Toy Launches" }
-  ];
+const marqueeItems = [
+  { icon: "📦", text: "Small MOQ Ordering" },
+  { icon: "🧸", text: "400+ Toy Products" },
+  { icon: "🚚", text: "All-India Door Delivery" },
+  { icon: "💵", text: "Higher Retail Margins" },
+  { icon: "🏭", text: "Factory Direct Supply" },
+  { icon: "📊", text: "Fast Moving Toys" },
+  { icon: "🎁", text: "Attractive Packaging" },
+  { icon: "🧾", text: "Easy Ordering for Retailers" },
+  { icon: "🔁", text: "Regular New Toy Launches" },
+  { icon: "🏷️", text: "Beat E-Commerce Prices" }
+];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -467,7 +468,7 @@ const Products: React.FC = () => {
 
             {/* Right Gold Ribbon Section */}
             <div className="fw-b2b-right-ribbon">
-              <div className="fw-ribbon-text-top">UP TO</div>
+              <div className="fw-ribbon-text-top"></div>
               
               <div className="fw-ribbon-main-offer">
                 <span className="fw-offer-number">50%</span>
