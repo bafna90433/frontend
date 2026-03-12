@@ -3,10 +3,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import "../styles/Products.css";
+import "../styles/Products.css"; // Make sure this path is correct
 import CategorySEO from "./CategorySEO";
 import FloatingCheckoutButton from "./FloatingCheckoutButton";
-import { X, ChevronRight, ChevronLeft } from "lucide-react";
+import { X, ChevronRight, ChevronLeft, LayoutGrid, SlidersHorizontal } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
 type BulkTier = { inner: number; qty: number; price: number };
@@ -103,13 +103,12 @@ const Products: React.FC = () => {
 
   const [sortBy, setSortBy] = useState<string>("default");
 
-  // Price Filter States
   const [minPriceInput, setMinPriceInput] = useState<number | "">(0);
   const [maxPriceInput, setMaxPriceInput] = useState<number | "">(5000);
   const [activePriceFilter, setActivePriceFilter] = useState<{min: number, max: number} | null>(null);
 
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 24; 
+  const ITEMS_PER_PAGE = 25; 
 
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
@@ -206,7 +205,6 @@ const Products: React.FC = () => {
   const displayed = useMemo(() => {
     let filtered = [...allProducts];
 
-    // Category Filter
     if (categoryId) {
       filtered = filtered.filter((p) =>
         typeof p.category === "string"
@@ -215,7 +213,6 @@ const Products: React.FC = () => {
       );
     }
 
-    // Search Filter
     if (searchTerm) {
       const n = searchTerm.toLowerCase();
       filtered = filtered.filter(
@@ -225,7 +222,6 @@ const Products: React.FC = () => {
       );
     }
 
-    // Deals Filter
     if (activeDeals.length > 0) {
       filtered = filtered.map((p) => {
         const deal = activeDeals.find((d) => d.productId === p._id);
@@ -241,7 +237,6 @@ const Products: React.FC = () => {
       });
     }
 
-    // Price Filter Logic
     if (activePriceFilter) {
       filtered = filtered.filter((p) => {
         const price = p.price || 0;
@@ -249,7 +244,6 @@ const Products: React.FC = () => {
       });
     }
 
-    // Sorting
     if (sortBy === "price-low") {
       filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === "price-high") {
@@ -295,10 +289,10 @@ const Products: React.FC = () => {
     : "";
 
   const seoTitle = categoryName
-    ? `Wholesale ${categoryName} Supplier | Bafna Toy`
+    ? `Wholesale ${categoryName} Supplier | Bafna Toys`
     : searchTerm
     ? `Search results for "${searchTerm}"`
-    : "Shop Wholesale Toys | Bafna Toy";
+    : "Shop Wholesale Toys | Bafna Toys";
 
   const seoDescription =
     "Buy bulk toys including dolls, friction cars, pullback series & more at wholesale prices.";
@@ -335,12 +329,11 @@ const Products: React.FC = () => {
         jsonLd={{}}
       />
 
-      {/* ================= DESKTOP SIDEBAR ================= */}
       <aside className="fw-sidebar desktop-only">
         <div className="fw-sidebar-content">
           <div className="fw-sidebar-section">
             <h3 className="fw-sidebar-title">
-              <span className="icon">📂</span> Categories
+              <LayoutGrid size={16} className="title-icon" /> CATEGORIES
             </h3>
             <ul className="fw-cat-list">
               <li
@@ -349,7 +342,7 @@ const Products: React.FC = () => {
               >
                 <div className="cat-list-inner">
                   <div className="cat-icon-placeholder">🌟</div>
-                  <span>ALL TOYS</span>
+                  <span>All Toys</span>
                 </div>
                 <ChevronRight size={14} className="cat-arrow" />
               </li>
@@ -379,10 +372,9 @@ const Products: React.FC = () => {
             </ul>
           </div>
 
-          {/* ================= PRICE RANGE FILTER ================= */}
           <div className="fw-sidebar-section">
-            <h3 className="fw-sidebar-title">
-              <span className="icon">📝</span> Price Range
+            <h3 className="fw-sidebar-title mt-4">
+              <SlidersHorizontal size={16} className="title-icon" /> PRICE RANGE
             </h3>
             
             <div className="fw-price-slider-wrap">
@@ -406,6 +398,7 @@ const Products: React.FC = () => {
                   onChange={(e) => setMinPriceInput(e.target.value ? Number(e.target.value) : "")}
                 />
               </div>
+              <span className="price-divider">-</span>
               <div className="price-input-box">
                 <span className="rupee-icon">₹</span>
                 <input 
@@ -417,55 +410,39 @@ const Products: React.FC = () => {
               </div>
             </div>
 
-            <button className="fw-apply-btn" onClick={handleApplyPriceFilter}>Apply</button>
-            
-            <div className="fw-price-slider-wrap" style={{marginTop: '24px'}}>
-               <h3 className="fw-sidebar-title" style={{marginBottom: '10px'}}>
-                  <span className="icon">🔍</span> Price Range
-               </h3>
-               <div className="fw-price-inputs">
-                  <div className="price-input-box">
-                    <span className="rupee-icon">₹</span>
-                    <input 
-                      type="number" 
-                      placeholder="Min" 
-                      value={minPriceInput} 
-                      onChange={(e) => setMinPriceInput(e.target.value ? Number(e.target.value) : "")}
-                    />
-                  </div>
-                  <span style={{color: '#9ca3af'}}>-</span>
-                  <div className="price-input-box">
-                    <span className="rupee-icon">₹</span>
-                    <input 
-                      type="number" 
-                      placeholder="Max" 
-                      value={maxPriceInput} 
-                      onChange={(e) => setMaxPriceInput(e.target.value ? Number(e.target.value) : "")}
-                    />
-                  </div>
-              </div>
-              <button className="fw-apply-btn" style={{marginTop: '12px'}} onClick={handleApplyPriceFilter}>Apply</button>
-            </div>
+            <button className="fw-apply-btn" onClick={handleApplyPriceFilter}>Apply Filter</button>
           </div>
         </div>
       </aside>
 
       <main className="fw-main-content">
+       {/* ================= B2B PREMIUM GOLD BANNER (NEW DESIGN) ================= */}
+        <div className="fw-premium-b2b-banner">
+          
+          {/* Left Text Section */}
+          <div className="fw-b2b-left-content">
+            <h2 className="fw-b2b-heading">MANUFACTURER DIRECT</h2>
+            <h3 className="fw-b2b-subheading">B2B ORDERS ONLY</h3>
+            <p className="fw-b2b-desc">FOR TOY STORES, SUPERMARKETS & RETAILERS</p>
+          </div>
 
-        {/* ================= B2B PROFESSIONAL BANNER ================= */}
-        <div className="fw-b2b-banner">
-          <div className="fw-b2b-content">
-            <span className="fw-b2b-title">🏭 Buy Direct from Manufacturer</span>
-            <span className="fw-b2b-divider desktop-only">•</span>
-            <span className="fw-b2b-subtitle">For Toy Stores, Supermarkets & Retailers</span>
+          {/* Right Gold Ribbon Section */}
+          <div className="fw-b2b-right-ribbon">
+            <div className="fw-ribbon-text-top">UP TO</div>
+            
+            <div className="fw-ribbon-main-offer">
+              <span className="fw-offer-number">50%</span>
+              <div className="fw-offer-text-stacked">
+                <span>AND MORE</span>
+                <span>OFF MRP</span>
+              </div>
+            </div>
+            
+            <div className="fw-ribbon-text-bottom">B2B ORDERS ONLY</div>
           </div>
-          <div className="fw-b2b-highlight">
-            <span className="fw-b2b-badge">50%+ OFF MRP</span>
-            <span className="fw-b2b-text">B2B Orders Only</span>
-          </div>
+
         </div>
         
-        {/* ================= INSTAGRAM BANNER ================= */}
         <a 
           href="https://www.instagram.com/bafna_toys" 
           target="_blank" 
@@ -475,7 +452,6 @@ const Products: React.FC = () => {
           <span>📸 Follow us on Instagram for latest updates! @bafna_toys</span>
         </a>
 
-        {/* === BANNERS === */}
         {!categoryId && !searchTerm && (
           bannersLoading ? (
             <div style={{ width: "100%", padding: "10px 0", boxSizing: "border-box" }}>
@@ -486,7 +462,6 @@ const Products: React.FC = () => {
           )
         )}
 
-        {/* ================= MOBILE TOP CATEGORIES ================= */}
         <div className="fw-top-categories mobile-only">
           <div className="category-scroll-container">
             <div className="category-track">
@@ -527,7 +502,6 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* ================= TOP BAR (Desktop & Mobile Unified) ================= */}
         <div className="fw-top-bar">
           <button className="fw-back-btn mobile-only" onClick={() => navigate(-1)}>
             <ChevronLeft size={16} /> <span>Back</span>
@@ -592,7 +566,7 @@ const Products: React.FC = () => {
 
         {loading ? (
           <div className="fw-products-grid">
-            {Array.from({ length: 12 }).map((_, i) => (
+            {Array.from({ length: 15 }).map((_, i) => (
               <div key={i} style={{ width: "100%", padding: 0 }}>
                 <Skeleton
                   variant="rectangular"
