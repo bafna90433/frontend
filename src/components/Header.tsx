@@ -48,7 +48,7 @@ const getHighlightedText = (text: string, highlight: string) => {
 };
 
 const SuggestionSkeleton = () => (
-  <div className="modern-suggest__skeleton">
+  <div className="bafna-suggest__skeleton">
     {[1, 2, 3].map((i) => (
       <div key={i} className="skeleton-item">
         <div className="skeleton-thumb" />
@@ -93,51 +93,48 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
 
   return (
     <form
-      className={`modern-search ${mobile ? "is-mobile" : ""} ${openSug ? "is-suggestions-open" : ""}`}
+      className={`bafna-search ${mobile ? "is-mobile" : ""} ${openSug ? "is-suggestions-open" : ""}`}
       onSubmit={onSubmit}
       role="search"
       ref={ref}
     >
-      <div className="modern-search__wrapper">
-        <svg className="modern-search__icon-left" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" />
-        </svg>
+      <div className="bafna-search__wrapper">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onFocus={() => setOpenSug(true)} 
           onKeyDown={onKeyDown}
-          className="modern-search__input"
+          className="bafna-search__input"
           placeholder={placeholderText}
-          aria-label="Search"
+          aria-label="Search toys"
         />
         
         {mobile && openSug && (
-          <button type="button" className="modern-search__close-mob" onClick={() => setOpenSug(false)} aria-label="Close search">✕</button>
+          <button type="button" className="bafna-search__close-mob" onClick={() => setOpenSug(false)} aria-label="Close">✕</button>
         )}
 
         {q.length > 0 && !mobile && (
-          <button type="button" onClick={() => { setQ(""); setOpenSug(true); }} className="modern-search__clear-btn" aria-label="Clear search">✕</button>
+          <button type="button" onClick={() => { setQ(""); setOpenSug(true); }} className="bafna-search__clear-btn" aria-label="Clear">✕</button>
         )}
-        <button className="modern-search__btn" type="submit" aria-label="Search">
-          {mobile ? "Go" : "Search"}
+        <button className="bafna-search__submit" type="submit" aria-label="Search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15.5 14h-.79l-.28-.27A6.5 6.5 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 5 1.49-1.49-5-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" /></svg>
         </button>
       </div>
 
       {openSug && (
-        <div className="modern-suggest">
+        <div className="bafna-suggest">
           {isQueryEmpty ? (
-            <div className="modern-suggest__empty-state">
+            <div className="bafna-suggest__empty-state">
               {recentSearches.length > 0 && (
-                <div className="modern-suggest__section">
-                  <div className="modern-suggest__section-header">
-                    <span className="modern-suggest__section-title">Recent Searches</span>
-                    <button type="button" className="modern-suggest__clear-all" onClick={clearRecentSearches}>Clear All</button>
+                <div className="bafna-suggest__section">
+                  <div className="bafna-suggest__section-header">
+                    <span className="bafna-suggest__section-title">Recent Searches</span>
+                    <button type="button" className="bafna-suggest__clear-all" onClick={clearRecentSearches}>Clear All</button>
                   </div>
-                  <ul className="modern-suggest__recent-list">
+                  <ul className="bafna-suggest__recent-list">
                     {recentSearches.map((term, i) => (
-                      <li key={i} className="modern-suggest__recent-item" onClick={() => handleQuickSearch(term)}>
-                        <svg className="modern-suggest__history-icon" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z"/></svg>
+                      <li key={i} className="bafna-suggest__recent-item" onClick={() => handleQuickSearch(term)}>
+                        <svg className="bafna-suggest__history-icon" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z"/></svg>
                         {term}
                       </li>
                     ))}
@@ -145,11 +142,11 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                 </div>
               )}
               {popularSearches.length > 0 && (
-                <div className="modern-suggest__section">
-                  <div className="modern-suggest__section-title">Popular Searches</div>
-                  <div className="modern-suggest__popular-tags">
+                <div className="bafna-suggest__section">
+                  <div className="bafna-suggest__section-title">Trending Now</div>
+                  <div className="bafna-suggest__popular-tags">
                     {popularSearches.map((cat) => (
-                      <button type="button" key={cat._id} className="modern-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/products?category=${cat._id}`); }}>{cat.name}</button>
+                      <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/products?category=${cat._id}`); }}>{cat.name}</button>
                     ))}
                   </div>
                 </div>
@@ -157,19 +154,19 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
             </div>
           ) : (
             <>{loadingSug ? <SuggestionSkeleton /> : (
-              <>{!loadingSug && sug.length === 0 && <div className="modern-suggest__empty">😕 No results found.</div>}
+              <>{!loadingSug && sug.length === 0 && <div className="bafna-suggest__empty">😕 No toys found!</div>}
                 {!loadingSug && sug.length > 0 && (
-                  <ul className="modern-suggest__list" role="listbox">
+                  <ul className="bafna-suggest__list" role="listbox">
                     {sug.map((p, idx) => {
                       const isFirstOfType = idx === 0 || sug[idx - 1].type !== p.type;
                       return (
                         <React.Fragment key={`${p.type}-${p._id}`}>
                           {isFirstOfType && (
-                            <div className="modern-suggest__group-title">
-                              {p.type === "category" ? "📁 Categories" : p.type === "brand" ? "🏷️ Brands" : "🧸 Products"}
+                            <div className="bafna-suggest__group-title">
+                              {p.type === "category" ? "📁 Category" : p.type === "brand" ? "🏷️ Brand" : "🧸 Toy"}
                             </div>
                           )}
-                          <li className={`modern-suggest__item ${idx === activeIdx ? "is-active" : ""}`} onMouseEnter={() => setActiveIdx(idx)}
+                          <li className={`bafna-suggest__item ${idx === activeIdx ? "is-active" : ""}`} onMouseEnter={() => setActiveIdx(idx)}
                             onMouseDown={(e) => {
                               e.preventDefault();
                               setOpenSug(false);
@@ -178,24 +175,24 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                               else navigate(`/product/${p._id}`);
                             }}>
                             {p.type === "product" && getThumb(p) ? (
-                              <img src={getThumb(p)!} alt="" className="modern-suggest__thumb" loading="lazy" width={48} height={48} />
+                              <img src={getThumb(p)!} alt="" className="bafna-suggest__thumb" loading="lazy" width={48} height={48} />
                             ) : (
-                              <div className="modern-suggest__thumb modern-suggest__thumb--ph">
+                              <div className="bafna-suggest__thumb bafna-suggest__thumb--ph">
                                 {p.type === "category" ? "📁" : p.type === "brand" ? "🏷️" : "🧸"}
                               </div>
                             )}
-                            <div className="modern-suggest__meta">
-                              <div className="modern-suggest__name">{getHighlightedText(p.name, q)}</div>
-                              {p.sku && p.type === "product" && <div className="modern-suggest__sku">#{p.sku}</div>}
+                            <div className="bafna-suggest__meta">
+                              <div className="bafna-suggest__name">{getHighlightedText(p.name, q)}</div>
+                              {p.sku && p.type === "product" && <div className="bafna-suggest__sku">SKU: {p.sku}</div>}
                             </div>
-                            {p.price && p.type === "product" ? <div className="modern-suggest__price">₹{p.price}</div> : null}
+                            {p.price && p.type === "product" ? <div className="bafna-suggest__price">₹{p.price}</div> : null}
                           </li>
                         </React.Fragment>
                       );
                     })}
                   </ul>
                 )}
-                {sug.length > 0 && <button className="modern-suggest__more" type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleQuickSearch(q)}>See all results</button>}
+                {sug.length > 0 && <button className="bafna-suggest__more" type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => handleQuickSearch(q)}>View all results →</button>}
               </>
             )}</>
           )}
@@ -233,9 +230,9 @@ const Header: React.FC = () => {
   const [charIdx, setCharIdx] = useState(0);
 
   useEffect(() => {
-    const words = popularSearches.length > 0 ? popularSearches.map(cat => `Try "${cat.name}"...`) : ["Search toys...", "Try Soft Toys...", "Try RC Cars..."];
+    const words = popularSearches.length > 0 ? popularSearches.map(cat => `Search for "${cat.name}"...`) : ["Search for wind-up toys...", "Search for soft toys...", "Search for pull-back cars..."];
     const currentFullWord = words[currentWordIdx % words.length];
-    const typingSpeed = isDeleting ? 50 : 100;
+    const typingSpeed = isDeleting ? 40 : 80;
 
     const timeout = setTimeout(() => {
       if (!isDeleting && charIdx < currentFullWord.length) {
@@ -245,7 +242,7 @@ const Header: React.FC = () => {
         setPlaceholderText(currentFullWord.substring(0, charIdx - 1));
         setCharIdx(prev => prev - 1);
       } else if (!isDeleting && charIdx === currentFullWord.length) {
-        setTimeout(() => setIsDeleting(true), 1500);
+        setTimeout(() => setIsDeleting(true), 2000);
       } else if (isDeleting && charIdx === 0) {
         setIsDeleting(false);
         setCurrentWordIdx(prev => prev + 1);
@@ -407,50 +404,108 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <header className={`modern-header ${scrolled ? "modern-header--scrolled" : ""}`}>
-      <div className="modern-header__main">
-        <div className="modern-header__container bk-header-container">
-          <Link to="/" className="modern-logo" aria-label="Home">
-            <img src={LOGO_IMG} alt="BAFNA TOYS" className="modern-logo__img" width={188} height={45} loading="eager" />
+    <header className={`bafna-site-header ${scrolled ? "is-scrolled" : ""}`}>
+      {/* Top Banner */}
+      <div className="bafna-top-strip">
+        <div className="bafna-top-strip__inner">
+          <span className="bafna-top-strip__text">
+            🌟 India's Leading Retail & Wholesale Toys at <a href="https://bafnatoys.com" target="_blank" rel="noreferrer">bafnatoys.com</a>
+          </span>
+          <div className="bafna-top-strip__links hidden-mobile">
+            {/* Instagram link replaced About Us & Contact Support */}
+            <a 
+              href="https://www.instagram.com/bafna_toys/" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className="bafna-insta-link"
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'inherit', textDecoration: 'none', fontWeight: 'bold' }}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
+              </svg>
+              Follow @bafna_toys
+            </a>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Header */}
+      <div className="bafna-header-main">
+        <div className="bafna-header-container">
+          
+          <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
+            <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} loading="eager" />
           </Link>
 
-          <div className="modern-search__desktop-wrapper">
+          {/* Desktop Search Center */}
+          <div className="bafna-search-wrap-desktop">
             <SearchForm
               ref={deskRef} q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
               openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug} sug={sug}
               activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
               recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
-              placeholderText={placeholderText}
-              clearRecentSearches={clearRecentSearches}
+              placeholderText={placeholderText} clearRecentSearches={clearRecentSearches}
             />
           </div>
 
-          <nav className="modern-actions">
-            <button className="modern-action-btn modern-theme-btn" onClick={toggleTheme}>{theme === "light" ? "🌙" : "☀️"}</button>
-            {user ? (
-              <button className="modern-action-btn" onClick={() => navigate("/my-account")}>
-                <span className="modern-ico">👤</span> <span className="modern-btn-text">Account</span>
-              </button>
-            ) : (
-              <Link className="modern-action-btn" to="/login"><span className="modern-ico">🔑</span> <span className="modern-btn-text">Login</span></Link>
-            )}
-            {user && <Link className="modern-action-btn mobile-hide" to="/orders"><span className="modern-ico">📦</span> <span className="modern-btn-text">Orders</span></Link>}
-            <Link className="modern-cart-btn" to="/cart">
-              <span className="modern-cart-ico">🛒</span> <span className="modern-cart-text">Cart</span>
-              {cartCount > 0 && <span className="modern-cart-badge">{cartCount}</span>}
+          {/* Actions */}
+          <nav className="bafna-user-actions">
+            <button className="bafna-action-icon bafna-theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme">
+              {theme === "light" ? "🌙" : "☀️"}
+            </button>
+
+            {/* My Account - Icons show on mobile too */}
+            <div className="bafna-action-group">
+              {user ? (
+                <Link to="/my-account" className="bafna-action-link">
+                  <span className="icon">👤</span>
+                  <div className="text-stack hidden-mobile">
+                    <span className="label">Hello, {user.name?.split(' ')[0] || 'User'}</span>
+                    <span className="val">Account</span>
+                  </div>
+                </Link>
+              ) : (
+                <Link to="/login" className="bafna-action-link">
+                  <span className="icon">🔑</span>
+                  <div className="text-stack hidden-mobile">
+                    <span className="label">Welcome</span>
+                    <span className="val">Sign In</span>
+                  </div>
+                </Link>
+              )}
+            </div>
+
+            <Link to="/cart" className="bafna-cart-link">
+              <div className="bafna-cart-icon-wrapper">
+                <span className="icon">🛒</span>
+                {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+              </div>
+              <span className="cart-total-text hidden-mobile">Cart</span>
             </Link>
           </nav>
         </div>
       </div>
 
-      <div className="modern-search--mobile">
+      {/* Mobile Search Bottom */}
+      <div className="bafna-search-wrap-mobile">
         <SearchForm
           ref={mobRef} mobile q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
           openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug} sug={sug}
           activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
           recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
-          placeholderText={placeholderText}
-          clearRecentSearches={clearRecentSearches}
+          placeholderText={placeholderText} clearRecentSearches={clearRecentSearches}
         />
       </div>
     </header>

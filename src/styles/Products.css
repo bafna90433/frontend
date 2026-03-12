@@ -410,3 +410,29 @@
   opacity: 0;
   transform: translateY(20px);
 }
+.fw-shop-wrapper {
+  display: flex;
+  width: 100%; 
+  min-height: 100vh;
+  /* Header ki height ke hisaab se gap */
+  padding-top: 0; 
+}
+
+@media (max-width: 900px) {
+  .fw-main-content {
+    /* Mobile sticky header ke liye extra space */
+    padding-top: 10px !important;
+  }
+  
+  /* B2B Banner margin adjust */
+  .fw-premium-b2b-banner {
+    margin-top: 5px;
+  }
+}
+
+/* Desktop Sidebar Sticky Position */
+.fw-sidebar {
+  position: sticky;
+  top: 120px; /* Header + margin */
+  height: calc(100vh - 140px);
+}

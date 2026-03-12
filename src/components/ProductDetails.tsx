@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
@@ -18,8 +18,10 @@ import {
   FiShield,
   FiClock,
   FiShare2,
+  FiChevronLeft,
+  FiChevronRight,
 } from "react-icons/fi";
-import { FaTag } from "react-icons/fa";
+import { FaTag, FaRegHeart, FaHeart } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
 import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import { getImageUrl } from "../utils/image";
@@ -52,7 +54,6 @@ interface Product {
   tagline?: string;
   packSize?: string;
   sale_end_time?: string;
-  // 👇 NAYA CODE: Deal properties add ki gayi hain
   hotDealType?: "PERCENT" | "FLAT" | "NONE";
   hotDealValue?: number;
 }
@@ -66,37 +67,108 @@ const ProductDetails: React.FC = () => {
   const [imgLoaded, setImgLoaded] = useState(false);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
-
+  const [isWishlisted, setIsWishlisted] = useState(false);
+  const [showZoom, setShowZoom] = useState(false);
+  
+  // Touch handling refs
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const imageContainerRef = useRef<HTMLDivElement>(null);
+  const thumbnailRef = useRef<HTMLDivElement>(null);
 
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
   const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
 
+  // Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndX.current = e.touches[0].clientX;
+    
+    // Optional: Add visual feedback during swipe
+    const container = imageContainerRef.current;
+    if (container && product?.images && product.images.length > 1) {
+      const diffX = touchStartX.current - e.touches[0].clientX;
+      container.style.transform = `translateX(${-diffX * 0.2}px)`;
+      container.style.transition = 'none';
+    }
+  };
+
+  const handleTouchEnd = () => {
+    const container = imageContainerRef.current;
+    if (container) {
+      container.style.transform = '';
+      container.style.transition = '';
+    }
+
+    if (!product?.images || product.images.length <= 1) return;
+
+    const diffX = touchStartX.current - touchEndX.current;
+    const minSwipeDistance = 50;
+
+    if (Math.abs(diffX) > minSwipeDistance) {
+      if (diffX > 0) {
+        // Swipe left - next image
+        setSelectedImage((prev) => 
+          prev === product.images!.length - 1 ? 0 : prev + 1
+        );
+      } else {
+        // Swipe right - previous image
+        setSelectedImage((prev) => 
+          prev === 0 ? product.images!.length - 1 : prev - 1
+        );
+      }
+      setImgLoaded(false);
+    }
+  };
+
+  const handleImageChange = useCallback((direction: 'next' | 'prev') => {
+    if (!product?.images || product.images.length <= 1) return;
+    
+    setSelectedImage(prev => {
+      if (direction === 'next') {
+        return prev === product.images!.length - 1 ? 0 : prev + 1;
+      } else {
+        return prev === 0 ? product.images!.length - 1 : prev - 1;
+      }
+    });
+    setImgLoaded(false);
+  }, [product?.images]);
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') handleImageChange('prev');
+      if (e.key === 'ArrowRight') handleImageChange('next');
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleImageChange]);
+
+  // Fetch product data
   useEffect(() => {
     setLoading(true);
     setError(null);
     setProduct(null);
     setSelectedImage(0);
     setImgLoaded(false);
-
     window.scrollTo(0, 0);
 
     const fetchData = async () => {
       try {
-        // 👇 NAYA CODE: Product aur Deals dono ko ek sath fetch kar rahe hain (Fast Loading ke liye)
         const [productRes, configRes] = await Promise.all([
           api.get(`/products/${id}`),
-          api.get("/home-config").catch(() => ({ data: {} })) // Agar config fail ho to crash na ho
+          api.get("/home-config").catch(() => ({ data: {} }))
         ]);
 
         let fetchedProduct = productRes.data;
         const configData = configRes.data;
 
-        // Deals ko map karna
+        // Apply deals
         const items = configData?.hotDealsItemsResolved || configData?.hotDealsItems || [];
         const activeDeals = items.map((it: any) => ({
           productId: it.productId || it.product?._id,
@@ -105,7 +177,6 @@ const ProductDetails: React.FC = () => {
           endsAt: it.endsAt || null,
         }));
 
-        // 👇 NAYA CODE: Main product me deal lagana
         const mainDeal = activeDeals.find((d: any) => d.productId === fetchedProduct._id);
         if (mainDeal) {
           fetchedProduct.hotDealType = mainDeal.discountType;
@@ -113,8 +184,7 @@ const ProductDetails: React.FC = () => {
           fetchedProduct.sale_end_time = mainDeal.endsAt || fetchedProduct.sale_end_time;
         }
 
-        // 👇 NAYA CODE: Related Products me bhi deals lagana
-        if (fetchedProduct.relatedProducts && fetchedProduct.relatedProducts.length > 0) {
+        if (fetchedProduct.relatedProducts?.length) {
           fetchedProduct.relatedProducts = fetchedProduct.relatedProducts.map((rel: any) => {
             const relDeal = activeDeals.find((d: any) => d.productId === rel._id);
             if (relDeal) {
@@ -131,7 +201,7 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
       } catch (err) {
-        console.error("❌ Failed loading product", err);
+        console.error("Failed loading product", err);
         setError("Failed to load product. Please try again later.");
       } finally {
         setLoading(false);
@@ -141,6 +211,7 @@ const ProductDetails: React.FC = () => {
     fetchData();
   }, [id]);
 
+  // Timer effect
   useEffect(() => {
     if (!product?.sale_end_time) {
       setTimeLeft(null);
@@ -148,25 +219,20 @@ const ProductDetails: React.FC = () => {
     }
 
     const calculateTimeLeft = () => {
-      const difference =
-        new Date(product.sale_end_time!).getTime() - new Date().getTime();
-
+      const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / 1000 / 60) % 60);
         const seconds = Math.floor((difference / 1000) % 60);
-
-        return `${days}D ${hours.toString().padStart(2, "0")}:${minutes
-          .toString()
-          .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-      } else {
-        return null;
+        return days > 0 
+          ? `${days}D ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
+          : `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
       }
+      return null;
     };
 
     setTimeLeft(calculateTimeLeft());
-
     const timer = setInterval(() => {
       const t = calculateTimeLeft();
       setTimeLeft(t);
@@ -176,12 +242,13 @@ const ProductDetails: React.FC = () => {
     return () => clearInterval(timer);
   }, [product?.sale_end_time]);
 
+  // Share handler
   const handleShare = async () => {
     if (!product) return;
 
     const shareData = {
       title: product.name,
-      text: `Hey! Check out this ${product.name} at Bafna Toys: ${product.tagline || ""}`,
+      text: `Check out ${product.name} at Bafna Toys! ${product.tagline || ""}`,
       url: window.location.href,
     };
 
@@ -197,33 +264,7 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    if (!product?.images || product.images.length <= 1) return;
-
-    const diffX = touchStartX.current - touchEndX.current;
-
-    if (Math.abs(diffX) > 50) {
-      if (diffX > 0) {
-        setSelectedImage((p) =>
-          p === product.images!.length - 1 ? 0 : p + 1
-        );
-      } else {
-        setSelectedImage((p) =>
-          p === 0 ? product.images!.length - 1 : p - 1
-        );
-      }
-      setImgLoaded(false);
-    }
-  };
-
+  // Memoized computed values
   const {
     itemCount,
     minQty,
@@ -231,6 +272,7 @@ const ProductDetails: React.FC = () => {
     discountPercent,
     hasDiscount,
     imageUrl,
+    thumbnails,
   } = useMemo(() => {
     if (!product) {
       return {
@@ -239,8 +281,8 @@ const ProductDetails: React.FC = () => {
         unitPrice: 0,
         discountPercent: 0,
         hasDiscount: false,
-        baseImage: "",
         imageUrl: "",
+        thumbnails: [],
       };
     }
 
@@ -251,15 +293,17 @@ const ProductDetails: React.FC = () => {
 
     const hasDiscount = !!(product.mrp && product.mrp > unitPrice) || product.hotDealType !== "NONE";
     
-    // 👇 NAYA CODE: Agar hot deal PERCENT mein hai, to wo value use karega, warna MRP se calculate karega
     const discountPercent = product.hotDealType === "PERCENT" && product.hotDealValue
       ? product.hotDealValue
       : (product.mrp && product.mrp > unitPrice)
       ? Math.round(((product.mrp - unitPrice) / product.mrp) * 100)
       : 0;
 
-    const baseImage = product.images?.[selectedImage] || product.image || "";
+    const images = product.images?.length ? product.images : [product.image].filter(Boolean);
+    const baseImage = images[selectedImage] || "";
     const imageUrl = getImageUrl(baseImage, 800);
+    
+    const thumbnails = images.map(img => getImageUrl(img, 150));
 
     return {
       itemCount,
@@ -267,8 +311,8 @@ const ProductDetails: React.FC = () => {
       unitPrice,
       discountPercent,
       hasDiscount,
-      baseImage,
       imageUrl,
+      thumbnails,
     };
   }, [product, cartItems, selectedImage]);
 
@@ -290,19 +334,34 @@ const ProductDetails: React.FC = () => {
   const handleSelectImage = (index: number) => {
     setSelectedImage(index);
     setImgLoaded(false);
+    
+    // Smooth scroll thumbnail into view
+    if (thumbnailRef.current) {
+      const thumbElement = thumbnailRef.current.children[index] as HTMLElement;
+      if (thumbElement) {
+        thumbElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'nearest',
+          inline: 'center'
+        });
+      }
+    }
   };
 
   if (loading) {
     return (
       <div className="pd-loading">
         <div className="pd-spinner"></div>
-        <p>Loading fun stuff...</p>
+        <p>Loading product details...</p>
       </div>
     );
   }
 
   if (error) return <div className="pd-error">{error}</div>;
   if (!product) return <div className="pd-error">Product not found</div>;
+
+  const images = product.images?.length ? product.images : [product.image].filter(Boolean);
+  const isOutOfStock = product.stock === 0;
 
   return (
     <>
@@ -320,64 +379,90 @@ const ProductDetails: React.FC = () => {
       />
 
       <div className="pd-container">
+        {/* Gallery Section */}
         <div className="pd-gallery">
-          <div
-            className="pd-main-image-frame"
-            ref={imageContainerRef}
-            onTouchStart={handleTouchStart}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
-          >
-            {!imgLoaded && (
-              <div
-                className="pd-skeleton-loader"
-                style={{ position: "absolute", inset: 0, background: "#f0f0f0" }}
+          <div className="pd-main-image-wrapper">
+            <div 
+              className="pd-main-image-frame"
+              onTouchStart={handleTouchStart}
+              onTouchMove={handleTouchMove}
+              onTouchEnd={handleTouchEnd}
+              onClick={() => setShowZoom(true)}
+              ref={imageContainerRef}
+            >
+              {!imgLoaded && <div className="pd-skeleton-loader" />}
+
+              <img
+                src={imageUrl}
+                alt={product.name}
+                className={`pd-main-image ${imgLoaded ? "loaded" : ""}`}
+                onLoad={() => setImgLoaded(true)}
+                fetchPriority="high"
+                loading="eager"
+                width="600"
+                height="600"
               />
-            )}
 
-            <img
-              src={imageUrl}
-              alt={product.name}
-              className={`pd-main-image ${imgLoaded ? "loaded" : ""}`}
-              onLoad={() => setImgLoaded(true)}
-              fetchPriority="high"
-              loading="eager"
-              width="600"
-              height="600"
-            />
+              {/* Navigation Arrows (Desktop) */}
+              {images.length > 1 && (
+                <>
+                  <button 
+                    className="pd-nav-arrow prev"
+                    onClick={(e) => { e.stopPropagation(); handleImageChange('prev'); }}
+                    aria-label="Previous image"
+                  >
+                    <FiChevronLeft />
+                  </button>
+                  <button 
+                    className="pd-nav-arrow next"
+                    onClick={(e) => { e.stopPropagation(); handleImageChange('next'); }}
+                    aria-label="Next image"
+                  >
+                    <FiChevronRight />
+                  </button>
+                </>
+              )}
 
-            {product.mrp && product.mrp > unitPrice && (
-              <div className="pd-mrp-circle">
-                <span className="pd-mrp-text">MRP</span>
-                <span className="pd-mrp-price">₹{product.mrp.toLocaleString()}</span>
-              </div>
-            )}
+              {/* MRP Badge */}
+              {product.mrp && product.mrp > unitPrice && (
+                <div className="pd-mrp-circle">
+                  <span className="pd-mrp-text">MRP</span>
+                  <span className="pd-mrp-price">₹{product.mrp.toLocaleString()}</span>
+                </div>
+              )}
 
-            {product.images && product.images.length > 1 && (
-              <div className="pd-swipe-dots">
-                {product.images.map((_, i) => (
-                  <div
-                    key={i}
-                    className={`pd-dot ${selectedImage === i ? "active" : ""}`}
-                  />
-                ))}
-              </div>
-            )}
+              {/* Deal Badge */}
+              {hasDiscount && (
+                <div className="pd-image-badge">
+                  <FaTag size={10} />
+                  {product.hotDealType === "FLAT" 
+                    ? `₹${product.hotDealValue} OFF` 
+                    : `${discountPercent}% OFF`}
+                </div>
+              )}
 
-            {/* 👇 NAYA CODE: Deal badge with PERCENT or FLAT support */}
-            {hasDiscount && (
-              <div className="pd-image-badge">
-                <FaTag size={10} /> 
-                {product.hotDealType === "FLAT" 
-                  ? `₹${product.hotDealValue} OFF` 
-                  : `${discountPercent}% OFF`}
+              {/* Wishlist Button */}
+              <button 
+                className="pd-wishlist-btn"
+                onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
+                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
+              >
+                {isWishlisted ? <FaHeart color="#ff5a6b" /> : <FaRegHeart />}
+              </button>
+            </div>
+
+            {/* Image Counter */}
+            {images.length > 1 && (
+              <div className="pd-image-counter">
+                {selectedImage + 1} / {images.length}
               </div>
             )}
           </div>
 
-          {product.images && product.images.length > 1 && (
-            <div className="pd-thumbnails">
-              {product.images.map((img, i) => (
+          {/* Thumbnails */}
+          {images.length > 1 && (
+            <div className="pd-thumbnails" ref={thumbnailRef}>
+              {images.map((img, i) => (
                 <div
                   key={i}
                   className={`pd-thumb ${selectedImage === i ? "active" : ""}`}
@@ -385,7 +470,7 @@ const ProductDetails: React.FC = () => {
                 >
                   <img
                     src={getImageUrl(img, 150)}
-                    alt={`thumb-${i}`}
+                    alt={`${product.name} - view ${i + 1}`}
                     loading="lazy"
                     width="60"
                     height="60"
@@ -396,23 +481,15 @@ const ProductDetails: React.FC = () => {
           )}
         </div>
 
+        {/* Info Section */}
         <div className="pd-info">
           <div className="pd-header">
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "flex-start",
-                gap: "10px",
-              }}
-            >
+            <div className="pd-title-wrapper">
               <h1 className="pd-title">{product.name}</h1>
-
               <button
                 onClick={handleShare}
                 className="pd-share-button"
                 title="Share Product"
-                aria-label="Share this product"
               >
                 <FiShare2 size={20} />
               </button>
@@ -420,7 +497,11 @@ const ProductDetails: React.FC = () => {
 
             {timeLeft && (
               <div className="pd-timer-badge">
-                <FiClock /> Deal Ends in: {timeLeft}
+                <FiClock className="pd-timer-icon" />
+                <div className="pd-timer-text">
+                  <span>Deal Ends in:</span>
+                  <strong>{timeLeft}</strong>
+                </div>
               </div>
             )}
 
@@ -455,8 +536,10 @@ const ProductDetails: React.FC = () => {
             </div>
 
             <div className="pd-stock-row">
-              {product.stock === 0 ? (
-                <span className="pd-stock pd-stock--out">Out of Stock</span>
+              {isOutOfStock ? (
+                <span className="pd-stock pd-stock--out">
+                  <FiAlertCircle /> Out of Stock
+                </span>
               ) : product.stock && product.stock <= 10 ? (
                 <span className="pd-stock pd-stock--low">
                   <FiAlertCircle /> Only {product.stock} left!
@@ -469,30 +552,40 @@ const ProductDetails: React.FC = () => {
             </div>
           </div>
 
+          {/* Price Block */}
           <div className="pd-price-block">
-            <div className="pd-prices">
-              <span className="pd-current-price">₹{unitPrice.toFixed(0)}</span>
-            </div>
-
-            {hasDiscount && product.mrp && (
-              <div className="pd-savings-bubble">
-                You Save ₹{(product.mrp - unitPrice).toFixed(0)}
+            <div className="pd-price-wrapper">
+              <div className="pd-prices">
+                <span className="pd-current-price">₹{unitPrice.toFixed(0)}</span>
+                {product.mrp && product.mrp > unitPrice && (
+                  <span className="pd-original-price">₹{product.mrp.toFixed(0)}</span>
+                )}
               </div>
-            )}
+
+              {hasDiscount && product.mrp && (
+                <div className="pd-savings-bubble">
+                  Save ₹{(product.mrp - unitPrice).toFixed(0)}
+                </div>
+              )}
+            </div>
 
             <div className="pd-min-qty">
-              <FiInfo size={12} /> Minimum Order: {minQty} units
+              <FiInfo size={12} />
+              <span>Minimum Order: <strong>{minQty} units</strong></span>
             </div>
+
+            {/* BULK PRICING SECTION REMOVED */}
           </div>
 
+          {/* Action Buttons */}
           <div className="pd-actions-area">
             {itemCount === 0 ? (
               <button
                 className="pd-btn-cart"
                 onClick={handleAdd}
-                disabled={product.stock === 0}
+                disabled={isOutOfStock}
               >
-                {product.stock === 0 ? (
+                {isOutOfStock ? (
                   <>
                     <FiShield /> Notify Me
                   </>
@@ -507,7 +600,7 @@ const ProductDetails: React.FC = () => {
                 <button
                   onClick={handleDec}
                   className="pd-qty-btn decrease"
-                  title={itemCount === minQty ? "Remove" : "Decrease"}
+                  aria-label={itemCount === minQty ? "Remove from cart" : "Decrease quantity"}
                 >
                   {itemCount === minQty ? "Del" : <FiMinus />}
                 </button>
@@ -518,6 +611,7 @@ const ProductDetails: React.FC = () => {
                   onClick={handleInc}
                   className="pd-qty-btn increase"
                   disabled={product.stock !== undefined && itemCount >= product.stock}
+                  aria-label="Increase quantity"
                 >
                   <FiPlus />
                 </button>
@@ -525,6 +619,7 @@ const ProductDetails: React.FC = () => {
             )}
           </div>
 
+          {/* Description Accordion */}
           {product.description && (
             <div className={`pd-desc-accordion ${isDescriptionExpanded ? "open" : ""}`}>
               <div className="pd-desc-header" onClick={toggleDescription}>
@@ -535,27 +630,51 @@ const ProductDetails: React.FC = () => {
               </div>
 
               <div className="pd-desc-body">
-                <ul>
-                  {product.description
-                    .split("\n")
-                    .filter((l) => l.trim())
-                    .map((line, i) => (
-                      <li key={i}>{line}</li>
-                    ))}
-                </ul>
+                <div className="pd-desc-content">
+                  {product.description.split("\n").filter(l => l.trim()).map((line, i) => (
+                    <p key={i}>{line}</p>
+                  ))}
+                </div>
               </div>
             </div>
           )}
+
+          {/* Key Features / Highlights */}
+          <div className="pd-highlights">
+            <div className="pd-highlight-item">
+              <FiShield className="pd-highlight-icon" />
+              <div className="pd-highlight-text">
+                <strong>Secure Payment</strong>
+                <span>100% secure transactions</span>
+              </div>
+            </div>
+            <div className="pd-highlight-item">
+              <FiClock className="pd-highlight-icon" />
+              <div className="pd-highlight-text">
+                <strong>Fast Delivery</strong>
+                <span>2-4 business days</span>
+              </div>
+            </div>
+            <div className="pd-highlight-item">
+              <FiCheckCircle className="pd-highlight-icon" />
+              <div className="pd-highlight-text">
+                <strong>Quality Assured</strong>
+                <span>Premium products</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <div style={{ maxWidth: "1200px", margin: "0 auto", padding: "0 16px" }}>
+      {/* Reviews Section */}
+      <div className="pd-reviews-wrapper">
         <ReviewSection productId={product._id} />
       </div>
 
+      {/* Related Products */}
       {product.relatedProducts && product.relatedProducts.length > 0 && (
         <div className="pd-related-section">
-          <h3 className="pd-section-title">🧸 You May Also Like</h3>
+          <h3 className="pd-section-title">You May Also Like</h3>
           <div className="pd-related-scroll">
             {product.relatedProducts.map((rel, i) => (
               <div key={rel._id} className="pd-related-item">
@@ -566,7 +685,16 @@ const ProductDetails: React.FC = () => {
         </div>
       )}
 
-      <div style={{ height: 100 }} />
+      {/* Image Zoom Modal */}
+      {showZoom && (
+        <div className="pd-zoom-modal" onClick={() => setShowZoom(false)}>
+          <div className="pd-zoom-content" onClick={(e) => e.stopPropagation()}>
+            <img src={imageUrl} alt={product.name} />
+            <button className="pd-zoom-close" onClick={() => setShowZoom(false)}>×</button>
+          </div>
+        </div>
+      )}
+
       <FloatingCheckoutButton />
     </>
   );

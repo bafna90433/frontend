@@ -1,855 +1,435 @@
-/* src/styles/Header.css */
-
 :root {
-  --mod-primary: #ff5252; 
-  --mod-secondary: #00b894; 
-  --mod-accent: #fdcb6e; 
-  --mod-bg: #ffffff;
-  --mod-bg-hover: #f5f6fa;
-  --mod-text: #2d3436;
-  --mod-text-light: #636e72;
-  --mod-border: rgba(0, 0, 0, 0.06);
-  --mod-shadow-light: 0 4px 12px rgba(0, 0, 0, 0.04);
-  --mod-radius: 12px;
+  --bafna-primary: #e63946;    /* Vibrant Bafna Red */
+  --bafna-primary-hover: #d62828;
+  --bafna-secondary: #457b9d;  /* Trusted Blue */
+  --bafna-accent: #f4a261;     /* Warm Accent */
+  --bafna-bg: #ffffff;
+  --bafna-bg-alt: #f1faee;
+  --bafna-text: #1d3557;
+  --bafna-text-light: #6c757d;
+  --bafna-border: #e9ecef;
+  --bafna-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --bafna-radius: 8px;
 }
 
-/* Dark Mode Palette */
+/* Dark Mode Overrides */
 body.dark {
-  --mod-bg: #1e1e2f;
-  --mod-bg-hover: #2a2a40;
-  --mod-text: #f5f6fa;
-  --mod-text-light: #b2bec3;
-  --mod-border: rgba(255, 255, 255, 0.08);
-  --mod-shadow-light: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --bafna-bg: #121212;
+  --bafna-bg-alt: #1e1e1e;
+  --bafna-text: #f8f9fa;
+  --bafna-text-light: #adb5bd;
+  --bafna-border: #343a40;
+  --bafna-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
-/* --- Base Header --- */
-.modern-header {
-  background: var(--mod-bg);
-  border-bottom: 1px solid var(--mod-border);
-  box-shadow: var(--mod-shadow-light);
+/* =========================================================
+   1. CORE HEADER STRUCTURE
+========================================================= */
+.bafna-site-header {
   position: sticky;
   top: 0;
-  z-index: 9999;
-  width: 100%; /* ✅ Added */
-  box-sizing: border-box; /* ✅ Crop fix */
-  will-change: transform, box-shadow;
-  transition: box-shadow 0.3s ease;
-}
-
-.modern-header * {
-  box-sizing: border-box; /* ✅ Har element padding andar adjust karega */
-}
-
-.modern-header--scrolled {
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
-}
-
-/* --- TOP ANNOUNCEMENT BANNER --- */
-.modern-top-banner {
-  display: block;
-  background: linear-gradient(90deg, #833ab4, #fd1d1d, #fcb045, #833ab4);
-  background-size: 200% auto;
-  animation: instagramGradientShift 4s linear infinite;
-  color: #ffffff;
-  text-decoration: none;
-  max-height: 60px;
-  overflow: hidden;
-  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
-}
-
-@keyframes instagramGradientShift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 200% 50%; }
-}
-
-.modern-top-banner__inner {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 10px 15px;
-}
-
-.modern-top-banner__icon {
-  width: 20px;
-  height: 20px;
-  fill: currentColor;
-  flex-shrink: 0;
-}
-
-.modern-top-banner__text {
-  font-size: 14px;
-  font-weight: 500;
-  letter-spacing: 0.3px;
-}
-
-.modern-top-banner__btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  border-radius: 20px;
-  padding: 4px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  white-space: nowrap;
-  transition: all 0.2s ease;
-}
-
-.modern-top-banner:hover .modern-top-banner__btn {
-  background: #ffffff;
-  color: #d62976;
-  transform: scale(1.05);
-}
-
-.modern-header--scrolled .modern-top-banner {
-  max-height: 0;
-  opacity: 0;
-  padding: 0;
-}
-
-/* --- Main Header Structure --- */
-.modern-header__main {
+  z-index: 1000;
   width: 100%;
-  padding: 8px 0;
-  transition: padding 0.3s ease;
+  background-color: var(--bafna-bg);
+  box-shadow: var(--bafna-shadow);
+  transition: all 0.3s ease;
 }
 
-.modern-header--scrolled .modern-header__main {
-  padding: 4px 0;
+.bafna-site-header * {
+  box-sizing: border-box;
 }
 
-.modern-header__container {
-  max-width: 1300px;
-  width: 100%;
+.bafna-header-container {
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 30px;
 }
 
-.modern-logo {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  transition: opacity 0.2s ease;
-}
-
-.modern-logo:hover {
-  opacity: 0.85;
-}
-
-.modern-logo__img {
-  display: block;
-  width: 170px; 
-  height: auto;
-  aspect-ratio: 188 / 45;
-  object-fit: contain;
-}
-
-/* --- Search Bar --- */
-.modern-search__desktop-wrapper {
-  flex: 1;
-  max-width: 600px;
-}
-
-.modern-search {
-  position: relative;
-  width: 100%;
-}
-
-.modern-search__wrapper {
-  display: flex;
-  align-items: center;
-  background: var(--mod-bg-hover);
-  border-radius: var(--mod-radius);
-  padding: 6px 6px 6px 16px;
-  border: 1px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.modern-search:focus-within .modern-search__wrapper {
-  background: var(--mod-bg);
-  border-color: var(--mod-primary);
-  box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.15);
-}
-
-.modern-search__icon-left {
-  width: 18px;
-  height: 18px;
-  fill: var(--mod-text-light);
-  margin-right: 10px;
-}
-
-.modern-search__input {
-  flex: 1;
-  border: none;
-  background: transparent;
-  font-size: 14px;
+/* =========================================================
+   2. TOP ANNOUNCEMENT STRIP
+========================================================= */
+.bafna-top-strip {
+  background-color: var(--bafna-primary);
+  color: #ffffff;
+  font-size: 13px;
   font-weight: 500;
-  color: var(--mod-text);
-  outline: none;
-  font-family: inherit;
-}
-
-.modern-search__input::placeholder {
-  color: var(--mod-text-light);
-}
-
-.modern-search__clear-btn {
-  background: transparent;
-  border: none;
-  color: var(--mod-text-light);
-  font-size: 14px;
-  cursor: pointer;
-  padding: 0 8px;
+  height: 36px;
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.modern-search:focus-within .modern-search__clear-btn {
-  display: flex;
-}
-
-.modern-search__clear-btn:hover {
-  color: var(--mod-text);
-}
-
-.modern-search__btn {
-  background: var(--mod-primary);
-  color: white;
-  border: none;
-  padding: 8px 20px;
-  font-size: 14px;
-  font-weight: 600;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.modern-search__btn:hover {
-  background: #e04040;
-}
-
-/* --- Suggestions Dropdown --- */
-.modern-suggest {
-  position: absolute;
-  top: calc(100% + 12px);
-  left: 0;
-  right: 0;
-  background: var(--mod-bg);
-  border-radius: var(--mod-radius);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-  border: 1px solid var(--mod-border);
+  transition: height 0.3s ease, opacity 0.3s ease;
   overflow: hidden;
-  z-index: 1000;
 }
 
-/* 📁 Categories/Brands Headings */
-.modern-suggest__group-title {
-  padding: 8px 16px;
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--mod-text-light);
-  background: var(--mod-bg-hover);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  border-bottom: 1px solid var(--mod-border);
-  border-top: 1px solid var(--mod-border);
+.bafna-site-header.is-scrolled .bafna-top-strip {
+  height: 0;
+  opacity: 0;
 }
 
-.modern-suggest__group-title:first-child {
-  border-top: none;
-}
-
-.modern-suggest__loading,
-.modern-suggest__empty {
-  padding: 24px;
-  text-align: center;
-  color: var(--mod-text-light);
-  font-size: 14px;
-}
-
-.modern-suggest__list {
-  list-style: none;
-  margin: 0;
-  padding: 0 0 8px 0;
-  max-height: 400px;
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch; 
-}
-
-.modern-suggest__item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 20px;
-  cursor: pointer;
-  border-bottom: 1px dashed var(--mod-border);
-  transition: background 0.2s;
-}
-
-.modern-suggest__item:last-child {
-  border-bottom: none;
-}
-
-.modern-suggest__item:hover,
-.modern-suggest__item.is-active {
-  background: var(--mod-bg-hover);
-}
-
-.modern-suggest__thumb {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  object-fit: cover;
-  border: 1px solid var(--mod-border);
-}
-
-.modern-suggest__thumb--ph {
-  background: var(--mod-bg-hover);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 18px;
-}
-
-.modern-suggest__meta {
-  flex: 1;
-  min-width: 0;
-}
-
-.modern-suggest__name {
-  font-weight: 600;
-  color: var(--mod-text);
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.modern-suggest__sku {
-  font-size: 12px;
-  color: var(--mod-text-light);
-  margin-top: 2px;
-}
-
-.modern-suggest__price {
-  font-weight: 700;
-  color: var(--mod-secondary);
-  font-size: 15px;
-}
-
-.modern-suggest__more {
+.bafna-top-strip__inner {
+  max-width: 1440px;
   width: 100%;
-  padding: 14px;
-  background: var(--mod-bg-hover);
-  border: none;
-  border-top: 1px solid var(--mod-border);
-  font-weight: 600;
-  font-size: 14px;
-  color: var(--mod-primary);
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.modern-suggest__more:hover {
-  background: #f1f2f6;
-}
-body.dark .modern-suggest__more:hover {
-  background: #32324a;
-}
-
-/* 🌟 HIGHLIGHTING */
-.search-highlight-match {
-  font-weight: 800;
-  color: var(--mod-primary);
-}
-
-/* 🗑️ RECENT SEARCH CLEAR ALL */
-.modern-suggest__section-header {
+  margin: 0 auto;
+  padding: 0 24px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
 }
 
-.modern-suggest__clear-all {
+.bafna-top-strip a {
+  color: #fff;
+  text-decoration: none;
+}
+
+.bafna-top-strip__links {
+  display: flex;
+  gap: 16px;
+}
+
+.bafna-top-strip__links a:hover {
+  text-decoration: underline;
+}
+
+/* =========================================================
+   3. BRAND / LOGO
+========================================================= */
+.bafna-brand {
+  flex-shrink: 0;
+}
+
+.bafna-brand__img {
+  width: 180px;
+  height: auto;
+  display: block;
+}
+
+/* =========================================================
+   4. SEARCH BAR (DESKTOP)
+========================================================= */
+.bafna-search-wrap-desktop {
+  flex: 1;
+  max-width: 700px;
+  position: relative;
+}
+
+.bafna-search__wrapper {
+  display: flex;
+  align-items: center;
+  border: 2px solid var(--bafna-primary);
+  border-radius: var(--bafna-radius);
+  background: var(--bafna-bg);
+  height: 44px;
+  overflow: hidden;
+}
+
+.bafna-search__category-btn {
+  background: #f8f9fa;
+  color: var(--bafna-text);
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 600;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  cursor: default;
+}
+
+body.dark .bafna-search__category-btn { background: #2a2a2a; }
+
+.bafna-search__divider {
+  width: 1px;
+  height: 60%;
+  background: var(--bafna-border);
+}
+
+.bafna-search__input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0 16px;
+  font-size: 15px;
+  color: var(--bafna-text);
+  outline: none;
+  width: 100%;
+}
+
+.bafna-search__submit {
+  background: var(--bafna-primary);
+  border: none;
+  width: 50px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bafna-search__submit:hover {
+  background: var(--bafna-primary-hover);
+}
+
+.bafna-search__submit svg {
+  fill: #fff;
+  width: 22px;
+  height: 22px;
+}
+
+.bafna-search__clear-btn, .bafna-search__close-mob {
   background: none;
   border: none;
-  color: var(--mod-primary);
+  color: var(--bafna-text-light);
+  font-size: 16px;
+  padding: 0 12px;
+  cursor: pointer;
+}
+
+/* =========================================================
+   5. SUGGESTIONS DROPDOWN
+========================================================= */
+.bafna-suggest {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  background: var(--bafna-bg);
+  border: 1px solid var(--bafna-border);
+  border-radius: var(--bafna-radius);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  overflow: hidden;
+  z-index: 1001;
+}
+
+.bafna-suggest__group-title {
+  padding: 10px 16px;
   font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  padding: 4px 8px;
+  font-weight: bold;
+  background: var(--bafna-bg-alt);
+  color: var(--bafna-text-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-/* 🌟 MEESHO STYLE RECENT & POPULAR SEARCHES */
-.modern-suggest__empty-state {
-  padding: 16px 20px;
-}
-
-.modern-suggest__section {
-  margin-bottom: 24px;
-}
-
-.modern-suggest__section:last-child {
-  margin-bottom: 8px;
-}
-
-.modern-suggest__section-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--mod-text);
-  margin-bottom: 12px;
-  letter-spacing: 0.3px;
-}
-
-.modern-suggest__recent-list {
+.bafna-suggest__list {
   list-style: none;
-  padding: 0;
   margin: 0;
+  padding: 0;
+  max-height: 380px;
+  overflow-y: auto;
 }
 
-.modern-suggest__recent-item {
+.bafna-suggest__item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 0;
-  color: var(--mod-text-light);
-  font-size: 14px;
-  font-weight: 500;
+  padding: 10px 16px;
   cursor: pointer;
-  transition: color 0.2s ease;
-  border-bottom: 1px solid rgba(0,0,0,0.03);
+  border-bottom: 1px solid var(--bafna-border);
 }
 
-.modern-suggest__recent-item:last-child {
-  border-bottom: none;
+.bafna-suggest__item:hover, .bafna-suggest__item.is-active {
+  background: rgba(0,0,0,0.02);
 }
+body.dark .bafna-suggest__item:hover { background: rgba(255,255,255,0.05); }
 
-.modern-suggest__recent-item:hover {
-  color: var(--mod-primary);
-}
-
-.modern-suggest__history-icon {
-  width: 18px;
-  height: 18px;
-  fill: currentColor;
-  opacity: 0.7;
-}
-
-.modern-suggest__popular-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.modern-suggest__popular-pill {
-  background: transparent;
-  border: 1px solid var(--mod-border);
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--mod-text-light);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-
-.modern-suggest__popular-pill:hover {
-  border-color: var(--mod-primary);
-  color: var(--mod-primary);
-  background: rgba(255, 82, 82, 0.05);
-}
-
-/* 🌟 SKELETON LOADING */
-.modern-suggest__skeleton {
-  padding: 12px 20px;
-}
-
-.skeleton-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--mod-border);
-}
-
-.skeleton-thumb {
-  width: 48px;
-  height: 48px;
-  background: #eee;
-  border-radius: 8px;
-  animation: skeleton-pulse 1.5s infinite linear;
-}
-
-.skeleton-line {
-  height: 12px;
-  background: #eee;
+.bafna-suggest__thumb {
+  width: 44px;
+  height: 44px;
   border-radius: 4px;
-  margin-bottom: 8px;
-  animation: skeleton-pulse 1.5s infinite linear;
-}
-
-.skeleton-line--title { width: 60%; }
-.skeleton-line--subtitle { width: 30%; height: 10px; }
-
-@keyframes skeleton-pulse {
-  0% { background-color: #eee; }
-  50% { background-color: #f5f5f5; }
-  100% { background-color: #eee; }
-}
-
-body.dark .skeleton-thumb,
-body.dark .skeleton-line {
-  background: #2a2a40;
-}
-
-/* Spinner */
-.modern-spinner {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid var(--mod-border);
-  border-top-color: var(--mod-primary);
-  display: inline-block;
-  vertical-align: middle;
-  margin-right: 10px;
-  animation: modernSpin 0.8s linear infinite;
-}
-@keyframes modernSpin { to { transform: rotate(360deg); } }
-
-
-/* --- Navigation Actions --- */
-.modern-actions {
+  object-fit: cover;
+  background: var(--bafna-bg-alt);
   display: flex;
   align-items: center;
-  gap: 12px;
-}
-
-.modern-action-btn {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 6px;
-  background: transparent;
-  border: 1px solid transparent;
-  padding: 8px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  text-decoration: none;
-  color: var(--mod-text);
-  transition: all 0.2s;
-}
-
-.modern-action-btn:hover {
-  background: var(--mod-bg-hover);
-}
-
-.modern-ico {
+  justify-content: center;
   font-size: 18px;
 }
 
-.modern-btn-text {
-  font-size: 13px;
-  font-weight: 600;
+.bafna-suggest__meta { flex: 1; }
+.bafna-suggest__name { font-size: 14px; font-weight: 600; color: var(--bafna-text); }
+.bafna-suggest__sku { font-size: 11px; color: var(--bafna-text-light); margin-top: 3px; }
+.bafna-suggest__price { font-weight: bold; color: var(--bafna-primary); font-size: 14px; }
+
+.bafna-suggest__more {
+  width: 100%;
+  padding: 12px;
+  background: var(--bafna-bg-alt);
+  border: none;
+  font-weight: bold;
+  color: var(--bafna-secondary);
+  cursor: pointer;
 }
 
-.modern-theme-btn {
+.search-highlight-match { color: var(--bafna-primary); font-weight: bold; }
+
+/* Empty state / Trending */
+.bafna-suggest__empty-state { padding: 16px; }
+.bafna-suggest__section-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
+.bafna-suggest__section-title { font-weight: bold; font-size: 14px; color: var(--bafna-text); }
+.bafna-suggest__clear-all { border: none; background: none; color: var(--bafna-primary); font-size: 12px; cursor: pointer; }
+
+.bafna-suggest__recent-list { list-style: none; padding: 0; margin: 0; }
+.bafna-suggest__recent-item { padding: 8px 0; font-size: 14px; display: flex; align-items: center; gap: 8px; color: var(--bafna-text-light); cursor: pointer; }
+.bafna-suggest__recent-item:hover { color: var(--bafna-primary); }
+.bafna-suggest__history-icon { width: 16px; height: 16px; fill: currentColor; }
+
+.bafna-suggest__popular-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+.bafna-suggest__popular-pill { padding: 6px 12px; border: 1px solid var(--bafna-border); border-radius: 20px; background: transparent; color: var(--bafna-text-light); cursor: pointer; font-size: 12px; }
+.bafna-suggest__popular-pill:hover { border-color: var(--bafna-primary); color: var(--bafna-primary); }
+
+/* =========================================================
+   6. ACTIONS / NAVIGATION ITEMS
+========================================================= */
+.bafna-user-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.bafna-theme-toggle {
+  background: transparent;
+  border: 1px solid var(--bafna-border);
   padding: 8px;
   border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.2s;
 }
 
-.modern-cart-btn {
-  position: relative;
-  background: var(--mod-secondary);
-  color: white;
-  padding: 10px 20px;
-  border-radius: var(--mod-radius);
+.bafna-action-link {
   display: flex;
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  font-weight: 700;
-  font-size: 14px;
-  box-shadow: 0 4px 10px rgba(0, 184, 148, 0.2);
-  transition: all 0.2s ease;
+  color: var(--bafna-text);
 }
 
-.modern-cart-btn:hover {
-  background: #00a082;
-  box-shadow: 0 6px 14px rgba(0, 184, 148, 0.3);
-  transform: translateY(-1px);
+.bafna-action-link .icon {
+  font-size: 22px;
 }
 
-.modern-cart-btn:active {
-  transform: translateY(1px);
+.text-stack {
+  display: flex;
+  flex-direction: column;
 }
 
-.modern-cart-ico {
-  font-size: 18px;
-}
-
-.modern-cart-text {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.modern-cart-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  background: var(--mod-accent);
-  color: #2d3436;
+.text-stack .label {
   font-size: 11px;
-  font-weight: 800;
+  color: var(--bafna-text-light);
+  line-height: 1;
+  margin-bottom: 3px;
+}
+
+.text-stack .val {
+  font-size: 13px;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.bafna-cart-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--bafna-text);
+  padding: 8px 16px;
+  border-radius: var(--bafna-radius);
+  background: var(--bafna-bg-alt);
+  transition: all 0.2s;
+}
+
+.bafna-cart-link:hover {
+  background: var(--bafna-border);
+}
+
+.bafna-cart-icon-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.bafna-cart-icon-wrapper .icon {
+  font-size: 22px;
+}
+
+.cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  background: var(--bafna-accent);
+  color: #000;
+  font-size: 11px;
+  font-weight: 900;
   width: 20px;
   height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--mod-bg);
+  border: 2px solid var(--bafna-bg);
 }
 
-/* 🌟 MOBILE CLOSE BUTTON STYLES 🌟 */
-.modern-search__close-mob {
-  display: none; 
-  background: transparent;
-  border: none;
-  color: var(--mod-text-light);
-  font-size: 18px;
-  padding: 0 10px;
-  cursor: pointer;
-  align-items: center;
-  justify-content: center;
+.cart-total-text {
+  font-weight: bold;
+  font-size: 14px;
 }
 
-/* --- Mobile Styling - COMPACT DESIGN --- */
-.modern-search--mobile {
+/* =========================================================
+   7. MOBILE RESPONSIVENESS
+========================================================= */
+.bafna-search-wrap-mobile {
   display: none;
-  padding: 0 16px 8px;
-}
-
-.mobile-hide {
-  display: flex;
+  padding: 0 16px 12px;
+  background: var(--bafna-bg);
 }
 
 @media (max-width: 900px) {
-  .mobile-hide {
-    display: none;
-  }
-
-  .modern-header__container {
-    gap: 8px;
-    padding: 6px 12px;
-  }
-
-  .modern-logo__img {
-    width: 110px;
-    height: auto;
-  }
-
-  .modern-btn-text,
-  .modern-cart-text {
-    display: none;
-  }
-
-  .modern-action-btn {
-    padding: 6px;
-    min-width: 36px;
-    justify-content: center;
-  }
-
-  .modern-ico {
-    font-size: 20px;
-  }
-
-  .modern-cart-btn {
-    padding: 6px 12px;
+  .hidden-mobile { display: none !important; }
+  
+  .bafna-top-strip__inner { justify-content: center; text-align: center; }
+  
+  .bafna-header-container { gap: 10px; padding: 10px 16px; }
+  
+  .bafna-brand__img { width: 130px; }
+  
+  .bafna-search-wrap-desktop { display: none; }
+  .bafna-search-wrap-mobile { display: block; }
+  
+  .bafna-user-actions { gap: 12px; }
+  
+  .bafna-cart-link { padding: 6px; background: transparent; }
+  .bafna-cart-icon-wrapper .icon { font-size: 24px; }
+  
+  /* Mobile Search Bar Styling */
+  .bafna-search-wrap-mobile .bafna-search__wrapper {
+    height: 40px;
+    border-width: 1px;
     border-radius: 8px;
-    min-width: 44px;
-    justify-content: center;
   }
-
-  .modern-cart-ico {
-    font-size: 20px;
-  }
-
-  .modern-cart-badge {
-    top: -4px;
-    right: -2px;
-    width: 18px;
-    height: 18px;
-    font-size: 10px;
-  }
-
-  .modern-search__desktop-wrapper {
-    display: none;
-  }
-
-  .modern-search--mobile {
-    display: block;
-  }
-
-  .modern-search--mobile .modern-search__wrapper {
-    padding: 2px 4px 2px 10px;
-    min-height: 40px;
-    position: relative;
-    z-index: 1001;
-  }
-
-  .modern-search--mobile .modern-search__icon-left {
-    width: 16px;
-    height: 16px;
-    margin-right: 6px;
-  }
-
-  .modern-search--mobile .modern-search__input {
+  
+  .bafna-search-wrap-mobile .bafna-search__input {
     font-size: 14px;
-    padding: 8px 0;
+    padding: 0 12px;
   }
-
-  .modern-search--mobile .modern-search__btn {
-    padding: 6px 12px;
-    font-size: 13px;
-    min-width: 44px;
-  }
-
-  .modern-search--mobile .modern-suggest {
+  
+  .bafna-search-wrap-mobile .bafna-suggest {
     top: calc(100% + 4px);
-    border-radius: 8px;
-  }
-
-  .modern-search--mobile .modern-suggest__item {
-    padding: 8px 12px;
-    gap: 8px;
-  }
-
-  .modern-search--mobile .modern-suggest__thumb {
-    width: 36px;
-    height: 36px;
-    font-size: 14px;
-  }
-
-  .modern-search--mobile .modern-suggest__name {
-    font-size: 13px;
-  }
-
-  .modern-search--mobile .modern-suggest__sku {
-    font-size: 11px;
-  }
-
-  .modern-search--mobile .modern-suggest__price {
-    font-size: 13px;
-  }
-
-  /* 🌟 MOBILE CLOSE BUTTON FIXES */
-  .modern-search.is-mobile.is-suggestions-open .modern-search__close-mob {
-    display: flex;
-    color: var(--mod-primary); 
-  }
-
-  .modern-search.is-mobile.is-suggestions-open .modern-search__clear-btn {
-    display: none;
   }
 }
 
 @media (max-width: 480px) {
-  .modern-top-banner__inner {
-    padding: 8px 10px;
-    gap: 6px;
-  }
-  .modern-top-banner__text {
-    font-size: 11px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .modern-top-banner__icon {
-    width: 16px;
-    height: 16px;
-  }
-  .modern-top-banner__btn {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-
-  .modern-header__container {
-    padding: 4px 8px;
-  }
-
-  .modern-logo__img {
-    width: 90px;
-  }
-
-  .modern-actions {
-    gap: 4px;
-  }
-
-  .modern-action-btn {
-    padding: 4px;
-    min-width: 32px;
-  }
-
-  .modern-ico {
-    font-size: 18px;
-  }
-
-  .modern-cart-btn {
-    padding: 4px 8px;
-    min-width: 36px;
-  }
-
-  .modern-cart-ico {
-    font-size: 18px;
-  }
-
-  .modern-cart-badge {
-    width: 16px;
-    height: 16px;
-    font-size: 9px;
-    top: -3px;
-    right: -2px;
-  }
-
-  .modern-search--mobile {
-    padding: 0 8px 6px;
-  }
-
-  .modern-search--mobile .modern-search__wrapper {
-    padding: 0 4px 0 8px;
-    min-height: 36px;
-  }
-
-  .modern-search--mobile .modern-search__icon-left {
-    width: 14px;
-    height: 14px;
-  }
-
-  .modern-search--mobile .modern-search__input {
-    font-size: 13px;
-    padding: 6px 0;
-  }
-
-  .modern-search--mobile .modern-search__btn {
-    padding: 5px 8px;
-    font-size: 12px;
-    min-width: 40px;
-  }
+  .bafna-brand__img { width: 110px; }
+  .bafna-top-strip { font-size: 11px; }
 }
 
-/* ✅ THE FIX FOR RIGHT SIDE CROP ✅ */
-.bk-header-container {
-  width: 100% !important;
-  max-width: 100% !important; /* 'none' se hatakar 100% kar diya */
-  margin: 0 auto !important;
-  padding: 10px 24px !important;
-  box-sizing: border-box !important; /* 🔥 Ye code screen ke bahar nikalne se rokega */
-}
+/* Skeleton loader animations */
+.bafna-suggest__skeleton { padding: 16px; }
+.skeleton-item { display: flex; gap: 12px; margin-bottom: 12px; }
+.skeleton-thumb { width: 44px; height: 44px; background: #eee; border-radius: 4px; animation: pulse 1.5s infinite; }
+.skeleton-meta { flex: 1; }
+.skeleton-line { height: 10px; background: #eee; border-radius: 4px; margin-bottom: 8px; animation: pulse 1.5s infinite; }
+.skeleton-line--title { width: 70%; }
+.skeleton-line--subtitle { width: 40%; }
+@keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
+body.dark .skeleton-thumb, body.dark .skeleton-line { background: #333; }
