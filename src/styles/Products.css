@@ -9,7 +9,8 @@
   position: relative;
   padding: 12px 0;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-  z-index: 1000;
+  /* ✅ FIX: z-index 1000 se hata kar 10 kar diya taaki dropdown upar aa sake */
+  z-index: 10; 
 }
 
 .fw-marquee-container::before {
