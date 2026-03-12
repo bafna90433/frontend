@@ -29,7 +29,7 @@ interface Product {
   packSize?: string;
   stock?: number;
   rating?: number;
-  reviews?: number;
+  reviews?: number; // Total number of reviews
   featured?: boolean;
   sale_end_time?: string;
 }
@@ -178,7 +178,9 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
     return 0;
   }, [deal, product.mrp, finalPrice]);
 
-  const rating = useMemo(() => safeNum(product.rating, 4.5), [product.rating]);
+  // Handle rating & reviews
+  const rating = useMemo(() => safeNum(product.rating, 0), [product.rating]);
+  const totalReviews = useMemo(() => safeNum(product.reviews, 0), [product.reviews]);
 
   const imgSrc = useMemo(
     () => getOptimizedImageUrl(product.images?.[0], IMG_W, IMG_H),
@@ -261,7 +263,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
             />
           </div>
 
-          {/* ✅ NAYA CODE: Circular MRP Badge (Product Details Style) */}
           {product.mrp && product.mrp > finalPrice && (
             <div className="pc-mrp-circle">
               <span className="pc-mrp-text">MRP</span>
@@ -304,6 +305,19 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
 
           <h3 className="pc-title">{product.name}</h3>
 
+          {/* ✅ NEW: Professional Amazon/Flipkart Style Rating Section */}
+          {(rating > 0 || totalReviews > 0) && (
+            <div className="pc-rating-container">
+              <div className="pc-rating-badge">
+                {rating > 0 ? rating.toFixed(1) : "New"} 
+                <Star size={10} fill="currentColor" strokeWidth={0} />
+              </div>
+              <span className="pc-review-count">
+                ({totalReviews} {totalReviews === 1 ? 'Review' : 'Reviews'})
+              </span>
+            </div>
+          )}
+
           <div className="pc-meta-chips">
             {product.tagline && (
               <span className="pc-chip pc-chip--tag">
@@ -315,12 +329,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(({
               <span className="pc-chip pc-chip--box">
                 <Box size={10} strokeWidth={2.5} />
                 {product.packSize}
-              </span>
-            )}
-            {(product.rating || product.reviews) && (
-              <span className="pc-chip pc-chip--rating">
-                <Star size={10} fill="#FBC02D" stroke="none" />
-                {rating.toFixed(1)}
               </span>
             )}
           </div>
