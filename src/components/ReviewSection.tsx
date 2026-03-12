@@ -9,7 +9,7 @@ import {
   FiX,
   FiThumbsUp,
   FiEdit2,
-  FiChevronDown
+  FiChevronRight // ✅ Added for Sidebar Arrow
 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import "../styles/ReviewSection.css";
@@ -43,6 +43,9 @@ const ReviewSection = ({ productId }: { productId: string }) => {
 
   const [filterStars, setFilterStars] = useState<number | null>(null);
   const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
+  
+  // ✅ STATE: For handling Meesho style Sidebar
+  const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
     checkUserLogin();
@@ -52,6 +55,22 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     fetchReviews();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  // ✅ Block body scroll when sidebar is open
+  useEffect(() => {
+    if (showAllReviews) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "auto";
+    }
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, [showAllReviews]);
+
+  useEffect(() => {
+    setShowAllReviews(false);
+  }, [filterStars]);
 
   const checkUserLogin = () => {
     const rawData = localStorage.getItem("userInfo") || localStorage.getItem("user");
@@ -102,6 +121,9 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     return reviews.filter((r) => Math.floor(r.rating) === filterStars);
   }, [reviews, filterStars]);
 
+  // ✅ Main page always shows only top 3 reviews
+  const displayedReviews = filteredReviews.slice(0, 3);
+
   const getRatingStatus = (rating: number) => {
     if (rating >= 4) return { text: "Highly Satisfied", tone: "good", tags: positiveTags };
     if (rating === 3) return { text: "Satisfactory", tone: "mid", tags: [...positiveTags.slice(0, 2), ...negativeTags.slice(0, 2)] };
@@ -133,10 +155,9 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     }
   };
 
-  // Helper formatting functions
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Recently";
-    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'long', day: 'numeric' };
+    const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
     return new Date(dateString).toLocaleDateString('en-IN', options);
   };
 
@@ -201,6 +222,39 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     );
   };
 
+  // Helper to render a single review card (reused in main page and sidebar)
+  const renderReviewCard = (r: Review, isSidebar = false) => (
+    <div key={r._id} className={`kt-card ${isSidebar ? "sidebar-card" : ""}`}>
+      <div className="kt-user">
+        <div className="kt-avatar">{getInitials(r.shopName)}</div>
+        <div className="kt-user__info">
+          <div className="kt-user__name">{r.shopName}</div>
+          <div className="kt-user__badge">
+            <FiCheckCircle className="badge-icon"/> Verified Retailer
+          </div>
+        </div>
+      </div>
+
+      <div className="kt-review-meta">
+        <div className="kt-rating">
+          {[...Array(5)].map((_, i) => (
+            <FiStar key={i} className={i < r.rating ? "on fill-star" : "off"} />
+          ))}
+        </div>
+        <span className="kt-date">Posted on {formatDate(r.createdAt)}</span>
+      </div>
+
+      <p className="kt-card__text">{r.comment}</p>
+
+      <div className="kt-card__actions">
+        <span className="helpful-text">Was this review helpful?</span>
+        <button className="kt-helpful-btn" onClick={() => Swal.fire({title: 'Thank you for your feedback.', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false})}>
+          <FiThumbsUp /> Helpful
+        </button>
+      </div>
+    </div>
+  );
+
   return (
     <section className="kt-review-wrap">
       
@@ -247,7 +301,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
             </div>
           </div>
 
-          {/* Desktop Composer attached below summary */}
           <div className="kt-side">
             {isLoggedIn ? (
               <Composer variant="desktop" />
@@ -284,47 +337,43 @@ const ReviewSection = ({ productId }: { productId: string }) => {
               <p>Be the first to review this product.</p>
             </div>
           ) : (
-            <div className="kt-cards">
-              {filteredReviews.map((r) => (
-                <div key={r._id} className="kt-card">
-                  
-                  {/* Reviewer Profile */}
-                  <div className="kt-user">
-                    <div className="kt-avatar">{getInitials(r.shopName)}</div>
-                    <div className="kt-user__info">
-                      <div className="kt-user__name">{r.shopName}</div>
-                      <div className="kt-user__badge">
-                        <FiCheckCircle className="badge-icon"/> Verified Retailer
-                      </div>
-                    </div>
-                  </div>
+            <div className="kt-cards-wrapper">
+              <div className="kt-cards">
+                {displayedReviews.map((r) => renderReviewCard(r, false))}
+              </div>
 
-                  {/* Rating & Date */}
-                  <div className="kt-review-meta">
-                    <div className="kt-rating">
-                      {[...Array(5)].map((_, i) => (
-                        <FiStar key={i} className={i < r.rating ? "on fill-star" : "off"} />
-                      ))}
-                    </div>
-                    <span className="kt-date">Reviewed on {formatDate(r.createdAt)}</span>
-                  </div>
-
-                  {/* Comment */}
-                  <p className="kt-card__text">{r.comment}</p>
-
-                  {/* Authentic Action */}
-                  <div className="kt-card__actions">
-                    <span className="helpful-text">Was this review helpful?</span>
-                    <button className="kt-helpful-btn" onClick={() => Swal.fire({title: 'Thank you for your feedback.', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false})}>
-                      <FiThumbsUp /> Helpful
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {/* ✅ VIEW ALL BUTTON */}
+              {filteredReviews.length > 3 && (
+                <button 
+                  className="kt-view-all-btn" 
+                  onClick={() => setShowAllReviews(true)}
+                >
+                  View All {filteredReviews.length} Reviews <FiChevronRight size={18} />
+                </button>
+              )}
             </div>
           )}
         </div>
       </div>
+
+      {/* ✅ MEESHO STYLE SIDEBAR FOR ALL REVIEWS */}
+      {showAllReviews && (
+        <div className="kt-sidebar-overlay" onClick={() => setShowAllReviews(false)}>
+          <div className="kt-sidebar-panel" onClick={(e) => e.stopPropagation()}>
+            <div className="kt-sidebar-header">
+              <h3>All Reviews ({filteredReviews.length})</h3>
+              <button className="kt-sidebar-close" onClick={() => setShowAllReviews(false)}>
+                <FiX size={24} />
+              </button>
+            </div>
+            <div className="kt-sidebar-body">
+              <div className="kt-cards">
+                {filteredReviews.map((r) => renderReviewCard(r, true))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mobile: floating action button */}
       {isLoggedIn && (

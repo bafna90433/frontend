@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate, Link } from "react-router-dom"; // ✅ Link added for Footer
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import "../styles/Products.css"; // Make sure this path is correct
+import "../styles/Products.css"; 
 import CategorySEO from "./CategorySEO";
 import FloatingCheckoutButton from "./FloatingCheckoutButton";
 import { X, ChevronRight, ChevronLeft, LayoutGrid, SlidersHorizontal } from "lucide-react";
@@ -115,18 +115,18 @@ const Products: React.FC = () => {
   const searchTerm = params.get("search") || params.get("q") || "";
 
   // Marquee items data
-const marqueeItems = [
-  { icon: "📦", text: "Small MOQ Ordering" },
-  { icon: "🧸", text: "400+ Toy Products" },
-  { icon: "🚚", text: "All-India Door Delivery" },
-  { icon: "💵", text: "Higher Retail Margins" },
-  { icon: "🏭", text: "Factory Direct Supply" },
-  { icon: "📊", text: "Fast Moving Toys" },
-  { icon: "🎁", text: "Attractive Packaging" },
-  { icon: "🧾", text: "Easy Ordering for Retailers" },
-  { icon: "🔁", text: "Regular New Toy Launches" },
-  { icon: "🏷️", text: "Beat E-Commerce Prices" }
-];
+  const marqueeItems = [
+    { icon: "📦", text: "Small MOQ Ordering" },
+    { icon: "🧸", text: "400+ Toy Products" },
+    { icon: "🚚", text: "All-India Door Delivery" },
+    { icon: "💵", text: "Higher Retail Margins" },
+    { icon: "🏭", text: "Factory Direct Supply" },
+    { icon: "📊", text: "Fast Moving Toys" },
+    { icon: "🎁", text: "Attractive Packaging" },
+    { icon: "🧾", text: "Easy Ordering for Retailers" },
+    { icon: "🔁", text: "Regular New Toy Launches" },
+    { icon: "🏷️", text: "Beat E-Commerce Prices" }
+  ];
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -670,6 +670,50 @@ const marqueeItems = [
           )}
         </main>
       </div>
+
+      {/* ✅ DARK FOOTER FROM HOMEPAGE SCREENSHOT */}
+      {!loading && (
+        <footer className="fw-global-footer">
+          <div className="fw-footer-content">
+            
+            <div className="fw-footer-brand">
+              <div className="fw-brand-logo">
+                <span className="fw-bear-icon">🧸</span> BafnaToys
+              </div>
+              <p className="fw-brand-desc">
+                Inspiring imagination through play. The cutest toys, best deals, delivered safely and fast.
+              </p>
+            </div>
+
+            <div className="fw-footer-links">
+              <h4>Quick Links</h4>
+              <ul>
+                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
+                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
+                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
+                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
+              </ul>
+            </div>
+
+            <div className="fw-footer-social">
+              <h4>Connect With Us</h4>
+              <div className="fw-social-buttons">
+                <a href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-insta">
+                  Instagram
+                </a>
+                <a href="https://www.youtube.com/@BafnaToys" target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-yt">
+                  YouTube
+                </a>
+              </div>
+            </div>
+
+          </div>
+
+          <div className="fw-footer-bottom">
+            <p>© {new Date().getFullYear()} BafnaToys. Filled with joy & play. All rights reserved.</p>
+          </div>
+        </footer>
+      )}
 
       <FloatingCheckoutButton />
     </div>

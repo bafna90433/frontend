@@ -382,3 +382,147 @@
 }
 .kt-empty h5 { font-size: 18px; margin: 0 0 8px 0; color: #111827; }
 .kt-empty p { font-size: 15px; color: #6b7280; margin: 0; }
+/* =========================================
+   VIEW ALL BUTTON STYLES
+========================================= */
+.kt-view-all-btn {
+  width: 100%;
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #111827;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 14px;
+  border-radius: 8px;
+  margin-top: 24px;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.2s ease;
+}
+
+.kt-view-all-btn:hover {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.kt-cards-wrapper {
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================
+   MEESHO STYLE SIDEBAR FOR REVIEWS
+========================================= */
+.kt-sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+  animation: fadeInOverlay 0.3s ease forwards;
+  backdrop-filter: blur(2px);
+}
+
+.kt-sidebar-panel {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  box-shadow: -5px 0 30px rgba(0,0,0,0.15);
+}
+
+.kt-sidebar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 20px;
+  border-bottom: 1px solid #e5e7eb;
+  background: #ffffff;
+  z-index: 10;
+}
+
+.kt-sidebar-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kt-sidebar-close {
+  background: #f3f4f6;
+  border: none;
+  color: #4b5563;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.kt-sidebar-close:hover {
+  background: #e5e7eb;
+  color: #111827;
+}
+
+.kt-sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 20px;
+  background: #f9fafb;
+}
+
+.sidebar-card {
+  background: #ffffff;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+  padding: 20px;
+}
+.sidebar-card:last-child {
+  border-bottom: 1px solid #e5e7eb; /* overriding previous last-child rule */
+}
+
+/* Animations */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Scrollbar styling for sidebar */
+.kt-sidebar-body::-webkit-scrollbar {
+  width: 6px;
+}
+.kt-sidebar-body::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+.kt-sidebar-body::-webkit-scrollbar-thumb {
+  background: #cbd5e1; 
+  border-radius: 10px;
+}
+.kt-sidebar-body::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af; 
+}
+
+/* Mobile Adjustments for Sidebar */
+@media (max-width: 600px) {
+  .kt-sidebar-panel {
+    max-width: 100vw;
+  }
+}
