@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom"; // ✅ Added Link
+import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
 import {
@@ -269,6 +269,7 @@ const ProductDetails: React.FC = () => {
     discountPercent,
     hasDiscount,
     imageUrl,
+    thumbnails,
   } = useMemo(() => {
     if (!product) {
       return {
@@ -298,6 +299,8 @@ const ProductDetails: React.FC = () => {
     const images = product.images?.length ? product.images : [product.image].filter(Boolean);
     const baseImage = images[selectedImage] || "";
     const imageUrl = getImageUrl(baseImage, 800);
+    
+    const thumbnails = images.map(img => getImageUrl(img, 150));
 
     return {
       itemCount,
@@ -306,6 +309,7 @@ const ProductDetails: React.FC = () => {
       discountPercent,
       hasDiscount,
       imageUrl,
+      thumbnails,
     };
   }, [product, cartItems, selectedImage]);
 
@@ -504,14 +508,15 @@ const ProductDetails: React.FC = () => {
                 </span>
               )}
 
-              {/* Enhanced Professional Rating */}
-              <span className="pd-chip pd-chip--rating" style={{ background: (product.rating || 0) > 0 ? '#16a34a' : '#f59e0b', color: '#fff', borderColor: 'transparent', fontWeight: 'bold' }}>
-                <FiStar fill="#fff" stroke="none" />
-                <span>{product.rating && product.rating > 0 ? product.rating.toFixed(1) : "New"}</span>
-                {product.reviews && product.reviews > 0 && (
-                  <span className="pd-review-count" style={{ color: 'rgba(255,255,255,0.9)', marginLeft: '4px', fontSize: '11px', fontWeight: '500' }}>({product.reviews})</span>
-                )}
-              </span>
+              {(product.rating || product.reviews) && (
+                <span className="pd-chip pd-chip--rating">
+                  <FiStar fill="#FBC02D" stroke="none" />
+                  <strong>{product.rating || 4.5}</strong>
+                  {product.reviews && (
+                    <span className="pd-review-count">({product.reviews})</span>
+                  )}
+                </span>
+              )}
 
               {product.tagline && (
                 <span className="pd-chip pd-chip--tag">
@@ -660,7 +665,7 @@ const ProductDetails: React.FC = () => {
         <ReviewSection productId={product._id} />
       </div>
 
-      {/* Related Products */}
+      {/* Related Products - Grid Layout (No Horizontal Scroll) */}
       {product.relatedProducts && product.relatedProducts.length > 0 && (
         <div className="pd-related-section">
           <h3 className="pd-section-title">You May Also Like</h3>
@@ -683,48 +688,6 @@ const ProductDetails: React.FC = () => {
           </div>
         </div>
       )}
-
-      {/* ✅ DARK FOOTER FROM HOMEPAGE (ADDED) */}
-      <footer className="fw-global-footer">
-        <div className="fw-footer-content">
-          
-          <div className="fw-footer-brand">
-            <div className="fw-brand-logo">
-              <span className="fw-bear-icon">🧸</span> BafnaToys
-            </div>
-            <p className="fw-brand-desc">
-              Inspiring imagination through play. The cutest toys, best deals, delivered safely and fast.
-            </p>
-          </div>
-
-          <div className="fw-footer-links">
-            <h4>Quick Links</h4>
-            <ul>
-              <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-              <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-              <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-              <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
-            </ul>
-          </div>
-
-          <div className="fw-footer-social">
-            <h4>Connect With Us</h4>
-            <div className="fw-social-buttons">
-              <a href="https://www.instagram.com/bafna_toys/" target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-insta">
-                Instagram
-              </a>
-              <a href="https://www.youtube.com/@BafnaToys" target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-yt">
-                YouTube
-              </a>
-            </div>
-          </div>
-
-        </div>
-
-        <div className="fw-footer-bottom">
-          <p>© {new Date().getFullYear()} BafnaToys. Filled with joy & play. All rights reserved.</p>
-        </div>
-      </footer>
 
       <FloatingCheckoutButton />
     </>
