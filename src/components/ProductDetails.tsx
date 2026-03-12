@@ -89,7 +89,6 @@ const ProductDetails: React.FC = () => {
   const handleTouchMove = (e: React.TouchEvent) => {
     touchEndX.current = e.touches[0].clientX;
     
-    // Optional: Add visual feedback during swipe
     const container = imageContainerRef.current;
     if (container && product?.images && product.images.length > 1) {
       const diffX = touchStartX.current - e.touches[0].clientX;
@@ -112,12 +111,10 @@ const ProductDetails: React.FC = () => {
 
     if (Math.abs(diffX) > minSwipeDistance) {
       if (diffX > 0) {
-        // Swipe left - next image
         setSelectedImage((prev) => 
           prev === product.images!.length - 1 ? 0 : prev + 1
         );
       } else {
-        // Swipe right - previous image
         setSelectedImage((prev) => 
           prev === 0 ? product.images!.length - 1 : prev - 1
         );
@@ -335,7 +332,6 @@ const ProductDetails: React.FC = () => {
     setSelectedImage(index);
     setImgLoaded(false);
     
-    // Smooth scroll thumbnail into view
     if (thumbnailRef.current) {
       const thumbElement = thumbnailRef.current.children[index] as HTMLElement;
       if (thumbElement) {
@@ -573,8 +569,6 @@ const ProductDetails: React.FC = () => {
               <FiInfo size={12} />
               <span>Minimum Order: <strong>{minQty} units</strong></span>
             </div>
-
-            {/* BULK PRICING SECTION REMOVED */}
           </div>
 
           {/* Action Buttons */}
@@ -671,13 +665,13 @@ const ProductDetails: React.FC = () => {
         <ReviewSection productId={product._id} />
       </div>
 
-      {/* Related Products */}
+      {/* Related Products - Grid Layout (No Horizontal Scroll) */}
       {product.relatedProducts && product.relatedProducts.length > 0 && (
         <div className="pd-related-section">
           <h3 className="pd-section-title">You May Also Like</h3>
-          <div className="pd-related-scroll">
+          <div className="related-products-grid">
             {product.relatedProducts.map((rel, i) => (
-              <div key={rel._id} className="pd-related-item">
+              <div key={rel._id} className="related-product-item">
                 <ProductCard product={rel} userRole="customer" index={i + 4} />
               </div>
             ))}
