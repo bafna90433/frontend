@@ -3,7 +3,8 @@ html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: hidden;
+  /* overflow-x: hidden;  ❌ ISKO HATA DIYA HAI KYUNKI YE STICKY KO ROKTA HAI */
+  overflow-x: clip !important; /* ✅ ISKO USE KAREIN - Ye scroll bhi rokega aur Sticky ko bhi allow karega */
 }
 
 #root {
@@ -11,6 +12,7 @@ html, body {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
+  overflow: visible !important; /* ✅ Zaroori hai taaki sticky kaam kare */
 }
 
 /* Agar kisi CSS ne body ko center kar diya ho */

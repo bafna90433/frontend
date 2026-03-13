@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom"; // ✅ Link added for Footer
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
@@ -97,6 +97,9 @@ const Products: React.FC = () => {
   
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   
+  // Trust settings state
+  const [trustData, setTrustData] = useState<any>(null);
+
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -162,6 +165,12 @@ const Products: React.FC = () => {
         setActiveDeals(mappedDeals);
       })
       .catch((err) => console.error("Failed to load deals", err));
+
+    // Fetch Trust Settings
+    api
+      .get("/trust-settings")
+      .then((res) => setTrustData(res.data))
+      .catch((err) => console.error("Failed to load trust settings", err));
   }, []);
 
   useEffect(() => {
@@ -355,7 +364,6 @@ const Products: React.FC = () => {
               <span className="fw-marquee-separator">•</span>
             </React.Fragment>
           ))}
-          {/* Duplicate items for seamless loop */}
           {marqueeItems.map((item, index) => (
             <React.Fragment key={`dup-${index}`}>
               <span className="fw-marquee-item">
@@ -458,7 +466,6 @@ const Products: React.FC = () => {
         <main className="fw-main-content">
           {/* ================= B2B PREMIUM GOLD BANNER ================= */}
           <div className="fw-premium-b2b-banner">
-            {/* Left Text Section */}
             <div className="fw-b2b-left-content">
               <h2 className="fw-b2b-heading">DIRECT FROM MANUFACTURER</h2>
               <h3 className="fw-b2b-subheading">BULK B2B ORDERS ONLY</h3>
@@ -466,7 +473,6 @@ const Products: React.FC = () => {
               <p className="fw-b2b-delivery">🚚 Free Door Delivery on Orders Above ₹5000</p>
             </div>
 
-            {/* Right Gold Ribbon Section */}
             <div className="fw-b2b-right-ribbon">
               <div className="fw-ribbon-text-top"></div>
               
@@ -668,8 +674,137 @@ const Products: React.FC = () => {
               )}
             </>
           )}
+
+          {/* ================= TRUST & FACTORY SECTION (NEW DESIGN) ================= */}
+          {!loading && trustData && (
+            <div className="fw-trust-factory-wrapper">
+              
+              {/* Card 1: Trust Badges */}
+              <div className="fw-tf-card fw-tf-badges-card">
+                <div className="fw-tf-header">
+                  <span className="fw-tf-line"></span>
+                  <h3>Why Retailers Trust Us</h3>
+                  <span className="fw-tf-line"></span>
+                </div>
+                
+                <div className="fw-badges-grid">
+                  {trustData.badge1 && <img src={optimizeCloudinary(trustData.badge1, 150, 150)} alt="Badge 1" className="fw-badge-img" />}
+                  {trustData.badge2 && <img src={optimizeCloudinary(trustData.badge2, 150, 150)} alt="Badge 2" className="fw-badge-img" />}
+                  {trustData.badge3 && <img src={optimizeCloudinary(trustData.badge3, 150, 150)} alt="Badge 3" className="fw-badge-img" />}
+                  {trustData.badge4 && <img src={optimizeCloudinary(trustData.badge4, 150, 150)} alt="Badge 4" className="fw-badge-img" />}
+                </div>
+              </div>
+
+              {/* Card 2: Starter Box & Factory Images */}
+              <div className="fw-tf-card fw-tf-tour-card">
+                
+                {/* Left Side: Starter Retail Box */}
+                <div className="fw-tf-starter-col">
+                  <h3 className="fw-starter-title">Starter Retail Box</h3>
+                  <ul className="fw-starter-list">
+                    <li>50 Mixed Toys</li>
+                    <li>Best Selling Items</li>
+                    <li>Special Wholesale Price</li>
+                  </ul>
+                  <button className="fw-order-now-btn" onClick={() => navigate('/products')}>
+                    Order Now <ChevronRight size={14} />
+                  </button>
+                  
+                  {/* Container for the uploaded 3D Box image */}
+                  <div className="fw-starter-img-container">
+                    {trustData.starterBoxImage ? (
+                      <img src={optimizeCloudinary(trustData.starterBoxImage, 300, 200)} alt="Starter Box" className="fw-starter-box-img" />
+                    ) : (
+                      <div className="fw-starter-box-placeholder">📦</div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Right Side: Factory Images */}
+                <div className="fw-tf-factory-col">
+                  <div className="fw-tf-header">
+                    <span className="fw-tf-line"></span>
+                    <h3>Inside Bafna Toys Factory</h3>
+                    <span className="fw-tf-line"></span>
+                  </div>
+                  
+                  <div className="fw-factory-grid">
+                    <div className="fw-factory-item">
+                      <img src={optimizeCloudinary(trustData.manufacturingUnit, 300, 250)} alt="Manufacturing Unit" />
+                      <div className="fw-factory-label">Manufacturing Unit</div>
+                    </div>
+                    
+                    <div className="fw-factory-item">
+                      <img src={optimizeCloudinary(trustData.packingDispatch, 300, 250)} alt="Packing & Dispatch" />
+                      <div className="fw-factory-label">Packing & Dispatch</div>
+                    </div>
+                    
+                    <div className="fw-factory-item">
+                      <img src={optimizeCloudinary(trustData.warehouseStorage, 300, 250)} alt="Warehouse Storage" />
+                      <div className="fw-factory-label">Warehouse Storage</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+             {/* Card 3: Bottom Banner */}
+              <div className="fw-tf-card fw-tf-bottom-card">
+                <h4 className="fw-bis-cert-title">
+                  All Toys BIS Certified
+                </h4>
+                
+                <div className="fw-payment-pill">
+                  COD | GST Invoicing Available <ChevronRight size={16} />
+                </div>
+
+                {trustData.factoryImage && (
+                  <img src={optimizeCloudinary(trustData.factoryImage, 900, 300)} alt="Factory Banner" className="fw-factory-bottom-img" />
+                )}
+              </div>
+
+            </div>
+          )}
+          {/* ================= END TRUST & FACTORY SECTION ================= */}
+
         </main>
-      </div>
+      </div> {/* <-- Yahan main container close ho gaya */}
+
+      {/* ======================================================== */}
+      {/* NAYA FULL-WIDTH FACTORY SLIDER (FOOTER KE THEEK UPAR)    */}
+      {/* ======================================================== */}
+      {!loading && trustData && trustData.factorySliderImages && trustData.factorySliderImages.length > 0 && (
+        <div className="fw-fullwidth-slider-section">
+          
+          <div className="fw-slider-header-container">
+            <div className="fw-tf-header" style={{ marginBottom: '10px' }}>
+              <span className="fw-tf-line"></span>
+              <h3 style={{ fontSize: '24px', color: '#1e3a8a' }}>Coimbatore Factory: Live Facility Feed</h3>
+              <span className="fw-tf-line"></span>
+            </div>
+            <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '30px', fontWeight: '500' }}>
+              Explore our state-of-the-art production lines, storage, and specialized machinery.
+            </p>
+          </div>
+          
+          <div className="fw-factory-slider-wrapper">
+            <div className="fw-factory-slider-track">
+              {/* Original Images */}
+              {trustData.factorySliderImages.map((imgUrl: string, index: number) => (
+                <div className="fw-slider-img-container" key={`orig-${index}`}>
+                  <img src={optimizeCloudinary(imgUrl, 400, 300)} alt={`Factory Feed ${index}`} />
+                </div>
+              ))}
+              {/* Duplicate Images for Seamless Infinite Loop */}
+              {trustData.factorySliderImages.map((imgUrl: string, index: number) => (
+                <div className="fw-slider-img-container" key={`dup-${index}`}>
+                  <img src={optimizeCloudinary(imgUrl, 400, 300)} alt={`Factory Feed Dup ${index}`} />
+                </div>
+              ))}
+            </div>
+          </div>
+          
+        </div>
+      )}
 
       {/* ✅ DARK FOOTER FROM HOMEPAGE SCREENSHOT */}
       {!loading && (
@@ -683,6 +818,14 @@ const Products: React.FC = () => {
               <p className="fw-brand-desc">
                 Inspiring imagination through play. The cutest toys, best deals, delivered safely and fast.
               </p>
+              
+              {/* GST Number in Footer */}
+              <div style={{ marginTop: '12px', padding: '8px 12px', background: '#1f2937', borderRadius: '6px', display: 'inline-block', border: '1px solid #374151' }}>
+                <span style={{ color: '#9ca3af', fontSize: '12px', display: 'block' }}>Registered Business</span>
+                <span style={{ color: '#ff2a75', fontWeight: 'bold', fontSize: '14px', letterSpacing: '0.5px' }}>
+                  GSTIN: 33ANCPH3967L1ZT 
+                </span>
+              </div>
             </div>
 
             <div className="fw-footer-links">

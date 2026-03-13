@@ -23,16 +23,18 @@ body.dark {
 }
 
 /* =========================================================
-   1. CORE HEADER STRUCTURE
+   1. CORE HEADER STRUCTURE (✅ STICKY FIX)
 ========================================================= */
 .bafna-site-header {
+  position: -webkit-sticky; /* ✅ Required for iOS Safari */
   position: sticky;
   top: 0;
-  z-index: 1000;
+  z-index: 9999; /* ✅ Increased z-index */
   width: 100%;
   background-color: var(--bafna-bg);
   box-shadow: var(--bafna-shadow);
   transition: all 0.3s ease;
+  align-self: flex-start; /* ✅ Helps if parent is flexbox */
 }
 
 .bafna-site-header * {
@@ -60,13 +62,15 @@ body.dark {
   height: 36px;
   display: flex;
   align-items: center;
-  transition: height 0.3s ease, opacity 0.3s ease;
+  transition: height 0.3s ease, opacity 0.3s ease, padding 0.3s ease;
   overflow: hidden;
 }
 
 .bafna-site-header.is-scrolled .bafna-top-strip {
   height: 0;
   opacity: 0;
+  padding: 0; /* ✅ Added to ensure perfect collapse */
+  border: none;
 }
 
 .bafna-top-strip__inner {
@@ -264,7 +268,6 @@ body.dark .bafna-suggest__item:hover { background: rgba(255,255,255,0.05); }
 
 .search-highlight-match { color: var(--bafna-primary); font-weight: bold; }
 
-/* Empty state / Trending */
 .bafna-suggest__empty-state { padding: 16px; }
 .bafna-suggest__section-header { display: flex; justify-content: space-between; margin-bottom: 10px; }
 .bafna-suggest__section-title { font-weight: bold; font-size: 14px; color: var(--bafna-text); }
@@ -385,6 +388,14 @@ body.dark .bafna-suggest__item:hover { background: rgba(255,255,255,0.05); }
 }
 
 @media (max-width: 900px) {
+  /* ✅ FORCE STICKY ON MOBILE */
+  .bafna-site-header {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 9999 !important;
+  }
+
   .hidden-mobile { display: none !important; }
   
   .bafna-top-strip__inner { justify-content: center; text-align: center; }
@@ -401,7 +412,6 @@ body.dark .bafna-suggest__item:hover { background: rgba(255,255,255,0.05); }
   .bafna-cart-link { padding: 6px; background: transparent; }
   .bafna-cart-icon-wrapper .icon { font-size: 24px; }
   
-  /* Mobile Search Bar Styling */
   .bafna-search-wrap-mobile .bafna-search__wrapper {
     height: 40px;
     border-width: 1px;
