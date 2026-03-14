@@ -1,4 +1,8 @@
 /* =========================================
+   CSS SECTION
+========================================= */
+
+/* =========================================
    PROFESSIONAL MARQUEE BANNER
 ========================================= */
 .fw-marquee-container {
@@ -407,16 +411,31 @@
   .fw-ribbon-text-bottom { font-size: 12px; margin-top: 4px; }
 }
 
+/* =========================================
+   ✅ MOBILE VIEW REDUCTIONS (@media 480px)
+========================================= */
 @media (max-width: 480px) {
-  .fw-b2b-heading { font-size: 18px; }
-  .fw-b2b-subheading { font-size: 14px; }
-  .fw-b2b-desc { font-size: 10px; }
-  .fw-b2b-delivery { font-size: 12px; margin-top: 6px; } 
-  .fw-offer-number { font-size: 38px; }
-  .fw-offer-text-stacked { font-size: 12px; }
-  .fw-b2b-right-ribbon { padding: 12px; }
-  .fw-ribbon-text-top { font-size: 10px; }
-  .fw-ribbon-text-bottom { font-size: 10px; }
+  .fw-premium-b2b-banner { margin-bottom: 12px; border-radius: 8px; }
+  .fw-b2b-left-content { padding: 12px 10px; gap: 2px; }
+  .fw-b2b-heading { font-size: 15px; }
+  .fw-b2b-subheading { font-size: 12px; }
+  .fw-b2b-desc { font-size: 9px; margin-top: 0; }
+  .fw-b2b-delivery { font-size: 10px; margin-top: 4px; }
+  
+  .fw-b2b-right-ribbon { padding: 8px 10px; border-radius: 0 0 8px 8px; }
+  .fw-offer-number { font-size: 28px; }
+  .fw-offer-text-stacked { font-size: 9px; line-height: 1; }
+  .fw-ribbon-text-top { font-size: 8px; margin-bottom: 0px; }
+  .fw-ribbon-text-bottom { font-size: 8px; margin-top: 2px; }
+  
+  .fw-products-grid { gap: 8px !important; }
+  .category-item { width: 85px; }
+  .category-circle-wrapper { width: 72px; height: 72px; }
+  .fw-page-title { font-size: 14px !important; }
+  
+  .fw-marquee-item { padding: 0 8px; font-size: 12px; }
+  .fw-marquee-icon { font-size: 14px; }
+  .fw-marquee-separator { font-size: 14px; margin: 0 2px; }
 }
 
 /* =========================================
@@ -529,17 +548,6 @@
   .fw-marquee-item { padding: 0 12px; font-size: 13px; gap: 5px; }
   .fw-marquee-icon { font-size: 16px; }
   .fw-marquee-separator { font-size: 16px; margin: 0 3px; }
-}
-
-@media (max-width: 480px) {
-  .fw-products-grid { gap: 8px !important; }
-  .category-item { width: 85px; }
-  .category-circle-wrapper { width: 72px; height: 72px; }
-  .fw-page-title { font-size: 14px !important; }
-  
-  .fw-marquee-item { padding: 0 8px; font-size: 12px; }
-  .fw-marquee-icon { font-size: 14px; }
-  .fw-marquee-separator { font-size: 14px; margin: 0 2px; }
 }
 
 @keyframes cardAppear {
@@ -1282,4 +1290,69 @@
 .fw-make-in-india img {
   object-fit: contain; /* Prevents logos from being stretched or cropped */
   max-width: 100%;
+}/* =========================================
+   ✅ MOBILE VIEW REDUCTIONS (@media 992px)
+   (STICKY HEADER GUARANTEED FIX)
+========================================= */
+@media (max-width: 992px) {
+  /* ❌ PURANA: html, body { overflow-x: hidden; } <- ISKO NIKAL DIYA */
+  /* ✅ NAYA: clip lagaya hai taaki sticky kaam kare aur extra scroll bhi na ho */
+  html, body { overflow-x: clip !important; }
+  
+  .mobile-only { display: flex !important; }
+  .desktop-only { display: none !important; }
+  
+  .fw-shop-wrapper { flex-direction: column; width: 100%; overflow-x: clip; }
+  .fw-sidebar { display: none; }
+  .fw-main-container { flex-direction: column; }
+
+  .fw-main-content { 
+    padding: 4px 16px 70px !important; 
+    background: transparent; 
+    width: 100%; 
+    overflow-x: clip; 
+    padding-top: 10px !important;
+  }
+  
+  .fw-premium-b2b-banner { margin-top: 5px; }
+
+  .fw-top-bar { 
+    flex-direction: row; 
+    justify-content: space-between; 
+    align-items: center; 
+    margin-top: 10px; 
+    gap: 12px; 
+  }
+  
+  .fw-top-bar-main { 
+    flex: 1; 
+    justify-content: space-between; 
+    gap: 10px; 
+  }
+  
+  .fw-page-title { 
+    font-size: 16px !important; 
+    white-space: nowrap; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+  }
+  
+  .fw-sort-select { 
+    padding: 8px 28px 8px 12px; 
+    font-size: 13px; 
+  }
+  
+  .fw-products-grid { 
+    display: grid !important; 
+    grid-template-columns: repeat(2, 1fr) !important; 
+    gap: 12px !important; 
+    margin: 0 !important; 
+    padding: 0 !important; 
+    width: 100%; 
+  }
+  
+  .fw-marquee-container { padding: 8px 0; }
+  .fw-marquee-item { padding: 0 12px; font-size: 13px; gap: 5px; }
+  .fw-marquee-icon { font-size: 16px; }
+  .fw-marquee-separator { font-size: 16px; margin: 0 3px; }
 }

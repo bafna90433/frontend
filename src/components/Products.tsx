@@ -966,19 +966,16 @@ const Products: React.FC = () => {
                 <div className="fw-marketplace-logos">
                   {trustData?.amazonLink && trustData?.amazonLogo && (
                     <a href={trustData.amazonLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      {/* ✅ PASSED "c_fit" HERE */}
                       <img src={optimizeCloudinary(trustData.amazonLogo, 80, 40, "c_fit")} alt="Amazon" />
                     </a>
                   )}
                   {trustData?.flipkartLink && trustData?.flipkartLogo && (
                     <a href={trustData.flipkartLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      {/* ✅ PASSED "c_fit" HERE */}
                       <img src={optimizeCloudinary(trustData.flipkartLogo, 80, 40, "c_fit")} alt="Flipkart" />
                     </a>
                   )}
                   {trustData?.meeshoLink && trustData?.meeshoLogo && (
                     <a href={trustData.meeshoLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      {/* ✅ PASSED "c_fit" HERE */}
                       <img src={optimizeCloudinary(trustData.meeshoLogo, 80, 40, "c_fit")} alt="Meesho" />
                     </a>
                   )}
@@ -986,7 +983,6 @@ const Products: React.FC = () => {
                 
                 {trustData?.makeInIndiaLogo && (
                   <div className="fw-make-in-india">
-                    {/* ✅ PASSED "c_fit" HERE */}
                     <img src={optimizeCloudinary(trustData.makeInIndiaLogo, 150, 80, "c_fit")} alt="Make In India" />
                   </div>
                 )}
