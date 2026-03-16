@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
+import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
@@ -22,14 +22,18 @@ import {
   Factory,
   Shield,
   BadgeCheck,
-  MapPin,
   ExternalLink,
   Instagram,
   Youtube,
   Facebook,
   Linkedin,
+  Clock,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
+
+// ════════════════════════════════════════════════════════════
+// TYPES
+// ════════════════════════════════════════════════════════════
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -64,6 +68,10 @@ type HotDeal = {
   endsAt: string | null;
 };
 
+// ════════════════════════════════════════════════════════════
+// UTILITIES
+// ════════════════════════════════════════════════════════════
+
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
 
 const optimizeCloudinary = (
@@ -71,10 +79,13 @@ const optimizeCloudinary = (
   w: number,
   h: number,
   crop = "c_fill"
-) => {
+): string => {
   if (!url) return "/placeholder.png";
-  if (!url.startsWith("http") && CLOUD_NAME)
+  
+  if (!url.startsWith("http") && CLOUD_NAME) {
     return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
+  }
+  
   if (url.includes("res.cloudinary.com")) {
     if (url.includes("/image/upload/f_auto")) return url;
     return url.replace(
@@ -82,6 +93,7 @@ const optimizeCloudinary = (
       `/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/`
     );
   }
+  
   return url.startsWith("http")
     ? url
     : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
@@ -106,6 +118,10 @@ const cleanProduct = (raw: any): Product => ({
   ...raw,
 });
 
+// ════════════════════════════════════════════════════════════
+// ANIMATED COUNTER COMPONENT
+// ════════════════════════════════════════════════════════════
+
 const AnimatedCounter: React.FC<{
   target: string | number;
   duration?: number;
@@ -122,6 +138,7 @@ const AnimatedCounter: React.FC<{
           const targetNum =
             parseInt(String(target).replace(/\D/g, ""), 10) || 4900;
           let start: number | null = null;
+          
           const step = (ts: number) => {
             if (!start) start = ts;
             const progress = Math.min((ts - start) / duration, 1);
@@ -130,11 +147,13 @@ const AnimatedCounter: React.FC<{
             if (progress < 1) requestAnimationFrame(step);
             else setCount(targetNum);
           };
+          
           requestAnimationFrame(step);
         }
       },
       { threshold: 0.3 }
     );
+    
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [target, duration]);
@@ -147,20 +166,27 @@ const AnimatedCounter: React.FC<{
   );
 };
 
+// ════════════════════════════════════════════════════════════
+// MAIN COMPONENT
+// ════════════════════════════════════════════════════════════
+
 const Products: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  // Data State
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   const [trustData, setTrustData] = useState<any>(null);
 
+  // Loading State
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Filter State
   const [sortBy, setSortBy] = useState("default");
   const [minPriceInput, setMinPriceInput] = useState<number | "">(0);
   const [maxPriceInput, setMaxPriceInput] = useState<number | "">(5000);
@@ -170,13 +196,16 @@ const Products: React.FC = () => {
   } | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  
   const ITEMS_PER_PAGE = 25;
 
+  // URL Params
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
 
-  const marqueeItems = [
+  // Marquee Items
+  const marqueeItems = useMemo(() => [
     { icon: "📦", text: "Small MOQ Ordering" },
     { icon: "🧸", text: "400+ Toy Products" },
     { icon: "🚚", text: "All-India Door Delivery" },
@@ -187,12 +216,18 @@ const Products: React.FC = () => {
     { icon: "🧾", text: "Easy Ordering for Retailers" },
     { icon: "🔁", text: "Regular New Launches" },
     { icon: "🏷️", text: "Beat E-Commerce Prices" },
-  ];
+  ], []);
 
+  // ════════════════════════════════════════════════════════════
+  // EFFECTS
+  // ════════════════════════════════════════════════════════════
+
+  // Scroll to top on route change
   useEffect(() => {
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname, categoryId]);
 
+  // Fetch static data
   useEffect(() => {
     api
       .get("/categories")
@@ -234,12 +269,15 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
+  // Fetch products
   useEffect(() => {
     let alive = true;
     const ctrl = new AbortController();
-    const fetch = async () => {
+    
+    const fetchProducts = async () => {
       setLoading(true);
       setError(null);
+      
       try {
         const r = await api.get("/products", {
           signal: ctrl.signal,
@@ -248,43 +286,86 @@ const Products: React.FC = () => {
             ...(searchTerm ? { search: searchTerm } : {}),
           },
         });
+        
         if (!alive) return;
+        
         const arr = Array.isArray(r.data)
           ? r.data
           : r.data?.products || r.data?.docs || [];
         setAllProducts(arr.map(cleanProduct));
       } catch (e: any) {
-        if (!ctrl.signal.aborted)
+        if (!ctrl.signal.aborted) {
           setError(e?.response?.data?.message || e.message || "Failed to load");
+        }
       } finally {
         if (alive) setLoading(false);
       }
     };
-    fetch();
+    
+    fetchProducts();
+    
     return () => {
       alive = false;
       ctrl.abort();
     };
   }, [location.search, categoryId, searchTerm]);
 
+  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryId, searchTerm, sortBy, activePriceFilter]);
 
-  const handleApplyPrice = () =>
+  // ════════════════════════════════════════════════════════════
+  // HANDLERS
+  // ════════════════════════════════════════════════════════════
+
+  const handleApplyPrice = useCallback(() => {
     setActivePriceFilter({
       min: Number(minPriceInput) || 0,
       max: Number(maxPriceInput) || Infinity,
     });
+  }, [minPriceInput, maxPriceInput]);
+
+  const handleClear = useCallback(() => {
+    setSortBy("default");
+    setActivePriceFilter(null);
+    setMinPriceInput(0);
+    setMaxPriceInput(5000);
+    navigate("/products");
+  }, [navigate]);
+
+  const handleCatClick = useCallback((cat: Category) => {
+    if (cat.link?.trim()) {
+      cat.link.startsWith("http")
+        ? (window.location.href = cat.link)
+        : navigate(cat.link);
+    } else {
+      navigate(`/products?category=${cat._id}`);
+    }
+  }, [navigate]);
+
+  const goPage = useCallback((n: number) => {
+    setCurrentPage(n);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
+
+  // ════════════════════════════════════════════════════════════
+  // COMPUTED VALUES
+  // ════════════════════════════════════════════════════════════
 
   const displayed = useMemo(() => {
     let f = [...allProducts];
-    if (categoryId)
+    
+    // Filter by category
+    if (categoryId) {
       f = f.filter((p) =>
         typeof p.category === "string"
           ? p.category === categoryId
           : p.category?._id === categoryId
       );
+    }
+    
+    // Filter by search
     if (searchTerm) {
       const n = searchTerm.toLowerCase();
       f = f.filter(
@@ -293,6 +374,8 @@ const Products: React.FC = () => {
           (p.sku || "").toLowerCase().includes(n)
       );
     }
+    
+    // Apply deals
     if (activeDeals.length) {
       f = f.map((p) => {
         const d = activeDeals.find((x) => x.productId === p._id);
@@ -306,67 +389,64 @@ const Products: React.FC = () => {
           : p;
       });
     }
-    if (activePriceFilter)
+    
+    // Filter by price
+    if (activePriceFilter) {
       f = f.filter(
         (p) =>
           (p.price || 0) >= activePriceFilter.min &&
           (p.price || 0) <= activePriceFilter.max
       );
-    if (sortBy === "price-low") f.sort((a, b) => (a.price || 0) - (b.price || 0));
-    else if (sortBy === "price-high")
+    }
+    
+    // Sort
+    if (sortBy === "price-low") {
+      f.sort((a, b) => (a.price || 0) - (b.price || 0));
+    } else if (sortBy === "price-high") {
       f.sort((a, b) => (b.price || 0) - (a.price || 0));
-    else if (sortBy === "name-asc") f.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "name-asc") {
+      f.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
     return f;
   }, [allProducts, categoryId, searchTerm, sortBy, activeDeals, activePriceFilter]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
-  const paginated = displayed.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE
+  
+  const paginated = useMemo(() => 
+    displayed.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE
+    ),
+    [displayed, currentPage]
   );
 
-  const getPages = () => {
+  const getPages = useCallback(() => {
     const p: (number | string)[] = [];
     for (let i = 1; i <= totalPages; i++) {
       if (
         i === 1 ||
         i === totalPages ||
         (i >= currentPage - 1 && i <= currentPage + 1)
-      )
+      ) {
         p.push(i);
-      else if (p[p.length - 1] !== "...") p.push("...");
+      } else if (p[p.length - 1] !== "...") {
+        p.push("...");
+      }
     }
     return p;
-  };
+  }, [totalPages, currentPage]);
 
-  const goPage = (n: number) => {
-    setCurrentPage(n);
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
-  const catName = categoryId
-    ? categories.find((c) => c._id === categoryId)?.name ||
+  const catName = useMemo(() => {
+    if (!categoryId) return "";
+    return (
+      categories.find((c) => c._id === categoryId)?.name ||
       (typeof displayed[0]?.category === "object"
         ? displayed[0]?.category?.name
         : "") ||
       ""
-    : "";
-
-  const handleClear = () => {
-    setSortBy("default");
-    setActivePriceFilter(null);
-    setMinPriceInput(0);
-    setMaxPriceInput(5000);
-    navigate("/products");
-  };
-
-  const handleCatClick = (cat: Category) => {
-    if (cat.link?.trim()) {
-      cat.link.startsWith("http")
-        ? (window.location.href = cat.link)
-        : navigate(cat.link);
-    } else navigate(`/products?category=${cat._id}`);
-  };
+    );
+  }, [categoryId, categories, displayed]);
 
   const seoTitle = catName
     ? `Wholesale ${catName} | Bafna Toys`
@@ -374,12 +454,16 @@ const Products: React.FC = () => {
     ? `Search: "${searchTerm}"`
     : "Shop Wholesale Toys | Bafna Toys";
 
+  // ════════════════════════════════════════════════════════════
+  // RENDER
+  // ════════════════════════════════════════════════════════════
+
   return (
     <div className="sp-wrapper">
       <CategorySEO
         title={seoTitle}
-        description="Buy bulk toys at wholesale prices."
-        keywords="wholesale toys"
+        description="Buy bulk toys at wholesale prices from India's leading B2B toy supplier."
+        keywords="wholesale toys, bulk toys, B2B toys India"
         url={`https://bafnatoys.com${location.pathname}${location.search}`}
         jsonLd={{}}
       />
@@ -396,11 +480,12 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══ HERO B2B BANNER ═══ */}
+      {/* ═══ HERO BANNER ═══ */}
       <div className="sp-hero-banner">
         <div className="sp-hero-content">
           <div className="sp-hero-badge">
-            <Factory size={14} /> Direct from Manufacturer
+            <Factory size={14} />
+            Direct from Manufacturer
           </div>
           <h1 className="sp-hero-title">
             India's Trusted
@@ -464,12 +549,13 @@ const Products: React.FC = () => {
 
       {/* ═══ MAIN LAYOUT ═══ */}
       <div className="sp-layout">
-        {/* SIDEBAR (Desktop) */}
+        {/* SIDEBAR */}
         <aside className="sp-sidebar">
           <div className="sp-sb-inner">
             <div className="sp-sb-section">
               <h3 className="sp-sb-heading">
-                <LayoutGrid size={15} /> Categories
+                <LayoutGrid size={15} />
+                Categories
               </h3>
               <ul className="sp-sb-list">
                 <li
@@ -506,7 +592,8 @@ const Products: React.FC = () => {
 
             <div className="sp-sb-section">
               <h3 className="sp-sb-heading">
-                <SlidersHorizontal size={15} /> Price Range
+                <SlidersHorizontal size={15} />
+                Price Range
               </h3>
               <input
                 type="range"
@@ -597,6 +684,7 @@ const Products: React.FC = () => {
               <button
                 className="sp-back-btn sp-mob-only"
                 onClick={() => navigate(-1)}
+                aria-label="Go back"
               >
                 <ChevronLeft size={18} />
               </button>
@@ -612,7 +700,8 @@ const Products: React.FC = () => {
                 className="sp-filter-toggle sp-mob-only"
                 onClick={() => setMobileFilterOpen(true)}
               >
-                <Filter size={16} /> Filters
+                <Filter size={16} />
+                Filters
               </button>
               <div className="sp-sort-wrap">
                 <ArrowUpDown size={14} className="sp-sort-icon" />
@@ -620,6 +709,7 @@ const Products: React.FC = () => {
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
                   className="sp-sort-select"
+                  aria-label="Sort products"
                 >
                   <option value="default">Relevance</option>
                   <option value="price-low">Price: Low → High</option>
@@ -635,7 +725,8 @@ const Products: React.FC = () => {
             <div className="sp-filters-bar">
               {searchTerm && (
                 <span className="sp-filter-tag">
-                  <Search size={12} /> {searchTerm}
+                  <Search size={12} />
+                  {searchTerm}
                   <X
                     size={13}
                     onClick={() => navigate(location.pathname)}
@@ -665,7 +756,7 @@ const Products: React.FC = () => {
                   key={i}
                   variant="rectangular"
                   width="100%"
-                  height={300}
+                  height={320}
                   sx={{ borderRadius: "16px" }}
                 />
               ))}
@@ -680,7 +771,7 @@ const Products: React.FC = () => {
             </div>
           ) : displayed.length === 0 ? (
             <div className="sp-empty">
-              <Sparkles size={48} />
+              <Sparkles size={52} />
               <h2>No products found</h2>
               <p>Try different filters or categories</p>
               <button onClick={handleClear}>Clear Filters</button>
@@ -703,6 +794,7 @@ const Products: React.FC = () => {
                   <button
                     disabled={currentPage === 1}
                     onClick={() => goPage(currentPage - 1)}
+                    aria-label="Previous page"
                   >
                     <ChevronLeft size={16} />
                   </button>
@@ -723,6 +815,7 @@ const Products: React.FC = () => {
                   <button
                     disabled={currentPage === totalPages}
                     onClick={() => goPage(currentPage + 1)}
+                    aria-label="Next page"
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -796,19 +889,19 @@ const Products: React.FC = () => {
             },
             {
               icon: <Users size={24} />,
-              color: "#3b82f6",
+              color: "#2563eb",
               title: "4,900+",
               sub: "Retailers",
             },
             {
               icon: <Truck size={24} />,
-              color: "#10b981",
+              color: "#059669",
               title: "All India",
               sub: "Delivery",
             },
             {
               icon: <Factory size={24} />,
-              color: "#8b5cf6",
+              color: "#7c3aed",
               title: "Direct",
               sub: "Manufacturer",
             },
@@ -843,7 +936,7 @@ const Products: React.FC = () => {
                   <div className="sp-slider-card" key={i}>
                     <img
                       src={optimizeCloudinary(img, 400, 280)}
-                      alt={`Factory ${i}`}
+                      alt={`Factory ${i + 1}`}
                       loading="lazy"
                     />
                   </div>
@@ -865,6 +958,7 @@ const Products: React.FC = () => {
               src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
               alt="Factory"
               className="sp-bis-img"
+              loading="lazy"
             />
           </div>
         </section>
@@ -900,7 +994,8 @@ const Products: React.FC = () => {
                         <div className="sp-review-footer">
                           <strong>{r.reviewerName}</strong>
                           <span>
-                            <BadgeCheck size={13} /> Verified
+                            <BadgeCheck size={13} />
+                            Verified
                           </span>
                         </div>
                       </div>
@@ -990,7 +1085,8 @@ const Products: React.FC = () => {
                 />
               )}
               <div className="sp-footer-gst">
-                <Shield size={14} /> GSTIN: 33ANCPH3967L1ZT
+                <Shield size={14} />
+                GSTIN: 33ANCPH3967L1ZT
               </div>
             </div>
 
@@ -1029,7 +1125,8 @@ const Products: React.FC = () => {
                     rel="noreferrer"
                     className="sp-social-btn insta"
                   >
-                    <Instagram size={16} /> Instagram
+                    <Instagram size={16} />
+                    Instagram
                   </a>
                 )}
                 {trustData?.youtubeLink && (
@@ -1039,7 +1136,8 @@ const Products: React.FC = () => {
                     rel="noreferrer"
                     className="sp-social-btn yt"
                   >
-                    <Youtube size={16} /> YouTube
+                    <Youtube size={16} />
+                    YouTube
                   </a>
                 )}
                 {trustData?.facebookLink && (
@@ -1049,7 +1147,8 @@ const Products: React.FC = () => {
                     rel="noreferrer"
                     className="sp-social-btn fb"
                   >
-                    <Facebook size={16} /> Facebook
+                    <Facebook size={16} />
+                    Facebook
                   </a>
                 )}
                 {trustData?.linkedinLink && (
@@ -1059,7 +1158,8 @@ const Products: React.FC = () => {
                     rel="noreferrer"
                     className="sp-social-btn li"
                   >
-                    <Linkedin size={16} /> LinkedIn
+                    <Linkedin size={16} />
+                    LinkedIn
                   </a>
                 )}
               </div>
@@ -1083,7 +1183,8 @@ const Products: React.FC = () => {
           >
             <div className="sp-drawer-head">
               <h3>
-                <Filter size={18} /> Filters
+                <Filter size={18} />
+                Filters
               </h3>
               <button onClick={() => setMobileFilterOpen(false)}>
                 <X size={20} />

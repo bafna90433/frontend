@@ -20,7 +20,6 @@ import { ThemeProvider } from "./context/ThemeContext";
 // --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
-import BackFooter from "./components/BackFooter";
 import WhatsAppButton from "./components/WhatsAppButton";
 import FreeDeliveryModal from "./components/FreeDeliveryModal";
 import ComingSoon from "./components/ComingSoon";
@@ -159,7 +158,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
 
       <WhatsAppButton />
       <BottomNav />
-      <BackFooter />
     </>
   );
 };
