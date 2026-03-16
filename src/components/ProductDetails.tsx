@@ -20,6 +20,8 @@ import {
   FiShare2,
   FiChevronLeft,
   FiChevronRight,
+  FiTruck,
+  FiRefreshCw,
 } from "react-icons/fi";
 import { FaTag, FaRegHeart, FaHeart } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
@@ -64,109 +66,222 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [imgLoaded, setImgLoaded] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
-  
-  // Touch handling refs
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+
   const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const imageContainerRef = useRef<HTMLDivElement>(null);
+  const touchStartY = useRef(0);
+  const touchCurrentX = useRef(0);
+  const isHorizontalSwipe = useRef<boolean | null>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const thumbnailRef = useRef<HTMLDivElement>(null);
+  const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
   const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
 
-  // Touch handlers for swipe
+  const images = useMemo(() => {
+    if (!product) return [];
+    return product.images?.length
+      ? product.images
+      : [product.image].filter(Boolean) as string[];
+  }, [product]);
+
+  // Preload all images
+  useEffect(() => {
+    if (images.length > 0) {
+      setImgLoaded(new Array(images.length).fill(false));
+      images.forEach((img, index) => {
+        const imgEl = new Image();
+        imgEl.src = getImageUrl(img, 800);
+        imgEl.onload = () => {
+          setImgLoaded((prev) => {
+            const next = [...prev];
+            next[index] = true;
+            return next;
+          });
+        };
+      });
+    }
+  }, [images]);
+
+  // Autoplay carousel
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const startAutoplay = () => {
+      autoplayRef.current = setInterval(() => {
+        setSelectedImage((prev) =>
+          prev === images.length - 1 ? 0 : prev + 1
+        );
+      }, 5000);
+    };
+
+    startAutoplay();
+
+    return () => {
+      if (autoplayRef.current) clearInterval(autoplayRef.current);
+    };
+  }, [images.length]);
+
+  const pauseAutoplay = () => {
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current);
+      autoplayRef.current = null;
+    }
+  };
+
+  const resumeAutoplay = () => {
+    if (images.length <= 1) return;
+    pauseAutoplay();
+    autoplayRef.current = setInterval(() => {
+      setSelectedImage((prev) =>
+        prev === images.length - 1 ? 0 : prev + 1
+      );
+    }, 5000);
+  };
+
+  // Touch handlers for native-like swipe
   const handleTouchStart = (e: React.TouchEvent) => {
+    pauseAutoplay();
     touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    touchCurrentX.current = e.touches[0].clientX;
+    isHorizontalSwipe.current = null;
+    setIsSwiping(true);
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    touchEndX.current = e.touches[0].clientX;
-    
-    const container = imageContainerRef.current;
-    if (container && product?.images && product.images.length > 1) {
-      const diffX = touchStartX.current - e.touches[0].clientX;
-      container.style.transform = `translateX(${-diffX * 0.2}px)`;
-      container.style.transition = 'none';
+    if (!isSwiping || images.length <= 1) return;
+
+    const currentX = e.touches[0].clientX;
+    const currentY = e.touches[0].clientY;
+    const diffX = currentX - touchStartX.current;
+    const diffY = currentY - touchStartY.current;
+
+    // Determine swipe direction on first significant movement
+    if (isHorizontalSwipe.current === null) {
+      if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
+        isHorizontalSwipe.current = Math.abs(diffX) > Math.abs(diffY);
+      }
+      return;
     }
+
+    if (!isHorizontalSwipe.current) return;
+
+    e.preventDefault();
+    touchCurrentX.current = currentX;
+
+    // Add resistance at edges
+    let offset = diffX;
+    if (
+      (selectedImage === 0 && offset > 0) ||
+      (selectedImage === images.length - 1 && offset < 0)
+    ) {
+      offset = offset * 0.3;
+    }
+
+    setSwipeOffset(offset);
   };
 
   const handleTouchEnd = () => {
-    const container = imageContainerRef.current;
-    if (container) {
-      container.style.transform = '';
-      container.style.transition = '';
-    }
+    if (!isSwiping) return;
+    setIsSwiping(false);
 
-    if (!product?.images || product.images.length <= 1) return;
+    const containerWidth = carouselRef.current?.offsetWidth || 300;
+    const threshold = containerWidth * 0.2;
+    const velocity = touchCurrentX.current - touchStartX.current;
 
-    const diffX = touchStartX.current - touchEndX.current;
-    const minSwipeDistance = 50;
-
-    if (Math.abs(diffX) > minSwipeDistance) {
-      if (diffX > 0) {
-        setSelectedImage((prev) => 
-          prev === product.images!.length - 1 ? 0 : prev + 1
-        );
-      } else {
-        setSelectedImage((prev) => 
-          prev === 0 ? product.images!.length - 1 : prev - 1
-        );
+    if (Math.abs(swipeOffset) > threshold || Math.abs(velocity) > 80) {
+      if (swipeOffset < 0 && selectedImage < images.length - 1) {
+        setSelectedImage((prev) => prev + 1);
+      } else if (swipeOffset > 0 && selectedImage > 0) {
+        setSelectedImage((prev) => prev - 1);
       }
-      setImgLoaded(false);
     }
+
+    setSwipeOffset(0);
+    isHorizontalSwipe.current = null;
+    resumeAutoplay();
   };
 
-  const handleImageChange = useCallback((direction: 'next' | 'prev') => {
-    if (!product?.images || product.images.length <= 1) return;
-    
-    setSelectedImage(prev => {
-      if (direction === 'next') {
-        return prev === product.images!.length - 1 ? 0 : prev + 1;
-      } else {
-        return prev === 0 ? product.images!.length - 1 : prev - 1;
+  const handleImageChange = useCallback(
+    (direction: "next" | "prev") => {
+      if (!images.length || images.length <= 1) return;
+      pauseAutoplay();
+
+      setSelectedImage((prev) => {
+        if (direction === "next") {
+          return prev === images.length - 1 ? 0 : prev + 1;
+        } else {
+          return prev === 0 ? images.length - 1 : prev - 1;
+        }
+      });
+
+      resumeAutoplay();
+    },
+    [images.length]
+  );
+
+  const handleSelectImage = (index: number) => {
+    pauseAutoplay();
+    setSelectedImage(index);
+
+    if (thumbnailRef.current) {
+      const thumbElement = thumbnailRef.current.children[index] as HTMLElement;
+      if (thumbElement) {
+        thumbElement.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+          inline: "center",
+        });
       }
-    });
-    setImgLoaded(false);
-  }, [product?.images]);
+    }
+    resumeAutoplay();
+  };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') handleImageChange('prev');
-      if (e.key === 'ArrowRight') handleImageChange('next');
+      if (e.key === "ArrowLeft") handleImageChange("prev");
+      if (e.key === "ArrowRight") handleImageChange("next");
+      if (e.key === "Escape" && showZoom) setShowZoom(false);
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [handleImageChange]);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleImageChange, showZoom]);
 
-  // Fetch product data
+  // Fetch product
   useEffect(() => {
     setLoading(true);
     setError(null);
     setProduct(null);
     setSelectedImage(0);
-    setImgLoaded(false);
+    setImgLoaded([]);
+    setSwipeOffset(0);
     window.scrollTo(0, 0);
 
     const fetchData = async () => {
       try {
         const [productRes, configRes] = await Promise.all([
           api.get(`/products/${id}`),
-          api.get("/home-config").catch(() => ({ data: {} }))
+          api.get("/home-config").catch(() => ({ data: {} })),
         ]);
 
         let fetchedProduct = productRes.data;
         const configData = configRes.data;
 
-        // Apply deals
-        const items = configData?.hotDealsItemsResolved || configData?.hotDealsItems || [];
+        const items =
+          configData?.hotDealsItemsResolved ||
+          configData?.hotDealsItems ||
+          [];
         const activeDeals = items.map((it: any) => ({
           productId: it.productId || it.product?._id,
           discountType: it.discountType || "NONE",
@@ -174,26 +289,32 @@ const ProductDetails: React.FC = () => {
           endsAt: it.endsAt || null,
         }));
 
-        const mainDeal = activeDeals.find((d: any) => d.productId === fetchedProduct._id);
+        const mainDeal = activeDeals.find(
+          (d: any) => d.productId === fetchedProduct._id
+        );
         if (mainDeal) {
           fetchedProduct.hotDealType = mainDeal.discountType;
           fetchedProduct.hotDealValue = mainDeal.discountValue;
-          fetchedProduct.sale_end_time = mainDeal.endsAt || fetchedProduct.sale_end_time;
+          fetchedProduct.sale_end_time =
+            mainDeal.endsAt || fetchedProduct.sale_end_time;
         }
 
         if (fetchedProduct.relatedProducts?.length) {
-          fetchedProduct.relatedProducts = fetchedProduct.relatedProducts.map((rel: any) => {
-            const relDeal = activeDeals.find((d: any) => d.productId === rel._id);
-            if (relDeal) {
-              return {
-                ...rel,
-                hotDealType: relDeal.discountType,
-                hotDealValue: relDeal.discountValue,
-                sale_end_time: relDeal.endsAt || rel.sale_end_time,
-              };
-            }
-            return rel;
-          });
+          fetchedProduct.relatedProducts =
+            fetchedProduct.relatedProducts.map((rel: any) => {
+              const relDeal = activeDeals.find(
+                (d: any) => d.productId === rel._id
+              );
+              if (relDeal) {
+                return {
+                  ...rel,
+                  hotDealType: relDeal.discountType,
+                  hotDealValue: relDeal.discountValue,
+                  sale_end_time: relDeal.endsAt || rel.sale_end_time,
+                };
+              }
+              return rel;
+            });
         }
 
         setProduct(fetchedProduct);
@@ -208,7 +329,7 @@ const ProductDetails: React.FC = () => {
     fetchData();
   }, [id]);
 
-  // Timer effect
+  // Timer
   useEffect(() => {
     if (!product?.sale_end_time) {
       setTimeLeft(null);
@@ -216,15 +337,20 @@ const ProductDetails: React.FC = () => {
     }
 
     const calculateTimeLeft = () => {
-      const difference = new Date(product.sale_end_time!).getTime() - new Date().getTime();
+      const difference =
+        new Date(product.sale_end_time!).getTime() - new Date().getTime();
       if (difference > 0) {
         const days = Math.floor(difference / (1000 * 60 * 60 * 24));
         const hours = Math.floor((difference / (1000 * 60 * 60)) % 24);
         const minutes = Math.floor((difference / 1000 / 60) % 60);
         const seconds = Math.floor((difference / 1000) % 60);
-        return days > 0 
-          ? `${days}D ${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`
-          : `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+        return days > 0
+          ? `${days}D ${hours.toString().padStart(2, "0")}:${minutes
+              .toString()
+              .padStart(2, "0")}`
+          : `${hours.toString().padStart(2, "0")}:${minutes
+              .toString()
+              .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
       }
       return null;
     };
@@ -239,16 +365,13 @@ const ProductDetails: React.FC = () => {
     return () => clearInterval(timer);
   }, [product?.sale_end_time]);
 
-  // Share handler
   const handleShare = async () => {
     if (!product) return;
-
     const shareData = {
       title: product.name,
       text: `Check out ${product.name} at Bafna Toys! ${product.tagline || ""}`,
       url: window.location.href,
     };
-
     try {
       if (navigator.share) {
         await navigator.share(shareData);
@@ -261,15 +384,12 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  // Memoized computed values
   const {
     itemCount,
     minQty,
     unitPrice,
     discountPercent,
     hasDiscount,
-    imageUrl,
-    thumbnails,
   } = useMemo(() => {
     if (!product) {
       return {
@@ -278,8 +398,6 @@ const ProductDetails: React.FC = () => {
         unitPrice: 0,
         discountPercent: 0,
         hasDiscount: false,
-        imageUrl: "",
-        thumbnails: [],
       };
     }
 
@@ -288,30 +406,19 @@ const ProductDetails: React.FC = () => {
     const minQty = product.price < 60 ? 3 : 2;
     const unitPrice = product.price;
 
-    const hasDiscount = !!(product.mrp && product.mrp > unitPrice) || product.hotDealType !== "NONE";
-    
-    const discountPercent = product.hotDealType === "PERCENT" && product.hotDealValue
-      ? product.hotDealValue
-      : (product.mrp && product.mrp > unitPrice)
-      ? Math.round(((product.mrp - unitPrice) / product.mrp) * 100)
-      : 0;
+    const hasDiscount =
+      !!(product.mrp && product.mrp > unitPrice) ||
+      product.hotDealType !== "NONE";
 
-    const images = product.images?.length ? product.images : [product.image].filter(Boolean);
-    const baseImage = images[selectedImage] || "";
-    const imageUrl = getImageUrl(baseImage, 800);
-    
-    const thumbnails = images.map(img => getImageUrl(img, 150));
+    const discountPercent =
+      product.hotDealType === "PERCENT" && product.hotDealValue
+        ? product.hotDealValue
+        : product.mrp && product.mrp > unitPrice
+        ? Math.round(((product.mrp - unitPrice) / product.mrp) * 100)
+        : 0;
 
-    return {
-      itemCount,
-      minQty,
-      unitPrice,
-      discountPercent,
-      hasDiscount,
-      imageUrl,
-      thumbnails,
-    };
-  }, [product, cartItems, selectedImage]);
+    return { itemCount, minQty, unitPrice, discountPercent, hasDiscount };
+  }, [product, cartItems]);
 
   const handleAdd = () => {
     if (product) setCartItemQuantity(product, minQty);
@@ -328,26 +435,10 @@ const ProductDetails: React.FC = () => {
     }
   };
 
-  const handleSelectImage = (index: number) => {
-    setSelectedImage(index);
-    setImgLoaded(false);
-    
-    if (thumbnailRef.current) {
-      const thumbElement = thumbnailRef.current.children[index] as HTMLElement;
-      if (thumbElement) {
-        thumbElement.scrollIntoView({
-          behavior: 'smooth',
-          block: 'nearest',
-          inline: 'center'
-        });
-      }
-    }
-  };
-
   if (loading) {
     return (
       <div className="pd-loading">
-        <div className="pd-spinner"></div>
+        <div className="pd-spinner" />
         <p>Loading product details...</p>
       </div>
     );
@@ -356,8 +447,11 @@ const ProductDetails: React.FC = () => {
   if (error) return <div className="pd-error">{error}</div>;
   if (!product) return <div className="pd-error">Product not found</div>;
 
-  const images = product.images?.length ? product.images : [product.image].filter(Boolean);
   const isOutOfStock = product.stock === 0;
+  const currentImageUrl = getImageUrl(
+    images[selectedImage] || "",
+    800
+  );
 
   return (
     <>
@@ -365,7 +459,7 @@ const ProductDetails: React.FC = () => {
         name={product.name}
         description={product.description}
         price={product.price}
-        image={imageUrl}
+        image={currentImageUrl}
         url={window.location.href}
         sku={product.sku}
         category={product.category?.name}
@@ -374,320 +468,451 @@ const ProductDetails: React.FC = () => {
         reviews={product.reviews}
       />
 
-      <div className="pd-container">
-        {/* Gallery Section */}
-        <div className="pd-gallery">
-          <div className="pd-main-image-wrapper">
-            <div 
-              className="pd-main-image-frame"
-              onTouchStart={handleTouchStart}
-              onTouchMove={handleTouchMove}
-              onTouchEnd={handleTouchEnd}
-              onClick={() => setShowZoom(true)}
-              ref={imageContainerRef}
-            >
-              {!imgLoaded && <div className="pd-skeleton-loader" />}
+      <div className="pd-page">
+        <div className="pd-container">
+          {/* ===== GALLERY ===== */}
+          <div className="pd-gallery">
+            <div className="pd-carousel-wrapper">
+              {/* Top Badges Row */}
+              <div className="pd-badge-row-top">
+                {hasDiscount && (
+                  <div className="pd-discount-tag">
+                    <FaTag size={10} />
+                    {product.hotDealType === "FLAT"
+                      ? `₹${product.hotDealValue} OFF`
+                      : `${discountPercent}% OFF`}
+                  </div>
+                )}
+                <button
+                  className={`pd-wishlist-btn ${isWishlisted ? "active" : ""}`}
+                  onClick={() => setIsWishlisted(!isWishlisted)}
+                  aria-label={
+                    isWishlisted
+                      ? "Remove from wishlist"
+                      : "Add to wishlist"
+                  }
+                >
+                  {isWishlisted ? (
+                    <FaHeart size={18} />
+                  ) : (
+                    <FaRegHeart size={18} />
+                  )}
+                </button>
+              </div>
 
-              <img
-                src={imageUrl}
-                alt={product.name}
-                className={`pd-main-image ${imgLoaded ? "loaded" : ""}`}
-                onLoad={() => setImgLoaded(true)}
-                fetchPriority="high"
-                loading="eager"
-                width="600"
-                height="600"
-              />
+              {/* MRP Circle */}
+              {product.mrp && product.mrp > unitPrice && (
+                <div className="pd-mrp-badge">
+                  <span className="pd-mrp-label">MRP</span>
+                  <span className="pd-mrp-val">
+                    ₹{product.mrp.toLocaleString()}
+                  </span>
+                </div>
+              )}
 
-              {/* Navigation Arrows (Desktop) */}
+              {/* Carousel Track */}
+              <div
+                className="pd-carousel"
+                ref={carouselRef}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
+              >
+                <div
+                  className="pd-carousel-track"
+                  style={{
+                    transform: `translateX(calc(-${
+                      selectedImage * 100
+                    }% + ${swipeOffset}px))`,
+                    transition: isSwiping
+                      ? "none"
+                      : "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                  }}
+                >
+                  {images.map((img, i) => (
+                    <div
+                      key={i}
+                      className="pd-carousel-slide"
+                      onClick={() => setShowZoom(true)}
+                    >
+                      {!imgLoaded[i] && (
+                        <div className="pd-skeleton-loader" />
+                      )}
+                      <img
+                        src={getImageUrl(img, 800)}
+                        alt={`${product.name} - ${i + 1}`}
+                        className={`pd-carousel-img ${
+                          imgLoaded[i] ? "loaded" : ""
+                        }`}
+                        draggable={false}
+                        loading={i === 0 ? "eager" : "lazy"}
+                        fetchPriority={i === 0 ? "high" : "auto"}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Desktop Arrows */}
               {images.length > 1 && (
                 <>
-                  <button 
-                    className="pd-nav-arrow prev"
-                    onClick={(e) => { e.stopPropagation(); handleImageChange('prev'); }}
+                  <button
+                    className="pd-arrow pd-arrow--prev"
+                    onClick={() => handleImageChange("prev")}
                     aria-label="Previous image"
                   >
-                    <FiChevronLeft />
+                    <FiChevronLeft size={20} />
                   </button>
-                  <button 
-                    className="pd-nav-arrow next"
-                    onClick={(e) => { e.stopPropagation(); handleImageChange('next'); }}
+                  <button
+                    className="pd-arrow pd-arrow--next"
+                    onClick={() => handleImageChange("next")}
                     aria-label="Next image"
                   >
-                    <FiChevronRight />
+                    <FiChevronRight size={20} />
                   </button>
                 </>
               )}
 
-              {/* MRP Badge */}
-              {product.mrp && product.mrp > unitPrice && (
-                <div className="pd-mrp-circle">
-                  <span className="pd-mrp-text">MRP</span>
-                  <span className="pd-mrp-price">₹{product.mrp.toLocaleString()}</span>
+              {/* Dot Indicators */}
+              {images.length > 1 && (
+                <div className="pd-dots">
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`pd-dot ${
+                        selectedImage === i ? "active" : ""
+                      }`}
+                      onClick={() => handleSelectImage(i)}
+                      aria-label={`Go to image ${i + 1}`}
+                    />
+                  ))}
                 </div>
               )}
-
-              {/* Deal Badge */}
-              {hasDiscount && (
-                <div className="pd-image-badge">
-                  <FaTag size={10} />
-                  {product.hotDealType === "FLAT" 
-                    ? `₹${product.hotDealValue} OFF` 
-                    : `${discountPercent}% OFF`}
-                </div>
-              )}
-
-              {/* Wishlist Button */}
-              <button 
-                className="pd-wishlist-btn"
-                onClick={(e) => { e.stopPropagation(); setIsWishlisted(!isWishlisted); }}
-                aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-              >
-                {isWishlisted ? <FaHeart color="#ff5a6b" /> : <FaRegHeart />}
-              </button>
             </div>
 
-            {/* Image Counter */}
+            {/* Thumbnails (Desktop) */}
             {images.length > 1 && (
-              <div className="pd-image-counter">
-                {selectedImage + 1} / {images.length}
+              <div className="pd-thumbs-row" ref={thumbnailRef}>
+                {images.map((img, i) => (
+                  <button
+                    key={i}
+                    className={`pd-thumb ${
+                      selectedImage === i ? "active" : ""
+                    }`}
+                    onClick={() => handleSelectImage(i)}
+                  >
+                    <img
+                      src={getImageUrl(img, 150)}
+                      alt={`Thumbnail ${i + 1}`}
+                      loading="lazy"
+                      draggable={false}
+                    />
+                  </button>
+                ))}
               </div>
             )}
           </div>
 
-          {/* Thumbnails */}
-          {images.length > 1 && (
-            <div className="pd-thumbnails" ref={thumbnailRef}>
-              {images.map((img, i) => (
-                <div
-                  key={i}
-                  className={`pd-thumb ${selectedImage === i ? "active" : ""}`}
-                  onClick={() => handleSelectImage(i)}
+          {/* ===== INFO SECTION ===== */}
+          <div className="pd-info">
+            {/* Title + Share */}
+            <div className="pd-info-card pd-header-card">
+              <div className="pd-title-row">
+                <h1 className="pd-title">{product.name}</h1>
+                <button
+                  onClick={handleShare}
+                  className="pd-icon-btn"
+                  title="Share Product"
                 >
-                  <img
-                    src={getImageUrl(img, 150)}
-                    alt={`${product.name} - view ${i + 1}`}
-                    loading="lazy"
-                    width="60"
-                    height="60"
+                  <FiShare2 size={18} />
+                </button>
+              </div>
+
+              {/* Timer */}
+              {timeLeft && (
+                <div className="pd-timer">
+                  <FiClock className="pd-timer-pulse" />
+                  <span>Deal Ends in</span>
+                  <strong>{timeLeft}</strong>
+                </div>
+              )}
+
+              {/* Meta Chips */}
+              <div className="pd-chips">
+                {product.sku && (
+                  <span className="pd-chip sku">
+                    <FiHash size={12} /> {product.sku}
+                  </span>
+                )}
+                {(product.rating || product.reviews) && (
+                  <span className="pd-chip rating">
+                    <FiStar size={12} fill="#FBC02D" stroke="none" />
+                    <strong>{product.rating || 4.5}</strong>
+                    {product.reviews && (
+                      <span className="pd-chip-sub">
+                        ({product.reviews})
+                      </span>
+                    )}
+                  </span>
+                )}
+                {product.tagline && (
+                  <span className="pd-chip tag">
+                    <FiTag size={12} /> {product.tagline}
+                  </span>
+                )}
+                {product.packSize && (
+                  <span className="pd-chip box">
+                    <FiBox size={12} /> {product.packSize}
+                  </span>
+                )}
+              </div>
+
+              {/* Stock */}
+              <div className="pd-stock-row">
+                {isOutOfStock ? (
+                  <span className="pd-stock out">
+                    <FiAlertCircle size={14} /> Out of Stock
+                  </span>
+                ) : product.stock && product.stock <= 10 ? (
+                  <span className="pd-stock low">
+                    <FiAlertCircle size={14} /> Only {product.stock} left!
+                  </span>
+                ) : (
+                  <span className="pd-stock in">
+                    <FiCheckCircle size={14} /> In Stock
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Price Block */}
+            <div className="pd-info-card pd-price-card">
+              <div className="pd-price-top">
+                <div className="pd-price-main">
+                  <span className="pd-price-now">
+                    ₹{unitPrice.toFixed(0)}
+                  </span>
+                  {product.mrp && product.mrp > unitPrice && (
+                    <span className="pd-price-was">
+                      ₹{product.mrp.toFixed(0)}
+                    </span>
+                  )}
+                </div>
+                {hasDiscount && product.mrp && (
+                  <div className="pd-save-pill">
+                    You Save ₹{(product.mrp - unitPrice).toFixed(0)}
+                  </div>
+                )}
+              </div>
+              <div className="pd-moq-notice">
+                <FiInfo size={13} />
+                <span>
+                  Minimum Order: <strong>{minQty} units</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Cart Actions */}
+            <div className="pd-info-card pd-actions-card">
+              {itemCount === 0 ? (
+                <button
+                  className="pd-add-btn"
+                  onClick={handleAdd}
+                  disabled={isOutOfStock}
+                >
+                  {isOutOfStock ? (
+                    <>
+                      <FiShield size={18} /> Notify When Available
+                    </>
+                  ) : (
+                    <>
+                      <FiShoppingCart size={18} /> Add to Cart
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div className="pd-qty-controls">
+                  <button
+                    onClick={handleDec}
+                    className="pd-qty-btn dec"
+                    aria-label="Decrease"
+                  >
+                    {itemCount === minQty ? "✕" : <FiMinus size={18} />}
+                  </button>
+                  <div className="pd-qty-display">
+                    <span className="pd-qty-num">{itemCount}</span>
+                    <span className="pd-qty-label">in cart</span>
+                  </div>
+                  <button
+                    onClick={handleInc}
+                    className="pd-qty-btn inc"
+                    disabled={
+                      product.stock !== undefined &&
+                      itemCount >= product.stock
+                    }
+                    aria-label="Increase"
+                  >
+                    <FiPlus size={18} />
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Description Accordion */}
+            {product.description && (
+              <div
+                className={`pd-info-card pd-accordion ${
+                  isDescriptionExpanded ? "open" : ""
+                }`}
+              >
+                <button
+                  className="pd-accordion-header"
+                  onClick={toggleDescription}
+                >
+                  <h3>Product Description</h3>
+                  <span className="pd-accordion-icon">
+                    {isDescriptionExpanded ? (
+                      <FiChevronUp size={20} />
+                    ) : (
+                      <FiChevronDown size={20} />
+                    )}
+                  </span>
+                </button>
+                <div className="pd-accordion-body">
+                  <div className="pd-accordion-content">
+                    {product.description
+                      .split("\n")
+                      .filter((l) => l.trim())
+                      .map((line, i) => (
+                        <p key={i}>{line}</p>
+                      ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Trust Badges */}
+            <div className="pd-trust-grid">
+              <div className="pd-trust-item">
+                <div className="pd-trust-icon">
+                  <FiShield size={20} />
+                </div>
+                <div className="pd-trust-text">
+                  <strong>Secure Payment</strong>
+                  <span>100% safe checkout</span>
+                </div>
+              </div>
+              <div className="pd-trust-item">
+                <div className="pd-trust-icon">
+                  <FiTruck size={20} />
+                </div>
+                <div className="pd-trust-text">
+                  <strong>Fast Delivery</strong>
+                  <span>2-4 business days</span>
+                </div>
+              </div>
+              <div className="pd-trust-item">
+                <div className="pd-trust-icon">
+                  <FiRefreshCw size={20} />
+                </div>
+                <div className="pd-trust-text">
+                  <strong>Easy Returns</strong>
+                  <span>Hassle-free policy</span>
+                </div>
+              </div>
+              <div className="pd-trust-item">
+                <div className="pd-trust-icon">
+                  <FiCheckCircle size={20} />
+                </div>
+                <div className="pd-trust-text">
+                  <strong>Quality Assured</strong>
+                  <span>Premium products</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Reviews */}
+        <div className="pd-section-wrap">
+          <ReviewSection productId={product._id} />
+        </div>
+
+        {/* Related Products */}
+        {product.relatedProducts && product.relatedProducts.length > 0 && (
+          <div className="pd-section-wrap">
+            <h3 className="pd-section-heading">You May Also Like</h3>
+            <div className="pd-related-grid">
+              {product.relatedProducts.map((rel, i) => (
+                <div key={rel._id} className="pd-related-cell">
+                  <ProductCard
+                    product={rel}
+                    userRole="customer"
+                    index={i + 4}
                   />
                 </div>
               ))}
             </div>
-          )}
-        </div>
-
-        {/* Info Section */}
-        <div className="pd-info">
-          <div className="pd-header">
-            <div className="pd-title-wrapper">
-              <h1 className="pd-title">{product.name}</h1>
-              <button
-                onClick={handleShare}
-                className="pd-share-button"
-                title="Share Product"
-              >
-                <FiShare2 size={20} />
-              </button>
-            </div>
-
-            {timeLeft && (
-              <div className="pd-timer-badge">
-                <FiClock className="pd-timer-icon" />
-                <div className="pd-timer-text">
-                  <span>Deal Ends in:</span>
-                  <strong>{timeLeft}</strong>
-                </div>
-              </div>
-            )}
-
-            <div className="pd-meta-chips">
-              {product.sku && (
-                <span className="pd-chip pd-chip--sku">
-                  <FiHash /> {product.sku}
-                </span>
-              )}
-
-              {(product.rating || product.reviews) && (
-                <span className="pd-chip pd-chip--rating">
-                  <FiStar fill="#FBC02D" stroke="none" />
-                  <strong>{product.rating || 4.5}</strong>
-                  {product.reviews && (
-                    <span className="pd-review-count">({product.reviews})</span>
-                  )}
-                </span>
-              )}
-
-              {product.tagline && (
-                <span className="pd-chip pd-chip--tag">
-                  <FiTag /> {product.tagline}
-                </span>
-              )}
-
-              {product.packSize && (
-                <span className="pd-chip pd-chip--box">
-                  <FiBox /> {product.packSize}
-                </span>
-              )}
-            </div>
-
-            <div className="pd-stock-row">
-              {isOutOfStock ? (
-                <span className="pd-stock pd-stock--out">
-                  <FiAlertCircle /> Out of Stock
-                </span>
-              ) : product.stock && product.stock <= 10 ? (
-                <span className="pd-stock pd-stock--low">
-                  <FiAlertCircle /> Only {product.stock} left!
-                </span>
-              ) : (
-                <span className="pd-stock pd-stock--in">
-                  <FiCheckCircle /> In Stock
-                </span>
-              )}
-            </div>
           </div>
-
-          {/* Price Block */}
-          <div className="pd-price-block">
-            <div className="pd-price-wrapper">
-              <div className="pd-prices">
-                <span className="pd-current-price">₹{unitPrice.toFixed(0)}</span>
-                {product.mrp && product.mrp > unitPrice && (
-                  <span className="pd-original-price">₹{product.mrp.toFixed(0)}</span>
-                )}
-              </div>
-
-              {hasDiscount && product.mrp && (
-                <div className="pd-savings-bubble">
-                  Save ₹{(product.mrp - unitPrice).toFixed(0)}
-                </div>
-              )}
-            </div>
-
-            <div className="pd-min-qty">
-              <FiInfo size={12} />
-              <span>Minimum Order: <strong>{minQty} units</strong></span>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="pd-actions-area">
-            {itemCount === 0 ? (
-              <button
-                className="pd-btn-cart"
-                onClick={handleAdd}
-                disabled={isOutOfStock}
-              >
-                {isOutOfStock ? (
-                  <>
-                    <FiShield /> Notify Me
-                  </>
-                ) : (
-                  <>
-                    <FiShoppingCart /> Add to Cart
-                  </>
-                )}
-              </button>
-            ) : (
-              <div className="pd-qty-wrapper">
-                <button
-                  onClick={handleDec}
-                  className="pd-qty-btn decrease"
-                  aria-label={itemCount === minQty ? "Remove from cart" : "Decrease quantity"}
-                >
-                  {itemCount === minQty ? "Del" : <FiMinus />}
-                </button>
-
-                <span className="pd-qty-val">{itemCount}</span>
-
-                <button
-                  onClick={handleInc}
-                  className="pd-qty-btn increase"
-                  disabled={product.stock !== undefined && itemCount >= product.stock}
-                  aria-label="Increase quantity"
-                >
-                  <FiPlus />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Description Accordion */}
-          {product.description && (
-            <div className={`pd-desc-accordion ${isDescriptionExpanded ? "open" : ""}`}>
-              <div className="pd-desc-header" onClick={toggleDescription}>
-                <h3>Product Description</h3>
-                <span className="pd-chevron">
-                  {isDescriptionExpanded ? <FiChevronUp /> : <FiChevronDown />}
-                </span>
-              </div>
-
-              <div className="pd-desc-body">
-                <div className="pd-desc-content">
-                  {product.description.split("\n").filter(l => l.trim()).map((line, i) => (
-                    <p key={i}>{line}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Key Features / Highlights */}
-          <div className="pd-highlights">
-            <div className="pd-highlight-item">
-              <FiShield className="pd-highlight-icon" />
-              <div className="pd-highlight-text">
-                <strong>Secure Payment</strong>
-                <span>100% secure transactions</span>
-              </div>
-            </div>
-            <div className="pd-highlight-item">
-              <FiClock className="pd-highlight-icon" />
-              <div className="pd-highlight-text">
-                <strong>Fast Delivery</strong>
-                <span>2-4 business days</span>
-              </div>
-            </div>
-            <div className="pd-highlight-item">
-              <FiCheckCircle className="pd-highlight-icon" />
-              <div className="pd-highlight-text">
-                <strong>Quality Assured</strong>
-                <span>Premium products</span>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
-      {/* Reviews Section */}
-      <div className="pd-reviews-wrapper">
-        <ReviewSection productId={product._id} />
-      </div>
-
-      {/* Related Products - Grid Layout (No Horizontal Scroll) */}
-      {product.relatedProducts && product.relatedProducts.length > 0 && (
-        <div className="pd-related-section">
-          <h3 className="pd-section-title">You May Also Like</h3>
-          <div className="related-products-grid">
-            {product.relatedProducts.map((rel, i) => (
-              <div key={rel._id} className="related-product-item">
-                <ProductCard product={rel} userRole="customer" index={i + 4} />
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Image Zoom Modal */}
+      {/* Zoom Modal */}
       {showZoom && (
-        <div className="pd-zoom-modal" onClick={() => setShowZoom(false)}>
-          <div className="pd-zoom-content" onClick={(e) => e.stopPropagation()}>
-            <img src={imageUrl} alt={product.name} />
-            <button className="pd-zoom-close" onClick={() => setShowZoom(false)}>×</button>
+        <div
+          className="pd-zoom-overlay"
+          onClick={() => setShowZoom(false)}
+        >
+          <div
+            className="pd-zoom-body"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={currentImageUrl} alt={product.name} />
+            <button
+              className="pd-zoom-x"
+              onClick={() => setShowZoom(false)}
+            >
+              ×
+            </button>
           </div>
         </div>
       )}
+
+      {/* Mobile Bottom Bar */}
+      <div className="pd-mobile-bar">
+        <div className="pd-mobile-price-col">
+          <span className="pd-mobile-price">₹{unitPrice.toFixed(0)}</span>
+          {product.mrp && product.mrp > unitPrice && (
+            <span className="pd-mobile-mrp">₹{product.mrp.toFixed(0)}</span>
+          )}
+        </div>
+        {itemCount === 0 ? (
+          <button
+            className="pd-mobile-cart-btn"
+            onClick={handleAdd}
+            disabled={isOutOfStock}
+          >
+            <FiShoppingCart size={16} />
+            {isOutOfStock ? "Notify Me" : "Add to Cart"}
+          </button>
+        ) : (
+          <div className="pd-mobile-qty">
+            <button onClick={handleDec} className="pd-mq-btn dec">
+              {itemCount === minQty ? "✕" : <FiMinus size={16} />}
+            </button>
+            <span className="pd-mq-val">{itemCount}</span>
+            <button
+              onClick={handleInc}
+              className="pd-mq-btn inc"
+              disabled={
+                product.stock !== undefined && itemCount >= product.stock
+              }
+            >
+              <FiPlus size={16} />
+            </button>
+          </div>
+        )}
+      </div>
 
       <FloatingCheckoutButton />
     </>

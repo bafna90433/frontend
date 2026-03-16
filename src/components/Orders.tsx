@@ -1,11 +1,14 @@
-// src/components/Orders.tsx
-
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
 import "../styles/Orders.css";
+import {
+  Package, ChevronRight, ChevronDown, FileText, X, Truck,
+  CheckCircle2, Clock, XCircle, RotateCcw, AlertTriangle,
+  MapPin, CreditCard, Calendar, Hash, Camera, Video,
+  ChevronLeft, Filter, Search, ShoppingBag, ArrowLeft,
+} from "lucide-react";
 
-// ================= TYPES =================
 type OrderItem = {
   productId?: string;
   name: string;
@@ -17,7 +20,6 @@ type OrderItem = {
   nosPerInner?: number;
 };
 
-// Return Request Type
 type ReturnRequest = {
   isRequested: boolean;
   status: "Pending" | "Approved" | "Rejected";
@@ -38,168 +40,116 @@ type Order = {
   total: number;
   paymentMode?: string;
   estimatedDelivery?: string;
-
-  // Tracking Fields
   trackingId?: string;
   courierName?: string;
   isShipped?: boolean;
-
-  shippingAddress?:
-    | string
-    | {
-        fullName?: string;
-        street?: string;
-        area?: string;
-        city?: string;
-        state?: string;
-        pincode?: string;
-        phone?: string;
-      };
-
-  // Return Request Field
+  shippingAddress?: string | {
+    fullName?: string;
+    street?: string;
+    area?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    phone?: string;
+  };
   returnRequest?: ReturnRequest;
 };
 
-// ================= UTILITIES =================
 const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
 
-const useBases = () => {
-  return useMemo(() => {
+const useBases = () =>
+  useMemo(() => {
     const rawApi = import.meta.env.VITE_API_URL as string | undefined;
     const rawImage =
       (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ||
       (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) ||
       (import.meta.env.VITE_MEDIA_URL as string | undefined);
-
-    const apiBase = trimTrailingSlash(rawApi || "http://localhost:5000/api");
-    const imageBase = trimTrailingSlash(rawImage || "http://localhost:5000");
-    return { apiBase, imageBase };
+    return {
+      apiBase: trimTrailingSlash(rawApi || "http://localhost:5000/api"),
+      imageBase: trimTrailingSlash(rawImage || "http://localhost:5000"),
+    };
   }, []);
-};
 
-const formatDate = (iso?: string, options?: Intl.DateTimeFormatOptions) => {
+const formatDate = (iso?: string) => {
   if (!iso) return "-";
   try {
-    const defaultOptions: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      ...options,
-    };
-    return new Date(iso).toLocaleDateString("en-US", defaultOptions);
-  } catch {
-    return iso!;
-  }
+    return new Date(iso).toLocaleDateString("en-IN", {
+      day: "numeric", month: "short", year: "numeric",
+    });
+  } catch { return iso; }
+};
+
+const formatDateShort = (iso?: string) => {
+  if (!iso) return "-";
+  try {
+    return new Date(iso).toLocaleDateString("en-IN", {
+      day: "numeric", month: "short",
+    });
+  } catch { return iso; }
 };
 
 const toPackets = (it: OrderItem) => {
   if (it.inners && it.inners > 0) return it.inners;
-  const perInner =
-    it.innerQty && it.innerQty > 0
-      ? it.innerQty
-      : it.nosPerInner && it.nosPerInner > 0
-      ? it.nosPerInner
-      : 12;
+  const perInner = it.innerQty && it.innerQty > 0 ? it.innerQty : it.nosPerInner && it.nosPerInner > 0 ? it.nosPerInner : 12;
   return Math.ceil((it.qty || 0) / perInner);
 };
 
-// ✅ UI label helpers: processing ko Confirmed dikhana hai
-const statusLabelCustomer = (status: Order["status"]) => {
-  if (status === "processing") return "Confirmed";
-  return status.charAt(0).toUpperCase() + status.slice(1);
+const statusConfig: Record<string, { color: string; bg: string; icon: React.ReactNode; label: string }> = {
+  pending: { color: "#f59e0b", bg: "rgba(245,158,11,.08)", icon: <Clock size={14} />, label: "Pending" },
+  processing: { color: "#3b82f6", bg: "rgba(59,130,246,.08)", icon: <CheckCircle2 size={14} />, label: "Confirmed" },
+  shipped: { color: "#8b5cf6", bg: "rgba(139,92,246,.08)", icon: <Truck size={14} />, label: "Shipped" },
+  delivered: { color: "#10b981", bg: "rgba(16,185,129,.08)", icon: <CheckCircle2 size={14} />, label: "Delivered" },
+  cancelled: { color: "#ef4444", bg: "rgba(239,68,68,.08)", icon: <XCircle size={14} />, label: "Cancelled" },
+  returned: { color: "#6366f1", bg: "rgba(99,102,241,.08)", icon: <RotateCcw size={14} />, label: "Returned" },
 };
 
-// ================= INVOICE GENERATOR =================
+const returnStatusConfig: Record<string, { color: string; icon: string; label: string }> = {
+  Pending: { color: "#f59e0b", icon: "⏳", label: "Return Pending" },
+  Approved: { color: "#10b981", icon: "✅", label: "Return Approved" },
+  Rejected: { color: "#ef4444", icon: "❌", label: "Return Rejected" },
+};
+
 const generateInvoice = (order: Order) => {
-  const user = JSON.parse(localStorage.getItem("user") || "null");
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
-  const currentDate = new Date().toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  });
-
-  // Format shipping address properly
-  let shippingAddressStr = "-";
+  let shippingStr = "-";
   if (order.shippingAddress) {
-    if (typeof order.shippingAddress === "string") {
-      shippingAddressStr = order.shippingAddress;
-    } else if (typeof order.shippingAddress === "object") {
-      const addr = order.shippingAddress;
-      shippingAddressStr = `${addr.fullName || ""}, ${addr.street || ""}, ${addr.area || ""}, ${addr.city || ""}, ${
-        addr.state || ""
-      } - ${addr.pincode || ""}`;
+    if (typeof order.shippingAddress === "string") shippingStr = order.shippingAddress;
+    else {
+      const a = order.shippingAddress;
+      shippingStr = [a.fullName, a.street, a.area, a.city, a.state, a.pincode].filter(Boolean).join(", ");
     }
   }
 
-  const content = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title>
-      <style>
-        body { font-family: 'Segoe UI', Roboto, Arial, sans-serif; margin: 0; padding: 20px; background: #f5f7fa; color: #333; }
-        .invoice-container { max-width: 850px; margin: 0 auto; background: #fff; padding: 35px; border-radius: 10px; border: 1px solid #ddd; }
-        .header { text-align: center; margin-bottom: 25px; }
-        .company-name { font-size: 24px; font-weight: 700; color: #2c5aa0; text-transform: uppercase; }
-        .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
-        .items-table th { background: #2c5aa0; color: #fff; padding: 10px; text-align: left; }
-        .items-table td { padding: 10px; border-bottom: 1px solid #eee; }
-        .grand-total td { font-weight: 700; font-size: 15px; border-top: 2px solid #2c5aa0; padding-top: 10px; }
-      </style>
-      <script>
-        function printInvoice() { window.print(); }
-      </script>
-    </head>
-    <body>
-      <div class="invoice-container">
-        <div class="header">
-          <div class="company-name">BafnaToys</div>
-          <div>Pro Forma Invoice</div>
-        </div>
-        <p><strong>Order No:</strong> ${order.orderNumber || order._id}</p>
-        <p><strong>Date:</strong> ${currentDate}</p>
-        <p><strong>To:</strong> ${shippingAddressStr}</p>
-
-        <table class="items-table">
-          <thead>
-            <tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr>
-          </thead>
-          <tbody>
-            ${order.items
-              ?.map(
-                (it) => `
-              <tr>
-                <td>${it.name}</td>
-                <td>${it.qty} pcs (${toPackets(it)} pkts)</td>
-                <td>${it.price.toFixed(2)}</td>
-                <td>${(it.qty * it.price).toFixed(2)}</td>
-              </tr>`
-              )
-              .join("")}
-          </tbody>
-          <tfoot>
-            <tr class="grand-total">
-              <td colspan="3" style="text-align:right;">Grand Total</td>
-              <td>₹${order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      <div style="text-align:center; margin-top:20px;">
-        <button onclick="printInvoice()" style="padding:10px 20px; background:#2c5aa0; color:white; border:none; cursor:pointer;">Print Invoice</button>
-      </div>
-    </body>
-    </html>
-  `;
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title>
+  <style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}body{padding:30px;background:#f8f9fa}
+  .wrap{max-width:800px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 5px 25px rgba(0,0,0,.1);overflow:hidden}
+  .hdr{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:25px 35px;text-align:center}
+  .co{font-size:28px;font-weight:700;margin:10px 0 4px}
+  .info{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px 35px;border-bottom:2px dashed #e5e7eb}
+  table{width:100%;border-collapse:collapse;margin:0}
+  th,td{padding:12px;text-align:left;border-bottom:1px solid #f1f5f9}
+  th{background:#f8fafc;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
+  .total td{font-weight:700;border-top:2px solid #4f46e5;padding-top:12px}
+  .ctrl{display:flex;justify-content:center;gap:15px;margin-top:20px;padding:20px}
+  .btn{padding:12px 30px;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
+  @media print{.ctrl{display:none}}</style></head><body>
+  <div class="wrap">
+    <div class="hdr"><div class="co">Bafna Toys</div><div>Pro Forma Invoice</div></div>
+    <div class="info"><div><strong>Order:</strong> ${order.orderNumber || order._id}<br><strong>Date:</strong> ${formatDate(order.createdAt)}</div>
+    <div><strong>Ship To:</strong><br>${shippingStr}</div></div>
+    <div style="padding:20px 35px"><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
+    <tbody>${(order.items || []).map(it => `<tr><td>${it.name}</td><td>${it.qty} pcs (${toPackets(it)} pkts)</td><td>₹${it.price.toFixed(2)}</td><td>₹${(it.qty * it.price).toFixed(2)}</td></tr>`).join("")}</tbody>
+    <tfoot><tr class="total"><td colspan="3" style="text-align:right">Grand Total</td><td>₹${order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td></tr></tfoot></table></div>
+  </div>
+  <div class="ctrl"><button class="btn" onclick="window.print()">Print</button>
+  <button class="btn" style="background:#64748b" onclick="window.close()">Close</button></div></body></html>`;
 
   printWindow.document.write(content);
   printWindow.document.close();
 };
 
-/* -------------------- MAIN COMPONENT -------------------- */
 const Orders: React.FC = () => {
   const { apiBase, imageBase } = useBases();
 
@@ -214,8 +164,8 @@ const Orders: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [statusFilter, setStatusFilter] = useState<Order["status"] | "all">("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // ✅ STATES FOR RETURN MODAL
   const [showReturnModal, setShowReturnModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [returnReason, setReturnReason] = useState("Damaged Product");
@@ -223,34 +173,18 @@ const Orders: React.FC = () => {
   const [returnImages, setReturnImages] = useState<FileList | null>(null);
   const [returnVideo, setReturnVideo] = useState<File | null>(null);
   const [uploadingReturn, setUploadingReturn] = useState(false);
-
-  // ✅ Selected Items for Return
   const [returnSelectedItems, setReturnSelectedItems] = useState<string[]>([]);
 
-  // ✅ UPLOAD FUNCTION (Fixed URL)
   const uploadFileToBackend = async (file: File) => {
     const formData = new FormData();
     formData.append("images", file);
-
     try {
       const token = localStorage.getItem("token");
-      const uploadUrl = `${apiBase}/upload`;
-
-      const response = await axios.post(uploadUrl, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
+      const response = await axios.post(`${apiBase}/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
       });
-
-      if (response.data && response.data.urls && response.data.urls.length > 0) {
-        return response.data.urls[0];
-      }
-      return null;
-    } catch (error) {
-      console.error("Backend Upload Error:", error);
-      return null;
-    }
+      return response.data?.urls?.[0] || null;
+    } catch { return null; }
   };
 
   useEffect(() => {
@@ -258,651 +192,451 @@ const Orders: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-
         const userStr = localStorage.getItem("user");
-        if (!userStr) {
-          setError("Please login to view your orders.");
-          setLoading(false);
-          return;
-        }
-
+        if (!userStr) { setError("Please login to view orders."); setLoading(false); return; }
         const user = JSON.parse(userStr);
         const token = localStorage.getItem("token");
-
-        if (!user?._id) {
-          setError("Invalid user data. Please login again.");
-          setLoading(false);
-          return;
-        }
-
-        const url = `${apiBase}/orders`;
-        const response = await axios.get(url, {
+        if (!user?._id) { setError("Invalid session. Please login again."); setLoading(false); return; }
+        const response = await axios.get(`${apiBase}/orders`, {
           params: { customerId: user._id },
           headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
-
         if (response.data && Array.isArray(response.data)) {
-          const sortedOrders = response.data.sort(
-            (a: Order, b: Order) => new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
-          );
-          setOrders(sortedOrders);
-        } else {
-          setOrders([]);
-        }
+          setOrders(response.data.sort((a: Order, b: Order) =>
+            new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+          ));
+        } else setOrders([]);
       } catch (err: any) {
-        if (err.response?.status === 401) {
-          setError("Your session has expired. Please login again.");
-        } else if (err.response?.status === 404) {
-          setOrders([]);
-        } else {
-          setError("Could not fetch orders. Please try again later.");
-        }
-      } finally {
-        setLoading(false);
-      }
+        if (err.response?.status === 401) setError("Session expired. Please login again.");
+        else if (err.response?.status === 404) setOrders([]);
+        else setError("Could not fetch orders.");
+      } finally { setLoading(false); }
     };
-
     fetchOrders();
   }, [apiBase]);
 
-  const toggleOrder = (orderId: string) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
-  };
+  const filteredOrders = useMemo(() => {
+    let list = statusFilter === "all" ? orders : orders.filter(o => o.status === statusFilter);
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(o =>
+        (o.orderNumber || o._id).toLowerCase().includes(q) ||
+        o.items?.some(it => it.name.toLowerCase().includes(q))
+      );
+    }
+    return list;
+  }, [orders, statusFilter, searchQuery]);
 
-  const filteredOrders = statusFilter === "all" ? orders : orders.filter((order) => order.status === statusFilter);
+  const toggleOrder = (id: string) => setExpandedOrder(expandedOrder === id ? null : id);
 
-  // ✅ TRACKING URL: ithink logistics REMOVE (aapne bola remove karo)
-  // Ab sirf courier ke hisab se official link, warna google search
   const getTrackingUrl = (order: Order) => {
     if (!order.trackingId) return "#";
-    const courier = (order.courierName || "").toLowerCase().trim();
-
-    if (courier.includes("delhivery")) return "https://www.delhivery.com/tracking";
-    if (courier.includes("vxpress") || courier.includes("v-xpress") || courier.includes("v xpress"))
-      return "https://vxpress.in/track-result/";
-
+    const c = (order.courierName || "").toLowerCase();
+    if (c.includes("delhivery")) return "https://www.delhivery.com/tracking";
+    if (c.includes("vxpress") || c.includes("v-xpress") || c.includes("v xpress")) return "https://vxpress.in/track-result/";
     return `https://www.google.com/search?q=${encodeURIComponent(`${order.trackingId} tracking`)}`;
   };
 
-  // ✅ CANCEL ORDER FUNCTION
   const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
-
+    if (!window.confirm("Cancel this order?")) return;
     try {
       const token = localStorage.getItem("token");
-      await axios.put(
-        `${apiBase}/orders/${orderId}/status`,
-        {
-          status: "cancelled",
-          cancelledBy: "Customer",
-        },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
-
-      setOrders((prev) => prev.map((o) => (o._id === orderId ? { ...o, status: "cancelled" } : o)));
-      alert("Order cancelled successfully.");
-    } catch (error) {
-      console.error("Cancel Error:", error);
-      alert("Failed to cancel order. Please try again.");
-    }
+      await axios.put(`${apiBase}/orders/${orderId}/status`, { status: "cancelled", cancelledBy: "Customer" },
+        { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: "cancelled" } : o));
+    } catch { alert("Failed to cancel."); }
   };
 
-  // ✅ HANDLE OPEN RETURN MODAL
   const handleOpenReturn = (orderId: string) => {
     setSelectedOrderId(orderId);
     setReturnSelectedItems([]);
-    setShowReturnModal(true);
     setReturnReason("Damaged Product");
     setReturnDescription("");
     setReturnImages(null);
     setReturnVideo(null);
+    setShowReturnModal(true);
   };
 
-  // ✅ HANDLE ITEM CHECKBOX
-  const handleItemSelect = (itemName: string) => {
-    setReturnSelectedItems((prev) => {
-      if (prev.includes(itemName)) return prev.filter((i) => i !== itemName);
-      return [...prev, itemName];
-    });
-  };
+  const handleItemSelect = (name: string) =>
+    setReturnSelectedItems(prev => prev.includes(name) ? prev.filter(i => i !== name) : [...prev, name]);
 
-  // ✅ HANDLE SUBMIT RETURN
   const handleSubmitReturn = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrderId) return;
-
-    if (returnSelectedItems.length === 0) {
-      alert("Please select at least one product to return.");
-      return;
-    }
-
+    if (!selectedOrderId || returnSelectedItems.length === 0) { alert("Select at least one product."); return; }
     setUploadingReturn(true);
-
     try {
-      // 1. Upload Images
-      let uploadedImageUrls: string[] = [];
-      if (returnImages && returnImages.length > 0) {
+      let imgUrls: string[] = [];
+      if (returnImages) {
         for (let i = 0; i < returnImages.length; i++) {
           const url = await uploadFileToBackend(returnImages[i]);
-          if (url) uploadedImageUrls.push(url);
+          if (url) imgUrls.push(url);
         }
       }
+      let vidUrl = "";
+      if (returnVideo) { const v = await uploadFileToBackend(returnVideo); if (v) vidUrl = v; }
+      if (returnImages && returnImages.length > 0 && imgUrls.length === 0) { alert("Upload failed."); setUploadingReturn(false); return; }
 
-      // 2. Upload Video
-      let uploadedVideoUrl = "";
-      if (returnVideo) {
-        const vidUrl = await uploadFileToBackend(returnVideo);
-        if (vidUrl) uploadedVideoUrl = vidUrl;
-      }
-
-      if (returnImages && returnImages.length > 0 && uploadedImageUrls.length === 0) {
-        alert("Image upload failed. Please check connection.");
-        setUploadingReturn(false);
-        return;
-      }
-
-      // ✅ PREPARE DESCRIPTION WITH SELECTED ITEMS
-      const formattedDescription = `[RETURN ITEMS: ${returnSelectedItems.join(", ")}]\n\nUser Note: ${returnDescription}`;
-
-      // 3. Send to Backend
       const token = localStorage.getItem("token");
-      await axios.put(
-        `${apiBase}/orders/return/${selectedOrderId}`,
-        {
-          reason: returnReason,
-          description: formattedDescription,
-          images: uploadedImageUrls,
-          video: uploadedVideoUrl,
-        },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
-      );
+      await axios.put(`${apiBase}/orders/return/${selectedOrderId}`, {
+        reason: returnReason,
+        description: `[RETURN ITEMS: ${returnSelectedItems.join(", ")}]\n\n${returnDescription}`,
+        images: imgUrls,
+        video: vidUrl,
+      }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
 
-      alert("Return request submitted successfully!");
+      alert("Return request submitted!");
       setShowReturnModal(false);
       window.location.reload();
-    } catch (error) {
-      console.error("Return Error", error);
-      alert("Failed to submit return request.");
-    } finally {
-      setUploadingReturn(false);
-    }
+    } catch { alert("Failed to submit return."); } finally { setUploadingReturn(false); }
   };
 
-  const StatusBadge = ({ status, returnReq }: { status: Order["status"]; returnReq?: ReturnRequest }) => {
-    if (returnReq?.isRequested) {
-      let color = "#F59E0B";
-      let label = "Return Pending";
-      let icon = "⏳";
+  const getSelectedOrderItems = () => orders.find(o => o._id === selectedOrderId)?.items || [];
 
-      if (returnReq.status === "Approved") {
-        color = "#10B981";
-        label = "Return Approved";
-        icon = "✅";
-      }
-      if (returnReq.status === "Rejected") {
-        color = "#EF4444";
-        label = "Return Rejected";
-        icon = "❌";
-      }
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = { all: orders.length };
+    orders.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+    return counts;
+  }, [orders]);
 
-      return (
-        <div className="status-badge-container">
-          <span className="status-badge" style={{ backgroundColor: `${color}10`, color, border: `1px solid ${color}` }}>
-            <span className="status-icon">{icon}</span> {label}
-          </span>
-        </div>
-      );
-    }
-
-    const statusMap = {
-      pending: { color: "#F59E0B", label: "Pending", icon: "⏳" },
-      processing: { color: "#3B82F6", label: "Confirmed", icon: "✅" }, // ✅ processing => Confirmed
-      shipped: { color: "#8B5CF6", label: "Shipped", icon: "🚚" },
-      delivered: { color: "#10B981", label: "Delivered", icon: "✅" },
-      cancelled: { color: "#EF4444", label: "Cancelled", icon: "❌" },
-      returned: { color: "#6366f1", label: "Returned", icon: "🔙" },
-    } as const;
-
-    return (
-      <div className="status-badge-container">
-        <span
-          className="status-badge"
-          style={{
-            backgroundColor: `${statusMap[status].color}10`,
-            color: statusMap[status].color,
-            border: `1px solid ${statusMap[status].color}`,
-          }}
-        >
-          <span className="status-icon">{statusMap[status].icon}</span>
-          {statusMap[status].label}
-        </span>
-      </div>
-    );
-  };
-
-  const OrderProgress = ({ status }: { status: Order["status"] }) => {
-    const steps = [
-      { id: "pending", label: "Order Placed" },
-      { id: "processing", label: "Confirmed" }, // ✅ processing => Confirmed
-      { id: "shipped", label: "Shipped" },
-      { id: "delivered", label: "Delivered" },
-    ] as const;
-
-    const currentIndex = steps.findIndex((step) => step.id === status);
-    const cancelled = status === "cancelled";
-    const returned = status === "returned";
-
-    return (
-      <div className={`order-progress ${cancelled ? "cancelled" : ""} ${returned ? "returned" : ""}`}>
-        {steps.map((step, index) => (
-          <div
-            key={step.id}
-            className={`progress-step ${index <= currentIndex ? "active" : ""} ${index === currentIndex ? "current" : ""}`}
-          >
-            <div className="step-indicator">
-              {cancelled ? (
-                <span>❌</span>
-              ) : returned && index === 3 ? (
-                <span>🔙</span>
-              ) : index < currentIndex ? (
-                <span>✓</span>
-              ) : (
-                <span>{index + 1}</span>
-              )}
-            </div>
-            <div className="step-label">{step.label}</div>
-            {index < steps.length - 1 && (
-              <div className={`step-connector ${index < currentIndex ? "active" : ""}`}></div>
-            )}
-          </div>
-        ))}
-      </div>
-    );
-  };
-
-  // Helper to get items of selected order for modal
-  const getSelectedOrderItems = () => {
-    const order = orders.find((o) => o._id === selectedOrderId);
-    return order ? order.items : [];
-  };
+  const filterTabs = [
+    { key: "all", label: "All", icon: <Package size={14} /> },
+    { key: "pending", label: "Pending", icon: <Clock size={14} /> },
+    { key: "processing", label: "Confirmed", icon: <CheckCircle2 size={14} /> },
+    { key: "shipped", label: "Shipped", icon: <Truck size={14} /> },
+    { key: "delivered", label: "Delivered", icon: <CheckCircle2 size={14} /> },
+    { key: "cancelled", label: "Cancelled", icon: <XCircle size={14} /> },
+  ];
 
   return (
     <MainLayout>
-      <div className="orders-container">
-        <div className="orders-header">
-          <div className="header-content">
-            <h1>Your Orders</h1>
-            <p>View and manage your order history</p>
+      <div className="ord-page">
+        {/* ── MOBILE HEADER ── */}
+        <div className="ord-mob-head">
+          <button className="ord-back" onClick={() => window.history.back()}>
+            <ArrowLeft size={20} />
+          </button>
+          <div className="ord-mob-head-text">
+            <h1>My Orders</h1>
+            <span>{orders.length} order{orders.length !== 1 ? "s" : ""}</span>
           </div>
-
-          {orders.length > 0 && (
-            <div className="orders-filter">
-              <label htmlFor="status-filter">Filter by status:</label>
-              <select
-                id="status-filter"
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value as Order["status"] | "all")}
-              >
-                <option value="all">All Orders</option>
-                <option value="pending">Pending</option>
-                <option value="processing">Confirmed</option> {/* ✅ processing => Confirmed */}
-                <option value="shipped">Shipped</option>
-                <option value="delivered">Delivered</option>
-                <option value="cancelled">Cancelled</option>
-                <option value="returned">Returned</option>
-              </select>
-            </div>
-          )}
         </div>
 
+        {/* ── DESKTOP HEADER ── */}
+        <div className="ord-desk-head">
+          <div>
+            <h1>My Orders</h1>
+            <p>Track, manage & review your purchases</p>
+          </div>
+          <div className="ord-head-stats">
+            <div className="ord-stat-chip">
+              <Package size={16} />
+              <span><strong>{orders.length}</strong> Total</span>
+            </div>
+            <div className="ord-stat-chip ord-stat-chip--green">
+              <CheckCircle2 size={16} />
+              <span><strong>{statusCounts.delivered || 0}</strong> Delivered</span>
+            </div>
+          </div>
+        </div>
+
+        {/* ── SEARCH ── */}
+        {orders.length > 0 && (
+          <div className="ord-search-bar">
+            <Search size={16} className="ord-search-icon" />
+            <input
+              type="text"
+              placeholder="Search by order number or product..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="ord-search-input"
+            />
+            {searchQuery && (
+              <button className="ord-search-clear" onClick={() => setSearchQuery("")}>
+                <X size={14} />
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* ── FILTER TABS ── */}
+        {orders.length > 0 && (
+          <div className="ord-tabs-wrap">
+            <div className="ord-tabs">
+              {filterTabs.map(tab => (
+                <button
+                  key={tab.key}
+                  className={`ord-tab ${statusFilter === tab.key ? "ord-tab--on" : ""}`}
+                  onClick={() => setStatusFilter(tab.key as any)}
+                >
+                  {tab.icon}
+                  <span>{tab.label}</span>
+                  {(statusCounts[tab.key] || 0) > 0 && (
+                    <span className="ord-tab-count">{statusCounts[tab.key]}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── CONTENT ── */}
         {loading ? (
-          <div className="loading-state">
-            <p>Loading your orders...</p>
+          <div className="ord-state">
+            <div className="ord-spinner" />
+            <p>Loading orders...</p>
           </div>
         ) : error ? (
-          <div className="error-state">
-            <h3>Unable to load orders</h3>
+          <div className="ord-state ord-state--err">
+            <AlertTriangle size={40} />
+            <h3>Unable to load</h3>
             <p>{error}</p>
-            <button onClick={() => window.location.reload()}>Try Again</button>
+            <button className="ord-state-btn" onClick={() => window.location.reload()}>Try Again</button>
           </div>
         ) : filteredOrders.length === 0 ? (
-          <div className="empty-state">
-            <h3>No orders found</h3>
-            <button onClick={() => (window.location.href = "/")}>Start Shopping</button>
+          <div className="ord-state">
+            <ShoppingBag size={48} strokeWidth={1.2} />
+            <h3>{statusFilter !== "all" ? "No orders in this category" : "No orders yet"}</h3>
+            <p>Start shopping to see your orders here</p>
+            <button className="ord-state-btn" onClick={() => window.location.href = "/"}>
+              Browse Products
+            </button>
           </div>
         ) : (
-          <div className="orders-list">
-            {filteredOrders.map((order) => (
-              <div key={order._id} className={`order-card ${expandedOrder === order._id ? "expanded" : ""}`}>
-                <div className="order-summary" onClick={() => toggleOrder(order._id)}>
-                  <div className="order-meta">
-                    <div>
-                      <h3>Order #{order.orderNumber || order._id.slice(-6).toUpperCase()}</h3>
-                      <p className="order-date">Placed on {formatDate(order.createdAt)}</p>
-                    </div>
-                    <StatusBadge status={order.status} returnReq={order.returnRequest} />
-                  </div>
+          <div className="ord-list">
+            {filteredOrders.map(order => {
+              const isOpen = expandedOrder === order._id;
+              const st = statusConfig[order.status];
+              const hasReturn = order.returnRequest?.isRequested;
+              const retSt = hasReturn ? returnStatusConfig[order.returnRequest!.status] : null;
 
-                  <div className="order-preview">
-                    <div className="items-preview">
-                      {order.items?.slice(0, 3).map((item, i) => (
-                        <div key={i} className="item-preview">
-                          <img
-                            src={resolveImage(item.image)}
-                            alt={item.name}
-                            onError={(e) => {
-                              (e.target as HTMLImageElement).src = "/placeholder-product.png";
-                            }}
-                          />
-                          <span>{item.name}</span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="order-totals">
-                      <div className="order-total">
-                        <span>Total:</span>
-                        <strong>₹{order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</strong>
+              return (
+                <div key={order._id} className={`ord-card ${isOpen ? "ord-card--open" : ""}`}>
+                  {/* ── Summary ── */}
+                  <div className="ord-card-top" onClick={() => toggleOrder(order._id)}>
+                    <div className="ord-card-row1">
+                      <div className="ord-card-id">
+                        <Hash size={13} />
+                        <span>{order.orderNumber || order._id.slice(-6).toUpperCase()}</span>
+                      </div>
+                      <div className="ord-badge" style={{ background: retSt ? `${retSt.color}10` : st.bg, color: retSt ? retSt.color : st.color, borderColor: retSt ? retSt.color : st.color }}>
+                        {retSt ? <span>{retSt.icon}</span> : st.icon}
+                        {retSt ? retSt.label : st.label}
                       </div>
                     </div>
-                  </div>
-                </div>
 
-                {expandedOrder === order._id && (
-                  <div className="order-details">
-                    <OrderProgress status={order.status} />
-
-                    {order.status === "shipped" && order.trackingId && (
-                      <div
-                        className="tracking-section"
-                        style={{
-                          background: "#f0f9ff",
-                          padding: "15px",
-                          borderRadius: "8px",
-                          border: "1px solid #bae6fd",
-                          margin: "20px 0",
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <div>
-                          <h4 style={{ margin: "0 0 5px 0", color: "#0369a1" }}>🚚 Shipment On The Way!</h4>
-                          <p style={{ margin: 0 }}>
-                            Courier: {order.courierName || "Courier"} | Tracking: {order.trackingId}
-                          </p>
-                        </div>
-
-                        {/* ✅ Tracking link updated: ithink removed */}
-                        <a
-                          href={getTrackingUrl(order)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="track-btn"
-                          style={{
-                            background: "#0284c7",
-                            color: "white",
-                            padding: "8px 15px",
-                            borderRadius: "5px",
-                            textDecoration: "none",
-                          }}
-                        >
-                          Track
-                        </a>
-                      </div>
-                    )}
-
-                    {/* ✅ CANCEL BUTTON (Only if Pending) */}
-                    {order.status === "pending" && (
-                      <div style={{ marginTop: "20px", textAlign: "right" }}>
-                        <button
-                          onClick={() => handleCancelOrder(order._id)}
-                          style={{
-                            backgroundColor: "#fff",
-                            border: "1px solid #ef4444",
-                            color: "#ef4444",
-                            padding: "8px 15px",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          ❌ Cancel Order
-                        </button>
-                      </div>
-                    )}
-
-                    {order.status === "delivered" && !order.returnRequest?.isRequested && (
-                      <div
-                        className="return-section"
-                        style={{ marginTop: "20px", padding: "15px", background: "#fff1f2", border: "1px solid #fda4af", borderRadius: "8px" }}
-                      >
-                        <h4 style={{ margin: "0 0 10px 0", color: "#be123c" }}>Need to Return?</h4>
-                        <p style={{ fontSize: "14px", marginBottom: "10px" }}>
-                          Returns are only accepted for Damaged or Wrong products. You must provide image/video proof.
-                        </p>
-                        <button
-                          onClick={() => handleOpenReturn(order._id)}
-                          style={{
-                            backgroundColor: "#e11d48",
-                            color: "white",
-                            border: "none",
-                            padding: "10px 20px",
-                            borderRadius: "5px",
-                            cursor: "pointer",
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Request Return
-                        </button>
-                      </div>
-                    )}
-
-                    {order.returnRequest?.isRequested && (
-                      <div style={{ marginTop: "20px", padding: "15px", background: "#f3f4f6", borderRadius: "8px", border: "1px solid #d1d5db" }}>
-                        <h4 style={{ margin: "0 0 5px 0" }}>Return Request Details</h4>
-                        <p>
-                          <strong>Status:</strong> {order.returnRequest.status}
-                        </p>
-                        <p>
-                          <strong>Reason:</strong> {order.returnRequest.reason}
-                        </p>
-                        {order.returnRequest.adminComment && (
-                          <p style={{ color: "red" }}>
-                            <strong>Admin Comment:</strong> {order.returnRequest.adminComment}
-                          </p>
+                    <div className="ord-card-row2">
+                      <div className="ord-card-images">
+                        {order.items?.slice(0, 4).map((item, i) => (
+                          <div key={i} className="ord-card-thumb" style={{ zIndex: 10 - i }}>
+                            <img src={resolveImage(item.image)} alt="" onError={e => { (e.target as HTMLImageElement).src = "/placeholder-product.png"; }} />
+                          </div>
+                        ))}
+                        {(order.items?.length || 0) > 4 && (
+                          <div className="ord-card-thumb ord-card-thumb--more">
+                            +{(order.items?.length || 0) - 4}
+                          </div>
                         )}
                       </div>
-                    )}
 
-                    <div className="details-grid">
-                      <div className="items-list">
-                        <h4>Order Items</h4>
-                        <div className="items-container">
-                          {order.items?.map((item, i) => (
-                            <div key={i} className="item-detail">
-                              <div className="item-image">
-                                <img
-                                  src={resolveImage(item.image)}
-                                  alt={item.name}
-                                  onError={(e) => {
-                                    (e.target as HTMLImageElement).src = "/placeholder-product.png";
-                                  }}
-                                />
-                              </div>
-                              <div className="item-info">
-                                <h5>{item.name}</h5>
-                                <div className="item-specs">
-                                  <span>
-                                    {item.qty} pcs ({toPackets(item)} pkts)
-                                  </span>
+                      <div className="ord-card-right">
+                        <div className="ord-card-total">
+                          ₹{order.total.toLocaleString("en-IN")}
+                        </div>
+                        <div className="ord-card-date">
+                          <Calendar size={11} />
+                          {formatDateShort(order.createdAt)}
+                        </div>
+                      </div>
+
+                      <ChevronDown size={18} className={`ord-card-chevron ${isOpen ? "ord-card-chevron--up" : ""}`} />
+                    </div>
+                  </div>
+
+                  {/* ── Expanded Details ── */}
+                  {isOpen && (
+                    <div className="ord-card-body">
+                      {/* Progress */}
+                      <div className={`ord-progress ${order.status === "cancelled" ? "ord-progress--off" : ""}`}>
+                        {(["pending", "processing", "shipped", "delivered"] as const).map((step, i) => {
+                          const stepOrder = ["pending", "processing", "shipped", "delivered"];
+                          const currentIdx = stepOrder.indexOf(order.status);
+                          const isActive = i <= currentIdx;
+                          const isCurrent = i === currentIdx;
+                          return (
+                            <React.Fragment key={step}>
+                              <div className={`ord-prog-step ${isActive ? "ord-prog-step--on" : ""} ${isCurrent ? "ord-prog-step--cur" : ""}`}>
+                                <div className="ord-prog-dot">
+                                  {order.status === "cancelled" ? <XCircle size={14} /> :
+                                    i < currentIdx ? <CheckCircle2 size={14} /> :
+                                      <span>{i + 1}</span>}
                                 </div>
-                                <div className="item-price">₹{item.price.toFixed(2)}</div>
+                                <span className="ord-prog-label">{statusConfig[step].label}</span>
+                              </div>
+                              {i < 3 && <div className={`ord-prog-line ${isActive && i < currentIdx ? "ord-prog-line--on" : ""}`} />}
+                            </React.Fragment>
+                          );
+                        })}
+                      </div>
+
+                      {/* Tracking */}
+                      {order.status === "shipped" && order.trackingId && (
+                        <div className="ord-tracking">
+                          <div className="ord-tracking-info">
+                            <Truck size={18} />
+                            <div>
+                              <strong>Shipment on the way!</strong>
+                              <span>{order.courierName || "Courier"} · {order.trackingId}</span>
+                            </div>
+                          </div>
+                          <a href={getTrackingUrl(order)} target="_blank" rel="noopener noreferrer" className="ord-track-btn">
+                            Track <ChevronRight size={14} />
+                          </a>
+                        </div>
+                      )}
+
+                      {/* Cancel */}
+                      {order.status === "pending" && (
+                        <button className="ord-cancel-btn" onClick={() => handleCancelOrder(order._id)}>
+                          <XCircle size={15} /> Cancel Order
+                        </button>
+                      )}
+
+                      {/* Return Section */}
+                      {order.status === "delivered" && !hasReturn && (
+                        <div className="ord-return-cta">
+                          <div>
+                            <strong>Need to return?</strong>
+                            <p>Only for damaged or wrong products with proof</p>
+                          </div>
+                          <button className="ord-return-btn" onClick={() => handleOpenReturn(order._id)}>
+                            <RotateCcw size={14} /> Request Return
+                          </button>
+                        </div>
+                      )}
+
+                      {hasReturn && (
+                        <div className="ord-return-status">
+                          <div className="ord-return-status-head">
+                            <strong>Return Request</strong>
+                            <span className="ord-badge" style={{ background: `${retSt!.color}10`, color: retSt!.color, borderColor: retSt!.color }}>
+                              {retSt!.icon} {retSt!.label}
+                            </span>
+                          </div>
+                          <p><strong>Reason:</strong> {order.returnRequest!.reason}</p>
+                          {order.returnRequest!.adminComment && (
+                            <p className="ord-admin-comment">
+                              <strong>Admin:</strong> {order.returnRequest!.adminComment}
+                            </p>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Items */}
+                      <div className="ord-items-section">
+                        <h4>Items ({order.items?.length || 0})</h4>
+                        <div className="ord-items-list">
+                          {order.items?.map((item, i) => (
+                            <div key={i} className="ord-item">
+                              <div className="ord-item-img">
+                                <img src={resolveImage(item.image)} alt={item.name} onError={e => { (e.target as HTMLImageElement).src = "/placeholder-product.png"; }} />
+                              </div>
+                              <div className="ord-item-info">
+                                <h5>{item.name}</h5>
+                                <div className="ord-item-meta">
+                                  <span>{item.qty} pcs · {toPackets(item)} pkts</span>
+                                  <span className="ord-item-price">₹{(item.qty * item.price).toLocaleString("en-IN")}</span>
+                                </div>
                               </div>
                             </div>
                           ))}
                         </div>
                       </div>
 
-                      <div className="order-summary-card">
-                        <h4>Order Summary</h4>
-                        <div className="summary-row">
-                          <span>Order No</span>
-                          <span>{order.orderNumber}</span>
-                        </div>
-                        <div className="summary-row">
-                          <span>Status</span>
-                          <span>{statusLabelCustomer(order.status)}</span> {/* ✅ Processing shown as Confirmed */}
-                        </div>
-                        <div className="summary-row">
-                          <span>Total</span>
-                          <span>₹{order.total}</span>
-                        </div>
-                        <div className="summary-row">
-                          <button className="invoice-btn" onClick={() => generateInvoice(order)}>
-                            📄 View Invoice
+                      {/* Summary */}
+                      <div className="ord-summary-grid">
+                        <div className="ord-summary-card">
+                          <div className="ord-sum-row">
+                            <span><Hash size={13} /> Order No</span>
+                            <span>{order.orderNumber}</span>
+                          </div>
+                          <div className="ord-sum-row">
+                            <span><Calendar size={13} /> Date</span>
+                            <span>{formatDate(order.createdAt)}</span>
+                          </div>
+                          <div className="ord-sum-row">
+                            <span><CreditCard size={13} /> Payment</span>
+                            <span>{order.paymentMode || "Online"}</span>
+                          </div>
+                          <div className="ord-sum-row ord-sum-row--total">
+                            <span>Total</span>
+                            <span>₹{order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</span>
+                          </div>
+                          <button className="ord-invoice-btn" onClick={() => generateInvoice(order)}>
+                            <FileText size={15} /> View Invoice
                           </button>
                         </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            ))}
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
 
-        {/* ✅ RETURN REQUEST MODAL WITH PRODUCT SELECTION */}
+        {/* ── Return Modal ── */}
         {showReturnModal && (
-          <div
-            className="modal-overlay"
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              background: "rgba(0,0,0,0.5)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 1000,
-            }}
-          >
-            <div
-              className="modal-content"
-              style={{
-                background: "white",
-                padding: "25px",
-                borderRadius: "10px",
-                width: "90%",
-                maxWidth: "500px",
-                maxHeight: "90vh",
-                overflowY: "auto",
-              }}
-            >
-              <h2 style={{ marginTop: 0, color: "#2c5aa0" }}>Request Return</h2>
-              <form onSubmit={handleSubmitReturn}>
-                {/* SELECT PRODUCTS SECTION */}
-                <div style={{ marginBottom: "15px", border: "1px solid #eee", padding: "10px", borderRadius: "5px" }}>
-                  <label style={{ display: "block", marginBottom: "8px", fontWeight: "bold", color: "#333" }}>
-                    Select Product(s) to Return *
-                  </label>
-
-                  <div style={{ maxHeight: "150px", overflowY: "auto" }}>
-                    {getSelectedOrderItems()?.map((item, index) => (
-                      <div
-                        key={index}
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          marginBottom: "8px",
-                          paddingBottom: "8px",
-                          borderBottom: "1px solid #f9f9f9",
-                        }}
-                      >
-                        <input
-                          type="checkbox"
-                          id={`item-${index}`}
-                          checked={returnSelectedItems.includes(item.name)}
-                          onChange={() => handleItemSelect(item.name)}
-                          style={{ width: "18px", height: "18px", cursor: "pointer" }}
-                        />
-                        <img src={resolveImage(item.image)} alt="" style={{ width: "35px", height: "35px", objectFit: "cover", borderRadius: "4px" }} />
-                        <label htmlFor={`item-${index}`} style={{ fontSize: "13px", cursor: "pointer", flex: 1 }}>
-                          {item.name} <br />
-                          <span style={{ color: "#666", fontSize: "11px" }}>Qty: {item.qty}</span>
-                        </label>
-                      </div>
+          <div className="ord-modal-overlay" onClick={() => setShowReturnModal(false)}>
+            <div className="ord-modal" onClick={e => e.stopPropagation()}>
+              <div className="ord-modal-head">
+                <h3><RotateCcw size={18} /> Return Request</h3>
+                <button onClick={() => setShowReturnModal(false)}><X size={20} /></button>
+              </div>
+              <form onSubmit={handleSubmitReturn} className="ord-modal-body">
+                {/* Product Selection */}
+                <div className="ord-modal-section">
+                  <label className="ord-modal-label">Select Products to Return *</label>
+                  <div className="ord-return-items">
+                    {getSelectedOrderItems().map((item, i) => (
+                      <label key={i} className={`ord-return-item ${returnSelectedItems.includes(item.name) ? "ord-return-item--on" : ""}`}>
+                        <input type="checkbox" checked={returnSelectedItems.includes(item.name)} onChange={() => handleItemSelect(item.name)} />
+                        <img src={resolveImage(item.image)} alt="" />
+                        <div>
+                          <span>{item.name}</span>
+                          <small>Qty: {item.qty}</small>
+                        </div>
+                      </label>
                     ))}
                   </div>
-
-                  {returnSelectedItems.length === 0 && (
-                    <p style={{ color: "red", fontSize: "11px", margin: "5px 0 0" }}>Please select at least one item.</p>
-                  )}
+                  {returnSelectedItems.length === 0 && <p className="ord-modal-err">Select at least one item</p>}
                 </div>
 
-                <div style={{ marginBottom: "15px" }}>
-                  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Reason</label>
-                  <select
-                    value={returnReason}
-                    onChange={(e) => setReturnReason(e.target.value)}
-                    style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc" }}
-                  >
-                    <option value="Damaged Product">Damaged Product</option>
-                    <option value="Wrong Product">Wrong Product</option>
+                <div className="ord-modal-section">
+                  <label className="ord-modal-label">Reason</label>
+                  <select value={returnReason} onChange={e => setReturnReason(e.target.value)} className="ord-modal-select">
+                    <option>Damaged Product</option>
+                    <option>Wrong Product</option>
                   </select>
                 </div>
 
-                <div style={{ marginBottom: "15px" }}>
-                  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Description / Note</label>
-                  <textarea
-                    value={returnDescription}
-                    onChange={(e) => setReturnDescription(e.target.value)}
-                    placeholder="Describe the damage or issue..."
-                    required
-                    style={{ width: "100%", padding: "10px", borderRadius: "5px", border: "1px solid #ccc", minHeight: "80px" }}
-                  />
+                <div className="ord-modal-section">
+                  <label className="ord-modal-label">Description *</label>
+                  <textarea value={returnDescription} onChange={e => setReturnDescription(e.target.value)} required placeholder="Describe the issue..." className="ord-modal-textarea" />
                 </div>
 
-                <div style={{ marginBottom: "15px" }}>
-                  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Upload Images (Proof)</label>
-                  <input type="file" multiple accept="image/*" onChange={(e) => setReturnImages(e.target.files)} required style={{ width: "100%" }} />
-                  <small style={{ color: "#666" }}>Max 3 images recommended</small>
+                <div className="ord-modal-section">
+                  <label className="ord-modal-label"><Camera size={14} /> Upload Images (Proof) *</label>
+                  <input type="file" multiple accept="image/*" onChange={e => setReturnImages(e.target.files)} required className="ord-modal-file" />
                 </div>
 
-                <div style={{ marginBottom: "20px" }}>
-                  <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Upload Video (Optional)</label>
-                  <input
-                    type="file"
-                    accept="video/*"
-                    onChange={(e) => setReturnVideo(e.target.files ? e.target.files[0] : null)}
-                    style={{ width: "100%" }}
-                  />
+                <div className="ord-modal-section">
+                  <label className="ord-modal-label"><Video size={14} /> Upload Video (Optional)</label>
+                  <input type="file" accept="video/*" onChange={e => setReturnVideo(e.target.files?.[0] || null)} className="ord-modal-file" />
                 </div>
 
-                <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end" }}>
-                  <button
-                    type="button"
-                    onClick={() => setShowReturnModal(false)}
-                    style={{ padding: "10px 20px", borderRadius: "5px", border: "1px solid #ccc", background: "#f3f4f6", cursor: "pointer" }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={uploadingReturn}
-                    style={{
-                      padding: "10px 20px",
-                      borderRadius: "5px",
-                      border: "none",
-                      background: uploadingReturn ? "#ccc" : "#2c5aa0",
-                      color: "white",
-                      cursor: "pointer",
-                      opacity: uploadingReturn ? 0.7 : 1,
-                    }}
-                  >
+                <div className="ord-modal-footer">
+                  <button type="button" onClick={() => setShowReturnModal(false)} className="ord-modal-cancel">Cancel</button>
+                  <button type="submit" disabled={uploadingReturn} className="ord-modal-submit">
                     {uploadingReturn ? "Uploading..." : "Submit Request"}
                   </button>
                 </div>

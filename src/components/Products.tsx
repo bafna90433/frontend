@@ -1,12 +1,34 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
-import "../styles/Products.css"; 
+import "../styles/Products.css";
 import CategorySEO from "./CategorySEO";
 import FloatingCheckoutButton from "./FloatingCheckoutButton";
-import { X, ChevronRight, ChevronLeft, LayoutGrid, SlidersHorizontal } from "lucide-react";
+import {
+  X,
+  ChevronRight,
+  ChevronLeft,
+  LayoutGrid,
+  SlidersHorizontal,
+  Search,
+  Sparkles,
+  ArrowUpDown,
+  Filter,
+  Star,
+  Users,
+  Truck,
+  Factory,
+  Shield,
+  BadgeCheck,
+  MapPin,
+  ExternalLink,
+  Instagram,
+  Youtube,
+  Facebook,
+  Linkedin,
+} from "lucide-react";
 import { Skeleton } from "@mui/material";
 
 type BulkTier = { inner: number; qty: number; price: number };
@@ -33,11 +55,7 @@ type Category = {
   link?: string;
 };
 
-type Banner = {
-  _id: string;
-  imageUrl: string;
-  link?: string;
-};
+type Banner = { _id: string; imageUrl: string; link?: string };
 
 type HotDeal = {
   productId: string;
@@ -48,14 +66,15 @@ type HotDeal = {
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
 
-// ✅ Added `crop` parameter with default "c_fill"
-const optimizeCloudinary = (url: string | undefined, w: number, h: number, crop: string = "c_fill") => {
+const optimizeCloudinary = (
+  url: string | undefined,
+  w: number,
+  h: number,
+  crop = "c_fill"
+) => {
   if (!url) return "/placeholder.png";
-
-  if (!url.startsWith("http") && CLOUD_NAME) {
+  if (!url.startsWith("http") && CLOUD_NAME)
     return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
-  }
-
   if (url.includes("res.cloudinary.com")) {
     if (url.includes("/image/upload/f_auto")) return url;
     return url.replace(
@@ -63,7 +82,6 @@ const optimizeCloudinary = (url: string | undefined, w: number, h: number, crop:
       `/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/`
     );
   }
-
   return url.startsWith("http")
     ? url
     : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
@@ -88,36 +106,44 @@ const cleanProduct = (raw: any): Product => ({
   ...raw,
 });
 
-// ==========================================
-// Number Animation (Timer)
-// ==========================================
-const AnimatedCounter: React.FC<{ target: string | number; duration?: number }> = ({ target, duration = 2000 }) => {
+const AnimatedCounter: React.FC<{
+  target: string | number;
+  duration?: number;
+}> = ({ target, duration = 2000 }) => {
   const [count, setCount] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    const targetString = String(target);
-    const targetNumber = parseInt(targetString.replace(/\D/g, ""), 10) || 49000;
-    
-    let startTimestamp: number | null = null;
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-
-      const easeOut = 1 - Math.pow(1 - progress, 3);
-      setCount(Math.floor(easeOut * targetNumber));
-
-      if (progress < 1) {
-        window.requestAnimationFrame(step);
-      } else {
-        setCount(targetNumber);
-      }
-    };
-
-    window.requestAnimationFrame(step);
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !hasAnimated.current) {
+          hasAnimated.current = true;
+          const targetNum =
+            parseInt(String(target).replace(/\D/g, ""), 10) || 4900;
+          let start: number | null = null;
+          const step = (ts: number) => {
+            if (!start) start = ts;
+            const progress = Math.min((ts - start) / duration, 1);
+            const ease = 1 - Math.pow(1 - progress, 3);
+            setCount(Math.floor(ease * targetNum));
+            if (progress < 1) requestAnimationFrame(step);
+            else setCount(targetNum);
+          };
+          requestAnimationFrame(step);
+        }
+      },
+      { threshold: 0.3 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
   }, [target, duration]);
 
   return (
-    <>{count.toLocaleString('en-IN')}{String(target).replace(/[0-9.,]/g, "")}</>
+    <span ref={ref}>
+      {count.toLocaleString("en-IN")}
+      {String(target).replace(/[0-9.,]/g, "")}
+    </span>
   );
 };
 
@@ -135,20 +161,21 @@ const Products: React.FC = () => {
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [sortBy, setSortBy] = useState<string>("default");
-
+  const [sortBy, setSortBy] = useState("default");
   const [minPriceInput, setMinPriceInput] = useState<number | "">(0);
   const [maxPriceInput, setMaxPriceInput] = useState<number | "">(5000);
-  const [activePriceFilter, setActivePriceFilter] = useState<{min: number, max: number} | null>(null);
-
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const ITEMS_PER_PAGE = 25; 
+  const [activePriceFilter, setActivePriceFilter] = useState<{
+    min: number;
+    max: number;
+  } | null>(null);
+  const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 25;
 
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
 
-  // Marquee items data
   const marqueeItems = [
     { icon: "📦", text: "Small MOQ Ordering" },
     { icon: "🧸", text: "400+ Toy Products" },
@@ -158,8 +185,8 @@ const Products: React.FC = () => {
     { icon: "📊", text: "Fast Moving Toys" },
     { icon: "🎁", text: "Attractive Packaging" },
     { icon: "🧾", text: "Easy Ordering for Retailers" },
-    { icon: "🔁", text: "Regular New Toy Launches" },
-    { icon: "🏷️", text: "Beat E-Commerce Prices" }
+    { icon: "🔁", text: "Regular New Launches" },
+    { icon: "🏷️", text: "Beat E-Commerce Prices" },
   ];
 
   useEffect(() => {
@@ -167,76 +194,76 @@ const Products: React.FC = () => {
   }, [location.pathname, categoryId]);
 
   useEffect(() => {
-    api.get("/categories")
-      .then((res) => setCategories(res.data?.categories || res.data || []))
-      .catch((err) => console.error("Failed to load categories", err));
+    api
+      .get("/categories")
+      .then((r) => setCategories(r.data?.categories || r.data || []))
+      .catch(console.error);
 
-    api.get("/banners")
-      .then((res) => {
-        const fetchedBanners = Array.isArray(res.data?.banners) 
-          ? res.data.banners 
-          : (Array.isArray(res.data) ? res.data : []);
-        setBanners(fetchedBanners);
+    api
+      .get("/banners")
+      .then((r) => {
+        const b = Array.isArray(r.data?.banners)
+          ? r.data.banners
+          : Array.isArray(r.data)
+          ? r.data
+          : [];
+        setBanners(b);
       })
-      .catch((err) => console.error("Failed to load banners", err))
+      .catch(console.error)
       .finally(() => setBannersLoading(false));
 
-    api.get("/home-config")
-      .then((res) => {
-        const items = res.data?.hotDealsItemsResolved || res.data?.hotDealsItems || [];
-        const mappedDeals = items.map((it: any) => ({
-          productId: it.productId || it.product?._id,
-          discountType: it.discountType || "NONE",
-          discountValue: Number(it.discountValue || 0),
-          endsAt: it.endsAt || null,
-        }));
-        setActiveDeals(mappedDeals);
+    api
+      .get("/home-config")
+      .then((r) => {
+        const items =
+          r.data?.hotDealsItemsResolved || r.data?.hotDealsItems || [];
+        setActiveDeals(
+          items.map((it: any) => ({
+            productId: it.productId || it.product?._id,
+            discountType: it.discountType || "NONE",
+            discountValue: Number(it.discountValue || 0),
+            endsAt: it.endsAt || null,
+          }))
+        );
       })
-      .catch((err) => console.error("Failed to load deals", err));
+      .catch(console.error);
 
-    api.get("/trust-settings")
-      .then((res) => setTrustData(res.data))
-      .catch((err) => console.error("Failed to load trust settings", err));
+    api
+      .get("/trust-settings")
+      .then((r) => setTrustData(r.data))
+      .catch(console.error);
   }, []);
 
   useEffect(() => {
     let alive = true;
-    const controller = new AbortController();
-
-    const fetchProducts = async () => {
+    const ctrl = new AbortController();
+    const fetch = async () => {
       setLoading(true);
       setError(null);
-
       try {
-        const res = await api.get("/products", {
-          signal: controller.signal,
+        const r = await api.get("/products", {
+          signal: ctrl.signal,
           params: {
             ...(categoryId ? { category: categoryId } : {}),
             ...(searchTerm ? { search: searchTerm } : {}),
           },
         });
-
         if (!alive) return;
-
-        const arr: any[] = Array.isArray(res.data)
-          ? res.data
-          : res.data?.products || res.data?.docs || [];
-
+        const arr = Array.isArray(r.data)
+          ? r.data
+          : r.data?.products || r.data?.docs || [];
         setAllProducts(arr.map(cleanProduct));
-      } catch (err: any) {
-        if (controller.signal.aborted) return;
-        setError(err?.response?.data?.message || err.message || "Failed to load products");
-        setAllProducts([]);
+      } catch (e: any) {
+        if (!ctrl.signal.aborted)
+          setError(e?.response?.data?.message || e.message || "Failed to load");
       } finally {
         if (alive) setLoading(false);
       }
     };
-
-    fetchProducts();
-
+    fetch();
     return () => {
       alive = false;
-      controller.abort();
+      ctrl.abort();
     };
   }, [location.search, categoryId, searchTerm]);
 
@@ -244,111 +271,88 @@ const Products: React.FC = () => {
     setCurrentPage(1);
   }, [categoryId, searchTerm, sortBy, activePriceFilter]);
 
-  const handleApplyPriceFilter = () => {
+  const handleApplyPrice = () =>
     setActivePriceFilter({
       min: Number(minPriceInput) || 0,
       max: Number(maxPriceInput) || Infinity,
     });
-  };
 
   const displayed = useMemo(() => {
-    let filtered = [...allProducts];
-
-    if (categoryId) {
-      filtered = filtered.filter((p) =>
+    let f = [...allProducts];
+    if (categoryId)
+      f = f.filter((p) =>
         typeof p.category === "string"
           ? p.category === categoryId
           : p.category?._id === categoryId
       );
-    }
-
     if (searchTerm) {
       const n = searchTerm.toLowerCase();
-      filtered = filtered.filter(
+      f = f.filter(
         (p) =>
           p.name.toLowerCase().includes(n) ||
           (p.sku || "").toLowerCase().includes(n)
       );
     }
-
-    if (activeDeals.length > 0) {
-      filtered = filtered.map((p) => {
-        const deal = activeDeals.find((d) => d.productId === p._id);
-        if (deal) {
-          return {
-            ...p,
-            hotDealType: deal.discountType,
-            hotDealValue: deal.discountValue,
-            sale_end_time: deal.endsAt || undefined,
-          };
-        }
-        return p;
+    if (activeDeals.length) {
+      f = f.map((p) => {
+        const d = activeDeals.find((x) => x.productId === p._id);
+        return d
+          ? {
+              ...p,
+              hotDealType: d.discountType,
+              hotDealValue: d.discountValue,
+              sale_end_time: d.endsAt || undefined,
+            }
+          : p;
       });
     }
-
-    if (activePriceFilter) {
-      filtered = filtered.filter((p) => {
-        const price = p.price || 0;
-        return price >= activePriceFilter.min && price <= activePriceFilter.max;
-      });
-    }
-
-    if (sortBy === "price-low") {
-      filtered.sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sortBy === "price-high") {
-      filtered.sort((a, b) => (b.price || 0) - (a.price || 0));
-    } else if (sortBy === "name-asc") {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-    }
-
-    return filtered;
+    if (activePriceFilter)
+      f = f.filter(
+        (p) =>
+          (p.price || 0) >= activePriceFilter.min &&
+          (p.price || 0) <= activePriceFilter.max
+      );
+    if (sortBy === "price-low") f.sort((a, b) => (a.price || 0) - (b.price || 0));
+    else if (sortBy === "price-high")
+      f.sort((a, b) => (b.price || 0) - (a.price || 0));
+    else if (sortBy === "name-asc") f.sort((a, b) => a.name.localeCompare(b.name));
+    return f;
   }, [allProducts, categoryId, searchTerm, sortBy, activeDeals, activePriceFilter]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
-
-  const paginatedProducts = displayed.slice(
+  const paginated = displayed.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
 
-  const getPageNumbers = () => {
-    const pages: (number | string)[] = [];
+  const getPages = () => {
+    const p: (number | string)[] = [];
     for (let i = 1; i <= totalPages; i++) {
-      if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
-        pages.push(i);
-      } else if (pages[pages.length - 1] !== "...") {
-        pages.push("...");
-      }
+      if (
+        i === 1 ||
+        i === totalPages ||
+        (i >= currentPage - 1 && i <= currentPage + 1)
+      )
+        p.push(i);
+      else if (p[p.length - 1] !== "...") p.push("...");
     }
-    return pages;
+    return p;
   };
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+  const goPage = (n: number) => {
+    setCurrentPage(n);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const categoryName = categoryId
+  const catName = categoryId
     ? categories.find((c) => c._id === categoryId)?.name ||
       (typeof displayed[0]?.category === "object"
         ? displayed[0]?.category?.name
-        : typeof displayed[0]?.category === "string"
-        ? displayed[0]?.category
-        : "")
+        : "") ||
+      ""
     : "";
 
-  const seoTitle = categoryName
-    ? `Wholesale ${categoryName} Supplier | Bafna Toys`
-    : searchTerm
-    ? `Search results for "${searchTerm}"`
-    : "Shop Wholesale Toys | Bafna Toys";
-
-  const seoDescription =
-    "Buy bulk toys including dolls, friction cars, pullback series & more at wholesale prices.";
-
-  const seoUrl = `https://bafnatoys.com${location.pathname}${location.search}`;
-
-  const handleClearFilters = () => {
+  const handleClear = () => {
     setSortBy("default");
     setActivePriceFilter(null);
     setMinPriceInput(0);
@@ -356,341 +360,369 @@ const Products: React.FC = () => {
     navigate("/products");
   };
 
-  const handleCategoryClick = (cat: Category) => {
-    if (cat.link && cat.link.trim() !== "") {
-      if (cat.link.startsWith("http")) {
-        window.location.href = cat.link;
-      } else {
-        navigate(cat.link);
-      }
-    } else {
-      navigate(`/products?category=${cat._id}`);
-    }
+  const handleCatClick = (cat: Category) => {
+    if (cat.link?.trim()) {
+      cat.link.startsWith("http")
+        ? (window.location.href = cat.link)
+        : navigate(cat.link);
+    } else navigate(`/products?category=${cat._id}`);
   };
 
+  const seoTitle = catName
+    ? `Wholesale ${catName} | Bafna Toys`
+    : searchTerm
+    ? `Search: "${searchTerm}"`
+    : "Shop Wholesale Toys | Bafna Toys";
+
   return (
-    <div className="fw-shop-wrapper">
+    <div className="sp-wrapper">
       <CategorySEO
         title={seoTitle}
-        description={seoDescription}
+        description="Buy bulk toys at wholesale prices."
         keywords="wholesale toys"
-        url={seoUrl}
+        url={`https://bafnatoys.com${location.pathname}${location.search}`}
         jsonLd={{}}
       />
 
-      <div className="fw-marquee-container">
-        <div className="fw-marquee-content">
-          {marqueeItems.map((item, index) => (
-            <React.Fragment key={index}>
-              <span className="fw-marquee-item">
-                <span className="fw-marquee-icon">{item.icon}</span>
-                <span className="fw-marquee-text">{item.text}</span>
-              </span>
-              <span className="fw-marquee-separator">•</span>
-            </React.Fragment>
-          ))}
-          {marqueeItems.map((item, index) => (
-            <React.Fragment key={`dup-${index}`}>
-              <span className="fw-marquee-item">
-                <span className="fw-marquee-icon">{item.icon}</span>
-                <span className="fw-marquee-text">{item.text}</span>
-              </span>
-              <span className="fw-marquee-separator">•</span>
-            </React.Fragment>
+      {/* ═══ MARQUEE ═══ */}
+      <div className="sp-marquee">
+        <div className="sp-marquee-track">
+          {[...marqueeItems, ...marqueeItems].map((item, i) => (
+            <span className="sp-marquee-chip" key={i}>
+              <span className="sp-marquee-emoji">{item.icon}</span>
+              {item.text}
+            </span>
           ))}
         </div>
       </div>
 
-      <div className="fw-main-container">
-        <aside className="fw-sidebar desktop-only">
-          <div className="fw-sidebar-content">
-            <div className="fw-sidebar-section">
-              <h3 className="fw-sidebar-title">
-                <LayoutGrid size={16} className="title-icon" /> CATEGORIES
+      {/* ═══ HERO B2B BANNER ═══ */}
+      <div className="sp-hero-banner">
+        <div className="sp-hero-content">
+          <div className="sp-hero-badge">
+            <Factory size={14} /> Direct from Manufacturer
+          </div>
+          <h1 className="sp-hero-title">
+            India's Trusted
+            <br />
+            <span>B2B Toy Wholesale</span>
+          </h1>
+          <p className="sp-hero-sub">
+            For Toy Stores, Supermarkets & Retail Resellers
+          </p>
+          <div className="sp-hero-perks">
+            <span>
+              <Truck size={14} /> Free Delivery ₹5000+
+            </span>
+            <span>
+              <Shield size={14} /> BIS Certified
+            </span>
+            <span>
+              <BadgeCheck size={14} /> 400+ Products
+            </span>
+          </div>
+        </div>
+        <div className="sp-hero-offer">
+          <div className="sp-offer-circle">
+            <span className="sp-offer-num">50%</span>
+            <span className="sp-offer-txt">& MORE OFF MRP</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ INSTAGRAM STRIP ═══ */}
+      <a
+        href="https://www.instagram.com/bafna_toys"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="sp-insta-strip"
+      >
+        <Instagram size={16} />
+        Follow @bafna_toys for latest updates & launches
+        <ExternalLink size={14} />
+      </a>
+
+      {/* ═══ BANNERS ═══ */}
+      {!categoryId &&
+        !searchTerm &&
+        (bannersLoading ? (
+          <div className="sp-banner-skeleton">
+            <Skeleton
+              variant="rectangular"
+              width="100%"
+              height={260}
+              sx={{ borderRadius: "20px" }}
+            />
+          </div>
+        ) : (
+          banners.length > 0 && (
+            <div className="sp-banner-wrap">
+              <BannerSlider banners={banners} />
+            </div>
+          )
+        ))}
+
+      {/* ═══ MAIN LAYOUT ═══ */}
+      <div className="sp-layout">
+        {/* SIDEBAR (Desktop) */}
+        <aside className="sp-sidebar">
+          <div className="sp-sb-inner">
+            <div className="sp-sb-section">
+              <h3 className="sp-sb-heading">
+                <LayoutGrid size={15} /> Categories
               </h3>
-              <ul className="fw-cat-list">
+              <ul className="sp-sb-list">
                 <li
                   className={!categoryId ? "active" : ""}
                   onClick={() => navigate("/products")}
                 >
-                  <div className="cat-list-inner">
-                    <div className="cat-icon-placeholder">🌟</div>
-                    <span>All Toys</span>
-                  </div>
-                  <ChevronRight size={14} className="cat-arrow" />
+                  <span className="sp-sb-icon">✦</span>
+                  <span>All Toys</span>
+                  <ChevronRight size={14} className="sp-sb-arrow" />
                 </li>
-
-                {categories.map((cat) => {
-                  const isActive = categoryId === cat._id;
-                  const imgSrc = optimizeCloudinary(cat.image, 40, 40);
-
-                  return (
-                    <li
-                      key={cat._id}
-                      className={isActive ? "active" : ""}
-                      onClick={() => handleCategoryClick(cat)}
-                    >
-                      <div className="cat-list-inner">
-                        {cat.image ? (
-                          <img src={imgSrc} alt={cat.name} className="cat-list-img" />
-                        ) : (
-                          <div className="cat-icon-placeholder">📦</div>
-                        )}
-                        <span>{cat.name}</span>
-                      </div>
-                      <ChevronRight size={14} className="cat-arrow" />
-                    </li>
-                  );
-                })}
+                {categories.map((cat) => (
+                  <li
+                    key={cat._id}
+                    className={categoryId === cat._id ? "active" : ""}
+                    onClick={() => handleCatClick(cat)}
+                  >
+                    {cat.image ? (
+                      <img
+                        src={optimizeCloudinary(cat.image, 36, 36)}
+                        alt=""
+                        className="sp-sb-cat-img"
+                      />
+                    ) : (
+                      <span className="sp-sb-icon">📦</span>
+                    )}
+                    <span>{cat.name}</span>
+                    <ChevronRight size={14} className="sp-sb-arrow" />
+                  </li>
+                ))}
               </ul>
             </div>
 
-            <div className="fw-sidebar-section">
-              <h3 className="fw-sidebar-title mt-4">
-                <SlidersHorizontal size={16} className="title-icon" /> PRICE RANGE
+            <div className="sp-sb-divider" />
+
+            <div className="sp-sb-section">
+              <h3 className="sp-sb-heading">
+                <SlidersHorizontal size={15} /> Price Range
               </h3>
-              
-              <div className="fw-price-slider-wrap">
-                 <input 
-                   type="range" 
-                   min="0" 
-                   max="10000" 
-                   value={maxPriceInput || 0} 
-                   onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-                   className="fw-custom-slider" 
-                 />
-              </div>
-
-              <div className="fw-price-inputs">
-                <div className="price-input-box">
-                  <span className="rupee-icon">₹</span>
-                  <input 
-                    type="number" 
-                    placeholder="Min" 
-                    value={minPriceInput} 
-                    onChange={(e) => setMinPriceInput(e.target.value ? Number(e.target.value) : "")}
+              <input
+                type="range"
+                min="0"
+                max="10000"
+                value={maxPriceInput || 0}
+                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+                className="sp-range"
+              />
+              <div className="sp-price-row">
+                <div className="sp-price-field">
+                  <span>₹</span>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={minPriceInput}
+                    onChange={(e) =>
+                      setMinPriceInput(
+                        e.target.value ? Number(e.target.value) : ""
+                      )
+                    }
                   />
                 </div>
-                <span className="price-divider">-</span>
-                <div className="price-input-box">
-                  <span className="rupee-icon">₹</span>
-                  <input 
-                    type="number" 
-                    placeholder="Max" 
-                    value={maxPriceInput} 
-                    onChange={(e) => setMaxPriceInput(e.target.value ? Number(e.target.value) : "")}
+                <span className="sp-price-dash">—</span>
+                <div className="sp-price-field">
+                  <span>₹</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={maxPriceInput}
+                    onChange={(e) =>
+                      setMaxPriceInput(
+                        e.target.value ? Number(e.target.value) : ""
+                      )
+                    }
                   />
                 </div>
               </div>
-
-              <button className="fw-apply-btn" onClick={handleApplyPriceFilter}>Apply Filter</button>
+              <button className="sp-apply-btn" onClick={handleApplyPrice}>
+                Apply Filter
+              </button>
             </div>
           </div>
         </aside>
 
-        <main className="fw-main-content">
-          <div className="fw-premium-b2b-banner">
-            <div className="fw-b2b-left-content">
-              <h2 className="fw-b2b-heading">DIRECT FROM MANUFACTURER</h2>
-              <h3 className="fw-b2b-subheading">BULK B2B ORDERS ONLY</h3>
-              <p className="fw-b2b-desc">For Toy Stores, Supermarkets, Retail Stores & Resellers</p>
-              <p className="fw-b2b-delivery">🚚 Free Door Delivery on Orders Above ₹5000</p>
-            </div>
-
-            <div className="fw-b2b-right-ribbon">
-              <div className="fw-ribbon-text-top"></div>
-              
-              <div className="fw-ribbon-main-offer">
-                <span className="fw-offer-number">50%</span>
-                <div className="fw-offer-text-stacked">
-                  <span>AND MORE</span>
-                  <span>OFF MRP</span>
+        {/* MAIN CONTENT */}
+        <main className="sp-main">
+          {/* Mobile Categories */}
+          <div className="sp-mob-cats">
+            <div className="sp-mob-cats-track">
+              <div
+                className={`sp-mob-cat ${!categoryId ? "active" : ""}`}
+                onClick={() => navigate("/products")}
+              >
+                <div className="sp-mob-cat-circle">
+                  <span>✦</span>
                 </div>
+                <span>All</span>
               </div>
-              
-              <div className="fw-ribbon-text-bottom">BULK B2B ORDERS ONLY</div>
-            </div>
-          </div>
-          
-          <a 
-            href="https://www.instagram.com/bafna_toys" 
-            target="_blank" 
-            rel="noopener noreferrer" 
-            className="fw-insta-banner"
-          >
-            <span>📸 Follow us on Instagram for latest updates! @bafna_toys</span>
-          </a>
-
-          {!categoryId && !searchTerm && (
-            bannersLoading ? (
-              <div style={{ width: "100%", padding: "10px 0", boxSizing: "border-box" }}>
-                <Skeleton variant="rectangular" width="100%" height="280px" sx={{ borderRadius: "20px" }} />
-              </div>
-            ) : (
-              banners.length > 0 && <BannerSlider banners={banners} />
-            )
-          )}
-
-          <div className="fw-top-categories mobile-only">
-            <div className="category-scroll-container">
-              <div className="category-track">
+              {categories.map((cat) => (
                 <div
-                  className={`category-item ${!categoryId ? "active" : ""}`}
-                  onClick={() => navigate("/products")}
+                  key={cat._id}
+                  className={`sp-mob-cat ${
+                    categoryId === cat._id ? "active" : ""
+                  }`}
+                  onClick={() => handleCatClick(cat)}
                 >
-                  <div className="category-circle-wrapper">
-                    <div className="category-circle-inner">🌟</div>
+                  <div className="sp-mob-cat-circle">
+                    {cat.image ? (
+                      <img
+                        src={optimizeCloudinary(cat.image, 80, 80)}
+                        alt=""
+                        loading="lazy"
+                      />
+                    ) : (
+                      <span>📦</span>
+                    )}
                   </div>
-                  <span className="category-label">ALL TOYS</span>
+                  <span>{cat.name}</span>
                 </div>
+              ))}
+            </div>
+          </div>
 
-                {categories.map((cat) => {
-                  const isActive = categoryId === cat._id;
-                  const imgSrc = optimizeCloudinary(cat.image, 100, 100);
-
-                  return (
-                    <div
-                      key={cat._id}
-                      className={`category-item ${isActive ? "active" : ""}`}
-                      onClick={() => handleCategoryClick(cat)}
-                    >
-                      <div className="category-circle-wrapper">
-                        <img
-                          src={imgSrc}
-                          alt={cat.name}
-                          className="category-img"
-                          loading="lazy"
-                          decoding="async"
-                        />
-                      </div>
-                      <span className="category-label">{cat.name}</span>
-                    </div>
-                  );
-                })}
+          {/* Toolbar */}
+          <div className="sp-toolbar">
+            <div className="sp-toolbar-left">
+              <button
+                className="sp-back-btn sp-mob-only"
+                onClick={() => navigate(-1)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+              <h2 className="sp-toolbar-title">
+                {searchTerm
+                  ? `"${searchTerm}"`
+                  : catName || "All Toys"}
+                <span className="sp-count-badge">{displayed.length}</span>
+              </h2>
+            </div>
+            <div className="sp-toolbar-right">
+              <button
+                className="sp-filter-toggle sp-mob-only"
+                onClick={() => setMobileFilterOpen(true)}
+              >
+                <Filter size={16} /> Filters
+              </button>
+              <div className="sp-sort-wrap">
+                <ArrowUpDown size={14} className="sp-sort-icon" />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="sp-sort-select"
+                >
+                  <option value="default">Relevance</option>
+                  <option value="price-low">Price: Low → High</option>
+                  <option value="price-high">Price: High → Low</option>
+                  <option value="name-asc">Name: A → Z</option>
+                </select>
               </div>
             </div>
           </div>
 
-          <div className="fw-top-bar">
-            <button className="fw-back-btn mobile-only" onClick={() => navigate(-1)}>
-              <ChevronLeft size={16} /> <span>Back</span>
-            </button>
-
-            <div className="fw-top-bar-main">
-              <h1 className="fw-page-title">
-                {searchTerm ? (
-                  `Search: "${searchTerm}" (${displayed.length})`
-                ) : categoryName ? (
-                  `${categoryName} (${displayed.length})`
-                ) : (
-                  <>ALL TOYS ({displayed.length})</>
-                )}
-              </h1>
-
-              <div className="fw-controls-row">
-                <div className="fw-sort-container">
-                  <span className="fw-sort-label desktop-only">Sort by:</span>
-                  <select
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    className="fw-sort-select"
-                  >
-                    <option value="default">Default</option>
-                    <option value="price-low">Price: Low to High</option>
-                    <option value="price-high">Price: High to Low</option>
-                    <option value="name-asc">Name: A to Z</option>
-                  </select>
-                </div>
-              </div>
-            </div>
-          </div>
-
+          {/* Active Filters */}
           {(searchTerm || activePriceFilter) && (
-            <div className="fw-active-filters">
+            <div className="sp-filters-bar">
               {searchTerm && (
-                <span className="fw-tag">
-                  Search: {searchTerm}
+                <span className="sp-filter-tag">
+                  <Search size={12} /> {searchTerm}
                   <X
-                    size={14}
+                    size={13}
                     onClick={() => navigate(location.pathname)}
-                    style={{ cursor: "pointer" }}
                   />
                 </span>
               )}
               {activePriceFilter && (
-                <span className="fw-tag">
-                  Price: ₹{activePriceFilter.min} - ₹{activePriceFilter.max}
+                <span className="sp-filter-tag">
+                  ₹{activePriceFilter.min} – ₹{activePriceFilter.max}
                   <X
-                    size={14}
+                    size={13}
                     onClick={() => setActivePriceFilter(null)}
-                    style={{ cursor: "pointer" }}
                   />
                 </span>
               )}
-              <span className="fw-clear-all" onClick={handleClearFilters}>
+              <button className="sp-clear-btn" onClick={handleClear}>
                 Clear All
-              </span>
+              </button>
             </div>
           )}
 
+          {/* Products Grid */}
           {loading ? (
-            <div className="fw-products-grid">
+            <div className="sp-grid">
               {Array.from({ length: 15 }).map((_, i) => (
-                <div key={i} style={{ width: "100%", padding: 0 }}>
-                  <Skeleton
-                    variant="rectangular"
-                    width="100%"
-                    height={320}
-                    sx={{ borderRadius: "16px" }}
-                  />
-                </div>
+                <Skeleton
+                  key={i}
+                  variant="rectangular"
+                  width="100%"
+                  height={300}
+                  sx={{ borderRadius: "16px" }}
+                />
               ))}
             </div>
           ) : error ? (
-            <div className="error">Error: {error}</div>
-          ) : displayed.length === 0 ? (
-            <div className="fw-empty-state">
-              <h2>No products found</h2>
-              <p>Try adjusting your search, filters or selecting a different category.</p>
-              <button onClick={handleClearFilters} className="fw-action-btn">
-                Clear Filters
+            <div className="sp-empty">
+              <h2>Something went wrong</h2>
+              <p>{error}</p>
+              <button onClick={() => window.location.reload()}>
+                Try Again
               </button>
+            </div>
+          ) : displayed.length === 0 ? (
+            <div className="sp-empty">
+              <Sparkles size={48} />
+              <h2>No products found</h2>
+              <p>Try different filters or categories</p>
+              <button onClick={handleClear}>Clear Filters</button>
             </div>
           ) : (
             <>
-              <div className="fw-products-grid">
-                {paginatedProducts.map((p, idx) => (
-                  <ProductCard key={p._id} product={p} userRole="customer" index={idx} />
+              <div className="sp-grid">
+                {paginated.map((p, i) => (
+                  <ProductCard
+                    key={p._id}
+                    product={p}
+                    userRole="customer"
+                    index={i}
+                  />
                 ))}
               </div>
 
               {totalPages > 1 && (
-                <div className="fw-pagination">
+                <div className="sp-pagination">
                   <button
-                    className="fw-page-btn"
                     disabled={currentPage === 1}
-                    onClick={() => handlePageChange(currentPage - 1)}
+                    onClick={() => goPage(currentPage - 1)}
                   >
                     <ChevronLeft size={16} />
                   </button>
-
-                  {getPageNumbers().map((page, index) => (
+                  {getPages().map((pg, i) => (
                     <button
-                      key={index}
-                      className={`fw-page-btn ${page === currentPage ? "active" : ""} ${
-                        page === "..." ? "dots" : ""
+                      key={i}
+                      className={`${pg === currentPage ? "active" : ""} ${
+                        pg === "..." ? "dots" : ""
                       }`}
-                      disabled={page === "..."}
-                      onClick={() => typeof page === "number" && handlePageChange(page)}
+                      disabled={pg === "..."}
+                      onClick={() =>
+                        typeof pg === "number" && goPage(pg)
+                      }
                     >
-                      {page}
+                      {pg}
                     </button>
                   ))}
-
                   <button
-                    className="fw-page-btn"
                     disabled={currentPage === totalPages}
-                    onClick={() => handlePageChange(currentPage + 1)}
+                    onClick={() => goPage(currentPage + 1)}
                   >
                     <ChevronRight size={16} />
                   </button>
@@ -699,355 +731,418 @@ const Products: React.FC = () => {
             </>
           )}
 
-          {/* ================= TRUST & FACTORY SECTION ================= */}
+          {/* Trust Factory Section */}
           {!loading && trustData && (
-            <div className="fw-trust-factory-wrapper">
-              <div className="fw-tf-card fw-tf-tour-card">
-                <div className="fw-tf-starter-col" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '30px 20px', textAlign: 'center', backgroundColor: '#f8fafc', borderRadius: '12px' }}>
-                  <div>
-                    <div style={{ fontSize: '56px', fontWeight: '900', color: '#ea580c', lineHeight: '1.1', marginBottom: '10px' }}>
-                      <AnimatedCounter target={trustData.retailerCount || "49000+"} />
-                    </div>
-                    <h3 style={{ fontSize: '28px', color: '#1e3a8a', fontWeight: '800', margin: '0' }}>Happy Retailers</h3>
-                  </div>
-                </div>
+            <div className="sp-factory-section">
+              <div className="sp-factory-header">
+                <span className="sp-line" />
+                <h3>Inside Our Factory</h3>
+                <span className="sp-line" />
+              </div>
 
-                <div className="fw-tf-factory-col">
-                  <div className="fw-tf-header">
-                    <span className="fw-tf-line"></span>
-                    <h3>Inside Bafna Toys Factory</h3>
-                    <span className="fw-tf-line"></span>
+              <div className="sp-factory-stats">
+                <div className="sp-stat-card sp-stat-hero">
+                  <div className="sp-stat-number">
+                    <AnimatedCounter
+                      target={trustData.retailerCount || "49000+"}
+                    />
                   </div>
-                  
-                  <div className="fw-factory-grid">
-                    <div className="fw-factory-item">
-                      <img src={optimizeCloudinary(trustData.manufacturingUnit, 300, 250)} alt="Manufacturing Unit" />
-                      <div className="fw-factory-label">Manufacturing Unit</div>
-                    </div>
-                    
-                    <div className="fw-factory-item">
-                      <img src={optimizeCloudinary(trustData.packingDispatch, 300, 250)} alt="Packing & Dispatch" />
-                      <div className="fw-factory-label">Packing & Dispatch</div>
-                    </div>
-                    
-                    <div className="fw-factory-item">
-                      <img src={optimizeCloudinary(trustData.warehouseStorage, 300, 250)} alt="Warehouse Storage" />
-                      <div className="fw-factory-label">Warehouse Storage</div>
-                    </div>
-                  </div>
+                  <p>Happy Retailers Across India</p>
                 </div>
+              </div>
+
+              <div className="sp-factory-grid">
+                {[
+                  {
+                    img: trustData.manufacturingUnit,
+                    label: "Manufacturing",
+                  },
+                  {
+                    img: trustData.packingDispatch,
+                    label: "Packing & Dispatch",
+                  },
+                  {
+                    img: trustData.warehouseStorage,
+                    label: "Warehouse",
+                  },
+                ].map(
+                  (item, i) =>
+                    item.img && (
+                      <div className="sp-factory-card" key={i}>
+                        <img
+                          src={optimizeCloudinary(item.img, 400, 280)}
+                          alt={item.label}
+                          loading="lazy"
+                        />
+                        <div className="sp-factory-label">{item.label}</div>
+                      </div>
+                    )
+                )}
               </div>
             </div>
           )}
-
         </main>
-      </div> {/* <-- MAIN CONTAINER CLOSES HERE */}
+      </div>
 
-
-      {/* ======================================================== */}
-      {/* ✅ TRUST STATS BAR (Placed ABOVE Factory Slider)         */}
-      {/* ======================================================== */}
-      <section className="fw-trust-bar-section">
-        <div className="fw-trust-bar-container">
-          <div className="fw-trust-bar-grid">
-            
-            {/* Stat 1: Rating */}
-            <div className="fw-trust-item">
-              <div className="fw-trust-icon" style={{ color: '#f59e0b' }}>
-                <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
-                  <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-                </svg>
+      {/* ═══ TRUST STATS ═══ */}
+      <section className="sp-trust-strip">
+        <div className="sp-trust-inner">
+          {[
+            {
+              icon: <Star size={24} />,
+              color: "#f59e0b",
+              title: "4.8/5",
+              sub: "Avg. Rating",
+            },
+            {
+              icon: <Users size={24} />,
+              color: "#3b82f6",
+              title: "4,900+",
+              sub: "Retailers",
+            },
+            {
+              icon: <Truck size={24} />,
+              color: "#10b981",
+              title: "All India",
+              sub: "Delivery",
+            },
+            {
+              icon: <Factory size={24} />,
+              color: "#8b5cf6",
+              title: "Direct",
+              sub: "Manufacturer",
+            },
+          ].map((s, i) => (
+            <div className="sp-trust-stat" key={i}>
+              <div className="sp-trust-icon" style={{ color: s.color }}>
+                {s.icon}
               </div>
-              <div className="fw-trust-text">
-                <h4 className="fw-trust-title">4.8/5 Rating</h4>
-                <p className="fw-trust-desc">Average Rating</p>
+              <div>
+                <h4>{s.title}</h4>
+                <p>{s.sub}</p>
               </div>
             </div>
-
-            {/* Stat 2: Retailers */}
-            <div className="fw-trust-item">
-              <div className="fw-trust-icon" style={{ color: '#3b82f6' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-              </div>
-              <div className="fw-trust-text">
-                <h4 className="fw-trust-title">4,900+</h4>
-                <p className="fw-trust-desc">Retailers Served</p>
-              </div>
-            </div>
-
-            {/* Stat 3: Delivery */}
-            <div className="fw-trust-item">
-              <div className="fw-trust-icon" style={{ color: '#10b981' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                  <rect x="1" y="3" width="15" height="13"></rect>
-                  <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
-                  <circle cx="5.5" cy="18.5" r="2.5"></circle>
-                  <circle cx="18.5" cy="18.5" r="2.5"></circle>
-                </svg>
-              </div>
-              <div className="fw-trust-text">
-                <h4 className="fw-trust-title">All India</h4>
-                <p className="fw-trust-desc">Fast Delivery</p>
-              </div>
-            </div>
-
-            {/* Stat 4: Manufacturer */}
-            <div className="fw-trust-item">
-              <div className="fw-trust-icon" style={{ color: '#8b5cf6' }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="32" height="32">
-                  <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
-                  <path d="M2 17h20"></path>
-                  <path d="M6 7v10"></path>
-                  <path d="M10 7v10"></path>
-                  <path d="M14 7v10"></path>
-                  <path d="M18 7v10"></path>
-                  <path d="M8 2l-2 5"></path>
-                  <path d="M16 2l2 5"></path>
-                </svg>
-              </div>
-              <div className="fw-trust-text">
-                <h4 className="fw-trust-title">Direct</h4>
-                <p className="fw-trust-desc">Manufacturer</p>
-              </div>
-            </div>
-
-          </div>
+          ))}
         </div>
       </section>
 
-      {/* ======================================================== */}
-      {/* FACTORY FEED SLIDER                                      */}
-      {/* ======================================================== */}
-      {!loading && trustData && trustData.factorySliderImages && trustData.factorySliderImages.length > 0 && (
-        <div className="fw-fullwidth-slider-section">
-          <div className="fw-slider-header-container">
-            <div className="fw-tf-header" style={{ marginBottom: '10px' }}>
-              <span className="fw-tf-line"></span>
-              <h3 style={{ fontSize: '24px', color: '#1e3a8a' }}>Coimbatore Factory: Live Facility Feed</h3>
-              <span className="fw-tf-line"></span>
+      {/* ═══ FACTORY SLIDER ═══ */}
+      {!loading &&
+        trustData?.factorySliderImages?.length > 0 && (
+          <section className="sp-slider-section">
+            <div className="sp-slider-head">
+              <h3>Live Facility Feed</h3>
+              <p>Our Coimbatore manufacturing facility</p>
             </div>
-            <p style={{ textAlign: 'center', color: '#64748b', marginBottom: '30px', fontWeight: '500' }}>
-              Explore our state-of-the-art production lines, storage, and specialized machinery.
-            </p>
-          </div>
-          
-          <div className="fw-factory-slider-wrapper">
-            <div className="fw-factory-slider-track">
-              {trustData.factorySliderImages.map((imgUrl: string, index: number) => (
-                <div className="fw-slider-img-container" key={`orig-${index}`}>
-                  <img src={optimizeCloudinary(imgUrl, 400, 300)} alt={`Factory Feed ${index}`} />
-                </div>
-              ))}
-              {trustData.factorySliderImages.map((imgUrl: string, index: number) => (
-                <div className="fw-slider-img-container" key={`dup-${index}`}>
-                  <img src={optimizeCloudinary(imgUrl, 400, 300)} alt={`Factory Feed Dup ${index}`} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* BIS & FACTORY PANORAMA                                   */}
-      {/* ======================================================== */}
-      {!loading && trustData && trustData.factoryImage && (
-        <div style={{
-          width: '100vw',
-          position: 'relative',
-          left: '50%',
-          right: '50%',
-          marginLeft: '-50vw',
-          marginRight: '-50vw',
-          background: '#e0f2fe',
-          padding: '60px 20px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          borderTop: '1px solid #bae6fd',
-          boxSizing: 'border-box'
-        }}>
-          <h4 style={{ color: '#1e3a8a', fontSize: '24px', fontWeight: 800, margin: '0 0 16px 0' }}>
-            All Toys BIS Certified
-          </h4>
-          
-          <div style={{ background: '#0f172a', color: '#ffffff', padding: '10px 32px', borderRadius: '6px', fontSize: '14px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '40px' }}>
-            GSTIN: 33ANCPH3967L1ZT <ChevronRight size={16} />
-          </div>
-
-          <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto' }}>
-            <img 
-              src={optimizeCloudinary(trustData.factoryImage, 1200, 400)} 
-              alt="Factory Banner" 
-              style={{ width: '100%', display: 'block', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.15)', objectFit: 'cover' }} 
-            />
-          </div>
-        </div>
-      )}
-
-      {/* ======================================================== */}
-      {/* ✅ WHAT ARE PEOPLE SAYING? (4-COLUMN REVIEWS)            */}
-      {/* ======================================================== */}
-      {!loading && trustData?.customerReviews && trustData.customerReviews.length > 0 && (
-        <section className="fw-reviews-section">
-          <div className="fw-reviews-container">
-            <div className="fw-reviews-header">
-              <h2 className="fw-reviews-heading">Retailers Love Bafna Toys</h2>
-              <p className="fw-reviews-subheading">Trusted by thousands of verified customers</p>
-            </div>
-
-            <div className="fw-reviews-grid">
-              {trustData.customerReviews.slice(0, 4).map((review: any, index: number) => (
-                <div key={index} className="fw-review-card">
-                  
-                  <div className="fw-review-img-wrapper">
-                    <img 
-                      src={optimizeCloudinary(review.image, 400, 400)} 
-                      alt={`Review by ${review.reviewerName}`} 
-                      className="fw-review-img" 
+            <div className="sp-slider-viewport">
+              <div className="sp-slider-track">
+                {[
+                  ...trustData.factorySliderImages,
+                  ...trustData.factorySliderImages,
+                ].map((img: string, i: number) => (
+                  <div className="sp-slider-card" key={i}>
+                    <img
+                      src={optimizeCloudinary(img, 400, 280)}
+                      alt={`Factory ${i}`}
                       loading="lazy"
                     />
                   </div>
-                  
-                  <div className="fw-review-content">
-                    <div className="fw-review-stars">
-                      {'★'.repeat(review.rating || 5)}
-                      <span className="fw-review-stars-empty">
-                        {'★'.repeat(5 - (review.rating || 5))}
-                      </span>
-                    </div>
-                    
-                    <p className="fw-review-text">
-                      "{review.reviewText}"
-                    </p>
-                    
-                    <div className="fw-review-footer">
-                      <span className="fw-review-author-name">{review.reviewerName}</span>
-                      <span className="fw-review-verified">
-                        <svg className="fw-verified-icon" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        Verified Buyer
-                      </span>
-                    </div>
-                  </div>
-
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
+          </section>
+        )}
+
+      {/* ═══ BIS BANNER ═══ */}
+      {!loading && trustData?.factoryImage && (
+        <section className="sp-bis-section">
+          <div className="sp-bis-inner">
+            <h4>All Toys BIS Certified</h4>
+            <div className="sp-gst-pill">
+              GSTIN: 33ANCPH3967L1ZT
+            </div>
+            <img
+              src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
+              alt="Factory"
+              className="sp-bis-img"
+            />
           </div>
         </section>
       )}
 
-      {/* ======================================================== */}
-      {/* ✅ DARK FOOTER (WITH LOGOS & DYNAMIC LINKS)              */}
-      {/* ======================================================== */}
-      {!loading && (
-        <footer className="fw-global-footer">
-          <div className="fw-footer-content">
-            
-            {/* 1. BRAND & TRUST SECTION */}
-            <div className="fw-footer-brand">
-              <div className="fw-brand-logo">
-                <span className="fw-bear-icon">🧸</span> BafnaToys
-              </div>
-              <p className="fw-brand-desc">
-                Inspiring imagination through play. The cutest toys, best deals, delivered safely and fast.
+      {/* ═══ REVIEWS ═══ */}
+      {!loading &&
+        trustData?.customerReviews?.length > 0 && (
+          <section className="sp-reviews-section">
+            <div className="sp-reviews-inner">
+              <h2>Retailers Love Us</h2>
+              <p className="sp-reviews-sub">
+                Trusted by thousands of verified businesses
               </p>
-              
-              {/* ✅ MARKETPLACE & MAKE IN INDIA LOGOS */}
-              <div className="fw-trust-section">
-                <h5>Also Available On:</h5>
-                <div className="fw-marketplace-logos">
-                  {trustData?.amazonLink && trustData?.amazonLogo && (
-                    <a href={trustData.amazonLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      <img src={optimizeCloudinary(trustData.amazonLogo, 80, 40, "c_fit")} alt="Amazon" />
+              <div className="sp-reviews-grid">
+                {trustData.customerReviews
+                  .slice(0, 4)
+                  .map((r: any, i: number) => (
+                    <div className="sp-review-card" key={i}>
+                      <div className="sp-review-img-wrap">
+                        <img
+                          src={optimizeCloudinary(r.image, 400, 400)}
+                          alt={r.reviewerName}
+                          loading="lazy"
+                        />
+                      </div>
+                      <div className="sp-review-body">
+                        <div className="sp-review-stars">
+                          {"★".repeat(r.rating || 5)}
+                          <span>{"★".repeat(5 - (r.rating || 5))}</span>
+                        </div>
+                        <p>"{r.reviewText}"</p>
+                        <div className="sp-review-footer">
+                          <strong>{r.reviewerName}</strong>
+                          <span>
+                            <BadgeCheck size={13} /> Verified
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          </section>
+        )}
+
+      {/* ═══ FOOTER ═══ */}
+      {!loading && (
+        <footer className="sp-footer">
+          <div className="sp-footer-inner">
+            <div className="sp-footer-brand">
+              <div className="sp-footer-logo">🧸 BafnaToys</div>
+              <p>
+                Inspiring imagination through play. Premium toys, best
+                deals, fast delivery.
+              </p>
+              {trustData && (
+                <div className="sp-marketplace-row">
+                  <span className="sp-mp-label">Also on:</span>
+                  {trustData.amazonLink && trustData.amazonLogo && (
+                    <a
+                      href={trustData.amazonLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img
+                        src={optimizeCloudinary(
+                          trustData.amazonLogo,
+                          80,
+                          40,
+                          "c_fit"
+                        )}
+                        alt="Amazon"
+                      />
                     </a>
                   )}
-                  {trustData?.flipkartLink && trustData?.flipkartLogo && (
-                    <a href={trustData.flipkartLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      <img src={optimizeCloudinary(trustData.flipkartLogo, 80, 40, "c_fit")} alt="Flipkart" />
+                  {trustData.flipkartLink && trustData.flipkartLogo && (
+                    <a
+                      href={trustData.flipkartLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img
+                        src={optimizeCloudinary(
+                          trustData.flipkartLogo,
+                          80,
+                          40,
+                          "c_fit"
+                        )}
+                        alt="Flipkart"
+                      />
                     </a>
                   )}
-                  {trustData?.meeshoLink && trustData?.meeshoLogo && (
-                    <a href={trustData.meeshoLink} target="_blank" rel="noreferrer" className="fw-logo-link">
-                      <img src={optimizeCloudinary(trustData.meeshoLogo, 80, 40, "c_fit")} alt="Meesho" />
+                  {trustData.meeshoLink && trustData.meeshoLogo && (
+                    <a
+                      href={trustData.meeshoLink}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      <img
+                        src={optimizeCloudinary(
+                          trustData.meeshoLogo,
+                          80,
+                          40,
+                          "c_fit"
+                        )}
+                        alt="Meesho"
+                      />
                     </a>
                   )}
                 </div>
-                
-                {trustData?.makeInIndiaLogo && (
-                  <div className="fw-make-in-india">
-                    <img src={optimizeCloudinary(trustData.makeInIndiaLogo, 150, 80, "c_fit")} alt="Make In India" />
-                  </div>
-                )}
-              </div>
-
-              {/* ✅ GST BADGE */}
-              <div className="fw-gst-badge">
-                <span className="fw-gst-label">Registered Business</span>
-                <span className="fw-gst-number">GSTIN: 33ANCPH3967L1ZT</span>
+              )}
+              {trustData?.makeInIndiaLogo && (
+                <img
+                  src={optimizeCloudinary(
+                    trustData.makeInIndiaLogo,
+                    120,
+                    60,
+                    "c_fit"
+                  )}
+                  alt="Make In India"
+                  className="sp-mii-logo"
+                />
+              )}
+              <div className="sp-footer-gst">
+                <Shield size={14} /> GSTIN: 33ANCPH3967L1ZT
               </div>
             </div>
 
-            {/* 2. QUICK LINKS */}
-            <nav className="fw-footer-links" aria-label="Footer Quick Links">
+            <nav className="sp-footer-nav">
               <h4>Quick Links</h4>
-              <ul>
-                <li><Link to="/privacy-policy">Privacy Policy</Link></li>
-                <li><Link to="/terms-conditions">Terms & Conditions</Link></li>
-                <li><Link to="/shipping-delivery">Shipping & Delivery</Link></li>
-                <li><Link to="/cancellation-refund">Cancellation & Refund</Link></li>
-              </ul>
+              <Link to="/privacy-policy">Privacy Policy</Link>
+              <Link to="/terms-conditions">Terms & Conditions</Link>
+              <Link to="/shipping-delivery">Shipping & Delivery</Link>
+              <Link to="/cancellation-refund">Cancellation & Refund</Link>
             </nav>
 
-            {/* 3. LOCATIONS */}
-            <div className="fw-footer-address">
+            <div className="sp-footer-addr">
               <h4>Our Locations</h4>
               <address>
-                <div className="fw-location-block">
+                <div>
                   <strong>Unit 1</strong>
-                  <span>1-12, Thondamuthur Road</span>
-                  <span>Coimbatore - 641007</span>
+                  <span>1-12, Thondamuthur Road, Coimbatore - 641007</span>
                 </div>
-                <div className="fw-location-block">
+                <div>
                   <strong>Unit 4</strong>
-                  <span>GRVR Farms</span>
-                  <span>PSG Rangasamy Nagar</span>
-                  <span>Vedapatti, Coimbatore - 641007</span>
+                  <span>
+                    GRVR Farms, PSG Rangasamy Nagar, Vedapatti,
+                    Coimbatore - 641007
+                  </span>
                 </div>
               </address>
             </div>
 
-            {/* 4. SOCIAL LINKS */}
-            <div className="fw-footer-social">
-              <h4>Connect With Us</h4>
-              <div className="fw-social-buttons">
+            <div className="sp-footer-social">
+              <h4>Connect</h4>
+              <div className="sp-social-row">
                 {trustData?.instagramLink && (
-                  <a href={trustData.instagramLink} target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-insta">Instagram</a>
+                  <a
+                    href={trustData.instagramLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="sp-social-btn insta"
+                  >
+                    <Instagram size={16} /> Instagram
+                  </a>
                 )}
                 {trustData?.youtubeLink && (
-                  <a href={trustData.youtubeLink} target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-yt">YouTube</a>
+                  <a
+                    href={trustData.youtubeLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="sp-social-btn yt"
+                  >
+                    <Youtube size={16} /> YouTube
+                  </a>
                 )}
                 {trustData?.facebookLink && (
-                  <a href={trustData.facebookLink} target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-fb">Facebook</a>
+                  <a
+                    href={trustData.facebookLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="sp-social-btn fb"
+                  >
+                    <Facebook size={16} /> Facebook
+                  </a>
                 )}
                 {trustData?.linkedinLink && (
-                  <a href={trustData.linkedinLink} target="_blank" rel="noreferrer" className="fw-s-btn fw-btn-in">LinkedIn</a>
+                  <a
+                    href={trustData.linkedinLink}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="sp-social-btn li"
+                  >
+                    <Linkedin size={16} /> LinkedIn
+                  </a>
                 )}
               </div>
             </div>
           </div>
-
-          <div className="fw-footer-bottom">
-            <p>© {new Date().getFullYear()} BafnaToys. Filled with joy & play. All rights reserved.</p>
+          <div className="sp-footer-bottom">
+            © {new Date().getFullYear()} BafnaToys. All rights reserved.
           </div>
         </footer>
+      )}
+
+      {/* Mobile Filter Drawer */}
+      {mobileFilterOpen && (
+        <div
+          className="sp-drawer-overlay"
+          onClick={() => setMobileFilterOpen(false)}
+        >
+          <div
+            className="sp-drawer"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sp-drawer-head">
+              <h3>
+                <Filter size={18} /> Filters
+              </h3>
+              <button onClick={() => setMobileFilterOpen(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="sp-drawer-body">
+              <h4>Price Range</h4>
+              <input
+                type="range"
+                min="0"
+                max="10000"
+                value={maxPriceInput || 0}
+                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+                className="sp-range"
+              />
+              <div className="sp-price-row">
+                <div className="sp-price-field">
+                  <span>₹</span>
+                  <input
+                    type="number"
+                    placeholder="Min"
+                    value={minPriceInput}
+                    onChange={(e) =>
+                      setMinPriceInput(
+                        e.target.value ? Number(e.target.value) : ""
+                      )
+                    }
+                  />
+                </div>
+                <span className="sp-price-dash">—</span>
+                <div className="sp-price-field">
+                  <span>₹</span>
+                  <input
+                    type="number"
+                    placeholder="Max"
+                    value={maxPriceInput}
+                    onChange={(e) =>
+                      setMaxPriceInput(
+                        e.target.value ? Number(e.target.value) : ""
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <button
+                className="sp-apply-btn"
+                onClick={() => {
+                  handleApplyPrice();
+                  setMobileFilterOpen(false);
+                }}
+              >
+                Apply
+              </button>
+              <button className="sp-clear-drawer" onClick={handleClear}>
+                Clear All
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <FloatingCheckoutButton />
