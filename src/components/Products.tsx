@@ -28,6 +28,8 @@ import {
   Facebook,
   Linkedin,
   Clock,
+  WifiOff,
+  RefreshCw
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
@@ -331,7 +333,7 @@ const Products: React.FC = () => {
     setActivePriceFilter(null);
     setMinPriceInput(0);
     setMaxPriceInput(5000);
-    navigate("/products");
+    navigate("/");
   }, [navigate]);
 
   const handleCatClick = useCallback((cat: Category) => {
@@ -340,7 +342,7 @@ const Products: React.FC = () => {
         ? (window.location.href = cat.link)
         : navigate(cat.link);
     } else {
-      navigate(`/products?category=${cat._id}`);
+      navigate(`/?category=${cat._id}`);
     }
   }, [navigate]);
 
@@ -560,7 +562,7 @@ const Products: React.FC = () => {
               <ul className="sp-sb-list">
                 <li
                   className={!categoryId ? "active" : ""}
-                  onClick={() => navigate("/products")}
+                  onClick={() => navigate("/")}
                 >
                   <span className="sp-sb-icon">✦</span>
                   <span>All Toys</span>
@@ -646,7 +648,7 @@ const Products: React.FC = () => {
             <div className="sp-mob-cats-track">
               <div
                 className={`sp-mob-cat ${!categoryId ? "active" : ""}`}
-                onClick={() => navigate("/products")}
+                onClick={() => navigate("/")}
               >
                 <div className="sp-mob-cat-circle">
                   <span>✦</span>
@@ -748,7 +750,7 @@ const Products: React.FC = () => {
             </div>
           )}
 
-          {/* Products Grid */}
+          {/* 🔴 YAHAN PAR NEW FULL-SCREEN ERROR CODE ADD KIYA HAI */}
           {loading ? (
             <div className="sp-grid">
               {Array.from({ length: 15 }).map((_, i) => (
@@ -762,10 +764,36 @@ const Products: React.FC = () => {
               ))}
             </div>
           ) : error ? (
-            <div className="sp-empty">
-              <h2>Something went wrong</h2>
-              <p>{error}</p>
-              <button onClick={() => window.location.reload()}>
+            <div style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'var(--sp-bg)',
+              zIndex: 99999,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+              textAlign: 'center'
+            }}>
+              <div style={{ backgroundColor: '#fee2e2', padding: '24px', borderRadius: '50%', marginBottom: '24px' }}>
+                <WifiOff size={48} color="#ef4444" />
+              </div>
+              <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--sp-text)', marginBottom: '12px' }}>
+                Connection Failed
+              </h2>
+              <p style={{ fontSize: '15px', color: 'var(--sp-text-muted)', maxWidth: '320px', marginBottom: '32px', lineHeight: 1.5 }}>
+                {error === "Network Error" 
+                  ? "It looks like you're offline or the server is unreachable. Please check your internet connection." 
+                  : error}
+              </p>
+              <button 
+                onClick={() => window.location.reload()}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 32px', backgroundColor: 'var(--sp-primary)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)'
+                }}
+              >
+                <RefreshCw size={18} />
                 Try Again
               </button>
             </div>

@@ -146,7 +146,8 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                   <div className="bafna-suggest__section-title">Trending Now</div>
                   <div className="bafna-suggest__popular-tags">
                     {popularSearches.map((cat) => (
-                      <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/products?category=${cat._id}`); }}>{cat.name}</button>
+                      // ✅ CHANGED: navigate from /products?category=... to /?category=...
+                      <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/?category=${cat._id}`); }}>{cat.name}</button>
                     ))}
                   </div>
                 </div>
@@ -291,7 +292,8 @@ const Header: React.FC = () => {
     setQ(term);
     saveSearchTerm(term);
     setOpenSug(false);
-    navigate(`/products?search=${encodeURIComponent(term)}`);
+    // ✅ CHANGED: navigate from /products?search=... to /?search=...
+    navigate(`/?search=${encodeURIComponent(term)}`);
   }, [navigate, saveSearchTerm]);
 
   useEffect(() => {
@@ -346,7 +348,8 @@ const Header: React.FC = () => {
     const query = q.trim();
     if (query) saveSearchTerm(query);
     setOpenSug(false);
-    navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+    // ✅ CHANGED: navigate from /products?search=... to /?search=...
+    navigate(`/${query ? `?search=${encodeURIComponent(query)}` : ""}`);
   }, [q, navigate, saveSearchTerm]);
 
   const onKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -369,7 +372,8 @@ const Header: React.FC = () => {
         setOpenSug(false);
         const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
         if (query) saveSearchTerm(query);
-        navigate(`/products${query ? `?search=${encodeURIComponent(query)}` : ""}`);
+        // ✅ CHANGED: navigate from /products?search=... to /?search=...
+        navigate(`/${query ? `?search=${encodeURIComponent(query)}` : ""}`);
       }
     } else if (e.key === "Escape") {
       setOpenSug(false);

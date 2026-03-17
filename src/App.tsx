@@ -24,8 +24,11 @@ import WhatsAppButton from "./components/WhatsAppButton";
 import FreeDeliveryModal from "./components/FreeDeliveryModal";
 import ComingSoon from "./components/ComingSoon";
 
+// ✅ NAYA NO INTERNET COMPONENT IMPORT KIYA HAI
+import NoInternet from "./components/NoInternet";
+
 // --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
-// Home page ko hata diya gaya hai kyunki direct Products dikhana hai
+// Home page ki jagah hum direct Products dikhayenge
 const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
@@ -166,20 +169,6 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ PWA-like UX: online/offline banner
-  const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
-
-  useEffect(() => {
-    const on = () => setIsOnline(true);
-    const off = () => setIsOnline(false);
-    window.addEventListener("online", on);
-    window.addEventListener("offline", off);
-    return () => {
-      window.removeEventListener("online", on);
-      window.removeEventListener("offline", off);
-    };
-  }, []);
-
   // ✅ YAHAN APP KHULTE HI STATUS BAR HIDE KARNE KA CODE HAI
   useEffect(() => {
     const hideStatusBar = async () => {
@@ -237,33 +226,17 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
-      {!isOnline && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 9999,
-            padding: "10px 12px",
-            textAlign: "center",
-            background: "#111827",
-            color: "#fff",
-            fontSize: 14,
-          }}
-        >
-          You are offline. Some features may not work.
-        </div>
-      )}
+      {/* ✅ Full Screen No Internet Component */}
+      <NoInternet />
 
       <PageTracker />
 
       <LayoutWrapper>
         <Routes>
           {/* Public Routes */}
-          {/* ✅ Ye line Home ki jagah seedha Products pe le jayegi */}
-          <Route path="/" element={<Navigate to="/products" replace />} />
-          <Route path="/products" element={<Products />} />
+          {/* ✅ Ab products / par hi render honge bina redirect ke */}
+          <Route path="/" element={<Products />} />
+          <Route path="/products" element={<Navigate to="/" replace />} />
           
           <Route path="/hot-deals" element={<HotDealsPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -333,8 +306,8 @@ const AppInner: React.FC = () => {
           />
 
           {/* Fallback */}
-          {/* ✅ Agar koi galat link daale toh ab seedha products page aayega */}
-          <Route path="*" element={<Navigate to="/products" replace />} />
+          {/* ✅ Agar koi galat link daale toh ab seedha home page aayega */}
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LayoutWrapper>
     </Router>
