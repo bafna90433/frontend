@@ -5,7 +5,7 @@ import Swal from "sweetalert2";
 import {
   MapPin, Store, Smartphone, MessageCircle, ArrowRight,
   ShieldCheck, Lock, CheckCircle, Package, Truck, Award,
-  Zap, Star, Users,
+  Zap, Star, Users, UploadCloud
 } from "lucide-react";
 import "../styles/AuthStyles.css";
 
@@ -23,6 +23,7 @@ const INDIAN_STATES = [
 const Register: React.FC = () => {
   const [form, setForm] = useState({ shopName: "", otpMobile: "", whatsapp: "" });
   const [addr, setAddr] = useState({ street: "", area: "", city: "", state: "", pincode: "" });
+  const [gstDocument, setGstDocument] = useState<File | null>(null); // ✅ Added GST File State
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -52,6 +53,7 @@ const Register: React.FC = () => {
     if (phone.length !== 10) e.otpMobile = "Valid 10-digit number required";
     if (!form.whatsapp.trim()) e.whatsapp = "Required";
     else if (!normalizeTo91(form.whatsapp)) e.whatsapp = "Enter valid WhatsApp number";
+    
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -88,6 +90,12 @@ const Register: React.FC = () => {
     if (name === "pincode" && !/^\d*$/.test(value)) return;
     setAddr(p => ({ ...p, [name]: value }));
     if (errors[name]) deleteError(name);
+  };
+
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setGstDocument(e.target.files[0]);
+    }
   };
 
   const handleOtpChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
@@ -130,15 +138,25 @@ const Register: React.FC = () => {
       setLoading(true);
       const verifyRes = await axios.post(`${API_BASE}/otp/verify`, { phone, otp });
       if (!verifyRes.data?.success) { setLoading(false); Swal.fire("Invalid OTP", "Incorrect code", "error"); return; }
+      
       const fullAddress = `Country: India\nState: ${addr.state}\nCity: ${addr.city}\nArea: ${addr.area || "N/A"}\nPin: ${addr.pincode}\nAddress: ${addr.street}`;
+      
       const formData = new FormData();
       formData.append("shopName", form.shopName);
       formData.append("otpMobile", phone);
       formData.append("whatsapp", wa91);
       formData.append("address", fullAddress);
+      
+      // ✅ Append GST Document if uploaded
+      if (gstDocument) {
+        formData.append("gstDocument", gstDocument);
+      }
+
       const res = await axios.post(`${API_BASE}/registrations/register`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       setLoading(false);
+      
       if (res.data?.alreadyRegistered) { Swal.fire("Welcome Back", "Account exists", "info"); navigate("/login"); return; }
+      
       const newUser = res.data?.user || { name: form.shopName, phone, role: "customer", isApproved: true, _id: res.data?._id || "" };
       newUser.isApproved = true;
       localStorage.setItem("user", JSON.stringify(newUser));
@@ -221,6 +239,24 @@ const Register: React.FC = () => {
                   />
                 </div>
                 {errors.whatsapp && <span className="au-err">{errors.whatsapp}</span>}
+              </div>
+
+              {/* ✅ NEW: GST Document Upload Field */}
+              <div className="au-field">
+                <label>Upload GST Document (Optional)</label>
+                <div className="au-input-wrap" style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+                  <UploadCloud size={18} className="au-input-icon" style={{ position: 'static', marginRight: '10px' }} />
+                  <input 
+                    type="file" 
+                    name="gstDocument" 
+                    accept=".pdf, image/*" 
+                    onChange={handleFileChange} 
+                    style={{ border: 'none', background: 'transparent', padding: '12px 0', width: '100%', cursor: 'pointer' }}
+                  />
+                </div>
+                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                  Please upload your GST certificate image or PDF to claim TAX input credit.
+                </p>
               </div>
 
               <button className="au-btn au-btn--primary" onClick={goStep2}>
