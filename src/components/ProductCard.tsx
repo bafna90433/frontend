@@ -149,6 +149,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     const handleAdd = useCallback(
       (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         setCartItemQuantity(product, minQty);
       },
@@ -157,6 +158,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     const handleInc = useCallback(
       (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         setCartItemQuantity(product, itemCount + 1);
       },
@@ -165,6 +167,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     const handleDec = useCallback(
       (e: React.MouseEvent) => {
+        e.preventDefault();
         e.stopPropagation();
         const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
         setCartItemQuantity(product, nextQty);
@@ -332,7 +335,11 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
             </div>
 
             {/* Title */}
-            <h3 className="pc-title">{product.name}</h3>
+            <h3 className="pc-title">
+              {product.name.length > 20
+                ? product.name.slice(0, 20) + "…"
+                : product.name}
+            </h3>
 
             {/* Rating */}
             {(rating > 0 || totalReviews > 0) && (
@@ -372,7 +379,13 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
             </div>
 
             {/* Actions */}
-            <div className="pc-actions">
+            <div 
+              className="pc-actions"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+            >
               {itemCount === 0 ? (
                 <button
                   className="pc-add-to-cart"

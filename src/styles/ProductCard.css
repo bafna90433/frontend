@@ -97,6 +97,10 @@ body.dark {
     box-shadow 0.3s var(--pc-ease),
     border-color 0.3s var(--pc-ease);
   box-shadow: var(--pc-shadow);
+  
+  /* 🔹 Remove Mobile Blue Highlight */
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
 .pc-card:hover {
@@ -105,7 +109,8 @@ body.dark {
   border-color: var(--pc-border-hover);
 }
 
-.pc-card:active {
+/* Card sirf tab active effect dega jab action buttons par click NAHI ho raha ho */
+.pc-card:active:not(:has(button:active)) {
   transform: translateY(-2px);
 }
 
@@ -474,6 +479,9 @@ body.dark .pc-chip--tag {
    ══════════════════════ */
 .pc-actions {
   margin-top: 10px;
+  position: relative;
+  z-index: 5;
+  -webkit-tap-highlight-color: transparent; /* 🔹 Remove blue tap highlight */
 }
 
 /* Add to Cart Button */
@@ -497,6 +505,7 @@ body.dark .pc-chip--tag {
   position: relative;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  -webkit-tap-highlight-color: transparent; /* 🔹 Remove blue tap highlight */
 }
 
 .pc-add-to-cart::before {
@@ -581,6 +590,7 @@ body.dark .pc-chip--tag {
   font-family: var(--pc-font);
   font-size: 12px;
   font-weight: 700;
+  -webkit-tap-highlight-color: transparent; /* 🔹 Remove blue tap highlight */
 }
 
 .pc-qty-btn--decrease {
@@ -626,321 +636,117 @@ body.dark .pc-qty-btn--decrease {
   border-color: var(--pc-border);
 }
 
-
 /* ══════════════════════════════════════════
    RESPONSIVE - LARGE DESKTOP (≥1600px)
    ══════════════════════════════════════════ */
 @media (min-width: 1600px) {
-  .pc-title {
-    font-size: 16px;
-  }
-  .pc-amount {
-    font-size: 26px;
-  }
-  .pc-add-to-cart {
-    padding: 14px 18px;
-    font-size: 15px;
-  }
-  .pc-body {
-    padding: 14px 16px 18px;
-    gap: 10px;
-  }
+  .pc-title { font-size: 16px; }
+  .pc-amount { font-size: 26px; }
+  .pc-add-to-cart { padding: 14px 18px; font-size: 15px; }
+  .pc-body { padding: 14px 16px 18px; gap: 10px; }
 }
-
 
 /* ══════════════════════════════════════════
    RESPONSIVE - TABLET (≤992px)
    ══════════════════════════════════════════ */
 @media (max-width: 992px) {
-  .pc-card {
-    border-radius: 14px;
-  }
-  .pc-image-container {
-    margin: 6px;
-    border-radius: 10px;
-  }
-  .pc-body {
-    padding: 10px 12px 14px;
-    gap: 6px;
-  }
-  .pc-title {
-    font-size: 13px;
-    min-height: 36px;
-    max-height: 38px;
-  }
-  .pc-price-section {
-    padding-top: 6px;
-  }
-  .pc-currency {
-    font-size: 12px;
-  }
-  .pc-amount {
-    font-size: 18px;
-  }
-  .pc-mrp-circle {
-    width: 42px;
-    height: 42px;
-    top: 8px;
-    right: 8px;
-  }
-  .pc-mrp-text {
-    font-size: 7px;
-  }
-  .pc-mrp-price {
-    font-size: 10px;
-  }
-  .pc-discount-ribbon {
-    font-size: 10px;
-    padding: 3px 10px;
-  }
-  .pc-add-to-cart {
-    padding: 10px 12px;
-    font-size: 12px;
-    border-radius: 8px;
-  }
-  .pc-min-qty {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
-  .pc-hotdeal-timer {
-    font-size: 10px;
-    padding: 4px 8px;
-  }
-  .pc-badge--featured {
-    font-size: 9px;
-    padding: 3px 8px;
-  }
-  .pc-stock-status {
-    font-size: 10px;
-  }
-  .pc-chip {
-    font-size: 10px;
-    padding: 2px 6px;
-    max-width: 120px;
-  }
-  .pc-rating-badge {
-    font-size: 10px;
-    padding: 2px 5px;
-  }
-  .pc-review-count {
-    font-size: 10px;
-  }
-  .pc-qty-btn {
-    width: 28px;
-    height: 28px;
-  }
-  .pc-qty-val {
-    font-size: 14px;
-  }
-  .pc-quantity-controls {
-    padding: 6px 10px;
-  }
-  .pc-actions {
-    margin-top: 8px;
-  }
+  .pc-card { border-radius: 14px; }
+  .pc-image-container { margin: 6px; border-radius: 10px; }
+  .pc-body { padding: 10px 12px 14px; gap: 6px; }
+  .pc-title { font-size: 13px; min-height: 36px; max-height: 38px; }
+  .pc-price-section { padding-top: 6px; }
+  .pc-currency { font-size: 12px; }
+  .pc-amount { font-size: 18px; }
+  .pc-mrp-circle { width: 42px; height: 42px; top: 8px; right: 8px; }
+  .pc-mrp-text { font-size: 7px; }
+  .pc-mrp-price { font-size: 10px; }
+  .pc-discount-ribbon { font-size: 10px; padding: 3px 10px; }
+  .pc-add-to-cart { padding: 10px 12px; font-size: 12px; border-radius: 8px; }
+  .pc-min-qty { font-size: 10px; padding: 2px 6px; }
+  .pc-hotdeal-timer { font-size: 10px; padding: 4px 8px; }
+  .pc-badge--featured { font-size: 9px; padding: 3px 8px; }
+  .pc-stock-status { font-size: 10px; }
+  .pc-chip { font-size: 10px; padding: 2px 6px; max-width: 120px; }
+  .pc-rating-badge { font-size: 10px; padding: 2px 5px; }
+  .pc-review-count { font-size: 10px; }
+  .pc-qty-btn { width: 28px; height: 28px; }
+  .pc-qty-val { font-size: 14px; }
+  .pc-quantity-controls { padding: 6px 10px; }
+  .pc-actions { margin-top: 8px; }
 }
-
 
 /* ══════════════════════════════════════════
    RESPONSIVE - MOBILE (≤600px)
    ══════════════════════════════════════════ */
 @media (max-width: 600px) {
-  .pc-card {
-    border-radius: 12px;
-  }
-  .pc-image-container {
-    margin: 5px;
-    border-radius: 8px;
-  }
-  .pc-body {
-    padding: 8px 10px 12px;
-    gap: 5px;
-  }
-  .pc-title {
-    font-size: 12px;
-    min-height: 32px;
-    max-height: 34px;
-  }
-  .pc-currency {
-    font-size: 11px;
-  }
-  .pc-amount {
-    font-size: 16px;
-  }
-  .pc-mrp-circle {
-    width: 38px;
-    height: 38px;
-    top: 6px;
-    right: 6px;
-  }
-  .pc-mrp-text {
-    font-size: 6px;
-  }
-  .pc-mrp-price {
-    font-size: 9px;
-  }
-  .pc-add-to-cart {
-    padding: 9px 10px;
-    font-size: 11px;
-    border-radius: 7px;
-  }
-  .pc-min-qty {
-    font-size: 9px;
-    padding: 2px 5px;
-  }
-  .pc-stock-status {
-    font-size: 9px;
-  }
-  .pc-chip {
-    font-size: 9px;
-    padding: 2px 5px;
-    max-width: 100px;
-  }
-  .pc-rating-container {
-    gap: 4px;
-  }
-  .pc-rating-badge {
-    font-size: 9px;
-  }
-  .pc-review-count {
-    font-size: 9px;
-  }
-  .pc-qty-btn {
-    width: 26px;
-    height: 26px;
-  }
-  .pc-qty-val {
-    font-size: 13px;
-  }
+  .pc-card { border-radius: 12px; }
+  .pc-image-container { margin: 5px; border-radius: 8px; }
+  .pc-body { padding: 8px 10px 12px; gap: 5px; }
+  .pc-title { font-size: 12px; min-height: 32px; max-height: 34px; }
+  .pc-currency { font-size: 11px; }
+  .pc-amount { font-size: 16px; }
+  .pc-mrp-circle { width: 38px; height: 38px; top: 6px; right: 6px; }
+  .pc-mrp-text { font-size: 6px; }
+  .pc-mrp-price { font-size: 9px; }
+  .pc-add-to-cart { padding: 9px 10px; font-size: 11px; border-radius: 7px; }
+  .pc-min-qty { font-size: 9px; padding: 2px 5px; }
+  .pc-stock-status { font-size: 9px; }
+  .pc-chip { font-size: 9px; padding: 2px 5px; max-width: 100px; }
+  .pc-rating-container { gap: 4px; }
+  .pc-rating-badge { font-size: 9px; }
+  .pc-review-count { font-size: 9px; }
+  .pc-qty-btn { width: 26px; height: 26px; }
+  .pc-qty-val { font-size: 13px; }
 }
-
 
 /* ══════════════════════════════════════════
    RESPONSIVE - SMALL PHONE (≤480px)
    ══════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .pc-body {
-    padding: 6px 8px 10px;
-    gap: 4px;
-  }
-  .pc-title {
-    font-size: 11px;
-    min-height: 30px;
-  }
-  .pc-amount {
-    font-size: 15px;
-  }
-  .pc-add-to-cart {
-    padding: 8px;
-    font-size: 10px;
-  }
-  .pc-meta-chips {
-    gap: 4px;
-  }
-  .pc-chip {
-    font-size: 8px;
-    padding: 2px 5px;
-    max-width: 90px;
-  }
-  .pc-chip svg {
-    width: 8px;
-    height: 8px;
-  }
-  .pc-mrp-circle {
-    width: 34px;
-    height: 34px;
-  }
-  .pc-mrp-price {
-    font-size: 8px;
-  }
-  .pc-mrp-text {
-    font-size: 5px;
-  }
-  .pc-min-qty {
-    font-size: 8px;
-    padding: 2px 4px;
-  }
-  .pc-stock-status {
-    font-size: 8px;
-  }
-  .pc-rating-badge {
-    font-size: 8px;
-    padding: 1px 4px;
-  }
-  .pc-review-count {
-    font-size: 8px;
-  }
+  .pc-body { padding: 6px 8px 10px; gap: 4px; }
+  .pc-title { font-size: 11px; min-height: 30px; }
+  .pc-amount { font-size: 15px; }
+  .pc-add-to-cart { padding: 8px; font-size: 10px; }
+  .pc-meta-chips { gap: 4px; }
+  .pc-chip { font-size: 8px; padding: 2px 5px; max-width: 90px; }
+  .pc-chip svg { width: 8px; height: 8px; }
+  .pc-mrp-circle { width: 34px; height: 34px; }
+  .pc-mrp-price { font-size: 8px; }
+  .pc-mrp-text { font-size: 5px; }
+  .pc-min-qty { font-size: 8px; padding: 2px 4px; }
+  .pc-stock-status { font-size: 8px; }
+  .pc-rating-badge { font-size: 8px; padding: 1px 4px; }
+  .pc-review-count { font-size: 8px; }
 }
-
 
 /* ══════════════════════════════════════════
    RESPONSIVE - VERY SMALL (≤360px)
    ══════════════════════════════════════════ */
 @media (max-width: 360px) {
-  .pc-title {
-    font-size: 10px;
-    min-height: 28px;
-  }
-  .pc-amount {
-    font-size: 14px;
-  }
-  .pc-currency {
-    font-size: 10px;
-  }
-  .pc-add-to-cart {
-    font-size: 9px;
-    padding: 7px 6px;
-  }
-  .pc-qty-btn {
-    width: 24px;
-    height: 24px;
-  }
-  .pc-qty-val {
-    font-size: 11px;
-    min-width: 18px;
-  }
-  .pc-chip {
-    font-size: 7px;
-    padding: 1px 4px;
-    max-width: 75px;
-  }
-  .pc-mrp-circle {
-    width: 30px;
-    height: 30px;
-  }
-  .pc-mrp-text {
-    font-size: 5px;
-  }
-  .pc-mrp-price {
-    font-size: 7px;
-  }
-  .pc-rating-badge {
-    font-size: 7px;
-  }
-  .pc-review-count {
-    font-size: 7px;
-  }
+  .pc-title { font-size: 10px; min-height: 28px; }
+  .pc-amount { font-size: 14px; }
+  .pc-currency { font-size: 10px; }
+  .pc-add-to-cart { font-size: 9px; padding: 7px 6px; }
+  .pc-qty-btn { width: 24px; height: 24px; }
+  .pc-qty-val { font-size: 11px; min-width: 18px; }
+  .pc-chip { font-size: 7px; padding: 1px 4px; max-width: 75px; }
+  .pc-mrp-circle { width: 30px; height: 30px; }
+  .pc-mrp-text { font-size: 5px; }
+  .pc-mrp-price { font-size: 7px; }
+  .pc-rating-badge { font-size: 7px; }
+  .pc-review-count { font-size: 7px; }
 }
-
 
 /* ══════════════════════
    ACCESSIBILITY
    ══════════════════════ */
 @media (prefers-reduced-motion: reduce) {
-  .pc-card,
-  .pc-img,
-  .pc-add-to-cart,
-  .pc-qty-btn,
-  .pc-chip {
+  .pc-card, .pc-img, .pc-add-to-cart, .pc-qty-btn, .pc-chip {
     transition: none !important;
     animation: none !important;
   }
-  .pc-card:hover {
-    transform: none;
-  }
-  .pc-card:hover .pc-img {
-    transform: none;
-  }
+  .pc-card:hover { transform: none; }
+  .pc-card:hover .pc-img { transform: none; }
   .pc-skeleton {
     animation: none;
     background: var(--pc-surface);
@@ -948,17 +754,9 @@ body.dark .pc-qty-btn--decrease {
 }
 
 @media (prefers-contrast: high) {
-  .pc-card {
-    border-width: 2px;
-    border-color: var(--pc-text);
-  }
-  .pc-chip {
-    border-width: 2px;
-  }
-  .pc-add-to-cart {
-    box-shadow: none;
-    border: 2px solid var(--pc-primary);
-  }
+  .pc-card { border-width: 2px; border-color: var(--pc-text); }
+  .pc-chip { border-width: 2px; }
+  .pc-add-to-cart { box-shadow: none; border: 2px solid var(--pc-primary); }
 }
 
 /* Focus States for Keyboard Navigation */
