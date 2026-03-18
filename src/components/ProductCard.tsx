@@ -336,8 +336,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
             {/* Title */}
             <h3 className="pc-title">
-              {product.name.length > 20
-                ? product.name.slice(0, 20) + "…"
+              {product.name.length > 50
+                ? product.name.slice(0, 50) + "…"
                 : product.name}
             </h3>
 

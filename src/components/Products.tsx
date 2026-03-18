@@ -750,7 +750,7 @@ const Products: React.FC = () => {
             </div>
           )}
 
-          {/* 🔴 YAHAN PAR NEW FULL-SCREEN ERROR CODE ADD KIYA HAI */}
+          {/* Error and Loading States */}
           {loading ? (
             <div className="sp-grid">
               {Array.from({ length: 15 }).map((_, i) => (
@@ -852,7 +852,7 @@ const Products: React.FC = () => {
             </>
           )}
 
-          {/* Trust Factory Section */}
+          {/* 🔴 ✅ UPDATED Dynamic Trust Factory Section ✅ 🔴 */}
           {!loading && trustData && (
             <div className="sp-factory-section">
               <div className="sp-factory-header">
@@ -872,32 +872,48 @@ const Products: React.FC = () => {
                 </div>
               </div>
 
+              {/* Dynamic Grid mapping from factoryVisuals or fallback to old static mapping */}
               <div className="sp-factory-grid">
-                {[
-                  {
-                    img: trustData.manufacturingUnit,
-                    label: "Manufacturing",
-                  },
-                  {
-                    img: trustData.packingDispatch,
-                    label: "Packing & Dispatch",
-                  },
-                  {
-                    img: trustData.warehouseStorage,
-                    label: "Warehouse",
-                  },
-                ].map(
-                  (item, i) =>
-                    item.img && (
+                {trustData.factoryVisuals && trustData.factoryVisuals.length > 0 ? (
+                  trustData.factoryVisuals.map((item: any, i: number) => (
+                    item.image && (
                       <div className="sp-factory-card" key={i}>
                         <img
-                          src={optimizeCloudinary(item.img, 400, 280)}
-                          alt={item.label}
+                          src={optimizeCloudinary(item.image, 400, 280)}
+                          alt={item.label || `Process ${i+1}`}
                           loading="lazy"
                         />
-                        <div className="sp-factory-label">{item.label}</div>
+                        {item.label && <div className="sp-factory-label">{item.label}</div>}
                       </div>
                     )
+                  ))
+                ) : (
+                  [
+                    {
+                      img: trustData.manufacturingUnit,
+                      label: "Manufacturing",
+                    },
+                    {
+                      img: trustData.packingDispatch,
+                      label: "Packing & Dispatch",
+                    },
+                    {
+                      img: trustData.warehouseStorage,
+                      label: "Warehouse Storage",
+                    },
+                  ].map(
+                    (item, i) =>
+                      item.img && (
+                        <div className="sp-factory-card" key={i}>
+                          <img
+                            src={optimizeCloudinary(item.img, 400, 280)}
+                            alt={item.label}
+                            loading="lazy"
+                          />
+                          <div className="sp-factory-label">{item.label}</div>
+                        </div>
+                      )
+                  )
                 )}
               </div>
             </div>
