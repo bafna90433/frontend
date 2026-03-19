@@ -146,7 +146,6 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                   <div className="bafna-suggest__section-title">Trending Now</div>
                   <div className="bafna-suggest__popular-tags">
                     {popularSearches.map((cat) => (
-                      // ✅ CHANGED: navigate from /products?category=... to /?category=...
                       <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/?category=${cat._id}`); }}>{cat.name}</button>
                     ))}
                   </div>
@@ -292,7 +291,6 @@ const Header: React.FC = () => {
     setQ(term);
     saveSearchTerm(term);
     setOpenSug(false);
-    // ✅ CHANGED: navigate from /products?search=... to /?search=...
     navigate(`/?search=${encodeURIComponent(term)}`);
   }, [navigate, saveSearchTerm]);
 
@@ -348,7 +346,6 @@ const Header: React.FC = () => {
     const query = q.trim();
     if (query) saveSearchTerm(query);
     setOpenSug(false);
-    // ✅ CHANGED: navigate from /products?search=... to /?search=...
     navigate(`/${query ? `?search=${encodeURIComponent(query)}` : ""}`);
   }, [q, navigate, saveSearchTerm]);
 
@@ -372,7 +369,6 @@ const Header: React.FC = () => {
         setOpenSug(false);
         const query = (e.currentTarget as HTMLInputElement).value.trim() || q.trim();
         if (query) saveSearchTerm(query);
-        // ✅ CHANGED: navigate from /products?search=... to /?search=...
         navigate(`/${query ? `?search=${encodeURIComponent(query)}` : ""}`);
       }
     } else if (e.key === "Escape") {
@@ -401,10 +397,31 @@ const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // ✅ UPDATED USER EFFECT TO LISTEN TO 'STORAGE' EVENT
   const [user, setUser] = useState<any | null>(null);
+  
   useEffect(() => {
-    const parseUser = () => { try { return JSON.parse(localStorage.getItem("user") || "null"); } catch { return null; } };
+    const parseUser = () => { 
+      try { 
+        return JSON.parse(localStorage.getItem("user") || "null"); 
+      } catch { 
+        return null; 
+      } 
+    };
+    
+    // Initial data fetch
     setUser(parseUser());
+
+    // Listener for auth changes
+    const handleStorageChange = () => {
+      setUser(parseUser());
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   return (
@@ -416,7 +433,6 @@ const Header: React.FC = () => {
             🌟 India's Leading Retail & Wholesale Toys at <a href="https://bafnatoys.com" target="_blank" rel="noreferrer">bafnatoys.com</a>
           </span>
           <div className="bafna-top-strip__links hidden-mobile">
-            {/* Instagram link replaced About Us & Contact Support */}
             <a 
               href="https://www.instagram.com/bafna_toys/" 
               target="_blank" 
@@ -479,7 +495,7 @@ const Header: React.FC = () => {
                     <span 
                       className="label" 
                       style={{ 
-                        maxWidth: "110px", // Badhaya hai 'Hello, ' ke liye
+                        maxWidth: "110px", 
                         overflow: "hidden", 
                         textOverflow: "ellipsis", 
                         whiteSpace: "nowrap",

@@ -519,8 +519,7 @@ const Products: React.FC = () => {
               <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
             </h1>
             <p className="sp-hero-sub">
-              Premium wholesale toys for Toy Stores, Supermarkets & Retail
-              Resellers across India
+              Premium wholesale toys for Toy Stores, Supermarkets & Retail Stores, and Resellers
             </p>
             <div className="sp-hero-features">
               <div className="sp-hero-feature">
@@ -572,19 +571,19 @@ const Products: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══ INSTAGRAM STRIP ═══ */}
-      <a
-        href="https://www.instagram.com/bafna_toys"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="sp-insta-strip"
-      >
-        <Instagram size={15} />
-        <span>
-          Follow <strong>@bafna_toys</strong> for latest updates & launches
-        </span>
-        <ExternalLink size={13} />
-      </a>
+     {/* ═══ INSTAGRAM STRIP ═══ */}
+<a
+  href="https://www.instagram.com/bafna_toys"
+  target="_blank"
+  rel="noopener noreferrer"
+  className="sp-insta-strip"
+>
+  <Instagram size={15} />
+  <span>
+    Check out our toy videos on Instagram <strong>@bafna_toys</strong>
+  </span>
+  <ExternalLink size={13} />
+</a>
 
       {/* ═══ BANNERS ═══ */}
       {!categoryId &&
