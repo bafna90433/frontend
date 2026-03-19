@@ -256,8 +256,7 @@ body.dark {
   font-weight: 800;
   line-height: 1;
   margin-top: 2px;
-  text-decoration: line-through;
-  text-decoration-thickness: 1px;
+  text-decoration: none; /* Removed the line-through */
 }
 
 /* ══════════════════════

@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useMemo, useRef, useCallback } from "react";
+import React, {
+  useEffect,
+  useState,
+  useMemo,
+  useRef,
+  useCallback,
+} from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
@@ -27,9 +33,16 @@ import {
   Youtube,
   Facebook,
   Linkedin,
-  Clock,
   WifiOff,
-  RefreshCw
+  RefreshCw,
+  Package,
+  Award,
+  Zap,
+  MapPin,
+  Phone,
+  Mail,
+  Heart,
+  TrendingUp,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
@@ -83,11 +96,9 @@ const optimizeCloudinary = (
   crop = "c_fill"
 ): string => {
   if (!url) return "/placeholder.png";
-  
   if (!url.startsWith("http") && CLOUD_NAME) {
     return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
   }
-  
   if (url.includes("res.cloudinary.com")) {
     if (url.includes("/image/upload/f_auto")) return url;
     return url.replace(
@@ -95,7 +106,6 @@ const optimizeCloudinary = (
       `/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/`
     );
   }
-  
   return url.startsWith("http")
     ? url
     : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
@@ -121,7 +131,7 @@ const cleanProduct = (raw: any): Product => ({
 });
 
 // ════════════════════════════════════════════════════════════
-// ANIMATED COUNTER COMPONENT
+// ANIMATED COUNTER
 // ════════════════════════════════════════════════════════════
 
 const AnimatedCounter: React.FC<{
@@ -140,7 +150,6 @@ const AnimatedCounter: React.FC<{
           const targetNum =
             parseInt(String(target).replace(/\D/g, ""), 10) || 4900;
           let start: number | null = null;
-          
           const step = (ts: number) => {
             if (!start) start = ts;
             const progress = Math.min((ts - start) / duration, 1);
@@ -149,13 +158,11 @@ const AnimatedCounter: React.FC<{
             if (progress < 1) requestAnimationFrame(step);
             else setCount(targetNum);
           };
-          
           requestAnimationFrame(step);
         }
       },
       { threshold: 0.3 }
     );
-    
     if (ref.current) observer.observe(ref.current);
     return () => observer.disconnect();
   }, [target, duration]);
@@ -167,6 +174,21 @@ const AnimatedCounter: React.FC<{
     </span>
   );
 };
+
+// ════════════════════════════════════════════════════════════
+// SKELETON CARD
+// ════════════════════════════════════════════════════════════
+
+const ProductSkeleton: React.FC = () => (
+  <div className="sp-skeleton-card">
+    <div className="sp-skeleton-img sp-shimmer" />
+    <div className="sp-skeleton-body">
+      <div className="sp-skeleton-line sp-shimmer" style={{ width: "75%" }} />
+      <div className="sp-skeleton-line sp-shimmer" style={{ width: "50%" }} />
+      <div className="sp-skeleton-line short sp-shimmer" style={{ width: "35%" }} />
+    </div>
+  </div>
+);
 
 // ════════════════════════════════════════════════════════════
 // MAIN COMPONENT
@@ -198,7 +220,7 @@ const Products: React.FC = () => {
   } | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  
+
   const ITEMS_PER_PAGE = 25;
 
   // URL Params
@@ -206,30 +228,31 @@ const Products: React.FC = () => {
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
 
-  // Marquee Items
-  const marqueeItems = useMemo(() => [
-    { icon: "📦", text: "Small MOQ Ordering" },
-    { icon: "🧸", text: "400+ Toy Products" },
-    { icon: "🚚", text: "All-India Door Delivery" },
-    { icon: "💵", text: "Higher Retail Margins" },
-    { icon: "🏭", text: "Factory Direct Supply" },
-    { icon: "📊", text: "Fast Moving Toys" },
-    { icon: "🎁", text: "Attractive Packaging" },
-    { icon: "🧾", text: "Easy Ordering for Retailers" },
-    { icon: "🔁", text: "Regular New Launches" },
-    { icon: "🏷️", text: "Beat E-Commerce Prices" },
-  ], []);
+  // Marquee
+  const marqueeItems = useMemo(
+    () => [
+      { icon: "📦", text: "Small MOQ Ordering" },
+      { icon: "🧸", text: "400+ Toy Products" },
+      { icon: "🚚", text: "All-India Door Delivery" },
+      { icon: "💵", text: "Higher Retail Margins" },
+      { icon: "🏭", text: "Factory Direct Supply" },
+      { icon: "📊", text: "Fast Moving Toys" },
+      { icon: "🎁", text: "Attractive Packaging" },
+      { icon: "🧾", text: "Easy Ordering for Retailers" },
+      { icon: "🔁", text: "Regular New Launches" },
+      { icon: "🏷️", text: "Beat E-Commerce Prices" },
+    ],
+    []
+  );
 
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   // EFFECTS
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
 
-  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [location.pathname, categoryId]);
 
-  // Fetch static data
   useEffect(() => {
     api
       .get("/categories")
@@ -271,15 +294,13 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
-  // Fetch products
   useEffect(() => {
     let alive = true;
     const ctrl = new AbortController();
-    
+
     const fetchProducts = async () => {
       setLoading(true);
       setError(null);
-      
       try {
         const r = await api.get("/products", {
           signal: ctrl.signal,
@@ -288,38 +309,36 @@ const Products: React.FC = () => {
             ...(searchTerm ? { search: searchTerm } : {}),
           },
         });
-        
         if (!alive) return;
-        
         const arr = Array.isArray(r.data)
           ? r.data
           : r.data?.products || r.data?.docs || [];
         setAllProducts(arr.map(cleanProduct));
       } catch (e: any) {
         if (!ctrl.signal.aborted) {
-          setError(e?.response?.data?.message || e.message || "Failed to load");
+          setError(
+            e?.response?.data?.message || e.message || "Failed to load"
+          );
         }
       } finally {
         if (alive) setLoading(false);
       }
     };
-    
+
     fetchProducts();
-    
     return () => {
       alive = false;
       ctrl.abort();
     };
   }, [location.search, categoryId, searchTerm]);
 
-  // Reset page on filter change
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryId, searchTerm, sortBy, activePriceFilter]);
 
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   // HANDLERS
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
 
   const handleApplyPrice = useCallback(() => {
     setActivePriceFilter({
@@ -336,29 +355,31 @@ const Products: React.FC = () => {
     navigate("/");
   }, [navigate]);
 
-  const handleCatClick = useCallback((cat: Category) => {
-    if (cat.link?.trim()) {
-      cat.link.startsWith("http")
-        ? (window.location.href = cat.link)
-        : navigate(cat.link);
-    } else {
-      navigate(`/?category=${cat._id}`);
-    }
-  }, [navigate]);
+  const handleCatClick = useCallback(
+    (cat: Category) => {
+      if (cat.link?.trim()) {
+        cat.link.startsWith("http")
+          ? (window.location.href = cat.link)
+          : navigate(cat.link);
+      } else {
+        navigate(`/?category=${cat._id}`);
+      }
+    },
+    [navigate]
+  );
 
   const goPage = useCallback((n: number) => {
     setCurrentPage(n);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
-  // ════════════════════════════════════════════════════════════
-  // COMPUTED VALUES
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
+  // COMPUTED
+  // ══════════════════════════════════════════════════
 
   const displayed = useMemo(() => {
     let f = [...allProducts];
-    
-    // Filter by category
+
     if (categoryId) {
       f = f.filter((p) =>
         typeof p.category === "string"
@@ -366,8 +387,7 @@ const Products: React.FC = () => {
           : p.category?._id === categoryId
       );
     }
-    
-    // Filter by search
+
     if (searchTerm) {
       const n = searchTerm.toLowerCase();
       f = f.filter(
@@ -376,8 +396,7 @@ const Products: React.FC = () => {
           (p.sku || "").toLowerCase().includes(n)
       );
     }
-    
-    // Apply deals
+
     if (activeDeals.length) {
       f = f.map((p) => {
         const d = activeDeals.find((x) => x.productId === p._id);
@@ -391,8 +410,7 @@ const Products: React.FC = () => {
           : p;
       });
     }
-    
-    // Filter by price
+
     if (activePriceFilter) {
       f = f.filter(
         (p) =>
@@ -400,26 +418,32 @@ const Products: React.FC = () => {
           (p.price || 0) <= activePriceFilter.max
       );
     }
-    
-    // Sort
-    if (sortBy === "price-low") {
+
+    if (sortBy === "price-low")
       f.sort((a, b) => (a.price || 0) - (b.price || 0));
-    } else if (sortBy === "price-high") {
+    else if (sortBy === "price-high")
       f.sort((a, b) => (b.price || 0) - (a.price || 0));
-    } else if (sortBy === "name-asc") {
+    else if (sortBy === "name-asc")
       f.sort((a, b) => a.name.localeCompare(b.name));
-    }
-    
+
     return f;
-  }, [allProducts, categoryId, searchTerm, sortBy, activeDeals, activePriceFilter]);
+  }, [
+    allProducts,
+    categoryId,
+    searchTerm,
+    sortBy,
+    activeDeals,
+    activePriceFilter,
+  ]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
-  
-  const paginated = useMemo(() => 
-    displayed.slice(
-      (currentPage - 1) * ITEMS_PER_PAGE,
-      currentPage * ITEMS_PER_PAGE
-    ),
+
+  const paginated = useMemo(
+    () =>
+      displayed.slice(
+        (currentPage - 1) * ITEMS_PER_PAGE,
+        currentPage * ITEMS_PER_PAGE
+      ),
     [displayed, currentPage]
   );
 
@@ -456,9 +480,9 @@ const Products: React.FC = () => {
     ? `Search: "${searchTerm}"`
     : "Shop Wholesale Toys | Bafna Toys";
 
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
   // RENDER
-  // ════════════════════════════════════════════════════════════
+  // ══════════════════════════════════════════════════
 
   return (
     <div className="sp-wrapper">
@@ -483,39 +507,70 @@ const Products: React.FC = () => {
       </div>
 
       {/* ═══ HERO BANNER ═══ */}
-      <div className="sp-hero-banner">
-        <div className="sp-hero-content">
-          <div className="sp-hero-badge">
-            <Factory size={14} />
-            Direct from Manufacturer
+      <section className="sp-hero">
+        <div className="sp-hero-grid">
+          <div className="sp-hero-content">
+            <div className="sp-hero-badge">
+              <Factory size={13} />
+              Direct from Manufacturer
+            </div>
+            <h1 className="sp-hero-title">
+              India's Trusted
+              <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
+            </h1>
+            <p className="sp-hero-sub">
+              Premium wholesale toys for Toy Stores, Supermarkets & Retail
+              Resellers across India
+            </p>
+            <div className="sp-hero-features">
+              <div className="sp-hero-feature">
+                <div className="sp-hero-feature-icon">
+                  <Truck size={16} />
+                </div>
+                <div>
+                  <strong>Free Delivery</strong>
+                  <span>Orders ₹5000+</span>
+                </div>
+              </div>
+              <div className="sp-hero-feature">
+                <div className="sp-hero-feature-icon">
+                  <Shield size={16} />
+                </div>
+                <div>
+                  <strong>BIS Certified</strong>
+                  <span>All Products</span>
+                </div>
+              </div>
+              <div className="sp-hero-feature">
+                <div className="sp-hero-feature-icon">
+                  <Package size={16} />
+                </div>
+                <div>
+                  <strong>400+ Products</strong>
+                  <span>Wide Range</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <h1 className="sp-hero-title">
-            India's Trusted
-            <br />
-            <span>B2B Toy Wholesale</span>
-          </h1>
-          <p className="sp-hero-sub">
-            For Toy Stores, Supermarkets & Retail Resellers
-          </p>
-          <div className="sp-hero-perks">
-            <span>
-              <Truck size={14} /> Free Delivery ₹5000+
-            </span>
-            <span>
-              <Shield size={14} /> BIS Certified
-            </span>
-            <span>
-              <BadgeCheck size={14} /> 400+ Products
-            </span>
+          <div className="sp-hero-visual">
+            <div className="sp-hero-offer-ring">
+              <div className="sp-hero-offer-inner">
+                <span className="sp-offer-up">UP TO</span>
+                <span className="sp-offer-num">50%</span>
+                <span className="sp-offer-label">& MORE OFF MRP</span>
+              </div>
+            </div>
+            <div className="sp-hero-float sp-hero-float-1">
+              <Zap size={14} />
+              Fast Moving
+            </div>
+            <div className="sp-hero-float sp-hero-float-2">
+              <TrendingUp size={14} />
+              High Margins
+            </div>
           </div>
         </div>
-        <div className="sp-hero-offer">
-          <div className="sp-offer-circle">
-            <span className="sp-offer-num">50%</span>
-            <span className="sp-offer-txt">& MORE OFF MRP</span>
-          </div>
-        </div>
-      </div>
+      </section>
 
       {/* ═══ INSTAGRAM STRIP ═══ */}
       <a
@@ -524,9 +579,11 @@ const Products: React.FC = () => {
         rel="noopener noreferrer"
         className="sp-insta-strip"
       >
-        <Instagram size={16} />
-        Follow @bafna_toys for latest updates & launches
-        <ExternalLink size={14} />
+        <Instagram size={15} />
+        <span>
+          Follow <strong>@bafna_toys</strong> for latest updates & launches
+        </span>
+        <ExternalLink size={13} />
       </a>
 
       {/* ═══ BANNERS ═══ */}
@@ -552,19 +609,22 @@ const Products: React.FC = () => {
       {/* ═══ MAIN LAYOUT ═══ */}
       <div className="sp-layout">
         {/* SIDEBAR */}
-        <aside className="sp-sidebar">
+        <aside className="sp-sidebar" role="complementary">
           <div className="sp-sb-inner">
             <div className="sp-sb-section">
               <h3 className="sp-sb-heading">
-                <LayoutGrid size={15} />
+                <LayoutGrid size={14} />
                 Categories
               </h3>
               <ul className="sp-sb-list">
                 <li
                   className={!categoryId ? "active" : ""}
                   onClick={() => navigate("/")}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && navigate("/")}
                 >
-                  <span className="sp-sb-icon">✦</span>
+                  <span className="sp-sb-dot" />
                   <span>All Toys</span>
                   <ChevronRight size={14} className="sp-sb-arrow" />
                 </li>
@@ -573,6 +633,11 @@ const Products: React.FC = () => {
                     key={cat._id}
                     className={categoryId === cat._id ? "active" : ""}
                     onClick={() => handleCatClick(cat)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleCatClick(cat)
+                    }
                   >
                     {cat.image ? (
                       <img
@@ -581,7 +646,7 @@ const Products: React.FC = () => {
                         className="sp-sb-cat-img"
                       />
                     ) : (
-                      <span className="sp-sb-icon">📦</span>
+                      <span className="sp-sb-dot" />
                     )}
                     <span>{cat.name}</span>
                     <ChevronRight size={14} className="sp-sb-arrow" />
@@ -594,44 +659,56 @@ const Products: React.FC = () => {
 
             <div className="sp-sb-section">
               <h3 className="sp-sb-heading">
-                <SlidersHorizontal size={15} />
+                <SlidersHorizontal size={14} />
                 Price Range
               </h3>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                value={maxPriceInput || 0}
-                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-                className="sp-range"
-              />
+              <div className="sp-range-wrap">
+                <input
+                  type="range"
+                  min="0"
+                  max="10000"
+                  value={maxPriceInput || 0}
+                  onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+                  className="sp-range"
+                />
+                <div className="sp-range-labels">
+                  <span>₹0</span>
+                  <span>₹{maxPriceInput || 0}</span>
+                </div>
+              </div>
               <div className="sp-price-row">
                 <div className="sp-price-field">
-                  <span>₹</span>
-                  <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPriceInput}
-                    onChange={(e) =>
-                      setMinPriceInput(
-                        e.target.value ? Number(e.target.value) : ""
-                      )
-                    }
-                  />
+                  <label>Min</label>
+                  <div className="sp-price-input-wrap">
+                    <span>₹</span>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={minPriceInput}
+                      onChange={(e) =>
+                        setMinPriceInput(
+                          e.target.value ? Number(e.target.value) : ""
+                        )
+                      }
+                    />
+                  </div>
                 </div>
-                <span className="sp-price-dash">—</span>
+                <span className="sp-price-dash">–</span>
                 <div className="sp-price-field">
-                  <span>₹</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPriceInput}
-                    onChange={(e) =>
-                      setMaxPriceInput(
-                        e.target.value ? Number(e.target.value) : ""
-                      )
-                    }
-                  />
+                  <label>Max</label>
+                  <div className="sp-price-input-wrap">
+                    <span>₹</span>
+                    <input
+                      type="number"
+                      placeholder="5000"
+                      value={maxPriceInput}
+                      onChange={(e) =>
+                        setMaxPriceInput(
+                          e.target.value ? Number(e.target.value) : ""
+                        )
+                      }
+                    />
+                  </div>
                 </div>
               </div>
               <button className="sp-apply-btn" onClick={handleApplyPrice}>
@@ -646,17 +723,17 @@ const Products: React.FC = () => {
           {/* Mobile Categories */}
           <div className="sp-mob-cats">
             <div className="sp-mob-cats-track">
-              <div
+              <button
                 className={`sp-mob-cat ${!categoryId ? "active" : ""}`}
                 onClick={() => navigate("/")}
               >
                 <div className="sp-mob-cat-circle">
-                  <span>✦</span>
+                  <Sparkles size={18} />
                 </div>
                 <span>All</span>
-              </div>
+              </button>
               {categories.map((cat) => (
-                <div
+                <button
                   key={cat._id}
                   className={`sp-mob-cat ${
                     categoryId === cat._id ? "active" : ""
@@ -671,11 +748,11 @@ const Products: React.FC = () => {
                         loading="lazy"
                       />
                     ) : (
-                      <span>📦</span>
+                      <Package size={18} />
                     )}
                   </div>
                   <span>{cat.name}</span>
-                </div>
+                </button>
               ))}
             </div>
           </div>
@@ -690,20 +767,24 @@ const Products: React.FC = () => {
               >
                 <ChevronLeft size={18} />
               </button>
-              <h2 className="sp-toolbar-title">
-                {searchTerm
-                  ? `"${searchTerm}"`
-                  : catName || "All Toys"}
-                <span className="sp-count-badge">{displayed.length}</span>
-              </h2>
+              <div className="sp-toolbar-info">
+                <h2 className="sp-toolbar-title">
+                  {searchTerm
+                    ? `"${searchTerm}"`
+                    : catName || "All Toys"}
+                </h2>
+                <span className="sp-toolbar-count">
+                  {displayed.length} product{displayed.length !== 1 && "s"}
+                </span>
+              </div>
             </div>
             <div className="sp-toolbar-right">
               <button
                 className="sp-filter-toggle sp-mob-only"
                 onClick={() => setMobileFilterOpen(true)}
               >
-                <Filter size={16} />
-                Filters
+                <Filter size={15} />
+                <span>Filters</span>
               </button>
               <div className="sp-sort-wrap">
                 <ArrowUpDown size={14} className="sp-sort-icon" />
@@ -724,84 +805,63 @@ const Products: React.FC = () => {
 
           {/* Active Filters */}
           {(searchTerm || activePriceFilter) && (
-            <div className="sp-filters-bar">
+            <div className="sp-active-filters">
               {searchTerm && (
-                <span className="sp-filter-tag">
+                <span className="sp-filter-chip">
                   <Search size={12} />
                   {searchTerm}
-                  <X
-                    size={13}
-                    onClick={() => navigate(location.pathname)}
-                  />
+                  <button onClick={() => navigate(location.pathname)}>
+                    <X size={12} />
+                  </button>
                 </span>
               )}
               {activePriceFilter && (
-                <span className="sp-filter-tag">
+                <span className="sp-filter-chip">
                   ₹{activePriceFilter.min} – ₹{activePriceFilter.max}
-                  <X
-                    size={13}
-                    onClick={() => setActivePriceFilter(null)}
-                  />
+                  <button onClick={() => setActivePriceFilter(null)}>
+                    <X size={12} />
+                  </button>
                 </span>
               )}
-              <button className="sp-clear-btn" onClick={handleClear}>
+              <button className="sp-clear-all" onClick={handleClear}>
                 Clear All
               </button>
             </div>
           )}
 
-          {/* Error and Loading States */}
+          {/* Content States */}
           {loading ? (
             <div className="sp-grid">
               {Array.from({ length: 15 }).map((_, i) => (
-                <Skeleton
-                  key={i}
-                  variant="rectangular"
-                  width="100%"
-                  height={320}
-                  sx={{ borderRadius: "16px" }}
-                />
+                <ProductSkeleton key={i} />
               ))}
             </div>
           ) : error ? (
-            <div style={{
-              position: 'fixed',
-              inset: 0,
-              backgroundColor: 'var(--sp-bg)',
-              zIndex: 99999,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '20px',
-              textAlign: 'center'
-            }}>
-              <div style={{ backgroundColor: '#fee2e2', padding: '24px', borderRadius: '50%', marginBottom: '24px' }}>
-                <WifiOff size={48} color="#ef4444" />
+            <div className="sp-error-state">
+              <div className="sp-error-icon">
+                <WifiOff size={44} />
               </div>
-              <h2 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--sp-text)', marginBottom: '12px' }}>
-                Connection Failed
-              </h2>
-              <p style={{ fontSize: '15px', color: 'var(--sp-text-muted)', maxWidth: '320px', marginBottom: '32px', lineHeight: 1.5 }}>
-                {error === "Network Error" 
-                  ? "It looks like you're offline or the server is unreachable. Please check your internet connection." 
+              <h2>Connection Failed</h2>
+              <p>
+                {error === "Network Error"
+                  ? "It looks like you're offline or the server is unreachable."
                   : error}
               </p>
-              <button 
+              <button
+                className="sp-error-retry"
                 onClick={() => window.location.reload()}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: '8px', padding: '14px 32px', backgroundColor: 'var(--sp-primary)', color: 'white', border: 'none', borderRadius: '12px', fontSize: '15px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 4px 14px rgba(37, 99, 235, 0.25)'
-                }}
               >
-                <RefreshCw size={18} />
+                <RefreshCw size={16} />
                 Try Again
               </button>
             </div>
           ) : displayed.length === 0 ? (
             <div className="sp-empty">
-              <Sparkles size={52} />
+              <div className="sp-empty-icon">
+                <Search size={44} />
+              </div>
               <h2>No products found</h2>
-              <p>Try different filters or categories</p>
+              <p>Try adjusting your filters or browse a different category</p>
               <button onClick={handleClear}>Clear Filters</button>
             </div>
           ) : (
@@ -818,24 +878,23 @@ const Products: React.FC = () => {
               </div>
 
               {totalPages > 1 && (
-                <div className="sp-pagination">
+                <nav className="sp-pagination" aria-label="Page navigation">
                   <button
                     disabled={currentPage === 1}
                     onClick={() => goPage(currentPage - 1)}
                     aria-label="Previous page"
+                    className="sp-page-arrow"
                   >
                     <ChevronLeft size={16} />
                   </button>
                   {getPages().map((pg, i) => (
                     <button
                       key={i}
-                      className={`${pg === currentPage ? "active" : ""} ${
-                        pg === "..." ? "dots" : ""
-                      }`}
+                      className={`sp-page-btn ${
+                        pg === currentPage ? "active" : ""
+                      } ${pg === "..." ? "dots" : ""}`}
                       disabled={pg === "..."}
-                      onClick={() =>
-                        typeof pg === "number" && goPage(pg)
-                      }
+                      onClick={() => typeof pg === "number" && goPage(pg)}
                     >
                       {pg}
                     </button>
@@ -844,51 +903,115 @@ const Products: React.FC = () => {
                     disabled={currentPage === totalPages}
                     onClick={() => goPage(currentPage + 1)}
                     aria-label="Next page"
+                    className="sp-page-arrow"
                   >
                     <ChevronRight size={16} />
                   </button>
-                </div>
+                </nav>
               )}
             </>
           )}
+        </main>
+      </div>
 
-          {/* 🔴 ✅ UPDATED Dynamic Trust Factory Section ✅ 🔴 */}
-          {!loading && trustData && (
-            <div className="sp-factory-section">
-              <div className="sp-factory-header">
-                <span className="sp-line" />
-                <h3>Inside Our Factory</h3>
-                <span className="sp-line" />
+      {/* ═══ TRUST STATS ═══ */}
+      <section className="sp-trust-section">
+        <div className="sp-trust-grid">
+          {[
+            {
+              icon: <Star size={22} />,
+              gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
+              color: "#b45309",
+              title: "4.8/5",
+              sub: "Average Rating",
+            },
+            {
+              icon: <Users size={22} />,
+              gradient: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
+              color: "#1d4ed8",
+              title: "4,900+",
+              sub: "Active Retailers",
+            },
+            {
+              icon: <Truck size={22} />,
+              gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
+              color: "#047857",
+              title: "All India",
+              sub: "Door Delivery",
+            },
+            {
+              icon: <Factory size={22} />,
+              gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe)",
+              color: "#6d28d9",
+              title: "Direct",
+              sub: "Manufacturer",
+            },
+          ].map((s, i) => (
+            <div className="sp-trust-card" key={i}>
+              <div
+                className="sp-trust-icon"
+                style={{ background: s.gradient, color: s.color }}
+              >
+                {s.icon}
               </div>
+              <div className="sp-trust-info">
+                <strong>{s.title}</strong>
+                <span>{s.sub}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
 
-              <div className="sp-factory-stats">
-                <div className="sp-stat-card sp-stat-hero">
-                  <div className="sp-stat-number">
-                    <AnimatedCounter
-                      target={trustData.retailerCount || "49000+"}
-                    />
-                  </div>
-                  <p>Happy Retailers Across India</p>
+      {/* ═══ FACTORY SECTION ═══ */}
+      {!loading && trustData && (
+        <section className="sp-factory">
+          <div className="sp-factory-inner">
+            <div className="sp-section-header">
+              <span className="sp-section-badge">
+                <Factory size={14} />
+                Our Facility
+              </span>
+              <h2 className="sp-section-title">Inside Our Factory</h2>
+              <p className="sp-section-desc">
+                State-of-the-art manufacturing with quality at every step
+              </p>
+            </div>
+
+            <div className="sp-factory-counter">
+              <div className="sp-counter-card">
+                <div className="sp-counter-number">
+                  <AnimatedCounter
+                    target={trustData.retailerCount || "4901+"}
+                  />
                 </div>
+                <p>Happy Retailers Across India</p>
               </div>
+            </div>
 
-              {/* Dynamic Grid mapping from factoryVisuals or fallback to old static mapping */}
-              <div className="sp-factory-grid">
-                {trustData.factoryVisuals && trustData.factoryVisuals.length > 0 ? (
-                  trustData.factoryVisuals.map((item: any, i: number) => (
-                    item.image && (
-                      <div className="sp-factory-card" key={i}>
-                        <img
-                          src={optimizeCloudinary(item.image, 400, 280)}
-                          alt={item.label || `Process ${i+1}`}
-                          loading="lazy"
-                        />
-                        {item.label && <div className="sp-factory-label">{item.label}</div>}
-                      </div>
-                    )
-                  ))
-                ) : (
-                  [
+            <div className="sp-factory-grid">
+              {trustData.factoryVisuals &&
+              trustData.factoryVisuals.length > 0
+                ? trustData.factoryVisuals.map(
+                    (item: any, i: number) =>
+                      item.image && (
+                        <div className="sp-factory-card" key={i}>
+                          <div className="sp-factory-card-img">
+                            <img
+                              src={optimizeCloudinary(item.image, 400, 280)}
+                              alt={item.label || `Process ${i + 1}`}
+                              loading="lazy"
+                            />
+                          </div>
+                          {item.label && (
+                            <div className="sp-factory-card-label">
+                              {item.label}
+                            </div>
+                          )}
+                        </div>
+                      )
+                  )
+                : [
                     {
                       img: trustData.manufacturingUnit,
                       label: "Manufacturing",
@@ -905,98 +1028,41 @@ const Products: React.FC = () => {
                     (item, i) =>
                       item.img && (
                         <div className="sp-factory-card" key={i}>
-                          <img
-                            src={optimizeCloudinary(item.img, 400, 280)}
-                            alt={item.label}
-                            loading="lazy"
-                          />
-                          <div className="sp-factory-label">{item.label}</div>
+                          <div className="sp-factory-card-img">
+                            <img
+                              src={optimizeCloudinary(item.img, 400, 280)}
+                              alt={item.label}
+                              loading="lazy"
+                            />
+                          </div>
+                          <div className="sp-factory-card-label">
+                            {item.label}
+                          </div>
                         </div>
                       )
-                  )
-                )}
-              </div>
+                  )}
             </div>
-          )}
-        </main>
-      </div>
+          </div>
+        </section>
+      )}
 
-      {/* ═══ TRUST STATS ═══ */}
-      <section className="sp-trust-strip">
-        <div className="sp-trust-inner">
-          {[
-            {
-              icon: <Star size={24} />,
-              color: "#f59e0b",
-              title: "4.8/5",
-              sub: "Avg. Rating",
-            },
-            {
-              icon: <Users size={24} />,
-              color: "#2563eb",
-              title: "4,900+",
-              sub: "Retailers",
-            },
-            {
-              icon: <Truck size={24} />,
-              color: "#059669",
-              title: "All India",
-              sub: "Delivery",
-            },
-            {
-              icon: <Factory size={24} />,
-              color: "#7c3aed",
-              title: "Direct",
-              sub: "Manufacturer",
-            },
-          ].map((s, i) => (
-            <div className="sp-trust-stat" key={i}>
-              <div className="sp-trust-icon" style={{ color: s.color }}>
-                {s.icon}
-              </div>
-              <div>
-                <h4>{s.title}</h4>
-                <p>{s.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ FACTORY SLIDER ═══ */}
-      {!loading &&
-        trustData?.factorySliderImages?.length > 0 && (
-          <section className="sp-slider-section">
-            <div className="sp-slider-head">
-              <h3>Live Facility Feed</h3>
-              <p>Our Coimbatore manufacturing facility</p>
-            </div>
-            <div className="sp-slider-viewport">
-              <div className="sp-slider-track">
-                {[
-                  ...trustData.factorySliderImages,
-                  ...trustData.factorySliderImages,
-                ].map((img: string, i: number) => (
-                  <div className="sp-slider-card" key={i}>
-                    <img
-                      src={optimizeCloudinary(img, 400, 280)}
-                      alt={`Factory ${i + 1}`}
-                      loading="lazy"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-        )}
-
-      {/* ═══ BIS BANNER ═══ */}
+      {/* ═══ BIS SECTION ═══ */}
       {!loading && trustData?.factoryImage && (
-        <section className="sp-bis-section">
+        <section className="sp-bis">
           <div className="sp-bis-inner">
-            <h4>All Toys BIS Certified</h4>
-            <div className="sp-gst-pill">
-              GSTIN: 33ANCPH3967L1ZT
+            <div className="sp-bis-content">
+              <div className="sp-bis-badge">
+                <Shield size={16} />
+                Quality Assured
+              </div>
+              <h3>All Toys Are BIS Certified</h3>
+              <p>
+                Every product meets Indian safety standards for complete peace
+                of mind
+              </p>
+              <div className="sp-bis-gst">
+                GSTIN: 33ANCPH3967L1ZT
+              </div>
             </div>
             <img
               src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
@@ -1009,213 +1075,265 @@ const Products: React.FC = () => {
       )}
 
       {/* ═══ REVIEWS ═══ */}
-      {!loading &&
-        trustData?.customerReviews?.length > 0 && (
-          <section className="sp-reviews-section">
-            <div className="sp-reviews-inner">
-              <h2>Retailers Love Us</h2>
-              <p className="sp-reviews-sub">
-                Trusted by thousands of verified businesses
+      {!loading && trustData?.customerReviews?.length > 0 && (
+        <section className="sp-reviews">
+          <div className="sp-reviews-inner">
+            <div className="sp-section-header">
+              <span className="sp-section-badge">
+                <Heart size={14} />
+                Testimonials
+              </span>
+              <h2 className="sp-section-title">Retailers Love Us</h2>
+              <p className="sp-section-desc">
+                Trusted by thousands of verified businesses across India
               </p>
-              <div className="sp-reviews-grid">
-                {trustData.customerReviews
-                  .slice(0, 4)
-                  .map((r: any, i: number) => (
-                    <div className="sp-review-card" key={i}>
-                      <div className="sp-review-img-wrap">
-                        <img
-                          src={optimizeCloudinary(r.image, 400, 400)}
-                          alt={r.reviewerName}
-                          loading="lazy"
-                        />
+            </div>
+
+            <div className="sp-reviews-grid">
+              {trustData.customerReviews
+                .slice(0, 4)
+                .map((r: any, i: number) => (
+                  <div className="sp-review-card" key={i}>
+                    <div className="sp-review-img">
+                      <img
+                        src={optimizeCloudinary(r.image, 400, 400)}
+                        alt={r.reviewerName}
+                        loading="lazy"
+                      />
+                    </div>
+                    <div className="sp-review-body">
+                      <div className="sp-review-stars">
+                        {Array.from({ length: 5 }).map((_, si) => (
+                          <Star
+                            key={si}
+                            size={14}
+                            fill={si < (r.rating || 5) ? "#f59e0b" : "none"}
+                            color={
+                              si < (r.rating || 5) ? "#f59e0b" : "#e2e8f0"
+                            }
+                          />
+                        ))}
                       </div>
-                      <div className="sp-review-body">
-                        <div className="sp-review-stars">
-                          {"★".repeat(r.rating || 5)}
-                          <span>{"★".repeat(5 - (r.rating || 5))}</span>
-                        </div>
-                        <p>"{r.reviewText}"</p>
-                        <div className="sp-review-footer">
-                          <strong>{r.reviewerName}</strong>
-                          <span>
-                            <BadgeCheck size={13} />
-                            Verified
-                          </span>
-                        </div>
+                      <p className="sp-review-text">"{r.reviewText}"</p>
+                      <div className="sp-review-author">
+                        <strong>{r.reviewerName}</strong>
+                        <span className="sp-verified-badge">
+                          <BadgeCheck size={12} />
+                          Verified Buyer
+                        </span>
                       </div>
                     </div>
-                  ))}
-              </div>
+                  </div>
+                ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
+      )}
 
       {/* ═══ FOOTER ═══ */}
       {!loading && (
         <footer className="sp-footer">
-          <div className="sp-footer-inner">
-            <div className="sp-footer-brand">
-              <div className="sp-footer-logo">🧸 BafnaToys</div>
-              <p>
-                Inspiring imagination through play. Premium toys, best
-                deals, fast delivery.
-              </p>
-              {trustData && (
-                <div className="sp-marketplace-row">
-                  <span className="sp-mp-label">Also on:</span>
-                  {trustData.amazonLink && trustData.amazonLogo && (
-                    <a
-                      href={trustData.amazonLink}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img
-                        src={optimizeCloudinary(
-                          trustData.amazonLogo,
-                          80,
-                          40,
-                          "c_fit"
-                        )}
-                        alt="Amazon"
-                      />
-                    </a>
-                  )}
-                  {trustData.flipkartLink && trustData.flipkartLogo && (
-                    <a
-                      href={trustData.flipkartLink}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img
-                        src={optimizeCloudinary(
-                          trustData.flipkartLogo,
-                          80,
-                          40,
-                          "c_fit"
-                        )}
-                        alt="Flipkart"
-                      />
-                    </a>
-                  )}
-                  {trustData.meeshoLink && trustData.meeshoLogo && (
-                    <a
-                      href={trustData.meeshoLink}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <img
-                        src={optimizeCloudinary(
-                          trustData.meeshoLogo,
-                          80,
-                          40,
-                          "c_fit"
-                        )}
-                        alt="Meesho"
-                      />
-                    </a>
-                  )}
+          <div className="sp-footer-top">
+            <div className="sp-footer-inner">
+              {/* Brand */}
+              <div className="sp-footer-brand">
+                <div className="sp-footer-logo">
+                  <span className="sp-logo-icon">🧸</span>
+                  BafnaToys
                 </div>
-              )}
-              {trustData?.makeInIndiaLogo && (
-                <img
-                  src={optimizeCloudinary(
-                    trustData.makeInIndiaLogo,
-                    120,
-                    60,
-                    "c_fit"
-                  )}
-                  alt="Make In India"
-                  className="sp-mii-logo"
-                />
-              )}
-              <div className="sp-footer-gst">
-                <Shield size={14} />
-                GSTIN: 33ANCPH3967L1ZT
+                <p>
+                  Inspiring imagination through play. Premium wholesale toys
+                  with the best deals and fast delivery across India.
+                </p>
+                {trustData && (
+                  <div className="sp-marketplace-row">
+                    <span className="sp-mp-label">Also available on:</span>
+                    <div className="sp-mp-logos">
+                      {trustData.amazonLink && trustData.amazonLogo && (
+                        <a
+                          href={trustData.amazonLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={optimizeCloudinary(
+                              trustData.amazonLogo,
+                              80,
+                              40,
+                              "c_fit"
+                            )}
+                            alt="Amazon"
+                          />
+                        </a>
+                      )}
+                      {trustData.flipkartLink && trustData.flipkartLogo && (
+                        <a
+                          href={trustData.flipkartLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={optimizeCloudinary(
+                              trustData.flipkartLogo,
+                              80,
+                              40,
+                              "c_fit"
+                            )}
+                            alt="Flipkart"
+                          />
+                        </a>
+                      )}
+                      {trustData.meeshoLink && trustData.meeshoLogo && (
+                        <a
+                          href={trustData.meeshoLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={optimizeCloudinary(
+                              trustData.meeshoLogo,
+                              80,
+                              40,
+                              "c_fit"
+                            )}
+                            alt="Meesho"
+                          />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {trustData?.makeInIndiaLogo && (
+                  <img
+                    src={optimizeCloudinary(
+                      trustData.makeInIndiaLogo,
+                      120,
+                      60,
+                      "c_fit"
+                    )}
+                    alt="Make In India"
+                    className="sp-mii-logo"
+                  />
+                )}
+                <div className="sp-footer-gst">
+                  <Shield size={13} />
+                  GSTIN: 33ANCPH3967L1ZT
+                </div>
               </div>
-            </div>
 
-            <nav className="sp-footer-nav">
-              <h4>Quick Links</h4>
-              <Link to="/privacy-policy">Privacy Policy</Link>
-              <Link to="/terms-conditions">Terms & Conditions</Link>
-              <Link to="/shipping-delivery">Shipping & Delivery</Link>
-              <Link to="/cancellation-refund">Cancellation & Refund</Link>
-            </nav>
+              {/* Quick Links */}
+              <nav className="sp-footer-nav">
+                <h4>Quick Links</h4>
+                <Link to="/privacy-policy">Privacy Policy</Link>
+                <Link to="/terms-conditions">Terms & Conditions</Link>
+                <Link to="/shipping-delivery">Shipping & Delivery</Link>
+                <Link to="/cancellation-refund">Cancellation & Refund</Link>
+              </nav>
 
-            <div className="sp-footer-addr">
-              <h4>Our Locations</h4>
-              <address>
-                <div>
-                  <strong>Unit 1</strong>
-                  <span>1-12, Thondamuthur Road, Coimbatore - 641007</span>
+              {/* Locations */}
+              <div className="sp-footer-locations">
+                <h4>Our Locations</h4>
+                <address>
+                  <div className="sp-location-item">
+                    <MapPin size={14} />
+                    <div>
+                      <strong>Unit 1</strong>
+                      <span>
+                        Bafna Toys 1, Shasha Warehousing, Thondamuthur Main Road, Coimbatore - 641007
+                      </span>
+                    </div>
+                  </div>
+                  <div className="sp-location-item">
+                    <MapPin size={14} />
+                    <div>
+                      <strong>Unit 2</strong>
+                      <span>
+                        Bafna Toys 2, Prashant Textiles Mills Warehouse, Sundapalayam, Coimbatore - 641 007
+                      </span>
+                    </div>
+                  </div>
+                  <div className="sp-location-item">
+                    <MapPin size={14} />
+                    <div>
+                      <strong>Unit 3</strong>
+                      <span>
+                        Bafna Toys 3 - 1-12 Warehouse, Rangasamy Nagar, Vedapatti, Coimbatore - 641007
+                      </span>
+                    </div>
+                  </div>
+                  <div className="sp-location-item">
+                    <MapPin size={14} />
+                    <div>
+                      <strong>Unit 4</strong>
+                      <span>
+                        Bafna Toys 4 - GRVR Farms, PSG Rangasamy Nagar, Vedapatti, Coimbatore - 641007
+                      </span>
+                    </div>
+                  </div>
+                </address>
+              </div>
+
+              {/* Social */}
+              <div className="sp-footer-connect">
+                <h4>Connect With Us</h4>
+                <div className="sp-social-stack">
+                  {trustData?.instagramLink && (
+                    <a
+                      href={trustData.instagramLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-insta"
+                    >
+                      <Instagram size={16} />
+                      Instagram
+                    </a>
+                  )}
+                  {trustData?.youtubeLink && (
+                    <a
+                      href={trustData.youtubeLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-yt"
+                    >
+                      <Youtube size={16} />
+                      YouTube
+                    </a>
+                  )}
+                  {trustData?.facebookLink && (
+                    <a
+                      href={trustData.facebookLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-fb"
+                    >
+                      <Facebook size={16} />
+                      Facebook
+                    </a>
+                  )}
+                  {trustData?.linkedinLink && (
+                    <a
+                      href={trustData.linkedinLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-li"
+                    >
+                      <Linkedin size={16} />
+                      LinkedIn
+                    </a>
+                  )}
                 </div>
-                <div>
-                  <strong>Unit 4</strong>
-                  <span>
-                    GRVR Farms, PSG Rangasamy Nagar, Vedapatti,
-                    Coimbatore - 641007
-                  </span>
-                </div>
-              </address>
-            </div>
-
-            <div className="sp-footer-social">
-              <h4>Connect</h4>
-              <div className="sp-social-row">
-                {trustData?.instagramLink && (
-                  <a
-                    href={trustData.instagramLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="sp-social-btn insta"
-                  >
-                    <Instagram size={16} />
-                    Instagram
-                  </a>
-                )}
-                {trustData?.youtubeLink && (
-                  <a
-                    href={trustData.youtubeLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="sp-social-btn yt"
-                  >
-                    <Youtube size={16} />
-                    YouTube
-                  </a>
-                )}
-                {trustData?.facebookLink && (
-                  <a
-                    href={trustData.facebookLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="sp-social-btn fb"
-                  >
-                    <Facebook size={16} />
-                    Facebook
-                  </a>
-                )}
-                {trustData?.linkedinLink && (
-                  <a
-                    href={trustData.linkedinLink}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="sp-social-btn li"
-                  >
-                    <Linkedin size={16} />
-                    LinkedIn
-                  </a>
-                )}
               </div>
             </div>
           </div>
           <div className="sp-footer-bottom">
-            © {new Date().getFullYear()} BafnaToys. All rights reserved.
+            <span>
+              © {new Date().getFullYear()} BafnaToys. All rights reserved.
+            </span>
           </div>
         </footer>
       )}
 
-      {/* Mobile Filter Drawer */}
+      {/* ═══ MOBILE FILTER DRAWER ═══ */}
       {mobileFilterOpen && (
         <div
           className="sp-drawer-overlay"
@@ -1224,67 +1342,89 @@ const Products: React.FC = () => {
           <div
             className="sp-drawer"
             onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
           >
+            <div className="sp-drawer-handle" />
             <div className="sp-drawer-head">
               <h3>
-                <Filter size={18} />
+                <Filter size={17} />
                 Filters
               </h3>
-              <button onClick={() => setMobileFilterOpen(false)}>
-                <X size={20} />
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                aria-label="Close filters"
+              >
+                <X size={18} />
               </button>
             </div>
             <div className="sp-drawer-body">
-              <h4>Price Range</h4>
-              <input
-                type="range"
-                min="0"
-                max="10000"
-                value={maxPriceInput || 0}
-                onChange={(e) => setMaxPriceInput(Number(e.target.value))}
-                className="sp-range"
-              />
-              <div className="sp-price-row">
-                <div className="sp-price-field">
-                  <span>₹</span>
+              <div className="sp-drawer-section">
+                <h4>Price Range</h4>
+                <div className="sp-range-wrap">
                   <input
-                    type="number"
-                    placeholder="Min"
-                    value={minPriceInput}
-                    onChange={(e) =>
-                      setMinPriceInput(
-                        e.target.value ? Number(e.target.value) : ""
-                      )
-                    }
+                    type="range"
+                    min="0"
+                    max="10000"
+                    value={maxPriceInput || 0}
+                    onChange={(e) => setMaxPriceInput(Number(e.target.value))}
+                    className="sp-range"
                   />
+                  <div className="sp-range-labels">
+                    <span>₹0</span>
+                    <span>₹{maxPriceInput || 0}</span>
+                  </div>
                 </div>
-                <span className="sp-price-dash">—</span>
-                <div className="sp-price-field">
-                  <span>₹</span>
-                  <input
-                    type="number"
-                    placeholder="Max"
-                    value={maxPriceInput}
-                    onChange={(e) =>
-                      setMaxPriceInput(
-                        e.target.value ? Number(e.target.value) : ""
-                      )
-                    }
-                  />
+                <div className="sp-price-row">
+                  <div className="sp-price-field">
+                    <label>Min</label>
+                    <div className="sp-price-input-wrap">
+                      <span>₹</span>
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={minPriceInput}
+                        onChange={(e) =>
+                          setMinPriceInput(
+                            e.target.value ? Number(e.target.value) : ""
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
+                  <span className="sp-price-dash">–</span>
+                  <div className="sp-price-field">
+                    <label>Max</label>
+                    <div className="sp-price-input-wrap">
+                      <span>₹</span>
+                      <input
+                        type="number"
+                        placeholder="5000"
+                        value={maxPriceInput}
+                        onChange={(e) =>
+                          setMaxPriceInput(
+                            e.target.value ? Number(e.target.value) : ""
+                          )
+                        }
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
-              <button
-                className="sp-apply-btn"
-                onClick={() => {
-                  handleApplyPrice();
-                  setMobileFilterOpen(false);
-                }}
-              >
-                Apply
-              </button>
-              <button className="sp-clear-drawer" onClick={handleClear}>
-                Clear All
-              </button>
+              <div className="sp-drawer-actions">
+                <button
+                  className="sp-apply-btn"
+                  onClick={() => {
+                    handleApplyPrice();
+                    setMobileFilterOpen(false);
+                  }}
+                >
+                  Apply Filters
+                </button>
+                <button className="sp-clear-drawer-btn" onClick={handleClear}>
+                  Clear All
+                </button>
+              </div>
             </div>
           </div>
         </div>

@@ -4,24 +4,17 @@ import "../styles/CancellationRefund.css"; // 👈 make sure file exists
 const CancellationRefund = () => {
   return (
     <div className="policy-container">
-      <h1>Cancellation & Refund Policy</h1>
+      <h1>Return & Refund Policy</h1>
 
       <p>
         We aim to provide a seamless shopping experience. Please review the
-        guidelines below regarding cancellations, returns, and refunds.
-      </p>
-
-      <h3>❌ Order Cancellation</h3>
-      <p>
-        Orders can be cancelled only <b>before they are shipped</b>. Once
-        dispatched, cancellation is not possible.
+        guidelines below regarding returns and refunds.
       </p>
 
       <h3>🛍 Refund Eligibility</h3>
       <ul>
         <li>Wrong product received</li>
         <li>Damaged or defective item</li>
-        <li>Failed transaction or duplicate payment</li>
       </ul>
 
       <p>

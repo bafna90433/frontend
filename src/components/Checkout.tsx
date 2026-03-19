@@ -1,5 +1,6 @@
+// src/components/Checkout.tsx
 import React, { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import api, { MEDIA_URL } from "../utils/api";
 import "../styles/Checkout.css";
@@ -82,82 +83,45 @@ const loadRazorpay = () =>
     document.body.appendChild(script);
   });
 
+const normalizeWhatsApp91 = (raw?: string) => {
+  const digits = String(raw || "").replace(/\D/g, "");
+  if (!digits) return "";
+  const without91 = digits.startsWith("91") ? digits.slice(2) : digits;
+  const last10 = without91.length > 10 ? without91.slice(-10) : without91;
+  if (last10.length !== 10) return "";
+  return `91${last10}`;
+};
+
 const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
-  const printWindow = window.open("", "_blank", "width=900,height=700");
+  const printWindow = window.open("", "_blank");
   if (!printWindow) { alert("Popup blocked!"); return false; }
 
-  const addr = orderData.shippingAddress;
-  const shopName = user?.shopName || addr?.fullName || "Customer";
-  const mobile = addr?.phone || user?.otpMobile || "N/A";
-  const logoUrl = "https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png";
-
-  let shipToAddress = "";
-  if (addr) {
-    const parts = [];
-    if (addr.street) parts.push(addr.street);
-    if (addr.area) parts.push(addr.area);
-    if (addr.city || addr.state) parts.push([addr.city, addr.state].filter(Boolean).join(", "));
-    if (addr.pincode) parts.push(`PIN: ${addr.pincode}`);
-    shipToAddress = parts.join(", ");
-  }
-
-  const invoiceItems = orderData.items.map((item) => {
-    const totalPieces = item.qty || 0;
-    const inners = item.inners || Math.floor(totalPieces / (item.innerQty || 1));
-    return {
-      name: item.name,
-      quantity: `${totalPieces} pcs (${inners} inner${inners !== 1 ? "s" : ""})`,
-      rate: `₹${(item.price || 0).toFixed(2)}`,
-      amount: `₹${((item.price || 0) * totalPieces).toFixed(2)}`,
-    };
+  const currentDate = new Date().toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
   });
+  
+  const shippingAddr = orderData.shippingAddress;
+  const wa = normalizeWhatsApp91(user?.whatsapp || user?.otpMobile);
+  
+  let shippingHtml = "No shipping address provided";
+  if (shippingAddr) {
+    shippingHtml = [
+      shippingAddr.fullName ? `<strong>${shippingAddr.fullName}</strong>` : "",
+      shippingAddr.street,
+      shippingAddr.area,
+      `${shippingAddr.city}, ${shippingAddr.state}`,
+      shippingAddr.pincode ? `PIN: ${shippingAddr.pincode}` : "",
+      shippingAddr.phone ? `Phone: ${shippingAddr.phone}` : "",
+    ].filter(Boolean).join("<br>");
+  }
+  
+  const paymentText = orderData.paymentMode === "ONLINE" ? "Paid (Online)" : "Cash on Delivery";
 
-  const totalAmount = orderData.total;
-  const advancePaid = orderData.advancePaid || 0;
-  const balanceAmount = Math.max(totalAmount - advancePaid, 0);
-  const discount = orderData.discountAmount || 0;
-  const subTotal = orderData.itemsPrice || totalAmount + discount - (orderData.shippingPrice || 0);
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${user?.shopName || "-"}</strong><br>Mobile: ${user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${orderData.orderNumber}<br>Date: ${currentDate}<br>Payment: ${paymentText}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${orderData.items.map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${orderData.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys! - https://bafnatoys.com</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
 
-  const invoiceContent = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title>
-  <style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}body{padding:30px;background:#f8f9fa}
-  .wrap{max-width:800px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 5px 25px rgba(0,0,0,.1);overflow:hidden}
-  .hdr{background:linear-gradient(135deg,#2c5aa0,#1e3a8a);color:#fff;padding:25px 35px;text-align:center}
-  .logo{height:60px;filter:brightness(0) invert(1)}
-  .co{font-size:28px;font-weight:700;margin:10px 0 4px}
-  .ttl{text-align:center;padding:20px 35px;border-bottom:2px dashed #e5e7eb}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:30px;padding:20px 35px;border-bottom:2px dashed #e5e7eb}
-  table{width:100%;border-collapse:collapse;margin-top:15px}
-  th,td{padding:12px;text-align:left;border-bottom:1px solid #f1f5f9}
-  th{background:#f8fafc;font-weight:700}
-  .tot{padding:20px 35px;background:#f8fafc;border-top:2px dashed #e5e7eb}
-  .tr{display:flex;justify-content:space-between;margin-bottom:8px;font-size:14px}
-  .ctrl{display:flex;justify-content:center;gap:15px;margin-top:20px;padding:20px}
-  .btn{padding:12px 30px;background:#2c5aa0;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px}
-  @media print{.ctrl{display:none}}</style></head><body>
-  <div class="wrap">
-    <div class="hdr"><img src="${logoUrl}" class="logo" alt=""/><div class="co">Bafna Toys</div>
-    <div>1-12, Sundapalayam Rd, Coimbatore, TN 641007</div><div>+91 9043347300</div></div>
-    <div class="ttl"><h2 style="font-size:22px;margin-bottom:6px">PRO FORMA INVOICE</h2><div>Order #${orderData.orderNumber}</div></div>
-    <div class="grid"><div><h3 style="margin-bottom:8px">Bill To</h3><p>${shopName}<br>${mobile}</p></div>
-    <div><h3 style="margin-bottom:8px">Ship To</h3><p>${shipToAddress || "N/A"}<br>${mobile}</p></div></div>
-    <div style="padding:20px 35px"><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-    <tbody>${invoiceItems.map((i) => `<tr><td>${i.name}</td><td>${i.quantity}</td><td>${i.rate}</td><td>${i.amount}</td></tr>`).join("")}</tbody></table></div>
-    <div class="tot">
-      <div class="tr"><span>Subtotal</span><span>₹${subTotal.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>
-      ${orderData.shippingPrice ? `<div class="tr"><span>Shipping</span><span>₹${orderData.shippingPrice.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>` : ""}
-      ${discount > 0 ? `<div class="tr" style="color:#ea580c"><span>Discount</span><span>-₹${discount.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>` : ""}
-      <div class="tr" style="font-weight:700;border-top:1px solid #ddd;padding-top:8px;margin-top:8px"><span>Total</span><span>₹${totalAmount.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>
-      ${advancePaid > 0 ? `<div class="tr" style="color:#059669"><span>Advance Paid</span><span>-₹${advancePaid.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>` : ""}
-      <div class="tr" style="font-weight:800;font-size:20px;color:#2c5aa0;margin-top:12px">
-        <span>${advancePaid > 0 && orderData.paymentMode === "COD" ? "Balance to Pay" : "Grand Total"}</span>
-        <span>₹${balanceAmount.toLocaleString("en-IN",{minimumFractionDigits:2})}</span></div>
-    </div>
-  </div>
-  <div class="ctrl"><button class="btn" onclick="window.print()">Print Invoice</button>
-  <button class="btn" style="background:#64748b" onclick="window.close()">Close</button></div>
-  </body></html>`;
-
-  printWindow.document.write(invoiceContent);
+  printWindow.document.write(content);
   printWindow.document.close();
   return true;
 };
@@ -185,6 +149,7 @@ const Checkout: React.FC = () => {
   const [minimumQtyError, setMinimumQtyError] = useState<string | null>(null);
   const [mobSummaryOpen, setMobSummaryOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(1);
+  const [openPolicy, setOpenPolicy] = useState<"shipping" | "return" | null>(null);
   const addressRef = useRef<HTMLDivElement>(null);
   const paymentRef = useRef<HTMLDivElement>(null);
 
@@ -358,7 +323,6 @@ const Checkout: React.FC = () => {
     return (
       <div className="co-success-wrap">
         <div className="co-success-card">
-          {/* Animated check */}
           <div className="co-success-anim">
             <div className="co-success-circle">
               <CheckCircle2 size={48} />
@@ -680,6 +644,76 @@ const Checkout: React.FC = () => {
               </div>
             </div>
 
+            {/* ═══ STORE POLICIES ═══ */}
+            <div className="co-card">
+              <div className="co-card-head">
+                <div className="co-card-title">
+                  <div className="co-card-icon co-card-icon--blue">
+                    <FileText size={16} />
+                  </div>
+                  <h2>Store Policies</h2>
+                </div>
+              </div>
+              <div className="co-card-body co-policies-body">
+                {/* Shipping Policy */}
+                <div className="co-policy-acc">
+                  <button
+                    className="co-policy-toggle"
+                    onClick={() => setOpenPolicy(openPolicy === "shipping" ? null : "shipping")}
+                    type="button"
+                  >
+                    <span>Shipping & Delivery</span>
+                    {openPolicy === "shipping" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+                  {openPolicy === "shipping" && (
+                    <div className="co-policy-content">
+                      <ul>
+                        <li><strong>Processing:</strong> 1-2 business days.</li>
+                        <li><strong>Metro Cities:</strong> 3-6 Business Days.</li>
+                        <li><strong>Other Locations:</strong> 5-9 Business Days.</li>
+                      </ul>
+                      <Link to="/shipping-delivery" target="_blank" className="co-policy-link">
+                        Read Full Policy <ChevronRight size={12} />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
+                <div className="co-policy-divider" />
+
+                {/* Return Policy */}
+                <div className="co-policy-acc">
+                  <button
+                    className="co-policy-toggle"
+                    onClick={() => setOpenPolicy(openPolicy === "return" ? null : "return")}
+                    type="button"
+                  >
+                    <span>Return & Refund</span>
+                    {openPolicy === "return" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+                  {openPolicy === "return" && (
+                    <div className="co-policy-content">
+                      <ul>
+                        <li><strong>Eligibility:</strong> Wrong, damaged, or defective items.</li>
+                        <li><strong>Timeframe:</strong> Request within 2-4 days of delivery with photo/video proof.</li>
+                        <li><strong>Refunds:</strong> Processed within 5-7 working days.</li>
+                      </ul>
+                      <Link to="/cancellation-refund" target="_blank" className="co-policy-link">
+                        Read Full Policy <ChevronRight size={12} />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Mobile Legal Text (Visible only on mobile) */}
+            <div className="co-legal-text" style={{ display: 'none' }}>
+              By placing your order, you agree to our <br />
+              <Link to="/shipping-delivery" target="_blank">Shipping Policy</Link> and{" "}
+              <Link to="/cancellation-refund" target="_blank">Return Policy</Link>.
+            </div>
+
             {/* ═══ MOBILE PRICE BREAKDOWN ═══ */}
             <div className="co-mob-summary-card">
               <button
@@ -806,6 +840,13 @@ const Checkout: React.FC = () => {
                 <span>🔒 Secure Checkout</span>
                 <span>🛡️ Safe Payments</span>
                 <span>✓ Genuine Products</span>
+              </div>
+
+              {/* ══ LEGAL TEXT ══ */}
+              <div className="co-legal-text">
+                By placing your order, you agree to our <br />
+                <Link to="/shipping-delivery" target="_blank">Shipping Policy</Link> and{" "}
+                <Link to="/cancellation-refund" target="_blank">Return Policy</Link>.
               </div>
             </div>
           </div>

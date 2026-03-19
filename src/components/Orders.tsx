@@ -1,3 +1,4 @@
+// src/components/Orders.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import MainLayout from "./MainLayout";
@@ -109,42 +110,51 @@ const returnStatusConfig: Record<string, { color: string; icon: string; label: s
   Rejected: { color: "#ef4444", icon: "❌", label: "Return Rejected" },
 };
 
+/* --- Invoice Generation Logic --- */
+const normalizeWhatsApp91 = (raw?: string) => {
+  const digits = String(raw || "").replace(/\D/g, "");
+  if (!digits) return "";
+  const without91 = digits.startsWith("91") ? digits.slice(2) : digits;
+  const last10 = without91.length > 10 ? without91.slice(-10) : without91;
+  if (last10.length !== 10) return "";
+  return `91${last10}`;
+};
+
 const generateInvoice = (order: Order) => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
 
-  let shippingStr = "-";
-  if (order.shippingAddress) {
-    if (typeof order.shippingAddress === "string") shippingStr = order.shippingAddress;
-    else {
-      const a = order.shippingAddress;
-      shippingStr = [a.fullName, a.street, a.area, a.city, a.state, a.pincode].filter(Boolean).join(", ");
+  const userStr = localStorage.getItem("user");
+  const user = userStr ? JSON.parse(userStr) : null;
+
+  const currentDate = new Date().toLocaleDateString("en-IN", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+  const shippingAddr = order.shippingAddress;
+  const wa = normalizeWhatsApp91(user?.whatsapp || user?.otpMobile);
+
+  let shippingHtml = "No shipping address provided";
+  if (shippingAddr) {
+    if (typeof shippingAddr === "string") {
+      shippingHtml = shippingAddr;
+    } else {
+      shippingHtml = [
+        shippingAddr.fullName ? `<strong>${shippingAddr.fullName}</strong>` : "",
+        shippingAddr.street,
+        shippingAddr.area,
+        `${shippingAddr.city}, ${shippingAddr.state}`,
+        shippingAddr.pincode ? `PIN: ${shippingAddr.pincode}` : "",
+        shippingAddr.phone ? `Phone: ${shippingAddr.phone}` : "",
+      ].filter(Boolean).join("<br>");
     }
   }
 
-  const content = `<!DOCTYPE html><html><head><title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title>
-  <style>*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}body{padding:30px;background:#f8f9fa}
-  .wrap{max-width:800px;margin:0 auto;background:#fff;border-radius:12px;box-shadow:0 5px 25px rgba(0,0,0,.1);overflow:hidden}
-  .hdr{background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;padding:25px 35px;text-align:center}
-  .co{font-size:28px;font-weight:700;margin:10px 0 4px}
-  .info{display:grid;grid-template-columns:1fr 1fr;gap:20px;padding:20px 35px;border-bottom:2px dashed #e5e7eb}
-  table{width:100%;border-collapse:collapse;margin:0}
-  th,td{padding:12px;text-align:left;border-bottom:1px solid #f1f5f9}
-  th{background:#f8fafc;font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.5px}
-  .total td{font-weight:700;border-top:2px solid #4f46e5;padding-top:12px}
-  .ctrl{display:flex;justify-content:center;gap:15px;margin-top:20px;padding:20px}
-  .btn{padding:12px 30px;background:#4f46e5;color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:14px;font-weight:600}
-  @media print{.ctrl{display:none}}</style></head><body>
-  <div class="wrap">
-    <div class="hdr"><div class="co">Bafna Toys</div><div>Pro Forma Invoice</div></div>
-    <div class="info"><div><strong>Order:</strong> ${order.orderNumber || order._id}<br><strong>Date:</strong> ${formatDate(order.createdAt)}</div>
-    <div><strong>Ship To:</strong><br>${shippingStr}</div></div>
-    <div style="padding:20px 35px"><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
-    <tbody>${(order.items || []).map(it => `<tr><td>${it.name}</td><td>${it.qty} pcs (${toPackets(it)} pkts)</td><td>₹${it.price.toFixed(2)}</td><td>₹${(it.qty * it.price).toFixed(2)}</td></tr>`).join("")}</tbody>
-    <tfoot><tr class="total"><td colspan="3" style="text-align:right">Grand Total</td><td>₹${order.total.toLocaleString("en-IN", { minimumFractionDigits: 2 })}</td></tr></tfoot></table></div>
-  </div>
-  <div class="ctrl"><button class="btn" onclick="window.print()">Print</button>
-  <button class="btn" style="background:#64748b" onclick="window.close()">Close</button></div></body></html>`;
+  const paymentText = order.paymentMode === "ONLINE" ? "Paid (Online)" : order.paymentMode === "COD" ? "Cash on Delivery" : (order.paymentMode || "Online");
+
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${user?.shopName || "-"}</strong><br>Mobile: ${user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${order.orderNumber || order._id.slice(-6)}<br>Date: ${currentDate}<br>Payment: ${paymentText}${order.trackingId ? `<br>AWB: ${order.trackingId}` : ""}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${(order.items || []).map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${order.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys!</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
 
   printWindow.document.write(content);
   printWindow.document.close();
