@@ -684,9 +684,12 @@ body.dark .pc-qty-btn--decrease {
   .pc-title { font-size: 12px; min-height: 32px; max-height: 34px; }
   .pc-currency { font-size: 11px; }
   .pc-amount { font-size: 16px; }
-  .pc-mrp-circle { width: 38px; height: 38px; top: 6px; right: 6px; }
-  .pc-mrp-text { font-size: 6px; }
-  .pc-mrp-price { font-size: 9px; }
+  
+  /* 🟢 BIGGER NUMBER IN MRP CIRCLE */
+  .pc-mrp-circle { width: 48px; height: 48px; top: 8px; right: 8px; }
+  .pc-mrp-text { font-size: 8px; margin-bottom: -2px; }
+  .pc-mrp-price { font-size: 14px; font-weight: 800; }
+
   .pc-add-to-cart { padding: 9px 10px; font-size: 11px; border-radius: 7px; }
   .pc-min-qty { font-size: 9px; padding: 2px 5px; }
   .pc-stock-status { font-size: 9px; }
@@ -709,9 +712,12 @@ body.dark .pc-qty-btn--decrease {
   .pc-meta-chips { gap: 4px; }
   .pc-chip { font-size: 8px; padding: 2px 5px; max-width: 90px; }
   .pc-chip svg { width: 8px; height: 8px; }
-  .pc-mrp-circle { width: 34px; height: 34px; }
-  .pc-mrp-price { font-size: 8px; }
-  .pc-mrp-text { font-size: 5px; }
+  
+  /* 🟢 BIGGER NUMBER IN MRP CIRCLE */
+  .pc-mrp-circle { width: 46px; height: 46px; top: 6px; right: 6px; }
+  .pc-mrp-text { font-size: 7px; margin-bottom: -2px; }
+  .pc-mrp-price { font-size: 13px; font-weight: 800; }
+
   .pc-min-qty { font-size: 8px; padding: 2px 4px; }
   .pc-stock-status { font-size: 8px; }
   .pc-rating-badge { font-size: 8px; padding: 1px 4px; }
@@ -729,9 +735,12 @@ body.dark .pc-qty-btn--decrease {
   .pc-qty-btn { width: 24px; height: 24px; }
   .pc-qty-val { font-size: 11px; min-width: 18px; }
   .pc-chip { font-size: 7px; padding: 1px 4px; max-width: 75px; }
-  .pc-mrp-circle { width: 30px; height: 30px; }
-  .pc-mrp-text { font-size: 5px; }
-  .pc-mrp-price { font-size: 7px; }
+  
+  /* 🟢 BIGGER NUMBER IN MRP CIRCLE */
+  .pc-mrp-circle { width: 42px; height: 42px; top: 5px; right: 5px; }
+  .pc-mrp-text { font-size: 7px; margin-bottom: -1px; }
+  .pc-mrp-price { font-size: 12px; font-weight: 800; }
+
   .pc-rating-badge { font-size: 7px; }
   .pc-review-count { font-size: 7px; }
 }
