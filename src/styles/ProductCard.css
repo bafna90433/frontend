@@ -2,12 +2,6 @@
 PRODUCT CARD — ULTRA PREMIUM DESIGN v2 (iOS FIXED)
 ══════════════════════════════════════════════════════════════ */
 
-/* ... keep all your existing CSS up to the product card section ... */
-
-/* ══════════════════════════════════════════════
-PRODUCT CARD — CLEAN PROFESSIONAL DESIGN (iOS FIXED)
-══════════════════════════════════════════════ */
-
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 :root {
@@ -104,6 +98,7 @@ box-shadow: var(--pc-shadow);
 /* 🔹 Remove Mobile Blue Highlight */
 -webkit-tap-highlight-color: transparent;
 user-select: none;
+touch-action: manipulation;
 }
 
 /* FIX: Only apply hover effects on devices that support hover (desktop) */
@@ -138,6 +133,9 @@ width: 100%;
 height: 100%;
 border-radius: inherit;
 overflow: hidden;
+-webkit-transform: translateZ(0);
+transform: translateZ(0);
+will-change: transform;
 }
 
 .pc-img {
@@ -147,9 +145,9 @@ object-fit: cover;
 display: block;
 transition: transform 0.5s var(--pc-ease), opacity 0.4s ease;
 opacity: 0;
+-webkit-transform: translateZ(0);
+transform: translateZ(0);
 will-change: transform;
-transform: translateZ(0); /* Force hardware acceleration */
--webkit-transform: translateZ(0); /* Safari fix */
 }
 
 .pc-img.pc-img--loaded {
@@ -164,16 +162,12 @@ transform: scale(1.06);
 }
 }
 
-/* Prevent image scaling on touch devices */
-@media (hover: none) and (pointer: coarse) {
-.pc-card:hover .pc-img {
-transform: scale(1);
--webkit-transform: scale(1);
-}
-.pc-card:active .pc-img {
-transform: scale(1);
--webkit-transform: scale(1);
-}
+/* Prevent all hover scale effects on touch devices */
+.pc-touch-device .pc-card:hover .pc-img,
+.pc-touch-device .pc-card:active .pc-img,
+[data-touch="true"] .pc-card:hover .pc-img {
+transform: none !important;
+-webkit-transform: none !important;
 }
 
 /* Skeleton Loader */
@@ -811,6 +805,30 @@ background: var(--pc-primary) !important;
 .pc-qty-btn:active {
 transform: none !important;
 }
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+.pc-img,
+.pc-image-wrapper {
+-webkit-transform: translateZ(0);
+transform: translateZ(0);
+backface-visibility: hidden;
+-webkit-backface-visibility: hidden;
+}
+
+.pc-card {
+-webkit-tap-highlight-color: transparent;
+}
+}
+
+/* Touch device specific class */
+.pc-touch-device .pc-card:hover {
+transform: none !important;
+}
+
+.pc-touch-device .pc-card:hover .pc-img {
+transform: none !important;
 }
 
 /* ══════════════════════
