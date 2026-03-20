@@ -517,8 +517,7 @@ const Products: React.FC = () => {
               <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
             </h1>
             <p className="sp-hero-sub">
-              Premium wholesale toys for Toy Stores, Supermarkets & Retail
-              Stores, and Resellers
+              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores and Resellers
             </p>
             <div className="sp-hero-features">
               <div className="sp-hero-feature">
