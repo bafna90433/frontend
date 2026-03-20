@@ -116,37 +116,17 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const navigate = useNavigate();
     const [imgLoaded, setImgLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
-    const [isTouchDevice, setIsTouchDevice] = useState(false);
-
-    // Detect touch device to prevent hover effects
-    useEffect(() => {
-      const checkTouch = () => {
-        setIsTouchDevice(
-          'ontouchstart' in window || 
-          navigator.maxTouchPoints > 0 || 
-          (window.matchMedia && window.matchMedia('(pointer: coarse)').matches)
-        );
-      };
-      checkTouch();
-    }, []);
 
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
     const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
 
-    const handleNavigate = useCallback(
-      (e?: React.MouseEvent) => {
-        if (e) {
-          e.preventDefault();
-          e.stopPropagation();
-        }
-        navigate(
-          product.slug ? `/product/${product.slug}` : `/product/${product._id}`
-        );
-      },
-      [navigate, product.slug, product._id]
-    );
+    const handleNavigate = useCallback(() => {
+      navigate(
+        product.slug ? `/product/${product.slug}` : `/product/${product._id}`
+      );
+    }, [navigate, product.slug, product._id]);
 
     const finalPrice = useMemo(() => {
       const price = Number(product.price) || 0;
@@ -251,11 +231,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     const eager = index < 2;
 
-    // Add touch device class to wrapper
-    const wrapperClassName = `pc-wrapper ${isTouchDevice ? 'pc-touch-device' : ''}`;
-
     return (
-      <div className={wrapperClassName}>
+      <div className="pc-wrapper">
         <article
           className="pc-card"
           onClick={handleNavigate}
@@ -263,7 +240,13 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
           role="button"
           tabIndex={0}
           aria-label={`View ${product.name}`}
-          data-touch={isTouchDevice}
+          // iOS FIX: Prevent double-tap zoom on cards
+          onTouchStart={(e) => {
+            // Prevent iOS double-tap zoom on product cards
+            if (e.touches.length === 2) {
+              e.preventDefault();
+            }
+          }}
         >
           {/* Image Section */}
           <div className="pc-image-container">
@@ -303,10 +286,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                   const target = e.currentTarget;
                   if (target.src !== FALLBACK_IMAGE) target.src = FALLBACK_IMAGE;
                 }}
-                style={{
-                  transform: 'translateZ(0)',
-                  WebkitTransform: 'translateZ(0)',
-                }}
+                // iOS FIX: Prevent image context menu and zoom
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
 
