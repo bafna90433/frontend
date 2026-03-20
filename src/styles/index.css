@@ -1,10 +1,10 @@
-/* ✅ FORCE FULL WIDTH APP (Aapka code) */
+/* ✅ FORCE FULL WIDTH APP (REMOVE CENTER BOX) */
 html, body {
   width: 100%;
   margin: 0;
   padding: 0;
-  overflow-x: clip !important;
-  overscroll-behavior-y: none; /* iOS bounce scroll rokne ke liye */
+  /* overflow-x: hidden;  ❌ ISKO HATA DIYA HAI KYUNKI YE STICKY KO ROKTA HAI */
+  overflow-x: clip !important; /* ✅ ISKO USE KAREIN - Ye scroll bhi rokega aur Sticky ko bhi allow karega */
 }
 
 #root {
@@ -12,25 +12,10 @@ html, body {
   max-width: none !important;
   margin: 0 !important;
   padding: 0 !important;
-  overflow: visible !important;
+  overflow: visible !important; /* ✅ Zaroori hai taaki sticky kaam kare */
 }
 
+/* Agar kisi CSS ne body ko center kar diya ho */
 body {
   display: block !important;
-}
-
-/* ==================================================
-   🔥 IPHONE (iOS) AUTO-ZOOM 100% FIX
-   ================================================== */
-@media screen and (max-width: 768px) {
-  input[type="text"],
-  input[type="number"],
-  input[type="email"],
-  input[type="password"],
-  input[type="search"],
-  input[type="tel"],
-  select,
-  textarea {
-    font-size: 16px !important;
-  }
 }

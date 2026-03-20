@@ -105,7 +105,7 @@ body.dark {
 }
 
 /* ══════════════════════════════════════════
-   GALLERY
+   GALLERY — 🔥 IPHONE FIX APPLIED
    ══════════════════════════════════════════ */
 .pd-gallery {
   position: sticky;
@@ -123,6 +123,8 @@ body.dark {
   box-shadow: var(--pd-shadow);
   overflow: hidden;
   aspect-ratio: 1;
+  max-height: 80vh;           /* 🔥 IPHONE SAFETY */
+  max-width: 100%;            /* 🔥 IPHONE SAFETY */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -186,24 +188,33 @@ body.dark {
 .pd-mrp-label { font-size: 8px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: .5px; }
 .pd-mrp-val { font-size: 13px; font-weight: 900; line-height: 1; }
 
-/* ── Carousel ── */
+/* ── Carousel ── 🔥 HEIGHT FIXES ── */
 .pd-carousel {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: auto;               /* 🔥 FIX */
   overflow: hidden;
   touch-action: pan-y pinch-zoom;
   cursor: zoom-in;
 }
+
 .pd-carousel-track {
   display: flex;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: auto;               /* 🔥 FIX */
   will-change: transform;
 }
+
 .pd-carousel-slide {
   flex: 0 0 100%;
-  width: 100%; height: 100%;
+  width: 100%;
+  height: auto;               /* 🔥 FIX (was 100%) */
   position: relative;
-  display: flex; align-items: center; justify-content: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   overflow: hidden;
+  min-width: 0;               /* 🔥 IPHONE FLEX FIX */
+  min-height: 0;              /* 🔥 IPHONE FLEX FIX */
 }
 
 .pd-skeleton-loader {
@@ -214,14 +225,19 @@ body.dark {
 }
 @keyframes pd-shimmer { to { background-position: -200% 0; } }
 
+/* 🔥 MAIN IMAGE FIX — ULTRA STABLE */
 .pd-carousel-img {
-  width: 100%; height: 100%;
+  width: 100%;
+  height: auto;               /* 🔥 MAIN FIX (was 100%) */
+  max-width: 100%;            /* 🔥 FINAL SAFETY */
+  max-height: 100%;
   object-fit: contain;
   padding: 24px;
   opacity: 0;
   transition: opacity .3s ease;
   -webkit-user-drag: none;
   user-select: none;
+  display: block;
 }
 .pd-carousel-img.loaded { opacity: 1; }
 
