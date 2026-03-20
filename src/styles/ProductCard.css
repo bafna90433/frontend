@@ -103,10 +103,13 @@ body.dark {
   user-select: none;
 }
 
-.pc-card:hover {
-  transform: translateY(-6px);
-  box-shadow: var(--pc-shadow-lg);
-  border-color: var(--pc-border-hover);
+/* ✅ FIX: Card hover limited to desktop/mouse */
+@media (hover: hover) {
+  .pc-card:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--pc-shadow-lg);
+    border-color: var(--pc-border-hover);
+  }
 }
 
 /* Card sirf tab active effect dega jab action buttons par click NAHI ho raha ho */
@@ -148,8 +151,11 @@ body.dark {
   opacity: 1;
 }
 
-.pc-card:hover .pc-img {
-  transform: scale(1.06);
+/* ✅ FIX: Image zoom limited to desktop/mouse */
+@media (hover: hover) {
+  .pc-card:hover .pc-img {
+    transform: scale(1.06);
+  }
 }
 
 /* Skeleton Loader */
@@ -360,8 +366,11 @@ body.dark {
   transition: color 0.2s var(--pc-ease);
 }
 
-.pc-card:hover .pc-title {
-  color: var(--pc-primary);
+/* ✅ FIX: Title hover color limited to desktop */
+@media (hover: hover) {
+  .pc-card:hover .pc-title {
+    color: var(--pc-primary);
+  }
 }
 
 /* ══════════════════════
@@ -516,14 +525,17 @@ body.dark .pc-chip--tag {
   transition: opacity 0.25s;
 }
 
-.pc-add-to-cart:hover {
-  background: var(--pc-primary-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-}
+/* ✅ FIX: Buttons hover effect limited to desktop */
+@media (hover: hover) {
+  .pc-add-to-cart:hover {
+    background: var(--pc-primary-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+  }
 
-.pc-add-to-cart:hover::before {
-  opacity: 1;
+  .pc-add-to-cart:hover::before {
+    opacity: 1;
+  }
 }
 
 .pc-add-to-cart:active {
@@ -598,19 +610,22 @@ body.dark .pc-chip--tag {
   border-color: rgba(220, 38, 38, 0.2);
 }
 
-.pc-qty-btn--decrease:hover {
-  background: var(--pc-error-bg);
-  border-color: var(--pc-error);
-}
-
 .pc-qty-btn--increase {
   background: var(--pc-secondary);
   color: #ffffff;
   border-color: var(--pc-secondary);
 }
 
-.pc-qty-btn--increase:hover {
-  background: var(--pc-secondary-hover);
+/* ✅ FIX: Increase/Decrease Hover limited to desktop */
+@media (hover: hover) {
+  .pc-qty-btn--decrease:hover {
+    background: var(--pc-error-bg);
+    border-color: var(--pc-error);
+  }
+
+  .pc-qty-btn--increase:hover {
+    background: var(--pc-secondary-hover);
+  }
 }
 
 .pc-qty-btn:active:not(:disabled) {
@@ -777,26 +792,4 @@ body.dark .pc-qty-btn--decrease {
 .pc-qty-btn:focus-visible {
   outline: 2px solid var(--pc-primary);
   outline-offset: 2px;
-}/* ==================================================
-   🔥 iOS TOUCH SCROLL "SLOW ZOOM" 100% FIX
-   ================================================== */
-@media (hover: none), (max-width: 1024px) {
-  /* 1. Card ko upar uthne se rokein */
-  .pc-card:hover {
-    transform: none !important;
-    box-shadow: var(--pc-shadow) !important;
-    border-color: var(--pc-border) !important;
-  }
-  
-  /* 2. Image ko dheere-dheere Zoom hone se rokein */
-  .pc-card:hover .pc-img {
-    transform: none !important;
-  }
-  
-  /* 3. Button ko hilne se rokein */
-  .pc-add-to-cart:hover {
-    transform: none !important;
-    background: var(--pc-primary) !important;
-    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
-  }
 }
