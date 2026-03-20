@@ -777,4 +777,26 @@ body.dark .pc-qty-btn--decrease {
 .pc-qty-btn:focus-visible {
   outline: 2px solid var(--pc-primary);
   outline-offset: 2px;
+}/* ==================================================
+   🔥 iOS TOUCH SCROLL "SLOW ZOOM" 100% FIX
+   ================================================== */
+@media (hover: none), (max-width: 1024px) {
+  /* 1. Card ko upar uthne se rokein */
+  .pc-card:hover {
+    transform: none !important;
+    box-shadow: var(--pc-shadow) !important;
+    border-color: var(--pc-border) !important;
+  }
+  
+  /* 2. Image ko dheere-dheere Zoom hone se rokein */
+  .pc-card:hover .pc-img {
+    transform: none !important;
+  }
+  
+  /* 3. Button ko hilne se rokein */
+  .pc-add-to-cart:hover {
+    transform: none !important;
+    background: var(--pc-primary) !important;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25) !important;
+  }
 }
