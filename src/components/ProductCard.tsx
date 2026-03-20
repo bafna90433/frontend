@@ -240,6 +240,13 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
           role="button"
           tabIndex={0}
           aria-label={`View ${product.name}`}
+          // iOS FIX: Prevent double-tap zoom on cards
+          onTouchStart={(e) => {
+            // Prevent iOS double-tap zoom on product cards
+            if (e.touches.length === 2) {
+              e.preventDefault();
+            }
+          }}
         >
           {/* Image Section */}
           <div className="pc-image-container">
@@ -279,6 +286,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                   const target = e.currentTarget;
                   if (target.src !== FALLBACK_IMAGE) target.src = FALLBACK_IMAGE;
                 }}
+                // iOS FIX: Prevent image context menu and zoom
+                onContextMenu={(e) => e.preventDefault()}
               />
             </div>
 
