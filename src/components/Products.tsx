@@ -208,9 +208,6 @@ const Products: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   const [trustData, setTrustData] = useState<any>(null);
-  
-  // ✅ NEW STATE FOR GRID CONFIG
-  const [gridConfig, setGridConfig] = useState({ pc: 5, mobile: 2 });
 
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
@@ -294,19 +291,6 @@ const Products: React.FC = () => {
     api
       .get("/trust-settings")
       .then((r) => setTrustData(r.data))
-      .catch(console.error);
-
-    // ✅ FETCH DYNAMIC GRID LAYOUT
-    api
-      .get("/grid-layout")
-      .then((r) => {
-        if (r.data) {
-          setGridConfig({
-            pc: r.data.pcColumns || 5,
-            mobile: r.data.mobileColumns || 2,
-          });
-        }
-      })
       .catch(console.error);
   }, []);
 
@@ -495,20 +479,6 @@ const Products: React.FC = () => {
 
   return (
     <div className="sp-wrapper">
-      {/* ✅ INJECT DYNAMIC GRID SETTINGS HERE */}
-      <style>
-        {`
-          .sp-grid {
-            grid-template-columns: repeat(${gridConfig.pc}, 1fr) !important;
-          }
-          @media (max-width: 768px) {
-            .sp-grid {
-              grid-template-columns: repeat(${gridConfig.mobile}, 1fr) !important;
-            }
-          }
-        `}
-      </style>
-
       <CategorySEO
         title={seoTitle}
         description="Buy bulk toys at wholesale prices from India's leading B2B toy supplier."
@@ -751,31 +721,41 @@ const Products: React.FC = () => {
                 Categories
               </h3>
               <ul className="sp-sb-list">
-                {categories.map((cat) => {
-                  const isActive = categoryId === cat._id || (!categoryId && cat.link === "/");
-                  return (
-                    <li
-                      key={cat._id}
-                      className={isActive ? "active" : ""}
-                      onClick={() => handleCatClick(cat)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => e.key === "Enter" && handleCatClick(cat)}
-                    >
-                      {cat.image ? (
-                        <img
-                          src={optimizeCloudinary(cat.image, 36, 36)}
-                          alt=""
-                          className="sp-sb-cat-img"
-                        />
-                      ) : (
-                        <span className="sp-sb-dot" />
-                      )}
-                      <span>{cat.name}</span>
-                      <ChevronRight size={14} className="sp-sb-arrow" />
-                    </li>
-                  );
-                })}
+                <li
+                  className={!categoryId ? "active" : ""}
+                  onClick={() => navigate("/")}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => e.key === "Enter" && navigate("/")}
+                >
+                  <span className="sp-sb-dot" />
+                  <span>All Toys</span>
+                  <ChevronRight size={14} className="sp-sb-arrow" />
+                </li>
+                {categories.map((cat) => (
+                  <li
+                    key={cat._id}
+                    className={categoryId === cat._id ? "active" : ""}
+                    onClick={() => handleCatClick(cat)}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleCatClick(cat)
+                    }
+                  >
+                    {cat.image ? (
+                      <img
+                        src={optimizeCloudinary(cat.image, 36, 36)}
+                        alt=""
+                        className="sp-sb-cat-img"
+                      />
+                    ) : (
+                      <span className="sp-sb-dot" />
+                    )}
+                    <span>{cat.name}</span>
+                    <ChevronRight size={14} className="sp-sb-arrow" />
+                  </li>
+                ))}
               </ul>
             </div>
 
@@ -847,29 +827,37 @@ const Products: React.FC = () => {
           {/* Mobile Categories */}
           <div className="sp-mob-cats">
             <div className="sp-mob-cats-track">
-              {categories.map((cat) => {
-                const isActive = categoryId === cat._id || (!categoryId && cat.link === "/");
-                return (
-                  <button
-                    key={cat._id}
-                    className={`sp-mob-cat ${isActive ? "active" : ""}`}
-                    onClick={() => handleCatClick(cat)}
-                  >
-                    <div className="sp-mob-cat-circle">
-                      {cat.image ? (
-                        <img
-                          src={optimizeCloudinary(cat.image, 80, 80)}
-                          alt=""
-                          loading="lazy"
-                        />
-                      ) : (
-                        <Package size={18} />
-                      )}
-                    </div>
-                    <span>{cat.name}</span>
-                  </button>
-                );
-              })}
+              <button
+                className={`sp-mob-cat ${!categoryId ? "active" : ""}`}
+                onClick={() => navigate("/")}
+              >
+                <div className="sp-mob-cat-circle">
+                  <Sparkles size={18} />
+                </div>
+                <span>All</span>
+              </button>
+              {categories.map((cat) => (
+                <button
+                  key={cat._id}
+                  className={`sp-mob-cat ${
+                    categoryId === cat._id ? "active" : ""
+                  }`}
+                  onClick={() => handleCatClick(cat)}
+                >
+                  <div className="sp-mob-cat-circle">
+                    {cat.image ? (
+                      <img
+                        src={optimizeCloudinary(cat.image, 80, 80)}
+                        alt=""
+                        loading="lazy"
+                      />
+                    ) : (
+                      <Package size={18} />
+                    )}
+                  </div>
+                  <span>{cat.name}</span>
+                </button>
+              ))}
             </div>
           </div>
 
