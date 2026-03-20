@@ -7,28 +7,25 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api"; // ✅ axios instance
+import api from "./utils/api"; 
 import { io } from "socket.io-client";
 import axios from "axios";
 
-// ✅ YAHAN STATUS BAR PLUGIN IMPORT KIYA HAI
 import { StatusBar } from "@capacitor/status-bar";
 
 import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
 
-// --- STATIC COMPONENTS (Important for First Paint) ---
+// --- STATIC COMPONENTS ---
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import WhatsAppButton from "./components/WhatsAppButton";
 import FreeDeliveryModal from "./components/FreeDeliveryModal";
 import ComingSoon from "./components/ComingSoon";
-
-// ✅ NAYA NO INTERNET COMPONENT IMPORT KIYA HAI
 import NoInternet from "./components/NoInternet";
 
-// --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
-// Home page ki jagah hum direct Products dikhayenge
+// --- LAZY LOADED PAGES ---
+const Home = React.lazy(() => import("./components/Home")); // ✅ ADDED: Home component import kiya
 const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
@@ -51,7 +48,7 @@ const CancellationRefund = React.lazy(
 );
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 
-// --- CONFIGURATION (✅ env-based) ---
+// --- CONFIGURATION ---
 const SOCKET_URL: string =
   (import.meta as any).env?.VITE_SOCKET_URL ||
   "https://bafnatoys-backend-production.up.railway.app";
@@ -87,12 +84,11 @@ const PageLoader = () => (
   </div>
 );
 
-// --- ✅ PAGE TRACKER COMPONENT (Analytics) ---
+// --- PAGE TRACKER COMPONENT ---
 const PageTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // ✅ offline me request mat bhejo
     if (!navigator.onLine) return;
 
     const trackPage = async () => {
@@ -145,7 +141,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
 
-      {/* ✅ CLS FIX: Changed from minHeight: '80vh' to Flexbox with 100vh to stop layout jump */}
       <main 
         style={{ 
           paddingBottom: "60px", 
@@ -169,14 +164,11 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ YAHAN APP KHULTE HI STATUS BAR HIDE KARNE KA CODE HAI
   useEffect(() => {
     const hideStatusBar = async () => {
       try {
         await StatusBar.hide();
       } catch (error) {
-        // Ye error tab aayega jab aap laptop (browser) par check karenge, 
-        // phone mein ye bilkul sahi chalega.
         console.log("Status bar feature works only on mobile devices:", error);
       }
     };
@@ -204,7 +196,7 @@ const AppInner: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // 2) SOCKET CONNECTION (Real-time Online Count)
+  // 2) SOCKET CONNECTION
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
 
@@ -226,17 +218,15 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
-      {/* ✅ Full Screen No Internet Component */}
       <NoInternet />
-
       <PageTracker />
 
       <LayoutWrapper>
         <Routes>
           {/* Public Routes */}
-          {/* ✅ Ab products / par hi render honge bina redirect ke */}
-          <Route path="/" element={<Products />} />
-          <Route path="/products" element={<Navigate to="/" replace />} />
+          {/* ✅ UPDATED: Ab '/' par Home khulega aur '/products' par Products page */}
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
           
           <Route path="/hot-deals" element={<HotDealsPage />} />
           <Route path="/product/:id" element={<ProductDetails />} />
@@ -306,7 +296,6 @@ const AppInner: React.FC = () => {
           />
 
           {/* Fallback */}
-          {/* ✅ Agar koi galat link daale toh ab seedha home page aayega */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </LayoutWrapper>
