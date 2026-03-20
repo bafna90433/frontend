@@ -117,6 +117,15 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const [imgLoaded, setImgLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
+    // 🔥 JS Detect Touch Screen
+    const [hasTouch, setHasTouch] = useState(false);
+    useEffect(() => {
+      const checkTouch = () => {
+        setHasTouch('ontouchstart' in window || navigator.maxTouchPoints > 0);
+      };
+      checkTouch();
+    }, []);
+
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
@@ -232,7 +241,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const eager = index < 2;
 
     return (
-      <div className="pc-wrapper">
+      <div className={`pc-wrapper ${hasTouch ? "is-touch-device" : "is-mouse-device"}`}>
         <article
           className="pc-card"
           onClick={handleNavigate}

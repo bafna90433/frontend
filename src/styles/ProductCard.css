@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════
-   PRODUCT CARD — CLEAN PROFESSIONAL DESIGN (iOS FIX APPLIED)
+   PRODUCT CARD — CLEAN PROFESSIONAL DESIGN (MOCKED HOVER FIX)
    ══════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
@@ -45,6 +45,7 @@
   
   /* Transitions */
   --pc-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --pc-ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* Dark Mode */
@@ -74,7 +75,9 @@ body.dark {
   height: 100%;
   font-family: var(--pc-font);
   -webkit-font-smoothing: antialiased;
-  -webkit-tap-highlight-color: transparent; /* Force remove blue tap highlight */
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ══════════════════════
@@ -96,7 +99,7 @@ body.dark {
 }
 
 .pc-card:active:not(:has(button:active)) {
-  transform: scale(0.98); /* Native App-like click feel */
+  transform: scale(0.98); 
 }
 
 /* ══════════════════════
@@ -205,6 +208,9 @@ body.dark {
 .pc-chip--box { background: #eff6ff; border-color: #dbeafe; color: #1e40af; }
 .pc-chip--tag { background: #fefce8; border-color: #fef08a; color: #854d0e; }
 
+body.dark .pc-chip--box { background: rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.2); color: #60a5fa; }
+body.dark .pc-chip--tag { background: rgba(234, 179, 8, 0.1); border-color: rgba(234, 179, 8, 0.2); color: #fbbf24; }
+
 /* PRICE */
 .pc-price-section { margin-top: auto; padding-top: 8px; }
 .pc-current-price { display: flex; align-items: baseline; gap: 2px; }
@@ -214,7 +220,7 @@ body.dark {
 /* ══════════════════════
    ACTIONS & BUTTONS
    ══════════════════════ */
-.pc-actions { margin-top: 10px; position: relative; z-index: 5; }
+.pc-actions { margin-top: 10px; position: relative; z-index: 5; -webkit-tap-highlight-color: transparent; }
 .pc-add-to-cart { width: 100%; background: var(--pc-primary); color: #ffffff; border: none; padding: 12px 16px; border-radius: var(--pc-radius-sm); font-size: 14px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; transition: all 0.25s var(--pc-ease); font-family: var(--pc-font); position: relative; overflow: hidden; box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25); -webkit-tap-highlight-color: transparent; }
 .pc-add-to-cart::before { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.15) 0%, transparent 50%); opacity: 0; transition: opacity 0.25s; }
 .pc-add-to-cart:active { transform: scale(0.96); }
@@ -232,37 +238,58 @@ body.dark {
 .pc-qty-btn--increase:disabled { opacity: 0.4; cursor: not-allowed; }
 .pc-qty-val { font-weight: 700; font-size: 16px; color: var(--pc-text); min-width: 24px; text-align: center; }
 
+body.dark .pc-qty-btn--decrease { background: var(--pc-surface); border-color: var(--pc-border); }
+
 /* ══════════════════════════════════════════
-   🚀 THE MAGIC FIX: HOVER EFFECTS ONLY ON PC MOUSE
-   Yahan iPhone aur Android Touch Screen par zoom jaise effects band hain!
+   🚀 THE MAGIC FIX: HOVER EFFECTS CONTROLLED BY JS
    ══════════════════════════════════════════ */
-@media (hover: hover) and (pointer: fine) {
-  .pc-card:hover {
-    transform: translateY(-6px);
-    box-shadow: var(--pc-shadow-lg);
-    border-color: var(--pc-border-hover);
-  }
-  .pc-card:hover .pc-img {
-    transform: scale(1.06);
-  }
-  .pc-card:hover .pc-title {
-    color: var(--pc-primary);
-  }
-  .pc-add-to-cart:hover {
-    background: var(--pc-primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
-  }
-  .pc-add-to-cart:hover::before {
-    opacity: 1;
-  }
-  .pc-qty-btn--decrease:hover {
-    background: var(--pc-error-bg);
-    border-color: var(--pc-error);
-  }
-  .pc-qty-btn--increase:hover {
-    background: var(--pc-secondary-hover);
-  }
+/* Agar device Touch Screen hai, toh ZOOM kabhi nahi hoga */
+.is-touch-device .pc-card:hover,
+.is-touch-device .pc-card:active {
+  transform: none !important;
+  box-shadow: var(--pc-shadow) !important;
+  border-color: var(--pc-border) !important;
+}
+
+.is-touch-device .pc-card:hover .pc-img,
+.is-touch-device .pc-card:active .pc-img,
+.is-touch-device .pc-img {
+  transform: none !important;
+  transition: none !important;
+}
+
+/* Sirf Computer (Mouse) par Hover Effects chalenge */
+.is-mouse-device .pc-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--pc-shadow-lg);
+  border-color: var(--pc-border-hover);
+}
+
+.is-mouse-device .pc-card:hover .pc-img {
+  transform: scale(1.06);
+}
+
+.is-mouse-device .pc-card:hover .pc-title {
+  color: var(--pc-primary);
+}
+
+.is-mouse-device .pc-add-to-cart:hover {
+  background: var(--pc-primary-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+}
+
+.is-mouse-device .pc-add-to-cart:hover::before {
+  opacity: 1;
+}
+
+.is-mouse-device .pc-qty-btn--decrease:hover {
+  background: var(--pc-error-bg);
+  border-color: var(--pc-error);
+}
+
+.is-mouse-device .pc-qty-btn--increase:hover {
+  background: var(--pc-secondary-hover);
 }
 
 /* Ensure no stuck transition jumps on mobile touch */
@@ -271,7 +298,6 @@ body.dark {
   .pc-card { transition: opacity 0.2s ease, transform 0.1s ease; }
   .pc-add-to-cart { transition: transform 0.1s ease, background 0.2s ease; }
 }
-
 
 /* ══════════════════════════════════════════
    RESPONSIVE DESIGN 
