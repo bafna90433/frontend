@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MainLayout from "../components/MainLayout";
+import api from "../utils/api";
 import "../styles/MyAccount.css";
 import {
   Store, MapPin, Phone, MessageCircle, CheckCircle, Clock,
   Mail, Package, Edit, LogOut, ChevronRight, Shield, CreditCard,
-  Truck, MapPinned, Settings, HelpCircle, FileText, Star,
-  ShoppingBag, Bell, User, BarChart3, Wallet, Award, Zap,
-  ExternalLink, Copy, ArrowUpRight,
+  Truck, MapPinned, HelpCircle, FileText, Star,
+  ShoppingBag, ArrowUpRight, Copy, Award
 } from "lucide-react";
+
+// Media base for images
+const MEDIA_BASE = "https://bafnatoys-backend-production.up.railway.app";
+const getImageUrl = (url: string) => url?.startsWith("http") ? url : url ? `${MEDIA_BASE}${url}` : "";
 
 type UserType = {
   _id: string;
@@ -26,14 +30,51 @@ type UserType = {
 const MyAccount: React.FC = () => {
   const [user, setUser] = useState<UserType | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  // Sirf count check karne ke liye products ki list chahiye
+  const [deliveredProducts, setDeliveredProducts] = useState<any[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(true);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
     const stored = localStorage.getItem("user");
     if (stored) {
-      try { setUser(JSON.parse(stored)); } catch {}
+      try { 
+        const parsedUser = JSON.parse(stored);
+        setUser(parsedUser);
+        fetchDeliveredItems(parsedUser._id);
+      } catch {}
     }
   }, []);
+
+  const fetchDeliveredItems = async (userId: string) => {
+    try {
+      const res = await api.get(`/orders?customerId=${userId}`);
+      const orders = res.data || [];
+      
+      const deliveredOrders = orders.filter((o: any) => o.status === 'delivered');
+      
+      const productMap = new Map();
+      deliveredOrders.forEach((order: any) => {
+        order.items.forEach((item: any) => {
+          const prodId = item.productId?._id || item.productId;
+          if (prodId && !productMap.has(prodId)) {
+            productMap.set(prodId, {
+              id: prodId,
+              name: item.name,
+              image: item.image
+            });
+          }
+        });
+      });
+      setDeliveredProducts(Array.from(productMap.values()));
+    } catch (err) {
+      console.error("Error fetching delivered items:", err);
+    } finally {
+      setLoadingProducts(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -122,13 +163,12 @@ const MyAccount: React.FC = () => {
   return (
     <MainLayout>
       <div className="ma-page">
-
-        {/* ══ MOBILE HEADER ══ */}
+        {/* MOBILE HEADER */}
         <div className="ma-mob-head">
           <h1>My Account</h1>
         </div>
 
-        {/* ══ DESKTOP HERO SECTION ══ */}
+        {/* DESKTOP HERO SECTION */}
         <div className="ma-hero">
           <div className="ma-hero-bg" />
           <div className="ma-hero-content">
@@ -167,7 +207,33 @@ const MyAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* ══ STATS ROW ══ */}
+        {/* ✅ NEW CLICKABLE BANNER FOR RATING */}
+        {!loadingProducts && deliveredProducts.length > 0 && (
+          <div 
+            onClick={() => navigate("/pending-reviews")}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              background: 'linear-gradient(135deg, #fffbeb, #fef3c7)',
+              padding: '16px 20px', borderRadius: '12px', cursor: 'pointer',
+              border: '1px solid #fde68a', marginTop: '20px', boxShadow: '0 2px 10px rgba(0,0,0,0.02)'
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <div style={{ background: '#fef08a', padding: '10px', borderRadius: '50%' }}>
+                <Star size={24} fill="#d97706" color="#d97706" />
+              </div>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '16px', color: '#92400e' }}>Rate Your Purchases</h3>
+                <p style={{ margin: '4px 0 0', fontSize: '13px', color: '#b45309' }}>
+                  You have {deliveredProducts.length} delivered products to rate. Click here!
+                </p>
+              </div>
+            </div>
+            <ChevronRight size={20} color="#92400e" />
+          </div>
+        )}
+
+        {/* STATS ROW */}
         <div className="ma-stats-row">
           <div className="ma-stat-card">
             <div className="ma-stat-icon" style={{ background: "rgba(79,70,229,.08)", color: "#4f46e5" }}>
@@ -209,7 +275,7 @@ const MyAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* ══ APPROVAL ALERT ══ */}
+        {/* APPROVAL ALERT */}
         {!user.isApproved && (
           <div className="ma-alert-banner">
             <div className="ma-alert-glow" />
@@ -221,7 +287,7 @@ const MyAccount: React.FC = () => {
           </div>
         )}
 
-        {/* ══ QUICK ACTIONS (Desktop Grid) ══ */}
+        {/* QUICK ACTIONS */}
         <div className="ma-quick-grid">
           {quickActions.map((item, i) => (
             <button key={i} className="ma-quick-card" onClick={() => navigate(item.path)}>
@@ -237,10 +303,9 @@ const MyAccount: React.FC = () => {
           ))}
         </div>
 
-        {/* ══ MAIN GRID ══ */}
+        {/* MAIN GRID (Business & Contact Info) */}
         <div className="ma-main-grid">
-
-          {/* Left: Business Info */}
+          {/* Business Info */}
           <div className="ma-card">
             <div className="ma-card-head">
               <div className="ma-card-icon ma-card-icon--blue"><Store size={16} /></div>
@@ -264,7 +329,7 @@ const MyAccount: React.FC = () => {
             </div>
           </div>
 
-          {/* Right: Contact Info */}
+          {/* Contact Info */}
           <div className="ma-card">
             <div className="ma-card-head">
               <div className="ma-card-icon ma-card-icon--cyan"><Phone size={16} /></div>
@@ -289,7 +354,7 @@ const MyAccount: React.FC = () => {
           </div>
         </div>
 
-        {/* ══ MENU SECTIONS ══ */}
+        {/* MENU SECTIONS */}
         {menuSections.map((section, si) => (
           <div key={si} className="ma-menu-section">
             <div className="ma-menu-head">
@@ -312,7 +377,7 @@ const MyAccount: React.FC = () => {
           </div>
         ))}
 
-        {/* ══ LOGOUT ══ */}
+        {/* LOGOUT */}
         <div className="ma-logout-wrap">
           <button className="ma-logout-btn" onClick={handleLogout}>
             <LogOut size={18} /> Logout

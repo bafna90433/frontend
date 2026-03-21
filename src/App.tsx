@@ -28,7 +28,6 @@ import ComingSoon from "./components/ComingSoon";
 import NoInternet from "./components/NoInternet";
 
 // --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
-// Home page ki jagah hum direct Products dikhayenge
 const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
@@ -43,13 +42,12 @@ const Orders = React.lazy(() => import("./components/Orders"));
 const ManageAddresses = React.lazy(() => import("./components/ManageAddresses"));
 const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
 const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
-const ShippingDelivery = React.lazy(
-  () => import("./components/ShippingDelivery")
-);
-const CancellationRefund = React.lazy(
-  () => import("./components/CancellationRefund")
-);
+const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"));
+const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
+
+// ✅ NEW: Pending Reviews Lazy Import kiya hai
+const PendingReviews = React.lazy(() => import("./pages/PendingReviews")); 
 
 // --- CONFIGURATION (✅ env-based) ---
 const SOCKET_URL: string =
@@ -92,7 +90,6 @@ const PageTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // ✅ offline me request mat bhejo
     if (!navigator.onLine) return;
 
     const trackPage = async () => {
@@ -145,7 +142,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
       <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
 
-      {/* ✅ CLS FIX: Changed from minHeight: '80vh' to Flexbox with 100vh to stop layout jump */}
       <main 
         style={{ 
           paddingBottom: "60px", 
@@ -169,14 +165,12 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ YAHAN APP KHULTE HI STATUS BAR HIDE KARNE KA CODE HAI
+  // ✅ APP KHULTE HI STATUS BAR HIDE
   useEffect(() => {
     const hideStatusBar = async () => {
       try {
         await StatusBar.hide();
       } catch (error) {
-        // Ye error tab aayega jab aap laptop (browser) par check karenge, 
-        // phone mein ye bilkul sahi chalega.
         console.log("Status bar feature works only on mobile devices:", error);
       }
     };
@@ -207,7 +201,6 @@ const AppInner: React.FC = () => {
   // 2) SOCKET CONNECTION (Real-time Online Count)
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
-
     const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
         transports: ["websocket"],
@@ -226,90 +219,102 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
-      {/* ✅ Full Screen No Internet Component */}
       <NoInternet />
-
       <PageTracker />
 
-      <LayoutWrapper>
-        <Routes>
-          {/* Public Routes */}
-          {/* ✅ Ab products / par hi render honge bina redirect ke */}
-          <Route path="/" element={<Products />} />
-          <Route path="/products" element={<Navigate to="/" replace />} />
-          
-          <Route path="/hot-deals" element={<HotDealsPage />} />
-          <Route path="/product/:id" element={<ProductDetails />} />
-          <Route path="/cart" element={<Cart />} />
-          <Route path="/wishlist" element={<Wishlist />} />
+      <Routes>
+        <Route path="/*" element={
+          <LayoutWrapper>
+            <Routes>
+              {/* Public Routes */}
+              <Route path="/" element={<Products />} />
+              <Route path="/products" element={<Navigate to="/" replace />} />
+              
+              <Route path="/hot-deals" element={<HotDealsPage />} />
+              <Route path="/product/:id" element={<ProductDetails />} />
+              <Route path="/cart" element={<Cart />} />
+              <Route path="/wishlist" element={<Wishlist />} />
 
-          {/* Auth Routes */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<LoginOTP />} />
+              {/* Auth Routes */}
+              <Route path="/register" element={<Register />} />
+              <Route path="/login" element={<LoginOTP />} />
 
-          {/* Legal Routes */}
-          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-          <Route path="/terms-conditions" element={<TermsConditions />} />
-          <Route path="/shipping-delivery" element={<ShippingDelivery />} />
-          <Route path="/cancellation-refund" element={<CancellationRefund />} />
+              {/* Legal Routes */}
+              <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+              <Route path="/terms-conditions" element={<TermsConditions />} />
+              <Route path="/shipping-delivery" element={<ShippingDelivery />} />
+              <Route path="/cancellation-refund" element={<CancellationRefund />} />
 
-          {/* Protected Routes */}
-          <Route
-            path="/checkout"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ProtectedRoute>
-                  <Checkout />
-                </ProtectedRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/my-account"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ProtectedRoute>
-                  <MyAccount />
-                </ProtectedRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/edit-profile"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ProtectedRoute>
-                  <EditProfile />
-                </ProtectedRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/orders"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ProtectedRoute>
-                  <Orders />
-                </ProtectedRoute>
-              </Suspense>
-            }
-          />
-          <Route
-            path="/addresses"
-            element={
-              <Suspense fallback={<PageLoader />}>
-                <ProtectedRoute>
-                  <ManageAddresses />
-                </ProtectedRoute>
-              </Suspense>
-            }
-          />
+              {/* Protected Routes */}
+              <Route
+                path="/checkout"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <Checkout />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/my-account"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <MyAccount />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/edit-profile"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <EditProfile />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/orders"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <Orders />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/addresses"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <ManageAddresses />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
+              
+              {/* ✅ NAYA ROUTE: Pending Reviews */}
+              <Route
+                path="/pending-reviews"
+                element={
+                  <Suspense fallback={<PageLoader />}>
+                    <ProtectedRoute>
+                      <PendingReviews />
+                    </ProtectedRoute>
+                  </Suspense>
+                }
+              />
 
-          {/* Fallback */}
-          {/* ✅ Agar koi galat link daale toh ab seedha home page aayega */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </LayoutWrapper>
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </LayoutWrapper>
+        } />
+      </Routes>
     </Router>
   );
 };

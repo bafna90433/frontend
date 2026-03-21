@@ -1,12 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import {
   FiStar,
   FiCheckCircle,
   FiX,
   FiThumbsUp,
-  FiEdit2,
   FiChevronRight
 } from "react-icons/fi";
 import Swal from "sweetalert2";
@@ -19,39 +17,11 @@ type Review = {
   createdAt?: string;
 };
 
-// ✅ NAYA STAR LABEL FUNCTION
-const STAR_LABELS: Record<number, string> = {
-  5: "Highly Satisfied",
-  4: "Good",
-  3: "Satisfactory",
-  2: "Needs Improvement",
-  1: "Poor",
-};
-
 const ReviewSection = ({ productId }: { productId: string }) => {
-  const navigate = useNavigate();
-
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [currentShopName, setCurrentShopName] = useState("");
-  const [currentUserId, setCurrentUserId] = useState(""); // ✅ Added User ID to verify order
-
-  const [hoverRating, setHoverRating] = useState(0);
-  const [newReview, setNewReview] = useState({
-    shopName: "",
-    rating: 5,
-  });
-
   const [filterStars, setFilterStars] = useState<number | null>(null);
-  const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
-  
   const [showAllReviews, setShowAllReviews] = useState(false);
-
-  useEffect(() => {
-    checkUserLogin();
-  }, []);
 
   useEffect(() => {
     fetchReviews();
@@ -72,21 +42,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
   useEffect(() => {
     setShowAllReviews(false);
   }, [filterStars]);
-
-  const checkUserLogin = () => {
-    const rawData = localStorage.getItem("userInfo") || localStorage.getItem("user");
-    if (rawData) {
-      const user = JSON.parse(rawData);
-      setIsLoggedIn(true);
-      setCurrentShopName(user.shopName || "Verified Retailer");
-      setCurrentUserId(user._id || user.id || ""); // ✅ Extracted User ID
-      setNewReview((prev) => ({ ...prev, shopName: user.shopName || "" }));
-    } else {
-      setIsLoggedIn(false);
-      setCurrentShopName("");
-      setCurrentUserId("");
-    }
-  };
 
   const fetchReviews = async () => {
     try {
@@ -126,35 +81,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
 
   const displayedReviews = filteredReviews.slice(0, 3);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Must be logged in to rate and verify order
-    if (!currentUserId) {
-      Swal.fire({ icon: "error", title: "Please login to rate this product" });
-      return;
-    }
-
-    try {
-      // ✅ Payload includes userId for Backend verification. Comment removed.
-      await api.post("/reviews/add", { 
-        ...newReview, 
-        productId,
-        userId: currentUserId 
-      });
-
-      Swal.fire({ icon: "success", title: "Rating Saved!", toast: true, position: "top-end", timer: 1800, showConfirmButton: false });
-      setNewReview((prev) => ({ ...prev, rating: 5 }));
-      setHoverRating(0);
-      setMobileComposerOpen(false);
-      fetchReviews();
-    } catch (err: any) {
-      // ✅ Show Error if User hasn't purchased or Time Limit Expired
-      const errorMessage = err.response?.data?.message || "Failed to submit rating.";
-      Swal.fire("Cannot Rate", errorMessage, "warning");
-    }
-  };
-
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Recently";
     const options: Intl.DateTimeFormatOptions = { year: 'numeric', month: 'short', day: 'numeric' };
@@ -163,70 +89,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
 
   const getInitials = (name: string) => {
     return name ? name.charAt(0).toUpperCase() : "R";
-  };
-
-  const Composer = ({ variant }: { variant: "desktop" | "mobile" }) => {
-    // Current text to display based on hover or selected rating
-    const activeRating = hoverRating || newReview.rating;
-    const ratingText = STAR_LABELS[activeRating];
-
-    return (
-      <div className={`kt-composer ${variant === "mobile" ? "kt-composer--mobile" : ""}`}>
-        <div className="kt-composer__head">
-          <h3 className="kt-composer__title">Rate This Product</h3>
-          {variant === "mobile" && (
-            <button className="kt-icon-btn" type="button" onClick={() => setMobileComposerOpen(false)}>
-              <FiX />
-            </button>
-          )}
-        </div>
-        
-        <p className="kt-composer__sub">Share your experience with <b>{currentShopName || "our products"}</b></p>
-
-        <form onSubmit={handleSubmit} className="kt-form">
-          
-          {/* ✅ SMOOTH STARS UI WITH TEXT */}
-          <div className="kt-stars-input" style={{ marginBottom: "25px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
-            <div className="stars-row" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
-              {[1, 2, 3, 4, 5].map((num) => (
-                <button
-                  type="button"
-                  key={num}
-                  style={{ 
-                    background: "transparent", 
-                    border: "none", 
-                    cursor: "pointer", 
-                    padding: "0",
-                    transition: "transform 0.2s" // Smooth scale effect
-                  }}
-                  onMouseEnter={() => setHoverRating(num)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => setNewReview({ ...newReview, rating: num })}
-                  onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.9)"}
-                  onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
-                >
-                  <FiStar 
-                    size={44} 
-                    color={activeRating >= num ? "#FFD700" : "#d1d5db"} 
-                    fill={activeRating >= num ? "#FFD700" : "none"}
-                    style={{ transition: "all 0.2s ease-in-out" }}
-                  />
-                </button>
-              ))}
-            </div>
-            
-            {/* Dynamic Label Display */}
-            <div style={{ fontSize: "16px", fontWeight: "bold", color: "#4b5563", minHeight: "24px" }}>
-              {ratingText}
-            </div>
-          </div>
-
-          <button type="submit" className="kt-primary-btn" style={{ width: "100%" }}>
-            Submit Rating
-          </button>
-        </form>
-      </div>
-    );
   };
 
   const renderReviewCard = (r: Review, isSidebar = false) => (
@@ -241,18 +103,14 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         </div>
       </div>
 
-      <div className="kt-review-meta" style={{ marginBottom: "5px" }}>
+      {/* Sirf Stars aur Date show hoga */}
+      <div className="kt-review-meta" style={{ marginBottom: "15px" }}>
         <div className="kt-rating">
           {[...Array(5)].map((_, i) => (
             <FiStar key={i} className={i < r.rating ? "on fill-star" : "off"} />
           ))}
         </div>
-        <span className="kt-date">Rated on {formatDate(r.createdAt)}</span>
-      </div>
-
-      {/* ✅ Displays Rating Text instead of Comment */}
-      <div style={{ marginBottom: "15px", fontSize: "14px", fontWeight: 500, color: "#374151" }}>
-         {STAR_LABELS[r.rating]}
+        <span className="kt-date" style={{ marginLeft: "10px" }}>Rated on {formatDate(r.createdAt)}</span>
       </div>
 
       <div className="kt-card__actions">
@@ -306,20 +164,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
                 );
               })}
             </div>
-          </div>
-
-          <div className="kt-side">
-            {isLoggedIn ? (
-              <Composer variant="desktop" />
-            ) : (
-              <div className="kt-login">
-                <h4>Rate this product</h4>
-                <p>Share your rating with other wholesale buyers.</p>
-                <button className="kt-outline-btn" onClick={() => navigate("/login")}>
-                  Login to Rate
-                </button>
-              </div>
-            )}
           </div>
         </div>
 
@@ -379,20 +223,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         </div>
       )}
 
-      {isLoggedIn && (
-        <button className="kt-fab" type="button" onClick={() => setMobileComposerOpen(true)}>
-          <FiEdit2 /> Rate Product
-        </button>
-      )}
-
-      {isLoggedIn && mobileComposerOpen && (
-        <div className="kt-sheet">
-          <div className="kt-sheet__backdrop" onClick={() => setMobileComposerOpen(false)} />
-          <div className="kt-sheet__panel">
-            <Composer variant="mobile" />
-          </div>
-        </div>
-      )}
     </section>
   );
 };
