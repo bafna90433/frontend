@@ -1,32 +1,33 @@
 /* ══════════════════════════════════════════
-   BOTTOM NAV — Professional App-like Design
+   BOTTOM NAV — Emerald & Warm Orange Theme
    ══════════════════════════════════════════ */
 
 :root {
   --bn-bg: #ffffff;
   --bn-bg-blur: rgba(255, 255, 255, 0.88);
-  --bn-border: #f1f5f9;
-  --bn-inactive: #94a3b8;
-  --bn-active: #4f46e5;
-  --bn-active-bg: rgba(79, 70, 229, 0.08);
-  --bn-active-glow: rgba(79, 70, 229, 0.15);
-  --bn-badge-bg: #ef4444;
+  --bn-border: #e7e5e4;
+  --bn-inactive: #a8a29e;
+  --bn-active: #059669;
+  --bn-active-bg: rgba(5, 150, 105, 0.08);
+  --bn-active-glow: rgba(5, 150, 105, 0.12);
+  --bn-badge-bg: #f97316;
   --bn-badge-text: #ffffff;
-  --bn-shadow: 0 -1px 0 rgba(0, 0, 0, 0.04),
-               0 -8px 24px rgba(0, 0, 0, 0.03);
-  --bn-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bn-shadow: 0 -1px 0 rgba(28, 25, 23, 0.04),
+               0 -8px 24px rgba(28, 25, 23, 0.04);
+  --bn-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --bn-ease: cubic-bezier(0.4, 0, 0.2, 1);
   --bn-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body.dark {
-  --bn-bg: #111827;
-  --bn-bg-blur: rgba(17, 24, 39, 0.92);
-  --bn-border: #1f2937;
-  --bn-inactive: #6b7280;
-  --bn-active: #818cf8;
-  --bn-active-bg: rgba(129, 140, 248, 0.1);
-  --bn-active-glow: rgba(129, 140, 248, 0.15);
+  --bn-bg: #1c1917;
+  --bn-bg-blur: rgba(28, 25, 23, 0.92);
+  --bn-border: #292524;
+  --bn-inactive: #78716c;
+  --bn-active: #34d399;
+  --bn-active-bg: rgba(52, 211, 153, 0.08);
+  --bn-active-glow: rgba(52, 211, 153, 0.12);
+  --bn-badge-bg: #f97316;
   --bn-shadow: 0 -1px 0 rgba(0, 0, 0, 0.2),
                0 -8px 24px rgba(0, 0, 0, 0.25);
 }
@@ -129,7 +130,7 @@ body.dark {
     transform: translateY(-1px);
   }
 
-  /* ── Glow Effect (behind active icon) ── */
+  /* ── Glow Effect ── */
   .bn-glow {
     position: absolute;
     top: 50%;
@@ -169,7 +170,7 @@ body.dark {
     line-height: 18px;
     text-align: center;
     letter-spacing: -0.3px;
-    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.35);
+    box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
     animation: bn-badge-pop 0.3s var(--bn-bounce);
     z-index: 2;
   }

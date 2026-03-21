@@ -3,13 +3,11 @@ import { useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import {
   FiStar,
-  FiLock,
   FiCheckCircle,
-  FiFilter,
   FiX,
   FiThumbsUp,
   FiEdit2,
-  FiChevronRight // ✅ Added for Sidebar Arrow
+  FiChevronRight
 } from "react-icons/fi";
 import Swal from "sweetalert2";
 import "../styles/ReviewSection.css";
@@ -18,12 +16,17 @@ type Review = {
   _id: string;
   shopName: string;
   rating: number;
-  comment: string;
   createdAt?: string;
 };
 
-const positiveTags = ["Excellent Quality", "Fast Shipping", "Best Wholesale Price", "Great Stock", "Strong Packaging"];
-const negativeTags = ["Stock Issue", "Delay in Delivery", "Damaged Toy", "Pricing High", "Wrong Item Sent"];
+// ✅ NAYA STAR LABEL FUNCTION
+const STAR_LABELS: Record<number, string> = {
+  5: "Highly Satisfied",
+  4: "Good",
+  3: "Satisfactory",
+  2: "Needs Improvement",
+  1: "Poor",
+};
 
 const ReviewSection = ({ productId }: { productId: string }) => {
   const navigate = useNavigate();
@@ -33,18 +36,17 @@ const ReviewSection = ({ productId }: { productId: string }) => {
 
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentShopName, setCurrentShopName] = useState("");
+  const [currentUserId, setCurrentUserId] = useState(""); // ✅ Added User ID to verify order
 
   const [hoverRating, setHoverRating] = useState(0);
   const [newReview, setNewReview] = useState({
     shopName: "",
     rating: 5,
-    comment: "",
   });
 
   const [filterStars, setFilterStars] = useState<number | null>(null);
   const [mobileComposerOpen, setMobileComposerOpen] = useState(false);
   
-  // ✅ STATE: For handling Meesho style Sidebar
   const [showAllReviews, setShowAllReviews] = useState(false);
 
   useEffect(() => {
@@ -56,7 +58,6 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
 
-  // ✅ Block body scroll when sidebar is open
   useEffect(() => {
     if (showAllReviews) {
       document.body.style.overflow = "hidden";
@@ -78,10 +79,12 @@ const ReviewSection = ({ productId }: { productId: string }) => {
       const user = JSON.parse(rawData);
       setIsLoggedIn(true);
       setCurrentShopName(user.shopName || "Verified Retailer");
+      setCurrentUserId(user._id || user.id || ""); // ✅ Extracted User ID
       setNewReview((prev) => ({ ...prev, shopName: user.shopName || "" }));
     } else {
       setIsLoggedIn(false);
       setCurrentShopName("");
+      setCurrentUserId("");
     }
   };
 
@@ -121,37 +124,34 @@ const ReviewSection = ({ productId }: { productId: string }) => {
     return reviews.filter((r) => Math.floor(r.rating) === filterStars);
   }, [reviews, filterStars]);
 
-  // ✅ Main page always shows only top 3 reviews
   const displayedReviews = filteredReviews.slice(0, 3);
-
-  const getRatingStatus = (rating: number) => {
-    if (rating >= 4) return { text: "Highly Satisfied", tone: "good", tags: positiveTags };
-    if (rating === 3) return { text: "Satisfactory", tone: "mid", tags: [...positiveTags.slice(0, 2), ...negativeTags.slice(0, 2)] };
-    return { text: "Needs Improvement", tone: "bad", tags: negativeTags };
-  };
-
-  const handleTagClick = (tag: string) => {
-    setNewReview((prev) => ({
-      ...prev,
-      comment: prev.comment ? `${prev.comment}, ${tag}` : tag,
-    }));
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newReview.comment.trim()) {
-      Swal.fire({ icon: "warning", title: "Please write a review" });
+    
+    // Must be logged in to rate and verify order
+    if (!currentUserId) {
+      Swal.fire({ icon: "error", title: "Please login to rate this product" });
       return;
     }
+
     try {
-      await api.post("/reviews/add", { ...newReview, productId });
-      Swal.fire({ icon: "success", title: "Review Published!", toast: true, position: "top-end", timer: 1800, showConfirmButton: false });
-      setNewReview((prev) => ({ ...prev, comment: "", rating: 5 }));
+      // ✅ Payload includes userId for Backend verification. Comment removed.
+      await api.post("/reviews/add", { 
+        ...newReview, 
+        productId,
+        userId: currentUserId 
+      });
+
+      Swal.fire({ icon: "success", title: "Rating Saved!", toast: true, position: "top-end", timer: 1800, showConfirmButton: false });
+      setNewReview((prev) => ({ ...prev, rating: 5 }));
       setHoverRating(0);
       setMobileComposerOpen(false);
       fetchReviews();
-    } catch (err) {
-      Swal.fire("Error", "Failed to submit review", "error");
+    } catch (err: any) {
+      // ✅ Show Error if User hasn't purchased or Time Limit Expired
+      const errorMessage = err.response?.data?.message || "Failed to submit rating.";
+      Swal.fire("Cannot Rate", errorMessage, "warning");
     }
   };
 
@@ -166,12 +166,14 @@ const ReviewSection = ({ productId }: { productId: string }) => {
   };
 
   const Composer = ({ variant }: { variant: "desktop" | "mobile" }) => {
-    const status = getRatingStatus(newReview.rating);
+    // Current text to display based on hover or selected rating
+    const activeRating = hoverRating || newReview.rating;
+    const ratingText = STAR_LABELS[activeRating];
 
     return (
       <div className={`kt-composer ${variant === "mobile" ? "kt-composer--mobile" : ""}`}>
         <div className="kt-composer__head">
-          <h3 className="kt-composer__title">Write a Review</h3>
+          <h3 className="kt-composer__title">Rate This Product</h3>
           {variant === "mobile" && (
             <button className="kt-icon-btn" type="button" onClick={() => setMobileComposerOpen(false)}>
               <FiX />
@@ -181,48 +183,52 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         
         <p className="kt-composer__sub">Share your experience with <b>{currentShopName || "our products"}</b></p>
 
-        <div className="kt-stars-input">
-          <div className="stars-row">
-            {[1, 2, 3, 4, 5].map((num) => (
-              <button
-                type="button"
-                key={num}
-                className={`kt-star-btn ${ (hoverRating || newReview.rating) >= num ? "is-active" : "" }`}
-                onMouseEnter={() => setHoverRating(num)}
-                onMouseLeave={() => setHoverRating(0)}
-                onClick={() => setNewReview({ ...newReview, rating: num })}
-              >
-                <FiStar className={(hoverRating || newReview.rating) >= num ? "fill-star" : ""} />
-              </button>
-            ))}
-          </div>
-          <span className={`kt-badge kt-badge--${status.tone}`}>{status.text}</span>
-        </div>
-
-        <div className="kt-tags">
-          {status.tags.map((tag) => (
-            <button key={tag} type="button" className="kt-chip" onClick={() => handleTagClick(tag)}>
-              {tag}
-            </button>
-          ))}
-        </div>
-
         <form onSubmit={handleSubmit} className="kt-form">
-          <textarea
-            value={newReview.comment}
-            onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
-            placeholder="What did you like or dislike? How is the product quality?"
-            required
-          />
-          <button type="submit" className="kt-primary-btn">
-            Submit Review
+          
+          {/* ✅ SMOOTH STARS UI WITH TEXT */}
+          <div className="kt-stars-input" style={{ marginBottom: "25px", display: "flex", flexDirection: "column", alignItems: "center", gap: "10px" }}>
+            <div className="stars-row" style={{ display: "flex", gap: "12px", justifyContent: "center" }}>
+              {[1, 2, 3, 4, 5].map((num) => (
+                <button
+                  type="button"
+                  key={num}
+                  style={{ 
+                    background: "transparent", 
+                    border: "none", 
+                    cursor: "pointer", 
+                    padding: "0",
+                    transition: "transform 0.2s" // Smooth scale effect
+                  }}
+                  onMouseEnter={() => setHoverRating(num)}
+                  onMouseLeave={() => setHoverRating(0)}
+                  onClick={() => setNewReview({ ...newReview, rating: num })}
+                  onMouseDown={(e) => e.currentTarget.style.transform = "scale(0.9)"}
+                  onMouseUp={(e) => e.currentTarget.style.transform = "scale(1)"}
+                >
+                  <FiStar 
+                    size={44} 
+                    color={activeRating >= num ? "#FFD700" : "#d1d5db"} 
+                    fill={activeRating >= num ? "#FFD700" : "none"}
+                    style={{ transition: "all 0.2s ease-in-out" }}
+                  />
+                </button>
+              ))}
+            </div>
+            
+            {/* Dynamic Label Display */}
+            <div style={{ fontSize: "16px", fontWeight: "bold", color: "#4b5563", minHeight: "24px" }}>
+              {ratingText}
+            </div>
+          </div>
+
+          <button type="submit" className="kt-primary-btn" style={{ width: "100%" }}>
+            Submit Rating
           </button>
         </form>
       </div>
     );
   };
 
-  // Helper to render a single review card (reused in main page and sidebar)
   const renderReviewCard = (r: Review, isSidebar = false) => (
     <div key={r._id} className={`kt-card ${isSidebar ? "sidebar-card" : ""}`}>
       <div className="kt-user">
@@ -235,19 +241,22 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         </div>
       </div>
 
-      <div className="kt-review-meta">
+      <div className="kt-review-meta" style={{ marginBottom: "5px" }}>
         <div className="kt-rating">
           {[...Array(5)].map((_, i) => (
             <FiStar key={i} className={i < r.rating ? "on fill-star" : "off"} />
           ))}
         </div>
-        <span className="kt-date">Posted on {formatDate(r.createdAt)}</span>
+        <span className="kt-date">Rated on {formatDate(r.createdAt)}</span>
       </div>
 
-      <p className="kt-card__text">{r.comment}</p>
+      {/* ✅ Displays Rating Text instead of Comment */}
+      <div style={{ marginBottom: "15px", fontSize: "14px", fontWeight: 500, color: "#374151" }}>
+         {STAR_LABELS[r.rating]}
+      </div>
 
       <div className="kt-card__actions">
-        <span className="helpful-text">Was this review helpful?</span>
+        <span className="helpful-text">Was this rating helpful?</span>
         <button className="kt-helpful-btn" onClick={() => Swal.fire({title: 'Thank you for your feedback.', toast: true, position: 'top-end', timer: 1500, showConfirmButton: false})}>
           <FiThumbsUp /> Helpful
         </button>
@@ -258,13 +267,11 @@ const ReviewSection = ({ productId }: { productId: string }) => {
   return (
     <section className="kt-review-wrap">
       
-      {/* Header Title */}
       <div className="kt-header">
-        <h2 className="kt-main-title">Customer Reviews</h2>
+        <h2 className="kt-main-title">Customer Ratings</h2>
       </div>
 
       <div className="kt-grid">
-        {/* Left Side: Summary Panel */}
         <div className="kt-summary-col">
           <div className="kt-summary">
             <div className="kt-score">
@@ -274,7 +281,7 @@ const ReviewSection = ({ productId }: { productId: string }) => {
                   <FiStar key={i} className={i < Math.round(Number(stats.avg)) ? "on fill-star" : "off"} />
                 ))}
               </div>
-              <div className="kt-score__meta">Based on {stats.total} reviews</div>
+              <div className="kt-score__meta">Based on {stats.total} ratings</div>
             </div>
 
             <div className="kt-summary__bars">
@@ -306,20 +313,19 @@ const ReviewSection = ({ productId }: { productId: string }) => {
               <Composer variant="desktop" />
             ) : (
               <div className="kt-login">
-                <h4>Review this product</h4>
-                <p>Share your thoughts with other wholesale buyers.</p>
+                <h4>Rate this product</h4>
+                <p>Share your rating with other wholesale buyers.</p>
                 <button className="kt-outline-btn" onClick={() => navigate("/login")}>
-                  Write a review
+                  Login to Rate
                 </button>
               </div>
             )}
           </div>
         </div>
 
-        {/* Right Side: Reviews List */}
         <div className="kt-list">
           <div className="kt-list__head">
-            <h4>{filterStars ? `Showing ${filterStars} Star Reviews` : "All Reviews"}</h4>
+            <h4>{filterStars ? `Showing ${filterStars} Star Ratings` : "All Ratings"}</h4>
             {filterStars && (
                <button className="kt-clear-filter" onClick={() => setFilterStars(null)}>
                  Clear filter <FiX />
@@ -333,8 +339,8 @@ const ReviewSection = ({ productId }: { productId: string }) => {
             </div>
           ) : filteredReviews.length === 0 ? (
             <div className="kt-empty">
-              <h5>No reviews yet</h5>
-              <p>Be the first to review this product.</p>
+              <h5>No ratings yet</h5>
+              <p>Be the first to rate this product.</p>
             </div>
           ) : (
             <div className="kt-cards-wrapper">
@@ -342,13 +348,12 @@ const ReviewSection = ({ productId }: { productId: string }) => {
                 {displayedReviews.map((r) => renderReviewCard(r, false))}
               </div>
 
-              {/* ✅ VIEW ALL BUTTON */}
               {filteredReviews.length > 3 && (
                 <button 
                   className="kt-view-all-btn" 
                   onClick={() => setShowAllReviews(true)}
                 >
-                  View All {filteredReviews.length} Reviews <FiChevronRight size={18} />
+                  View All {filteredReviews.length} Ratings <FiChevronRight size={18} />
                 </button>
               )}
             </div>
@@ -356,12 +361,11 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         </div>
       </div>
 
-      {/* ✅ MEESHO STYLE SIDEBAR FOR ALL REVIEWS */}
       {showAllReviews && (
         <div className="kt-sidebar-overlay" onClick={() => setShowAllReviews(false)}>
           <div className="kt-sidebar-panel" onClick={(e) => e.stopPropagation()}>
             <div className="kt-sidebar-header">
-              <h3>All Reviews ({filteredReviews.length})</h3>
+              <h3>All Ratings ({filteredReviews.length})</h3>
               <button className="kt-sidebar-close" onClick={() => setShowAllReviews(false)}>
                 <FiX size={24} />
               </button>
@@ -375,14 +379,12 @@ const ReviewSection = ({ productId }: { productId: string }) => {
         </div>
       )}
 
-      {/* Mobile: floating action button */}
       {isLoggedIn && (
         <button className="kt-fab" type="button" onClick={() => setMobileComposerOpen(true)}>
-          <FiEdit2 /> Write Review
+          <FiEdit2 /> Rate Product
         </button>
       )}
 
-      {/* Mobile: composer bottom sheet */}
       {isLoggedIn && mobileComposerOpen && (
         <div className="kt-sheet">
           <div className="kt-sheet__backdrop" onClick={() => setMobileComposerOpen(false)} />
