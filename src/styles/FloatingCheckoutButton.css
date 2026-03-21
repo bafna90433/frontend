@@ -1,86 +1,84 @@
-/* src/styles/FloatingCheckoutButton.css - Cosmic Tech Theme */
+/* src/styles/FloatingCheckoutButton.css — Emerald & Warm Orange Theme */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap");
 
 /* --- Variables --- */
 :root {
-  /* Light Mode (Clean Tech) */
+  --fc-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Light Mode */
   --fc-bg: #ffffff;
-  --fc-progress-bg: linear-gradient(180deg, #f5f3ff 0%, #ffffff 100%);
-  --fc-bar-bg: #e0e7ff;
-  --fc-bar-fill: #7c3aed;       /* Electric Violet */
-  
-  --fc-text-primary: #1e1b4b;  /* Deep Navy */
-  --fc-text-secondary: #64748b;/* Slate */
-  --fc-text-muted: #94a3b8;
-  
-  --fc-badge-bg: #7c3aed;
+  --fc-progress-bg: linear-gradient(180deg, #ecfdf5 0%, #ffffff 100%);
+  --fc-bar-bg: #d1fae5;
+  --fc-bar-fill: #059669;
+
+  --fc-text-primary: #1c1917;
+  --fc-text-secondary: #57534e;
+  --fc-text-muted: #a8a29e;
+
+  --fc-badge-bg: #059669;
   --fc-badge-text: #ffffff;
-  --fc-badge-count-bg: #dc2626;
-  
-  --fc-border: #e0e7ff;
-  --fc-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.05),
-    0 4px 8px rgba(124, 58, 237, 0.08),
-    0 24px 48px rgba(124, 58, 237, 0.15);
-    
-  --fc-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-  --fc-btn-hover: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  --fc-badge-count-bg: #f97316;
+
+  --fc-border: #e7e5e4;
+  --fc-shadow:
+    0 1px 3px rgba(28, 25, 23, 0.04),
+    0 4px 8px rgba(5, 150, 105, 0.06),
+    0 20px 44px rgba(5, 150, 105, 0.14);
+
+  --fc-btn-bg: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --fc-btn-hover: linear-gradient(135deg, #047857 0%, #065f46 100%);
   --fc-btn-text: #ffffff;
 }
 
-/* Dark Mode Overrides (Cosmic Deep Space) */
+/* Dark Mode */
 body.dark {
-  --fc-bg: #0f1026;            /* Glassy Dark Navy */
-  --fc-progress-bg: linear-gradient(180deg, #1e1b4b 0%, #0f1026 100%);
-  --fc-bar-bg: #1e1b4b;
-  --fc-bar-fill: #a78bfa;      /* Light Violet */
-  
-  --fc-text-primary: #f8fafc;  /* White */
-  --fc-text-secondary: #cbd5e1;
-  --fc-text-muted: #64748b;
-  
-  --fc-badge-bg: #a78bfa;
-  --fc-badge-text: #1e1b4b;    /* Dark text on light badge */
-  --fc-badge-count-bg: #f87171;
-  
-  --fc-border: #1e1b4b;
-  --fc-shadow: 
-    0 1px 3px rgba(0, 0, 0, 0.5),
-    0 4px 12px rgba(0, 0, 0, 0.6),
-    0 24px 48px rgba(0, 0, 0, 0.7);
-    
-  --fc-btn-bg: linear-gradient(135deg, #7c3aed 0%, #2563eb 100%);
-  --fc-btn-hover: linear-gradient(135deg, #6d28d9 0%, #1d4ed8 100%);
+  --fc-bg: #1c1917;
+  --fc-progress-bg: linear-gradient(180deg, #0c0a09 0%, #1c1917 100%);
+  --fc-bar-bg: #292524;
+  --fc-bar-fill: #34d399;
+
+  --fc-text-primary: #fafaf9;
+  --fc-text-secondary: #a8a29e;
+  --fc-text-muted: #78716c;
+
+  --fc-badge-bg: #059669;
+  --fc-badge-text: #ffffff;
+  --fc-badge-count-bg: #f97316;
+
+  --fc-border: #292524;
+  --fc-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 4px 12px rgba(0, 0, 0, 0.5),
+    0 20px 44px rgba(0, 0, 0, 0.6);
+
+  --fc-btn-bg: linear-gradient(135deg, #059669 0%, #047857 100%);
+  --fc-btn-hover: linear-gradient(135deg, #047857 0%, #065f46 100%);
   --fc-btn-text: #ffffff;
 }
 
 /* =========================================
-   1. PC VIEW (Desktop Default)
+   1. DESKTOP (Default)
    ========================================= */
 .floating-checkout-container {
-  /* ✅ Force Fixed Position for PC */
   position: fixed !important;
-  z-index: 9999 !important; /* Ensure it's on top of everything */
-  
-  /* Left Side Placement (Use 'right: 30px; left: auto;' if you want it on the right) */
+  z-index: 9999 !important;
   bottom: 30px;
   left: 30px;
   right: auto;
-  
-  transform: translateY(0); /* Reset defaults */
+  transform: translateY(0);
   width: 360px;
   background: var(--fc-bg);
   border-radius: 20px;
   cursor: pointer;
-  
-  /* Shadow & Border */
   box-shadow: var(--fc-shadow);
   border: 1px solid var(--fc-border);
   overflow: hidden;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  backdrop-filter: blur(10px);
-  
-  /* Initial Entry Animation */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   animation: slideUpPC 0.5s cubic-bezier(0.2, 0, 0, 1) forwards;
+  font-family: var(--fc-font);
 }
 
 .floating-checkout-container:hover {
@@ -93,16 +91,15 @@ body.dark {
   100% { opacity: 1; transform: translateY(0); }
 }
 
-/* --- Internal Styling (Common) --- */
-
+/* --- Progress --- */
 .checkout-progress-container {
-  padding: 16px 20px 12px;
+  padding: 14px 20px 10px;
   background: var(--fc-progress-bg);
   transition: background 0.3s ease;
 }
 
 .progress-bar-bg {
-  height: 6px;
+  height: 5px;
   background: var(--fc-bar-bg);
   border-radius: 3px;
   overflow: hidden;
@@ -114,63 +111,95 @@ body.dark {
   height: 100%;
   background: var(--fc-bar-fill);
   border-radius: 3px;
-  transition: width 0.6s ease;
-  box-shadow: 0 0 8px var(--fc-bar-fill); /* Glow effect */
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+/* subtle shine on the fill bar */
+.progress-bar-fill::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.25) 50%, transparent 100%);
+  animation: barShine 2s ease-in-out infinite;
+}
+@keyframes barShine {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
 .progress-message {
   text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--fc-bar-fill);
+  font-size: 12px;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
+  font-family: var(--fc-font);
 }
 
-.message-success { color: #059669; display: flex; align-items: center; gap: 6px; }
-.message-remaining { color: #d97706; display: flex; align-items: center; gap: 6px; }
+.message-icon {
+  flex-shrink: 0;
+}
 
-/* Dark mode success/warning text tweaks */
+.message-success {
+  color: #059669;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.message-remaining {
+  color: #f97316;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
 body.dark .message-success { color: #34d399; }
 body.dark .message-remaining { color: #fbbf24; }
 
+/* --- Main Area --- */
 .checkout-main-area {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 24px;
+  padding: 16px 20px;
   background: var(--fc-bg);
+  gap: 12px;
 }
 
 .checkout-info {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 0;
 }
 
 .checkout-summary {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
 }
 
 .item-count-badge {
   position: relative;
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
   background: var(--fc-badge-bg);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  box-shadow: 0 4px 10px rgba(5, 150, 105, 0.25);
 }
 
-.bag-icon { 
-  color: var(--fc-badge-text); 
-  font-size: 20px; 
+.bag-icon {
+  color: var(--fc-badge-text);
+  font-size: 20px;
 }
 
 .count-number {
@@ -179,8 +208,8 @@ body.dark .message-remaining { color: #fbbf24; }
   right: -6px;
   background: var(--fc-badge-count-bg);
   color: #fff;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 10px;
+  font-weight: 800;
   width: 20px;
   height: 20px;
   border-radius: 50%;
@@ -188,15 +217,33 @@ body.dark .message-remaining { color: #fbbf24; }
   align-items: center;
   justify-content: center;
   border: 2px solid var(--fc-bg);
+  font-family: var(--fc-font);
+  letter-spacing: -0.3px;
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.35);
 }
 
-body.dark .count-number {
-  color: #ffffff; 
+.price-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-
-.price-details { display: flex; flex-direction: column; }
-.total-label { font-size: 11px; color: var(--fc-text-secondary); line-height: 1; margin-bottom: 4px; font-weight: 600; text-transform: uppercase; }
-.total-amount { font-size: 20px; font-weight: 800; color: var(--fc-text-primary); line-height: 1; }
+.total-label {
+  font-size: 10px;
+  color: var(--fc-text-muted);
+  line-height: 1;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-family: var(--fc-font);
+}
+.total-amount {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--fc-text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.5px;
+  font-family: var(--fc-font);
+}
 
 .shipping-note {
   display: flex;
@@ -204,58 +251,73 @@ body.dark .count-number {
   gap: 4px;
   font-size: 11px;
   color: var(--fc-text-muted);
-  margin-top: 4px;
+  margin-top: 3px;
   font-weight: 500;
+  font-family: var(--fc-font);
+}
+.truck-icon {
+  flex-shrink: 0;
+  font-size: 12px;
 }
 
+/* --- CTA Button --- */
 .checkout-action {
-  padding: 12px 24px;
+  padding: 12px 22px;
   background: var(--fc-btn-bg);
   border-radius: 12px;
   display: flex;
   align-items: center;
   gap: 8px;
-  transition: all 0.2s;
-  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3);
+  flex-shrink: 0;
 }
 
-.checkout-action:hover { 
-  background: var(--fc-btn-hover); 
+.checkout-action:hover {
+  background: var(--fc-btn-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(124, 58, 237, 0.45);
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4);
 }
 
-.action-label { 
-  color: var(--fc-btn-text); 
-  font-size: 14px; 
-  font-weight: 700; 
+.action-label {
+  color: var(--fc-btn-text);
+  font-size: 14px;
+  font-weight: 700;
+  white-space: nowrap;
+  font-family: var(--fc-font);
 }
 
-.arrow-icon { 
-  color: var(--fc-btn-text); 
+.action-arrow {
+  display: flex;
+  align-items: center;
+}
+.arrow-icon {
+  color: var(--fc-btn-text);
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+.floating-checkout-container:hover .arrow-icon {
+  transform: translateX(3px);
 }
 
 /* =========================================
-   2. MOBILE VIEW (Small Screens) - CENTERED
+   2. MOBILE (≤768px)
    ========================================= */
 @media (max-width: 768px) {
   .floating-checkout-container {
-    /* Mobile Alignment: Center Bottom */
-    position: fixed !important; /* Force sticky here too */
+    position: fixed !important;
     left: 50% !important;
     right: auto;
-    
-    /* Raised above nav bar safe area */
     bottom: calc(env(safe-area-inset-bottom, 0px) + 80px) !important;
     transform: translateX(-50%) !important;
-    
-    /* Mobile Size: Compact */
     width: 92% !important;
     max-width: 400px !important;
     border-radius: 16px;
     z-index: 9999 !important;
-    
     animation: slideUpMobile 0.4s cubic-bezier(0.2, 0, 0, 1) forwards;
+  }
+  .floating-checkout-container:hover {
+    transform: translateX(-50%) translateY(-2px) !important;
   }
 
   @keyframes slideUpMobile {
@@ -263,10 +325,8 @@ body.dark .count-number {
     to { opacity: 1; transform: translate(-50%, 0); }
   }
 
-  /* Compact Design Elements for Mobile */
   .checkout-main-area {
     padding: 12px 16px;
-    height: auto;
   }
 
   .item-count-badge {
@@ -274,32 +334,61 @@ body.dark .count-number {
     height: 40px;
     border-radius: 10px;
   }
-  
   .bag-icon { font-size: 18px; }
-  
+
+  .count-number {
+    width: 18px;
+    height: 18px;
+    font-size: 9px;
+    top: -5px;
+    right: -5px;
+    border-width: 1.5px;
+  }
+
   .total-label { display: none; }
   .total-amount { font-size: 18px; }
-  
+
   .shipping-note { display: none; }
-  
+
   .checkout-action {
-    padding: 10px 20px;
+    padding: 10px 18px;
+    border-radius: 10px;
   }
-  
   .action-label { font-size: 13px; }
-  
-  /* Progress bar compact styles */
+
   .checkout-progress-container {
     padding: 10px 16px 8px;
   }
-  
   .progress-bar-bg { height: 4px; }
   .progress-message { font-size: 11px; }
 }
 
 /* Very Small Screens */
 @media (max-width: 380px) {
-    .floating-checkout-container {
-        width: 95% !important;
-    }
+  .floating-checkout-container {
+    width: 95% !important;
+    border-radius: 14px;
+  }
+  .checkout-main-area { padding: 10px 12px; }
+  .item-count-badge { width: 36px; height: 36px; border-radius: 9px; }
+  .bag-icon { font-size: 16px; }
+  .total-amount { font-size: 16px; }
+  .checkout-action { padding: 9px 14px; }
+  .action-label { font-size: 12px; }
+  .checkout-progress-container { padding: 8px 12px 6px; }
+  .progress-message { font-size: 10px; }
+}
+
+/* =========================================
+   REDUCED MOTION
+   ========================================= */
+@media (prefers-reduced-motion: reduce) {
+  .floating-checkout-container,
+  .progress-bar-fill,
+  .checkout-action,
+  .arrow-icon {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  .progress-bar-fill::after { animation: none !important; }
 }

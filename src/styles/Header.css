@@ -1,40 +1,43 @@
-/* ══════════════════════════════════════════
-   HEADER — B2B PROFESSIONAL CLEAN
-   ══════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   HEADER — EMERALD & WARM ORANGE (NO TOP STRIP, INLINE BADGES)
+   ══════════════════════════════════════════════════════════════ */
+
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap");
 
 :root {
-  --hd-bg: #ffffff;
-  --hd-bg-alt: #f8fafc;
-  --hd-text: #0f172a;
-  --hd-text2: #475569;
-  --hd-muted: #94a3b8;
-  --hd-border: #e2e8f0;
-  --hd-blight: #f1f5f9;
-  --hd-primary: #4f46e5;
-  --hd-pdark: #4338ca;
-  --hd-plight: #eef2ff;
-  --hd-accent: #0f172a;
-  --hd-green: #059669;
-  --hd-red: #ef4444;
-  --hd-shadow: 0 1px 3px rgba(0,0,0,.04);
-  --hd-shadow-md: 0 4px 20px rgba(0,0,0,.06);
-  --hd-shadow-lg: 0 12px 40px rgba(0,0,0,.1);
+  --hd-font: "Plus Jakarta Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --hd-bg: #fafaf9;
+  --hd-bg-alt: #f5f5f4;
+  --hd-surface: #ffffff;
+  --hd-text: #1c1917;
+  --hd-text2: #57534e;
+  --hd-muted: #a8a29e;
+  --hd-border: #e7e5e4;
+  --hd-blight: #f5f5f4;
+  --hd-primary: #059669;
+  --hd-pdark: #047857;
+  --hd-plight: #ecfdf5;
+  --hd-accent: #f97316;
+  --hd-accent-soft: #fff7ed;
+  --hd-shadow: 0 1px 3px rgba(28,25,23,.04);
+  --hd-shadow-md: 0 4px 20px rgba(28,25,23,.08);
+  --hd-shadow-lg: 0 12px 40px rgba(28,25,23,.12);
   --hd-r: 10px;
   --hd-rs: 8px;
-  --hd-font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --hd-ease: cubic-bezier(.4,0,.2,1);
 }
 
 body.dark {
-  --hd-bg: #0f172a;
-  --hd-bg-alt: #1e293b;
-  --hd-text: #f1f5f9;
-  --hd-text2: #94a3b8;
-  --hd-muted: #64748b;
-  --hd-border: #334155;
-  --hd-blight: #1e293b;
-  --hd-plight: rgba(79,70,229,.12);
-  --hd-accent: #e2e8f0;
+  --hd-bg: #0c0a09;
+  --hd-bg-alt: #1c1917;
+  --hd-surface: #1c1917;
+  --hd-text: #fafaf9;
+  --hd-text2: #a8a29e;
+  --hd-muted: #78716c;
+  --hd-border: #292524;
+  --hd-blight: #1c1917;
+  --hd-plight: rgba(5,150,105,.1);
+  --hd-accent-soft: rgba(249,115,22,.1);
   --hd-shadow: 0 1px 4px rgba(0,0,0,.3);
   --hd-shadow-md: 0 4px 20px rgba(0,0,0,.3);
   --hd-shadow-lg: 0 12px 40px rgba(0,0,0,.4);
@@ -43,117 +46,105 @@ body.dark {
 .bafna-site-header * { box-sizing: border-box; font-family: var(--hd-font); }
 
 /* ══════════════════════
-   STICKY HEADER
+   STICKY SHELL
    ══════════════════════ */
 .bafna-site-header {
-  position: -webkit-sticky;
   position: sticky;
   top: 0;
   z-index: 9999;
   width: 100%;
-  background: var(--hd-bg);
+  background: var(--hd-surface);
   border-bottom: 1px solid var(--hd-border);
-  transition: box-shadow .2s var(--hd-ease);
+  transition: box-shadow .25s var(--hd-ease);
   -webkit-font-smoothing: antialiased;
 }
-.bafna-site-header.is-scrolled {
-  box-shadow: var(--hd-shadow-md);
-}
-
-/* ══════════════════════
-   TOP STRIP
-   ══════════════════════ */
-.bafna-top-strip {
-  background: var(--hd-accent);
-  color: rgba(255,255,255,.9);
-  font-size: 12px;
-  font-weight: 600;
-  height: 34px;
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-  transition: height .25s var(--hd-ease), opacity .25s;
-  letter-spacing: .1px;
-}
-.bafna-site-header.is-scrolled .bafna-top-strip {
-  height: 0;
-  opacity: 0;
-  padding: 0;
-  border: none;
-}
-
-.bafna-top-strip__inner {
-  max-width: 1440px;
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 28px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.bafna-top-strip__text { display: flex; align-items: center; gap: 4px; }
-.bafna-top-strip a { color: #fff; text-decoration: none; font-weight: 700; }
-.bafna-top-strip a:hover { text-decoration: underline; }
-.bafna-top-strip__links { display: flex; gap: 16px; align-items: center; }
-
-.bafna-insta-link {
-  display: flex !important;
-  align-items: center !important;
-  gap: 5px !important;
-  color: inherit !important;
-  text-decoration: none !important;
-  font-weight: 700 !important;
-  font-size: 12px !important;
-  opacity: .9;
-  transition: opacity .15s;
-}
-.bafna-insta-link:hover { opacity: 1; }
+.bafna-site-header.is-scrolled { box-shadow: var(--hd-shadow-md); }
 
 /* ══════════════════════
    MAIN HEADER
    ══════════════════════ */
-.bafna-header-main {
-  background: var(--hd-bg);
-}
+.bafna-header-main { background: var(--hd-surface); }
+
 .bafna-header-container {
   max-width: 1440px;
   margin: 0 auto;
-  padding: 10px 28px;
+  padding: 8px 28px; /* Reduced vertical padding for shorter header */
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
+  gap: 20px;
 }
 
 /* ══════════════════════
-   LOGO
+   LOGO + TAGLINE + MASCOT
    ══════════════════════ */
 .bafna-brand {
   flex-shrink: 0;
   display: flex;
   align-items: center;
+  gap: 12px;
+  text-decoration: none;
+}
+.bafna-brand__wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
 }
 .bafna-brand__img {
-  width: 160px;
+  width: 155px;
   height: auto;
   display: block;
   transition: opacity .15s;
 }
 .bafna-brand:hover .bafna-brand__img { opacity: .85; }
 
+.bafna-brand__tagline {
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--hd-primary);
+  background: var(--hd-plight);
+  padding: 2px 9px;
+  border-radius: 99px;
+  border: 1px solid rgba(5,150,105,.12);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
+.bafna-brand__mascot {
+  width: 55px; /* Slightly smaller to match shorter header height */
+  height: auto;
+  object-fit: contain;
+  transition: transform 0.2s var(--hd-ease);
+}
+.bafna-brand:hover .bafna-brand__mascot {
+  transform: scale(1.08) rotate(-2deg);
+}
+
 /* ══════════════════════
-   DESKTOP SEARCH
+   CENTER BLOCK (Search + Badges in one row)
+   ══════════════════════ */
+.bafna-center-block {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  max-width: 780px;
+}
+
+/* ══════════════════════
+   SEARCH
    ══════════════════════ */
 .bafna-search-wrap-desktop {
   flex: 1;
-  max-width: 620px;
+  min-width: 0;
   position: relative;
 }
 
-.bafna-search {
-  position: relative;
-  width: 100%;
-}
+.bafna-search { position: relative; width: 100%; }
 
 .bafna-search__wrapper {
   display: flex;
@@ -161,13 +152,13 @@ body.dark {
   border: 1.5px solid var(--hd-border);
   border-radius: var(--hd-r);
   background: var(--hd-bg);
-  height: 42px;
+  height: 40px; /* Reduced search bar height */
   overflow: hidden;
   transition: border-color .2s, box-shadow .2s;
 }
 .bafna-search__wrapper:focus-within {
   border-color: var(--hd-primary);
-  box-shadow: 0 0 0 3px rgba(79,70,229,.08);
+  box-shadow: 0 0 0 3px rgba(5,150,105,.1);
 }
 
 .bafna-search__input {
@@ -182,24 +173,21 @@ body.dark {
   width: 100%;
   font-family: var(--hd-font);
 }
-.bafna-search__input::placeholder {
-  color: var(--hd-muted);
-  font-weight: 500;
-}
+.bafna-search__input::placeholder { color: var(--hd-muted); font-weight: 500; }
 
 .bafna-search__submit {
-  background: var(--hd-primary);
+  background: linear-gradient(135deg, #059669, #047857);
   border: none;
-  width: 44px;
+  width: 46px;
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background .15s;
+  transition: all .2s;
   flex-shrink: 0;
 }
-.bafna-search__submit:hover { background: var(--hd-pdark); }
+.bafna-search__submit:hover { background: linear-gradient(135deg, #047857, #065f46); }
 .bafna-search__submit svg { fill: #fff; width: 18px; height: 18px; }
 
 .bafna-search__clear-btn,
@@ -217,6 +205,54 @@ body.dark {
 .bafna-search__clear-btn:hover,
 .bafna-search__close-mob:hover { color: var(--hd-text); }
 
+/* ══════════════════════════════════════════
+   INLINE TRUST BADGES — SINGLE ROW (BIS Certified | Factory Direct)
+   ══════════════════════════════════════════ */
+.bafna-inline-badges {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0;
+  flex-shrink: 0;
+  background: var(--hd-bg);
+  border: 1px solid var(--hd-border);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.bafna-inline-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+  letter-spacing: .2px;
+  cursor: default;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  transition: background .15s var(--hd-ease);
+}
+.bafna-inline-badge:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.bafna-inline-badge--bis {
+  color: #065f46;
+}
+.bafna-inline-badge--bis:hover { background: #ecfdf5; }
+.bafna-inline-badge--bis svg { color: #059669; }
+
+.bafna-inline-badge--factory {
+  color: #9a3412;
+  border-left: 1px solid var(--hd-border);
+}
+.bafna-inline-badge--factory:hover { background: #fff7ed; }
+.bafna-inline-badge--factory svg { color: #f97316; }
+
 /* ══════════════════════
    SUGGESTIONS DROPDOWN
    ══════════════════════ */
@@ -225,7 +261,7 @@ body.dark {
   top: calc(100% + 6px);
   left: 0;
   width: 100%;
-  background: var(--hd-bg);
+  background: var(--hd-surface);
   border: 1px solid var(--hd-border);
   border-radius: var(--hd-r);
   box-shadow: var(--hd-shadow-lg);
@@ -272,9 +308,7 @@ body.dark {
 }
 .bafna-suggest__item:last-child { border-bottom: none; }
 .bafna-suggest__item:hover,
-.bafna-suggest__item.is-active {
-  background: var(--hd-plight);
-}
+.bafna-suggest__item.is-active { background: var(--hd-plight); }
 
 .bafna-suggest__thumb {
   width: 42px;
@@ -289,9 +323,7 @@ body.dark {
   flex-shrink: 0;
   border: 1px solid var(--hd-border);
 }
-.bafna-suggest__thumb--ph {
-  font-size: 16px;
-}
+.bafna-suggest__thumb--ph { font-size: 16px; }
 
 .bafna-suggest__meta { flex: 1; min-width: 0; }
 .bafna-suggest__name {
@@ -302,23 +334,10 @@ body.dark {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.bafna-suggest__sku {
-  font-size: 10px;
-  color: var(--hd-muted);
-  margin-top: 2px;
-  font-weight: 500;
-}
-.bafna-suggest__price {
-  font-weight: 800;
-  color: var(--hd-primary);
-  font-size: 14px;
-  flex-shrink: 0;
-}
+.bafna-suggest__sku { font-size: 10px; color: var(--hd-muted); margin-top: 2px; font-weight: 500; }
+.bafna-suggest__price { font-weight: 800; color: var(--hd-primary); font-size: 14px; flex-shrink: 0; }
 
-.search-highlight-match {
-  color: var(--hd-primary);
-  font-weight: 800;
-}
+.search-highlight-match { color: var(--hd-primary); font-weight: 800; }
 
 .bafna-suggest__more {
   width: 100%;
@@ -344,9 +363,7 @@ body.dark {
   font-weight: 600;
 }
 
-/* ── Empty State / Recent / Popular ── */
 .bafna-suggest__empty-state { padding: 14px 16px; }
-
 .bafna-suggest__section { margin-bottom: 14px; }
 .bafna-suggest__section:last-child { margin-bottom: 0; }
 
@@ -366,7 +383,7 @@ body.dark {
 .bafna-suggest__clear-all {
   border: none;
   background: none;
-  color: var(--hd-primary);
+  color: var(--hd-accent);
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -389,11 +406,7 @@ body.dark {
 .bafna-suggest__recent-item:hover { color: var(--hd-primary); }
 .bafna-suggest__history-icon { width: 14px; height: 14px; fill: currentColor; opacity: .5; }
 
-.bafna-suggest__popular-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
+.bafna-suggest__popular-tags { display: flex; flex-wrap: wrap; gap: 6px; }
 .bafna-suggest__popular-pill {
   padding: 5px 12px;
   border: 1px solid var(--hd-border);
@@ -425,18 +438,22 @@ body.dark {
 .bafna-theme-toggle {
   background: var(--hd-blight);
   border: 1px solid var(--hd-border);
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   cursor: pointer;
-  font-size: 15px;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all .15s;
   flex-shrink: 0;
+  color: var(--hd-text2);
 }
-.bafna-theme-toggle:hover { border-color: var(--hd-primary); background: var(--hd-plight); }
+.bafna-theme-toggle:hover {
+  border-color: var(--hd-primary);
+  background: var(--hd-plight);
+  color: var(--hd-primary);
+}
 
 .bafna-action-group { flex-shrink: 0; }
 .bafna-action-link {
@@ -451,7 +468,15 @@ body.dark {
 }
 .bafna-action-link:hover { background: var(--hd-blight); }
 
-.bafna-action-link .icon { font-size: 20px; flex-shrink: 0; }
+.bafna-action-link__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--hd-text2);
+  flex-shrink: 0;
+}
+.bafna-action-link:hover .bafna-action-link__icon { color: var(--hd-primary); }
+
 .text-stack { display: flex; flex-direction: column; }
 .text-stack .label {
   font-size: 10px;
@@ -474,27 +499,28 @@ body.dark {
   gap: 8px;
   text-decoration: none;
   color: var(--hd-text);
-  padding: 6px 14px;
+  padding: 8px 16px;
   border-radius: var(--hd-rs);
-  background: var(--hd-blight);
-  border: 1px solid var(--hd-border);
-  transition: all .15s;
+  background: var(--hd-plight);
+  border: 1px solid rgba(5,150,105,.12);
+  transition: all .2s;
   flex-shrink: 0;
 }
-.bafna-cart-link:hover { border-color: var(--hd-primary); background: var(--hd-plight); }
-
-.bafna-cart-icon-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
+.bafna-cart-link:hover {
+  border-color: var(--hd-primary);
+  background: rgba(5,150,105,.12);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(5,150,105,.15);
 }
-.bafna-cart-icon-wrapper .icon { font-size: 20px; }
+.bafna-cart-link svg { color: var(--hd-primary); }
+
+.bafna-cart-icon-wrapper { position: relative; display: flex; align-items: center; }
 
 .cart-badge {
   position: absolute;
-  top: -7px;
-  right: -9px;
-  background: var(--hd-primary);
+  top: -8px;
+  right: -10px;
+  background: var(--hd-accent);
   color: #fff;
   font-size: 10px;
   font-weight: 800;
@@ -505,35 +531,26 @@ body.dark {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--hd-bg);
+  border: 2px solid var(--hd-surface);
   line-height: 1;
-  letter-spacing: -.3px;
 }
 
-.cart-total-text {
-  font-weight: 700;
-  font-size: 13px;
-  color: var(--hd-text);
-}
+.cart-total-text { font-weight: 700; font-size: 13px; color: var(--hd-primary); }
 
 /* ══════════════════════
-   MOBILE SEARCH (hidden desktop)
+   MOBILE SEARCH (Badges removed)
    ══════════════════════ */
 .bafna-search-wrap-mobile {
   display: none;
-  padding: 0 12px 10px;
-  background: var(--hd-bg);
+  padding: 0 12px 10px; /* Reduced bottom padding slightly */
+  background: var(--hd-surface);
 }
 
 /* ══════════════════════
    SKELETONS
    ══════════════════════ */
 .bafna-suggest__skeleton { padding: 12px 16px; }
-.skeleton-item {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
-}
+.skeleton-item { display: flex; gap: 12px; margin-bottom: 12px; }
 .skeleton-thumb {
   width: 42px;
   height: 42px;
@@ -553,110 +570,70 @@ body.dark {
 .skeleton-line--subtitle { width: 40%; }
 @keyframes hd-pulse { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
 
-
 /* ══════════════════════════════════════════
-   LARGE SCREEN (1600+)
+   1600+
    ══════════════════════════════════════════ */
 @media (min-width: 1600px) {
-  .bafna-header-container { max-width: 1560px; padding: 12px 40px; gap: 32px; }
-  .bafna-search-wrap-desktop { max-width: 700px; }
-  .bafna-brand__img { width: 180px; }
+  .bafna-header-container { max-width: 1560px; padding: 10px 40px; gap: 28px; }
+  .bafna-center-block { max-width: 860px; }
+  .bafna-brand__img { width: 170px; }
   .bafna-search__wrapper { height: 44px; }
   .bafna-search__input { font-size: 15px; }
-  .bafna-top-strip__inner { max-width: 1560px; padding: 0 40px; }
+  .bafna-inline-badge { font-size: 12px; padding: 8px 16px; }
 }
-
 
 /* ══════════════════════════════════════════
    TABLET (≤1024px)
    ══════════════════════════════════════════ */
 @media (max-width: 1024px) {
-  .bafna-header-container { gap: 16px; padding: 10px 20px; }
-  .bafna-brand__img { width: 140px; }
-  .bafna-search-wrap-desktop { max-width: 480px; }
-  .bafna-search__wrapper { height: 40px; }
+  .bafna-header-container { gap: 14px; padding: 6px 20px; }
+  .bafna-brand__img { width: 135px; }
+  .bafna-brand__tagline { font-size: 8px; letter-spacing: 1.2px; }
+  .bafna-brand__mascot { width: 45px; }
+  .bafna-center-block { gap: 10px; }
+  .bafna-search__wrapper { height: 38px; }
   .bafna-search__input { font-size: 13px; }
+  .bafna-inline-badge { font-size: 10px; padding: 6px 10px; gap: 4px; }
+  .bafna-inline-badge svg { width: 12px; height: 12px; }
   .bafna-user-actions { gap: 4px; }
   .bafna-action-link { padding: 6px 8px; }
-  .bafna-cart-link { padding: 6px 10px; }
+  .bafna-cart-link { padding: 6px 12px; }
 }
 
-
 /* ══════════════════════════════════════════
-   MOBILE (≤900px) — COMPACT
+   MOBILE (≤900px)
    ══════════════════════════════════════════ */
 @media (max-width: 900px) {
-  .bafna-site-header {
-    position: -webkit-sticky !important;
-    position: sticky !important;
-    top: 0 !important;
-    z-index: 9999 !important;
-  }
-
   .hidden-mobile { display: none !important; }
 
-  /* Strip */
-  .bafna-top-strip { height: 30px; font-size: 11px; }
-  .bafna-top-strip__inner { justify-content: center; text-align: center; padding: 0 12px; }
-  .bafna-top-strip__text { font-size: 11px; }
+  .bafna-header-container { gap: 10px; padding: 6px 12px; }
+  .bafna-brand__img { width: 115px; }
+  .bafna-brand__tagline { font-size: 7px; letter-spacing: .8px; padding: 1px 7px; }
+  .bafna-brand__mascot { width: 40px; }
 
-  /* Main */
-  .bafna-header-container {
-    gap: 10px;
-    padding: 8px 12px;
-  }
-  .bafna-brand__img { width: 120px; }
-
-  /* Hide desktop search */
-  .bafna-search-wrap-desktop { display: none; }
-  /* Show mobile search */
+  .bafna-center-block { display: none; }
   .bafna-search-wrap-mobile { display: block; }
 
-  /* Actions */
   .bafna-user-actions { gap: 4px; }
-  .bafna-theme-toggle { width: 32px; height: 32px; font-size: 14px; }
-  .bafna-action-link .icon { font-size: 20px; }
+  .bafna-theme-toggle { width: 34px; height: 34px; }
+  .bafna-theme-toggle svg { width: 15px; height: 15px; }
+  .bafna-action-link__icon svg { width: 20px; height: 20px; }
   .bafna-action-link { padding: 6px; }
 
-  .bafna-cart-link {
-    padding: 6px 8px;
-    background: transparent;
-    border: none;
-  }
-  .bafna-cart-icon-wrapper .icon { font-size: 22px; }
-  .cart-badge {
-    top: -6px;
-    right: -8px;
-    min-width: 16px;
-    height: 16px;
-    font-size: 9px;
-    border-width: 1.5px;
-  }
+  .bafna-cart-link { padding: 6px 10px; background: transparent; border: none; }
+  .bafna-cart-link svg { width: 22px; height: 22px; }
+  .cart-badge { top: -6px; right: -8px; min-width: 16px; height: 16px; font-size: 9px; border-width: 1.5px; }
 
-  /* Mobile Search */
   .bafna-search-wrap-mobile .bafna-search__wrapper {
     height: 38px;
     border-width: 1.5px;
     border-radius: var(--hd-rs);
-    border-color: var(--hd-border);
   }
-  .bafna-search-wrap-mobile .bafna-search__input {
-    font-size: 13px;
-    padding: 0 10px;
-  }
-  .bafna-search-wrap-mobile .bafna-search__submit {
-    width: 40px;
-  }
-  .bafna-search-wrap-mobile .bafna-search__submit svg {
-    width: 16px;
-    height: 16px;
-  }
+  .bafna-search-wrap-mobile .bafna-search__input { font-size: 13px; padding: 0 10px; }
+  .bafna-search-wrap-mobile .bafna-search__submit { width: 42px; }
+  .bafna-search-wrap-mobile .bafna-search__submit svg { width: 16px; height: 16px; }
 
-  /* Mobile Suggestions */
-  .bafna-search-wrap-mobile .bafna-suggest {
-    top: calc(100% + 4px);
-    border-radius: var(--hd-rs);
-  }
+  .bafna-search-wrap-mobile .bafna-suggest { top: calc(100% + 4px); border-radius: var(--hd-rs); }
   .bafna-suggest__item { padding: 8px 12px; gap: 10px; }
   .bafna-suggest__thumb { width: 38px; height: 38px; border-radius: 6px; }
   .bafna-suggest__name { font-size: 12px; }
@@ -670,27 +647,28 @@ body.dark {
   .bafna-suggest__recent-item { font-size: 12px; padding: 6px 0; }
   .bafna-suggest__popular-pill { font-size: 11px; padding: 4px 10px; }
   .bafna-suggest__clear-all { font-size: 10px; }
-
   .skeleton-thumb { width: 38px; height: 38px; }
 }
-
 
 /* ══════════════════════════════════════════
    SMALL PHONE (≤480px)
    ══════════════════════════════════════════ */
 @media (max-width: 480px) {
-  .bafna-top-strip { height: 26px; font-size: 10px; }
   .bafna-header-container { padding: 6px 8px; gap: 6px; }
   .bafna-brand__img { width: 100px; }
-  .bafna-theme-toggle { width: 28px; height: 28px; font-size: 12px; }
-  .bafna-action-link .icon { font-size: 18px; }
-  .bafna-cart-icon-wrapper .icon { font-size: 20px; }
+  .bafna-brand__tagline { font-size: 6px; letter-spacing: .6px; padding: 1px 6px; }
+  .bafna-brand__mascot { width: 35px; }
+  
+  .bafna-theme-toggle { width: 30px; height: 30px; }
+  .bafna-theme-toggle svg { width: 13px; height: 13px; }
+  .bafna-action-link__icon svg { width: 18px; height: 18px; }
+  .bafna-cart-link svg { width: 20px; height: 20px; }
   .cart-badge { min-width: 14px; height: 14px; font-size: 8px; top: -5px; right: -6px; }
 
-  .bafna-search-wrap-mobile { padding: 0 8px 8px; }
+  .bafna-search-wrap-mobile { padding: 0 8px 6px; }
   .bafna-search-wrap-mobile .bafna-search__wrapper { height: 36px; }
   .bafna-search-wrap-mobile .bafna-search__input { font-size: 12px; padding: 0 8px; }
-  .bafna-search-wrap-mobile .bafna-search__submit { width: 36px; }
+  .bafna-search-wrap-mobile .bafna-search__submit { width: 38px; }
 
   .bafna-suggest__item { padding: 6px 10px; gap: 8px; }
   .bafna-suggest__thumb { width: 34px; height: 34px; font-size: 14px; }
@@ -698,25 +676,25 @@ body.dark {
   .bafna-suggest__price { font-size: 12px; }
 }
 
-
 /* ══════════════════════════════════════════
    VERY SMALL (≤360px)
    ══════════════════════════════════════════ */
 @media (max-width: 360px) {
-  .bafna-top-strip { height: 24px; font-size: 9px; }
   .bafna-header-container { padding: 5px 6px; gap: 4px; }
   .bafna-brand__img { width: 88px; }
-  .bafna-theme-toggle { width: 26px; height: 26px; font-size: 11px; }
+  .bafna-brand__tagline { font-size: 5.5px; }
+  .bafna-brand__mascot { display: none; } /* Hide mascot if it cramps the screen too much */
+  
+  .bafna-theme-toggle { width: 26px; height: 26px; }
 
-  .bafna-search-wrap-mobile { padding: 0 6px 6px; }
-  .bafna-search-wrap-mobile .bafna-search__wrapper { height: 34px; border-radius: 6px; }
+  .bafna-search-wrap-mobile { padding: 0 6px 5px; }
+  .bafna-search-wrap-mobile .bafna-search__wrapper { height: 32px; border-radius: 6px; }
   .bafna-search-wrap-mobile .bafna-search__input { font-size: 11px; }
   .bafna-search-wrap-mobile .bafna-search__submit { width: 32px; }
 
   .bafna-suggest__thumb { width: 30px; height: 30px; }
   .bafna-suggest__name { font-size: 10px; }
 }
-
 
 /* ══════════════════════
    ACCESSIBILITY
@@ -727,31 +705,68 @@ body.dark {
     transition-duration: .01ms !important;
   }
 }
-
 @media (prefers-contrast: high) {
   .bafna-search__wrapper { border-width: 2px; border-color: var(--hd-text); }
   .bafna-suggest { border-width: 2px; }
   .cart-badge { border-width: 2px; }
 }
 
-
 /* ══════════════════════
-   DARK MODE EXTRAS
+   DARK MODE
    ══════════════════════ */
-body.dark .bafna-top-strip { background: #1e293b; }
-body.dark .bafna-search__wrapper { border-color: var(--hd-border); background: var(--hd-bg-alt); }
-body.dark .bafna-search__wrapper:focus-within { border-color: var(--hd-primary); }
-body.dark .bafna-suggest { background: var(--hd-bg); border-color: var(--hd-border); }
+body.dark .bafna-search__wrapper {
+  border-color: var(--hd-border);
+  background: var(--hd-bg-alt);
+}
+body.dark .bafna-search__wrapper:focus-within {
+  border-color: var(--hd-primary);
+  box-shadow: 0 0 0 3px rgba(5,150,105,.15);
+}
+body.dark .bafna-suggest { background: var(--hd-surface); border-color: var(--hd-border); }
 body.dark .bafna-suggest__item:hover,
 body.dark .bafna-suggest__item.is-active { background: var(--hd-blight); }
 body.dark .bafna-suggest__group-title { background: var(--hd-bg-alt); }
 body.dark .bafna-suggest__more { background: var(--hd-bg-alt); }
 body.dark .bafna-suggest__popular-pill:hover { background: var(--hd-plight); }
-body.dark .bafna-cart-link { background: var(--hd-bg-alt); border-color: var(--hd-border); }
-body.dark .bafna-cart-link:hover { border-color: var(--hd-primary); }
+
+body.dark .bafna-cart-link {
+  background: rgba(5,150,105,.08);
+  border-color: rgba(5,150,105,.15);
+}
+body.dark .bafna-cart-link:hover {
+  border-color: var(--hd-primary);
+  background: rgba(5,150,105,.15);
+}
+body.dark .cart-total-text { color: #6ee7b7; }
+
+body.dark .bafna-brand__tagline {
+  background: rgba(5,150,105,.1);
+  border-color: rgba(5,150,105,.15);
+  color: #6ee7b7;
+}
+
+body.dark .bafna-inline-badges {
+  background: var(--hd-bg-alt);
+  border-color: var(--hd-border);
+}
+body.dark .bafna-inline-badge--bis {
+  color: #6ee7b7;
+}
+body.dark .bafna-inline-badge--bis:hover { background: rgba(5,150,105,.1); }
+body.dark .bafna-inline-badge--bis svg { color: #34d399; }
+
+body.dark .bafna-inline-badge--factory {
+  color: #fb923c;
+  border-left-color: var(--hd-border);
+}
+body.dark .bafna-inline-badge--factory:hover { background: rgba(249,115,22,.08); }
+body.dark .bafna-inline-badge--factory svg { color: #f97316; }
+
 body.dark .skeleton-thumb,
 body.dark .skeleton-line { background: var(--hd-border); }
-/* Top announcement removed */
-.bafna-top-strip {
-  display: none !important;
+body.dark .bafna-theme-toggle {
+  background: var(--hd-bg-alt);
+  border-color: var(--hd-border);
+  color: var(--hd-text2);
 }
+body.dark .bafna-action-link__icon { color: var(--hd-text2); }

@@ -102,17 +102,15 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          onFocus={() => setOpenSug(true)} 
+          onFocus={() => setOpenSug(true)}
           onKeyDown={onKeyDown}
           className="bafna-search__input"
           placeholder={placeholderText}
           aria-label="Search toys"
         />
-        
         {mobile && openSug && (
           <button type="button" className="bafna-search__close-mob" onClick={() => setOpenSug(false)} aria-label="Close">✕</button>
         )}
-
         {q.length > 0 && !mobile && (
           <button type="button" onClick={() => { setQ(""); setOpenSug(true); }} className="bafna-search__clear-btn" aria-label="Clear">✕</button>
         )}
@@ -134,7 +132,7 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                   <ul className="bafna-suggest__recent-list">
                     {recentSearches.map((term, i) => (
                       <li key={i} className="bafna-suggest__recent-item" onClick={() => handleQuickSearch(term)}>
-                        <svg className="bafna-suggest__history-icon" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z"/></svg>
+                        <svg className="bafna-suggest__history-icon" viewBox="0 0 24 24"><path d="M13 3a9 9 0 0 0-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42A8.954 8.954 0 0 0 13 21a9 9 0 0 0 0-18zm-1 5v5l4.25 2.52.75-1.23-3.5-2.07V8h-1.5z" /></svg>
                         {term}
                       </li>
                     ))}
@@ -220,7 +218,7 @@ const Header: React.FC = () => {
   const [activeIdx, setActiveIdx] = useState(-1);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [popularSearches, setPopularSearches] = useState<{ _id: string; name: string }[]>([]);
-  
+
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
@@ -233,7 +231,6 @@ const Header: React.FC = () => {
     const words = popularSearches.length > 0 ? popularSearches.map(cat => `Search for "${cat.name}"...`) : ["Search for wind-up toys...", "Search for soft toys...", "Search for pull-back cars..."];
     const currentFullWord = words[currentWordIdx % words.length];
     const typingSpeed = isDeleting ? 40 : 80;
-
     const timeout = setTimeout(() => {
       if (!isDeleting && charIdx < currentFullWord.length) {
         setPlaceholderText(currentFullWord.substring(0, charIdx + 1));
@@ -248,7 +245,6 @@ const Header: React.FC = () => {
         setCurrentWordIdx(prev => prev + 1);
       }
     }, typingSpeed);
-
     return () => clearTimeout(timeout);
   }, [charIdx, isDeleting, currentWordIdx, popularSearches]);
 
@@ -267,7 +263,7 @@ const Header: React.FC = () => {
   useEffect(() => {
     const fetchPopularData = async () => {
       try {
-        const res = await api.get("/categories"); 
+        const res = await api.get("/categories");
         if (Array.isArray(res.data)) {
           const catData = res.data.slice(0, 8).map((c: any) => ({ _id: c._id, name: c.name }));
           setPopularSearches(catData);
@@ -397,112 +393,92 @@ const Header: React.FC = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // ✅ UPDATED USER EFFECT TO LISTEN TO 'STORAGE' EVENT
   const [user, setUser] = useState<any | null>(null);
-  
   useEffect(() => {
-    const parseUser = () => { 
-      try { 
-        return JSON.parse(localStorage.getItem("user") || "null"); 
-      } catch { 
-        return null; 
-      } 
+    const parseUser = () => {
+      try { return JSON.parse(localStorage.getItem("user") || "null"); }
+      catch { return null; }
     };
-    
-    // Initial data fetch
     setUser(parseUser());
-
-    // Listener for auth changes
-    const handleStorageChange = () => {
-      setUser(parseUser());
-    };
-
+    const handleStorageChange = () => { setUser(parseUser()); };
     window.addEventListener("storage", handleStorageChange);
-
-    return () => {
-      window.removeEventListener("storage", handleStorageChange);
-    };
+    return () => { window.removeEventListener("storage", handleStorageChange); };
   }, []);
 
   return (
     <header className={`bafna-site-header ${scrolled ? "is-scrolled" : ""}`}>
-      {/* Top Banner */}
-      <div className="bafna-top-strip">
-        <div className="bafna-top-strip__inner">
-          <span className="bafna-top-strip__text">
-            🌟 India's Leading Retail & Wholesale Toys at <a href="https://bafnatoys.com" target="_blank" rel="noreferrer">bafnatoys.com</a>
-          </span>
-          <div className="bafna-top-strip__links hidden-mobile">
-            <a 
-              href="https://www.instagram.com/bafna_toys/" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className="bafna-insta-link"
-              style={{ display: 'flex', alignItems: 'center', gap: '5px', color: 'inherit', textDecoration: 'none', fontWeight: 'bold' }}
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect>
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path>
-                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>
-              </svg>
-              Follow @bafna_toys
-            </a>
-          </div>
-        </div>
-      </div>
 
-      {/* Main Header */}
+      {/* ══ MAIN HEADER ══ */}
       <div className="bafna-header-main">
         <div className="bafna-header-container">
-          
+
+          {/* Logo + B2B Tagline + MASCOT */}
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
-            <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} loading="eager" />
+            {/* Mascot Image is now FIRST */}
+            <img 
+              src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1774086370/Super_Car___05_vrkphh.webp" 
+              alt="Mascot" 
+              className="bafna-brand__mascot"
+            />
+            {/* Logo and Tagline are SECOND */}
+            <div className="bafna-brand__wrap">
+              <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} loading="eager" />
+              <span className="bafna-brand__tagline">B2B Toys Manufacturer</span>
+            </div>
           </Link>
 
-          {/* Desktop Search Center */}
-          <div className="bafna-search-wrap-desktop">
-            <SearchForm
-              ref={deskRef} q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
-              openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug} sug={sug}
-              activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
-              recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
-              placeholderText={placeholderText} clearRecentSearches={clearRecentSearches}
-            />
+          {/* ═══ CENTER: Search + Trust Badges ═══ */}
+          <div className="bafna-center-block">
+            <div className="bafna-search-wrap-desktop">
+              <SearchForm
+                ref={deskRef} q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
+                openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug} sug={sug}
+                activeIdx={activeIdx} setActiveIdx={setActiveIdx} navigate={navigate}
+                recentSearches={recentSearches} popularSearches={popularSearches} handleQuickSearch={handleQuickSearch}
+                placeholderText={placeholderText} clearRecentSearches={clearRecentSearches}
+              />
+            </div>
+
+            {/* Inline Trust Badges — next to search */}
+            <div className="bafna-inline-badges">
+              <div className="bafna-inline-badge bafna-inline-badge--bis">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                  <polyline points="9 12 11 14 15 10"/>
+                </svg>
+                <span>BIS Certified</span>
+              </div>
+              <div className="bafna-inline-badge bafna-inline-badge--factory">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 20h20"/>
+                  <path d="M5 20V8l7-5 7 5v12"/>
+                  <rect x="9" y="12" width="6" height="8"/>
+                  <path d="M9 12h6"/>
+                </svg>
+                <span>Factory Direct</span>
+              </div>
+            </div>
           </div>
 
           {/* Actions */}
           <nav className="bafna-user-actions">
             <button className="bafna-action-icon bafna-theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme">
-              {theme === "light" ? "🌙" : "☀️"}
+              {theme === "light" ? (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+              ) : (
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              )}
             </button>
 
-            {/* My Account - Icons show on mobile too */}
             <div className="bafna-action-group">
               {user ? (
                 <Link to="/my-account" className="bafna-action-link">
-                  <span className="icon">👤</span>
+                  <span className="bafna-action-link__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  </span>
                   <div className="text-stack">
-                    <span 
-                      className="label" 
-                      style={{ 
-                        maxWidth: "110px", 
-                        overflow: "hidden", 
-                        textOverflow: "ellipsis", 
-                        whiteSpace: "nowrap",
-                        display: "inline-block"
-                      }}
-                      title={`Hello, ${user.shopName || user.name?.split(' ')[0] || 'User'}`}
-                    >
+                    <span className="label" style={{ maxWidth: "110px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "inline-block" }}
+                      title={`Hello, ${user.shopName || user.name?.split(' ')[0] || 'User'}`}>
                       Hello, {user.shopName || user.name?.split(' ')[0] || 'User'}
                     </span>
                     <span className="val hidden-mobile">Account</span>
@@ -510,7 +486,9 @@ const Header: React.FC = () => {
                 </Link>
               ) : (
                 <Link to="/login" className="bafna-action-link">
-                  <span className="icon">🔑</span>
+                  <span className="bafna-action-link__icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+                  </span>
                   <div className="text-stack">
                     <span className="label hidden-mobile">Welcome</span>
                     <span className="val hidden-mobile">Sign In</span>
@@ -521,7 +499,7 @@ const Header: React.FC = () => {
 
             <Link to="/cart" className="bafna-cart-link">
               <div className="bafna-cart-icon-wrapper">
-                <span className="icon">🛒</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                 {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
               </div>
               <span className="cart-total-text hidden-mobile">Cart</span>
@@ -530,7 +508,7 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Search Bottom */}
+      {/* Mobile Search - BADGES REMOVED HERE */}
       <div className="bafna-search-wrap-mobile">
         <SearchForm
           ref={mobRef} mobile q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
