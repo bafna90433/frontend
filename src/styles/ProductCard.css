@@ -258,7 +258,7 @@
   font-size: 0.6875rem;
   font-weight: 700;
   line-height: 1;
-  text-decoration: line-through;
+  tetext-decoration: none; /* <-- Changed from line-through to none */
   margin-top: 0.125rem;
 }
 

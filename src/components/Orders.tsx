@@ -32,6 +32,25 @@ type ReturnRequest = {
   requestDate?: string;
 };
 
+// ✅ Updated Shipping Address Type
+type ShippingAddress = {
+  shopName?: string;
+  gstNumber?: string;
+  fullName?: string;
+  phone?: string;
+  street?: string;
+  area?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  isDifferentShipping?: boolean;
+  shippingStreet?: string;
+  shippingArea?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingPincode?: string;
+};
+
 type Order = {
   _id: string;
   orderNumber?: string;
@@ -44,15 +63,7 @@ type Order = {
   trackingId?: string;
   courierName?: string;
   isShipped?: boolean;
-  shippingAddress?: string | {
-    fullName?: string;
-    street?: string;
-    area?: string;
-    city?: string;
-    state?: string;
-    pincode?: string;
-    phone?: string;
-  };
+  shippingAddress?: string | ShippingAddress; // ✅ Used new type
   returnRequest?: ReturnRequest;
 };
 
@@ -133,28 +144,39 @@ const generateInvoice = (order: Order) => {
     day: "numeric",
   });
 
-  const shippingAddr = order.shippingAddress;
+  const sa = order.shippingAddress as ShippingAddress;
   const wa = normalizeWhatsApp91(user?.whatsapp || user?.otpMobile);
 
   let shippingHtml = "No shipping address provided";
-  if (shippingAddr) {
-    if (typeof shippingAddr === "string") {
-      shippingHtml = shippingAddr;
+  
+  // ✅ Handling Different Shipping Logic
+  if (sa && typeof sa === "object") {
+    if (sa.isDifferentShipping) {
+      shippingHtml = [
+        sa.fullName ? `<strong>${sa.fullName}</strong>` : "",
+        sa.shippingStreet,
+        sa.shippingArea,
+        `${sa.shippingCity}, ${sa.shippingState}`,
+        sa.shippingPincode ? `PIN: ${sa.shippingPincode}` : "",
+        sa.phone ? `Phone: ${sa.phone}` : "",
+      ].filter(Boolean).join("<br>");
     } else {
       shippingHtml = [
-        shippingAddr.fullName ? `<strong>${shippingAddr.fullName}</strong>` : "",
-        shippingAddr.street,
-        shippingAddr.area,
-        `${shippingAddr.city}, ${shippingAddr.state}`,
-        shippingAddr.pincode ? `PIN: ${shippingAddr.pincode}` : "",
-        shippingAddr.phone ? `Phone: ${shippingAddr.phone}` : "",
+        sa.fullName ? `<strong>${sa.fullName}</strong>` : "",
+        sa.street,
+        sa.area,
+        `${sa.city}, ${sa.state}`,
+        sa.pincode ? `PIN: ${sa.pincode}` : "",
+        sa.phone ? `Phone: ${sa.phone}` : "",
       ].filter(Boolean).join("<br>");
     }
+  } else if (typeof sa === "string") {
+    shippingHtml = sa;
   }
 
   const paymentText = order.paymentMode === "ONLINE" ? "Paid (Online)" : order.paymentMode === "COD" ? "Cash on Delivery" : (order.paymentMode || "Online");
 
-  const content = `<!DOCTYPE html><html><head><title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${user?.shopName || "-"}</strong><br>Mobile: ${user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${order.orderNumber || order._id.slice(-6)}<br>Date: ${currentDate}<br>Payment: ${paymentText}${order.trackingId ? `<br>AWB: ${order.trackingId}` : ""}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${(order.items || []).map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${order.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys!</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${order.orderNumber || order._id.slice(-6)}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${sa?.shopName || user?.shopName || "-"}</strong><br>GST: ${sa?.gstNumber || "N/A"}<br>Mobile: ${user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${order.orderNumber || order._id.slice(-6)}<br>Date: ${currentDate}<br>Payment: ${paymentText}${order.trackingId ? `<br>AWB: ${order.trackingId}` : ""}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${(order.items || []).map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${order.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys!</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
 
   printWindow.document.write(content);
   printWindow.document.close();

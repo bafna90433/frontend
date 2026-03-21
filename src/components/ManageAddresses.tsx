@@ -1,3 +1,4 @@
+// src/components/ManageAddresses.tsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom"; 
 import api from "../utils/api";
@@ -8,6 +9,8 @@ import { MapPin, Phone, Edit2, Trash2, CheckCircle, Plus } from "lucide-react";
 // --- Types ---
 type Address = {
   _id?: string;
+  shopName?: string; // ✅ Added Shop Name
+  gstNumber?: string; // ✅ Added GST Number
   fullName: string;
   phone: string;
   street: string;
@@ -48,7 +51,9 @@ const parseRegisterAddress = (addrStr: string, user: any): Address | null => {
     });
     if (!street && !city) street = addrStr;
     return {
-        fullName: user?.shopName || "My Shop",
+        shopName: user?.shopName || "", // ✅ Extract Shop Name
+        gstNumber: user?.gstNumber || "", // ✅ Extract GST if available
+        fullName: user?.ownerName || user?.fullName || "Contact Person",
         phone: user?.otpMobile || "",
         street, area, city, state, pincode,
         type: "Home",
@@ -101,7 +106,7 @@ function useApiOrLocal() {
 }
 
 const empty: Address = {
-  fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Home", isDefault: false,
+  shopName: "", gstNumber: "", fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Home", isDefault: false,
 };
 
 const ManageAddresses: React.FC = () => {
@@ -148,7 +153,12 @@ const ManageAddresses: React.FC = () => {
   };
 
   const startAdd = () => {
-    setForm({ ...empty, fullName: currentUser?.shopName || "", phone: currentUser?.otpMobile || "" });
+    setForm({ 
+      ...empty, 
+      shopName: currentUser?.shopName || "", 
+      fullName: currentUser?.ownerName || currentUser?.fullName || "", 
+      phone: currentUser?.otpMobile || "" 
+    });
     setMode({ type: "add" });
   };
 
@@ -179,7 +189,11 @@ const ManageAddresses: React.FC = () => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
     if ((name === "phone" || name === "pincode") && !/^\d*$/.test(value)) return;
-    setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : value }));
+    
+    // Convert GST to uppercase automatically
+    const finalValue = name === "gstNumber" ? value.toUpperCase() : value;
+    
+    setForm((p) => ({ ...p, [name]: type === "checkbox" ? checked : finalValue }));
   };
 
   const save = async (e: React.FormEvent) => {
@@ -207,7 +221,13 @@ const ManageAddresses: React.FC = () => {
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
-    return items.filter((a) => [a.fullName, a.phone, a.street, a.city, a.pincode].join(" ").toLowerCase().includes(q));
+    return items.filter((a) => 
+      [a.shopName, a.gstNumber, a.fullName, a.phone, a.street, a.city, a.pincode]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
   }, [items, search]);
 
   return (
@@ -222,7 +242,7 @@ const ManageAddresses: React.FC = () => {
         </div>
 
         <div className="addr-tools">
-          <input className="search" placeholder="Search address..." value={search} onChange={(e) => setSearch(e.target.value)} />
+          <input className="search" placeholder="Search address, shop, or GST..." value={search} onChange={(e) => setSearch(e.target.value)} />
         </div>
 
         {loading ? (
@@ -238,10 +258,25 @@ const ManageAddresses: React.FC = () => {
                     <span className={`badge ${a.type.toLowerCase()}`}>{a.type}</span>
                     {a.isDefault && <span className="default-tag"><CheckCircle size={12}/> Default</span>}
                   </div>
-                  <h3 className="addr-name">{a.fullName}</h3>
-                  <p className="addr-text">{a.street}, {a.area}</p>
-                  <p className="addr-text">{a.city}, {a.state} - <strong>{a.pincode}</strong></p>
-                  <p className="addr-phone"><Phone size={14} /> {a.phone}</p>
+                  
+                  {/* ✅ Modified display to show Shop Name & GST */}
+                  {a.shopName ? (
+                    <>
+                      <h3 className="addr-name">{a.shopName}</h3>
+                      <p className="addr-text"><strong>Attn:</strong> {a.fullName}</p>
+                    </>
+                  ) : (
+                    <h3 className="addr-name">{a.fullName}</h3>
+                  )}
+
+                  {a.gstNumber && <p className="addr-text" style={{ color: '#047857', fontWeight: 600 }}>GST: {a.gstNumber}</p>}
+                  
+                  <div style={{ marginTop: '8px' }}>
+                    <p className="addr-text">{a.street}, {a.area}</p>
+                    <p className="addr-text">{a.city}, {a.state} - <strong>{a.pincode}</strong></p>
+                  </div>
+                  
+                  <p className="addr-phone" style={{ marginTop: '8px' }}><Phone size={14} /> {a.phone}</p>
                 </div>
 
                 <div className="addr-actions" style={{justifyContent: isSelectMode ? 'space-between' : 'flex-end'}}>
@@ -270,9 +305,13 @@ const ManageAddresses: React.FC = () => {
               <form className="sheet-form" onSubmit={save}>
                 <div className="form-scroll">
                     <div className="grid">
-                        <label><span>Full Name *</span><input name="fullName" value={form.fullName} onChange={onChange} required /></label>
+                        {/* ✅ Added Shop Name & GST Inputs */}
+                        <label className="col-2"><span>Shop / Business Name</span><input name="shopName" value={form.shopName || ""} onChange={onChange} placeholder="E.g. Bafna Toys" /></label>
+                        <label className="col-2"><span>GST Number (Optional)</span><input name="gstNumber" value={form.gstNumber || ""} onChange={onChange} placeholder="22AAAAA0000A1Z5" maxLength={15} style={{ textTransform: 'uppercase' }} /></label>
+                        
+                        <label><span>Contact Person (Full Name) *</span><input name="fullName" value={form.fullName} onChange={onChange} required /></label>
                         <label><span>Phone *</span><input name="phone" maxLength={10} value={form.phone} onChange={onChange} required /></label>
-                        <label className="col-2"><span>Street / Shop No. *</span><input name="street" value={form.street} onChange={onChange} required /></label>
+                        <label className="col-2"><span>Street / Building No. *</span><input name="street" value={form.street} onChange={onChange} required /></label>
                         <label className="col-2"><span>Area / Landmark</span><input name="area" value={form.area || ""} onChange={onChange} /></label>
                         <label><span>City *</span><input name="city" value={form.city} onChange={onChange} required /></label>
                         <label><span>Pincode *</span><input name="pincode" maxLength={6} value={form.pincode} onChange={onChange} required /></label>

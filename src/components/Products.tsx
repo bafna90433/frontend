@@ -19,7 +19,6 @@ import {
   LayoutGrid,
   SlidersHorizontal,
   Search,
-  Sparkles,
   ArrowUpDown,
   Filter,
   Star,
@@ -40,9 +39,6 @@ import {
   MapPin,
   Heart,
   TrendingUp,
-  CheckCircle,
-  Gift,
-  Percent,
   IndianRupee,
   Award,
 } from "lucide-react";
@@ -209,7 +205,7 @@ const Products: React.FC = () => {
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   const [trustData, setTrustData] = useState<any>(null);
   
-  // ✅ NEW STATE FOR GRID CONFIG
+  // ✅ GRID CONFIG STATE
   const [gridConfig, setGridConfig] = useState({ pc: 5, mobile: 2 });
 
   const [loading, setLoading] = useState(true);
@@ -495,7 +491,7 @@ const Products: React.FC = () => {
 
   return (
     <div className="sp-wrapper">
-      {/* ✅ INJECT DYNAMIC GRID SETTINGS HERE */}
+      {/* ✅ DYNAMIC GRID SETTINGS */}
       <style>
         {`
           .sp-grid {
@@ -517,7 +513,7 @@ const Products: React.FC = () => {
         jsonLd={{}}
       />
 
-      {/* ═══ MARQUEE ═══ */}
+      {/* ═══ MARQUEE TICKER ═══ */}
       <div className="sp-marquee">
         <div className="sp-marquee-track">
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
@@ -529,8 +525,9 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══ HERO BANNER ═══ */}
+      {/* ═══ HERO BANNER (BLOB MESH) ═══ */}
       <section className="sp-hero">
+        {/* Animated Blob Background */}
         <div className="sp-hero-glow sp-hero-glow-1" />
         <div className="sp-hero-glow sp-hero-glow-2" />
         <div className="sp-hero-glow sp-hero-glow-3" />
@@ -598,9 +595,8 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* ═══ MOBILE HERO (completely separate layout) ═══ */}
+        {/* ═══ MOBILE HERO ═══ */}
         <div className="sp-hero-mobile">
-          {/* Top section */}
           <div className="sp-mh-top">
             <div className="sp-mh-badge">
               <div className="sp-mh-badge-dot" />
@@ -613,11 +609,10 @@ const Products: React.FC = () => {
               <span className="sp-mh-gradient">B2B Toy Manufacturer</span>
             </h1>
             <p className="sp-mh-sub">
-              Premium wholesale toys for retailers & resellers across India
+              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores and Resellers
             </p>
           </div>
 
-          {/* Offer + Perks Card */}
           <div className="sp-mh-offer-section">
             <div className="sp-mh-offer-card">
               <div className="sp-mh-offer-visual">
@@ -661,7 +656,6 @@ const Products: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Stats Bar */}
           <div className="sp-mh-stats">
             <div className="sp-mh-stat">
               <div className="sp-mh-stat-icon">
@@ -740,7 +734,7 @@ const Products: React.FC = () => {
           )
         ))}
 
-      {/* ═══ MAIN LAYOUT ═══ */}
+      {/* ═══ MAIN LAYOUT (SIDEBAR + GRID) ═══ */}
       <div className="sp-layout">
         {/* SIDEBAR */}
         <aside className="sp-sidebar" role="complementary">
@@ -844,7 +838,7 @@ const Products: React.FC = () => {
 
         {/* MAIN CONTENT */}
         <main className="sp-main">
-          {/* Mobile Categories */}
+          {/* Mobile Horizontal Categories (Only shows on mobile) */}
           <div className="sp-mob-cats">
             <div className="sp-mob-cats-track">
               {categories.map((cat) => {
@@ -873,7 +867,7 @@ const Products: React.FC = () => {
             </div>
           </div>
 
-          {/* Toolbar */}
+          {/* Floating Glass Toolbar */}
           <div className="sp-toolbar">
             <div className="sp-toolbar-left">
               <button
@@ -1028,38 +1022,45 @@ const Products: React.FC = () => {
         </main>
       </div>
 
-      {/* ═══ TRUST STATS ═══ */}
+      {/* ═══ BENTO TRUST STATS ═══ */}
       <section className="sp-trust-section">
         <div className="sp-trust-grid">
           {[
             {
-              icon: <Star size={22} />,
+              icon: <Star size={28} />,
               gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
               color: "#b45309",
               title: "4.8/5",
               sub: "Average Rating",
             },
             {
-              icon: <Users size={22} />,
+              icon: <Users size={24} />,
               gradient: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
               color: "#1d4ed8",
               title: "4,900+",
               sub: "Active Retailers",
             },
             {
-              icon: <Truck size={22} />,
+              icon: <Truck size={24} />,
               gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
               color: "#047857",
               title: "All India",
               sub: "Door Delivery",
             },
             {
-              icon: <Factory size={22} />,
+              icon: <Factory size={24} />,
               gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe)",
               color: "#6d28d9",
               title: "Direct",
               sub: "Manufacturer",
             },
+            {
+              icon: <Award size={24} />,
+              gradient: "linear-gradient(135deg, #fce7f3, #fbcfe8)",
+              color: "#9d174d",
+              title: "BIS Certified",
+              sub: "All Products",
+            }
           ].map((s, i) => (
             <div className="sp-trust-card" key={i}>
               <div
@@ -1077,7 +1078,7 @@ const Products: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══ FACTORY SECTION ═══ */}
+      {/* ═══ FACTORY SECTION (NOW FULL WIDTH) ═══ */}
       {!loading && trustData && (
         <section className="sp-factory">
           <div className="sp-factory-inner">
@@ -1231,9 +1232,10 @@ const Products: React.FC = () => {
         </section>
       )}
 
-      {/* ═══ FOOTER ═══ */}
+      {/* ═══ FOOTER WITH WAVE ═══ */}
       {!loading && (
         <footer className="sp-footer">
+          <div className="sp-footer-wave" />
           <div className="sp-footer-top">
             <div className="sp-footer-inner">
               <div className="sp-footer-brand">

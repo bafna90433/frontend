@@ -21,8 +21,6 @@ type Settings = {
   position: "right" | "left";
   offsetX: number;
   offsetY: number;
-  showGreeting: boolean;
-  greetingText: string;
   autoOpenDelay: number;
   showOnMobile: boolean;
   showOnDesktop: boolean;
@@ -139,7 +137,6 @@ const resolveUrl = (u?: string): string => {
 const WhatsAppButton: React.FC = () => {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [isOpen, setIsOpen] = useState(false);
-  const [showGreeting, setShowGreeting] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
 
   // Fetch settings
@@ -152,11 +149,6 @@ const WhatsAppButton: React.FC = () => {
         // Auto-open panel after delay
         if (data.autoOpenDelay && data.autoOpenDelay > 0) {
           setTimeout(() => setIsOpen(true), data.autoOpenDelay);
-        }
-
-        // Show greeting after a short delay
-        if (data.showGreeting && data.greetingText) {
-          setTimeout(() => setShowGreeting(true), 3000);
         }
       } catch {
         // Silently fail
@@ -185,7 +177,6 @@ const WhatsAppButton: React.FC = () => {
       }, 250);
     } else {
       setIsOpen(true);
-      setShowGreeting(false);
     }
   }, [isOpen]);
 
@@ -204,11 +195,6 @@ const WhatsAppButton: React.FC = () => {
     },
     [settings]
   );
-
-  // Close greeting
-  const closeGreeting = useCallback(() => {
-    setShowGreeting(false);
-  }, []);
 
   // Don't render if disabled or settings not loaded
   if (!settings || !settings.enabled) return null;
@@ -242,19 +228,6 @@ const WhatsAppButton: React.FC = () => {
         className={`wa-launcher ${settings.position}`}
         style={launcherStyle}
       >
-        {/* Greeting Bubble */}
-        {showGreeting && !isOpen && settings.greetingText && (
-          <div className="wa-greeting">
-            <button
-              className="wa-greeting-close"
-              onClick={closeGreeting}
-              aria-label="Close greeting"
-            >
-              ×
-            </button>
-            <p className="wa-greeting-text">{settings.greetingText}</p>
-          </div>
-        )}
 
         {/* Panel */}
         {isOpen && (

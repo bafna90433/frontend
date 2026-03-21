@@ -25,6 +25,7 @@ interface Item {
 
 interface Address {
   _id?: string;
+  shopName?: string;
   fullName: string;
   phone: string;
   street: string;
@@ -34,6 +35,13 @@ interface Address {
   pincode: string;
   type: string;
   isDefault?: boolean;
+  gstNumber?: string;
+  isDifferentShipping?: boolean;
+  shippingStreet?: string;
+  shippingArea?: string;
+  shippingPincode?: string;
+  shippingCity?: string;
+  shippingState?: string;
 }
 
 interface OrderData {
@@ -56,7 +64,7 @@ interface DiscountRule {
 }
 
 const INDIAN_STATES = [
-  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chhattisgarh","Goa","Gujarat",
+  "Andhra Pradesh","Arunachal Pradesh","Assam","Bihar","Chandigarh","Chhattisgarh","Goa","Gujarat",
   "Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh",
   "Maharashtra","Manipur","Meghalaya","Mizoram","Nagaland","Odisha","Punjab",
   "Rajasthan","Sikkim","Tamil Nadu","Telangana","Tripura","Uttar Pradesh",
@@ -108,18 +116,20 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   let shippingHtml = "No shipping address provided";
   if (shippingAddr) {
     shippingHtml = [
-      shippingAddr.fullName ? `<strong>${shippingAddr.fullName}</strong>` : "",
-      shippingAddr.street,
-      shippingAddr.area,
-      `${shippingAddr.city}, ${shippingAddr.state}`,
-      shippingAddr.pincode ? `PIN: ${shippingAddr.pincode}` : "",
+      shippingAddr.shopName ? `<strong>${shippingAddr.shopName}</strong>` : "",
+      shippingAddr.fullName ? `Attn: ${shippingAddr.fullName}` : "",
+      shippingAddr.isDifferentShipping ? shippingAddr.shippingStreet : shippingAddr.street,
+      shippingAddr.isDifferentShipping ? shippingAddr.shippingArea : shippingAddr.area,
+      `${shippingAddr.isDifferentShipping ? shippingAddr.shippingCity : shippingAddr.city}, ${shippingAddr.isDifferentShipping ? shippingAddr.shippingState : shippingAddr.state}`,
+      shippingAddr.isDifferentShipping ? `PIN: ${shippingAddr.shippingPincode}` : `PIN: ${shippingAddr.pincode}`,
       shippingAddr.phone ? `Phone: ${shippingAddr.phone}` : "",
+      shippingAddr.gstNumber ? `GST: ${shippingAddr.gstNumber}` : "",
     ].filter(Boolean).join("<br>");
   }
   
   const paymentText = orderData.paymentMode === "ONLINE" ? "Paid (Online)" : "Cash on Delivery";
 
-  const content = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${user?.shopName || "-"}</strong><br>Mobile: ${user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${orderData.orderNumber}<br>Date: ${currentDate}<br>Payment: ${paymentText}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${orderData.items.map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${orderData.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys! - https://bafnatoys.com</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${shippingAddr?.shopName || user?.shopName || "-"}</strong><br>Mobile: ${shippingAddr?.phone || user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${orderData.orderNumber}<br>Date: ${currentDate}<br>Payment: ${paymentText}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${orderData.items.map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${orderData.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys! - https://bafnatoys.com</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
 
   printWindow.document.write(content);
   printWindow.document.close();
@@ -140,9 +150,16 @@ const Checkout: React.FC = () => {
   const [isCodEnabled, setIsCodEnabled] = useState<boolean>(true);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
+  
+  // NEW GST STATES
+  const [isVerifyingGst, setIsVerifyingGst] = useState(false);
+  const [gstData, setGstData] = useState<{ companyName: string; status: string } | null>(null);
+  const [gstError, setGstError] = useState<string | null>(null);
+  
   const [addressForm, setAddressForm] = useState<Partial<Address>>({
-    fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Home",
+    shopName: "", fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Work", gstNumber: "", isDifferentShipping: false, shippingStreet: "", shippingArea: "", shippingPincode: "", shippingCity: "", shippingState: ""
   });
+  
   const [discountRules, setDiscountRules] = useState<DiscountRule[]>([]);
   const [appliedDiscount, setAppliedDiscount] = useState<{ amount: number; percentage: number } | null>(null);
   const [user, setUser] = useState<any>(null);
@@ -155,7 +172,6 @@ const Checkout: React.FC = () => {
 
   const IMAGE_BASE_URL = `${MEDIA_URL}/uploads/`;
 
-  // Track active step based on filled data
   useEffect(() => {
     if (selectedAddress && !isAddingAddress) setActiveStep(2);
     if (selectedAddress && paymentMode) setActiveStep(3);
@@ -172,6 +188,41 @@ const Checkout: React.FC = () => {
     fetchCodSettings();
     fetchDiscountRules();
   }, []);
+
+  // --- GST LIVE VERIFICATION LOGIC ---
+  useEffect(() => {
+    const gst = addressForm.gstNumber?.toUpperCase() || "";
+    
+    if (gst.length === 15) {
+       verifyGst(gst);
+    } else if (gst.length < 15) {
+       setGstData(null);
+       setGstError(null);
+    }
+  }, [addressForm.gstNumber]);
+
+  const verifyGst = async (gstNumber: string) => {
+     setIsVerifyingGst(true);
+     setGstError(null);
+     setGstData(null);
+
+     try {
+        const { data } = await api.post("/addresses/verify-gst", { gstNumber });
+        if (data.success) {
+           setGstData({ companyName: data.companyName, status: data.status });
+           
+           // Magic Fill: Update Shop Name if it's empty
+           if (!addressForm.shopName) {
+              setAddressForm(prev => ({ ...prev, shopName: data.companyName }));
+           }
+        }
+     } catch (err: any) {
+        setGstError(err.response?.data?.message || "Invalid GST Number");
+     } finally {
+        setIsVerifyingGst(false);
+     }
+  };
+  // -----------------------------------
 
   const fetchCodSettings = async () => {
     try {
@@ -219,14 +270,62 @@ const Checkout: React.FC = () => {
   };
 
   const handleAddAddressClick = () => {
-    setAddressForm({ fullName: user?.shopName || "", phone: user?.otpMobile || "", street: "", area: "", city: "", state: "", pincode: "", type: "Home" });
+    // ✅ PRE-FILL AUTOMATIC LOGIC HERE
+    setAddressForm({ 
+        shopName: user?.shopName || "", 
+        fullName: user?.ownerName || user?.fullName || "", // Contact Person
+        phone: user?.otpMobile || "", 
+        street: "", area: "", city: "", state: "", pincode: "", type: "Work", 
+        gstNumber: user?.gstNumber || "", // ✅ Extract GST from registration
+        isDifferentShipping: false, 
+        shippingStreet: "", shippingArea: "", shippingCity: "", shippingState: "", shippingPincode: "" 
+    });
+    setGstData(null);
+    setGstError(null);
     setIsAddingAddress(true);
   };
 
   const handleAddressFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    if ((name === "phone" || name === "pincode") && !/^\d*$/.test(value)) return;
-    setAddressForm((prev) => ({ ...prev, [name]: value }));
+    const { name, value, type } = e.target;
+    
+    // Checkbox logic for Different Shipping
+    if (type === "checkbox") {
+        const checked = (e.target as HTMLInputElement).checked;
+        setAddressForm((prev) => ({ ...prev, [name]: checked }));
+        return;
+    }
+
+    if ((name === "phone" || name === "pincode" || name === "shippingPincode") && !/^\d*$/.test(value)) return;
+    
+    // Make sure GST stays uppercase in form state
+    const finalValue = name === "gstNumber" ? value.toUpperCase() : value;
+    setAddressForm((prev) => ({ ...prev, [name]: finalValue }));
+
+    // Pincode Auto-Detect Logic (Triggers when 6 digits are entered)
+    if ((name === "pincode" || name === "shippingPincode") && value.length === 6) {
+        fetchCityStateFromPincode(value, name === "shippingPincode");
+    }
+  };
+
+  // API Call to Auto-Detect City & State based on Pincode
+  const fetchCityStateFromPincode = async (pincode: string, isShipping: boolean) => {
+    try {
+        const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+        const data = await res.json();
+        if (data[0].Status === "Success") {
+            const postOffice = data[0].PostOffice[0];
+            const detectedCity = postOffice.District;
+            const detectedState = postOffice.State;
+            
+            setAddressForm(prev => ({
+                ...prev,
+                [isShipping ? 'shippingCity' : 'city']: detectedCity,
+                [isShipping ? 'shippingState' : 'state']: detectedState,
+            }));
+        }
+    } catch (error) {
+        console.error("Error fetching pincode data:", error);
+    }
   };
 
   const handleSaveNewAddress = async (e: React.FormEvent) => {
@@ -465,7 +564,7 @@ const Checkout: React.FC = () => {
                   <div className="co-card-icon co-card-icon--blue">
                     <MapPin size={16} />
                   </div>
-                  <h2>Delivery Address</h2>
+                  <h2>BILLING & SHIPPING DETAILS</h2>
                 </div>
                 {!isAddingAddress && selectedAddress && (
                   <div className="co-card-actions">
@@ -484,62 +583,172 @@ const Checkout: React.FC = () => {
                   <form onSubmit={handleSaveNewAddress} className="co-addr-form">
                     <div className="co-form-grid">
                       <div className="co-field co-field--full">
-                        <label>Full Name</label>
-                        <input required name="fullName" value={addressForm.fullName} onChange={handleAddressFormChange} placeholder="Enter full name" />
+                        <label>Shop Name - Compulsory</label>
+                        <input required name="shopName" value={addressForm.shopName} onChange={handleAddressFormChange} placeholder="Enter your shop / business name" />
                       </div>
                       <div className="co-field">
-                        <label>Phone</label>
+                        <label>Contact Person Name - Compulsory</label>
+                        <input required name="fullName" value={addressForm.fullName} onChange={handleAddressFormChange} placeholder="Enter contact person name" />
+                      </div>
+                      <div className="co-field">
+                        <label>Phone - Compulsory</label>
                         <input required name="phone" maxLength={10} value={addressForm.phone} onChange={handleAddressFormChange} placeholder="10-digit number" />
                       </div>
-                      <div className="co-field">
-                        <label>Pincode</label>
-                        <input required name="pincode" maxLength={6} value={addressForm.pincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
+                      
+                      <div className="co-field co-field--full">
+                        <label>Shop Address - Compulsory</label>
+                        <input required name="street" value={addressForm.street} onChange={handleAddressFormChange} placeholder="Billing street address" />
                       </div>
                       <div className="co-field co-field--full">
-                        <label>Street / Shop No.</label>
-                        <input required name="street" value={addressForm.street} onChange={handleAddressFormChange} placeholder="Street address" />
-                      </div>
-                      <div className="co-field co-field--full">
-                        <label>Area / Landmark</label>
+                        <label>Landmark - Optional</label>
                         <input name="area" value={addressForm.area} onChange={handleAddressFormChange} placeholder="Optional" />
                       </div>
+
                       <div className="co-field">
-                        <label>City</label>
+                        <label>Pincode - Compulsory</label>
+                        <input required name="pincode" maxLength={6} value={addressForm.pincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
+                      </div>
+                      <div className="co-field">
+                        <label>City - Compulsory</label>
                         <input required name="city" value={addressForm.city} onChange={handleAddressFormChange} placeholder="City" />
                       </div>
                       <div className="co-field">
-                        <label>State</label>
+                        <label>State - Compulsory</label>
                         <select required name="state" value={addressForm.state} onChange={handleAddressFormChange}>
                           <option value="">Select</option>
                           {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
                         </select>
                       </div>
+
+                      {/* --- UPDATED GST FIELD WITH LIVE UI --- */}
+                      <div className="co-field co-field--full" style={{ marginBottom: '10px' }}>
+                        <label>GST - Optional</label>
+                        <input 
+                          name="gstNumber" 
+                          value={addressForm.gstNumber?.toUpperCase() || ""} 
+                          onChange={handleAddressFormChange} 
+                          placeholder="Enter 15-digit GST Number" 
+                          maxLength={15}
+                          style={{ 
+                            marginBottom: '5px', 
+                            textTransform: 'uppercase',
+                            borderColor: gstError ? '#dc2626' : gstData ? '#16a34a' : '#e2e8f0'
+                          }} 
+                        />
+                        
+                        {isVerifyingGst && <span style={{ fontSize: '12px', color: '#0284c7', display: 'flex', alignItems: 'center', gap: '4px' }}>⏳ Verifying GST Database...</span>}
+                        
+                        {gstData && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>✅ Verified: {gstData.companyName} ({gstData.status})</span>}
+                        
+                        {gstError && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>❌ {gstError}</span>}
+
+                        {!isVerifyingGst && !gstData && !gstError && (
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>
+                            (Please enter your GST number to claim TAX input credit on your purchase. If no GST Number, goods will be sent on personal name)
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Different Shipping Logic */}
+                      <div className="co-field co-field--full" style={{ marginTop: '10px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0, fontWeight: 600 }}>
+                            <input 
+                               type="checkbox" 
+                               name="isDifferentShipping" 
+                               checked={addressForm.isDifferentShipping} 
+                               onChange={handleAddressFormChange} 
+                               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                            />
+                            Different Billing and Shipping address?
+                         </label>
+                      </div>
+
+                      {addressForm.isDifferentShipping && (
+                         <div style={{ gridColumn: "1 / -1", display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', padding: '20px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                            <h4 style={{ gridColumn: '1 / -1', margin: '0 0 10px 0', color: '#16a34a' }}>Shipping Details</h4>
+                            <div className="co-field co-field--full">
+                               <label>Address - Compulsory</label>
+                               <input required={addressForm.isDifferentShipping} name="shippingStreet" value={addressForm.shippingStreet} onChange={handleAddressFormChange} placeholder="Delivery address" />
+                            </div>
+                            <div className="co-field co-field--full">
+                               <label>Landmark - Optional</label>
+                               <input name="shippingArea" value={addressForm.shippingArea} onChange={handleAddressFormChange} placeholder="Optional" />
+                            </div>
+                            <div className="co-field">
+                               <label>Pincode - Compulsory</label>
+                               <input required={addressForm.isDifferentShipping} name="shippingPincode" maxLength={6} value={addressForm.shippingPincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
+                            </div>
+                            <div className="co-field">
+                               <label>City - Compulsory</label>
+                               <input required={addressForm.isDifferentShipping} name="shippingCity" value={addressForm.shippingCity} onChange={handleAddressFormChange} placeholder="City" />
+                            </div>
+                            <div className="co-field">
+                               <label>State - Compulsory</label>
+                               <select required={addressForm.isDifferentShipping} name="shippingState" value={addressForm.shippingState} onChange={handleAddressFormChange}>
+                                 <option value="">Select</option>
+                                 {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+                               </select>
+                            </div>
+                         </div>
+                      )}
+
                     </div>
-                    <div className="co-form-footer">
-                      <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost">Cancel</button>
-                      <button type="submit" disabled={savingAddress} className="co-btn-solid">
-                        {savingAddress ? "Saving..." : "Save & Deliver Here"}
-                      </button>
+                    
+                    {/* BUTTON UPGRADE & TRUST BADGES */}
+                    <div className="co-form-footer" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
+                      <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', width: '100%' }}>
+                         <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost" style={{ padding: '12px 24px' }}>Cancel</button>
+                         <button type="submit" disabled={savingAddress || isVerifyingGst} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
+                           {savingAddress ? "Saving..." : "👉 Confirm Address & Continue"}
+                         </button>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px dashed #cbd5e1', width: '100%' }}>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
+                            <CheckCircle2 size={16} /> GST Invoice Available
+                         </div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
+                            <CheckCircle2 size={16} /> Secure Payments (Razorpay)
+                         </div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
+                            <CheckCircle2 size={16} /> Trusted by 1000+ Retailers
+                         </div>
+                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
+                            <CheckCircle2 size={16} /> Fast Dispatch Across India
+                         </div>
+                      </div>
                     </div>
+
                   </form>
                 ) : selectedAddress ? (
                   <div className="co-addr-display">
                     <div className="co-addr-top">
                       <UserIcon size={15} />
-                      <strong>{selectedAddress.fullName}</strong>
+                      <strong>{selectedAddress.shopName || selectedAddress.fullName}</strong>
                       <span className="co-addr-badge">{selectedAddress.type}</span>
                     </div>
+                    {selectedAddress.gstNumber && (
+                        <p style={{ margin: '5px 0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>GST: {selectedAddress.gstNumber}</p>
+                    )}
                     <p className="co-addr-line">{selectedAddress.street}{selectedAddress.area ? `, ${selectedAddress.area}` : ""}</p>
                     <p className="co-addr-line">{selectedAddress.city}, {selectedAddress.state} — {selectedAddress.pincode}</p>
                     <p className="co-addr-phone">📞 {selectedAddress.phone}</p>
+                    
+                    {selectedAddress.isDifferentShipping && (
+                       <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #cbd5e1' }}>
+                          <strong style={{ fontSize: '13px', color: '#16a34a' }}>Deliver To (Shipping Address):</strong>
+                          <p className="co-addr-line" style={{ marginTop: '5px' }}>{selectedAddress.shippingStreet}{selectedAddress.shippingArea ? `, ${selectedAddress.shippingArea}` : ""}</p>
+                          <p className="co-addr-line">{selectedAddress.shippingCity}, {selectedAddress.shippingState} — {selectedAddress.shippingPincode}</p>
+                       </div>
+                    )}
                   </div>
                 ) : (
                   <div className="co-addr-empty">
                     <MapPin size={28} strokeWidth={1.5} />
-                    <p>No delivery address selected</p>
+                    <p>No details provided</p>
                     <div className="co-addr-empty-btns">
                       <button className="co-btn-solid" onClick={handleAddAddressClick}>
-                        <Plus size={14} /> Add Address
+                        <Plus size={14} /> Add Details
                       </button>
                       <button className="co-btn-ghost" onClick={() => navigate("/addresses?select=true")}>
                         Choose Saved
@@ -655,7 +864,6 @@ const Checkout: React.FC = () => {
                 </div>
               </div>
               <div className="co-card-body co-policies-body">
-                {/* Shipping Policy */}
                 <div className="co-policy-acc">
                   <button
                     className="co-policy-toggle"
@@ -681,7 +889,6 @@ const Checkout: React.FC = () => {
 
                 <div className="co-policy-divider" />
 
-                {/* Return Policy */}
                 <div className="co-policy-acc">
                   <button
                     className="co-policy-toggle"
@@ -707,7 +914,6 @@ const Checkout: React.FC = () => {
               </div>
             </div>
 
-            {/* Mobile Legal Text (Visible only on mobile) */}
             <div className="co-legal-text" style={{ display: 'none' }}>
               By placing your order, you agree to our <br />
               <Link to="/shipping-delivery" target="_blank">Shipping Policy</Link> and{" "}
@@ -832,8 +1038,10 @@ const Checkout: React.FC = () => {
                 )}
               </button>
 
-              {isAddingAddress && (
-                <p className="co-side-warn">⚠ Save your address first</p>
+              {(!selectedAddress || isAddingAddress) && (
+                <p className="co-side-warn" style={{ color: '#ea580c', fontSize: '13px', textAlign: 'center', margin: '10px 0', fontWeight: 600 }}>
+                  ⚠ Please add your address to continue
+                </p>
               )}
 
               <div className="co-side-trust">

@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, useRef } from "react";
+import React, { useState, ChangeEvent, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
@@ -21,9 +21,15 @@ const INDIAN_STATES = [
 ];
 
 const Register: React.FC = () => {
-  const [form, setForm] = useState({ shopName: "", otpMobile: "", whatsapp: "" });
+  const [form, setForm] = useState({ shopName: "", otpMobile: "", whatsapp: "", gstNumber: "" });
   const [addr, setAddr] = useState({ street: "", area: "", city: "", state: "", pincode: "" });
   const [gstDocument, setGstDocument] = useState<File | null>(null);
+  
+  // Naye GST States
+  const [isVerifyingGst, setIsVerifyingGst] = useState(false);
+  const [gstData, setGstData] = useState<{ companyName: string; status: string } | null>(null);
+  const [gstError, setGstError] = useState<string | null>(null);
+
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -46,6 +52,41 @@ const Register: React.FC = () => {
     return `91${last10}`;
   };
 
+  // --- GST LIVE VERIFICATION LOGIC ---
+  useEffect(() => {
+    const gst = form.gstNumber?.toUpperCase() || "";
+    
+    if (gst.length === 15) {
+       verifyGst(gst);
+    } else if (gst.length < 15) {
+       setGstData(null);
+       setGstError(null);
+    }
+  }, [form.gstNumber]);
+
+  const verifyGst = async (gstNumber: string) => {
+     setIsVerifyingGst(true);
+     setGstError(null);
+     setGstData(null);
+
+     try {
+        const { data } = await axios.post(`${API_BASE}/addresses/verify-gst`, { gstNumber });
+        if (data.success) {
+           setGstData({ companyName: data.companyName, status: data.status });
+           
+           // Magic Fill: Update Shop Name automatically if empty
+           if (!form.shopName) {
+              setForm(p => ({ ...p, shopName: data.companyName }));
+           }
+        }
+     } catch (err: any) {
+        setGstError(err.response?.data?.message || "Invalid GST Number");
+     } finally {
+        setIsVerifyingGst(false);
+     }
+  };
+  // -----------------------------------
+
   const validateStep1 = () => {
     const e: Record<string, string> = {};
     if (!form.shopName.trim()) e.shopName = "Required";
@@ -54,6 +95,10 @@ const Register: React.FC = () => {
     if (!form.whatsapp.trim()) e.whatsapp = "Required";
     else if (!normalizeTo91(form.whatsapp)) e.whatsapp = "Enter valid WhatsApp number";
     
+    if (form.gstNumber && form.gstNumber.length !== 15 && !gstData) {
+       e.gstNumber = "Please enter complete 15-digit GST or leave empty";
+    }
+
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -147,6 +192,12 @@ const Register: React.FC = () => {
       formData.append("whatsapp", wa91);
       formData.append("address", fullAddress);
       
+      // Send GST Number to backend
+      if (form.gstNumber && gstData) {
+          formData.append("gstNumber", form.gstNumber);
+      }
+      
+      // Send document only if exists
       if (gstDocument) {
         formData.append("gstDocument", gstDocument);
       }
@@ -160,12 +211,10 @@ const Register: React.FC = () => {
       newUser.isApproved = true;
       localStorage.setItem("user", JSON.stringify(newUser));
 
-      // ✅ Trigger Header Update Event
       window.dispatchEvent(new Event("storage"));
 
       Swal.fire({ title: "Success!", text: "Registration Complete", icon: "success", timer: 2000, showConfirmButton: false });
       
-      // ✅ Use navigate instead of window.location.href
       setTimeout(() => { navigate("/"); }, 1500);
       
     } catch (err: any) { setLoading(false); Swal.fire("Error", err.response?.data?.message || "Failed", "error"); }
@@ -214,6 +263,29 @@ const Register: React.FC = () => {
           {/* Step 1: Business Info */}
           {step === 1 && (
             <div className="au-step-body">
+              
+              {/* --- NEW GST NUMBER FIELD --- */}
+              <div className="au-field">
+                <label>GST Number (Optional)</label>
+                <div className="au-input-wrap">
+                  <ShieldCheck size={18} className="au-input-icon" />
+                  <input 
+                    className={`au-input ${errors.gstNumber || gstError ? "au-input--err" : ""}`} 
+                    name="gstNumber" 
+                    placeholder="Enter 15-digit GSTIN" 
+                    value={form.gstNumber?.toUpperCase() || ""} 
+                    onChange={handleChange} 
+                    maxLength={15}
+                    style={{ textTransform: 'uppercase' }}
+                  />
+                </div>
+                
+                {isVerifyingGst && <span style={{ fontSize: '12px', color: '#0284c7', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>⏳ Verifying GST Details...</span>}
+                {gstData && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>✅ Verified: {gstData.companyName}</span>}
+                {gstError && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px' }}>❌ {gstError}</span>}
+                {errors.gstNumber && <span className="au-err">{errors.gstNumber}</span>}
+              </div>
+
               <div className="au-field">
                 <label>Shop / Business Name</label>
                 <div className="au-input-wrap">
@@ -247,23 +319,25 @@ const Register: React.FC = () => {
                 {errors.whatsapp && <span className="au-err">{errors.whatsapp}</span>}
               </div>
 
-              {/* GST Document Upload Field */}
-              <div className="au-field">
-                <label>Upload GST Document (Optional)</label>
-                <div className="au-input-wrap" style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                  <UploadCloud size={18} className="au-input-icon" style={{ position: 'static', marginRight: '10px' }} />
-                  <input 
-                    type="file" 
-                    name="gstDocument" 
-                    accept=".pdf, image/*" 
-                    onChange={handleFileChange} 
-                    style={{ border: 'none', background: 'transparent', padding: '12px 0', width: '100%', cursor: 'pointer' }}
-                  />
-                </div>
-                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                  Please upload your GST certificate image or PDF to claim TAX input credit.
-                </p>
-              </div>
+              {/* SMART HIDE: Document upload tabhi dikhega jab GST valid na ho */}
+              {!gstData && (
+                 <div className="au-field">
+                   <label>Upload GST Document (Optional)</label>
+                   <div className="au-input-wrap" style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
+                     <UploadCloud size={18} className="au-input-icon" style={{ position: 'static', marginRight: '10px' }} />
+                     <input 
+                       type="file" 
+                       name="gstDocument" 
+                       accept=".pdf, image/*" 
+                       onChange={handleFileChange} 
+                       style={{ border: 'none', background: 'transparent', padding: '12px 0', width: '100%', cursor: 'pointer' }}
+                     />
+                   </div>
+                   <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                     Please upload your GST certificate if you cannot verify your GST number above.
+                   </p>
+                 </div>
+              )}
 
               <button className="au-btn au-btn--primary" onClick={goStep2}>
                 Continue <ArrowRight size={16} />
