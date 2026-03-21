@@ -6,7 +6,7 @@ const ComingSoon: React.FC = () => {
   
   // ✅ Redirect Function
   const handleWhatsAppRedirect = () => {
-    const phoneNumber = "919363482008"; // Country code +91 added
+    const phoneNumber = "90433 47300"; // Country code +91 added
     const message = "Hello Bafna Toys, the website is under maintenance. I want to place an order manually. Please assist me.";
     const url = `https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`;
     window.open(url, "_blank");
