@@ -508,7 +508,7 @@
   color: var(--pc-white);
   border: none;
   border-radius: var(--pc-radius);
-  font-size: 0.9375rem;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   transition: transform var(--pc-transition-base), box-shadow var(--pc-transition-base);
