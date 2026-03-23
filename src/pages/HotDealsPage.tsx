@@ -31,23 +31,25 @@ type HotDealItem = {
 async function fetchProductsByIds(ids: string[]): Promise<Product[]> {
   if (!ids.length) return [];
 
+  // Try all endpoints simultaneously but take the first successful one to speed up
   try {
-    const r = await api.post("/products/by-ids", { ids });
-    const list = Array.isArray(r.data) ? r.data : r.data?.products;
-    return Array.isArray(list) ? list : [];
-  } catch {}
+     const promises = [
+        api.post("/products/by-ids", { ids }).catch(() => null),
+        api.post("/products/ids", { ids }).catch(() => null),
+        api.get(`/products?ids=${encodeURIComponent(ids.join(","))}`).catch(() => null)
+     ];
 
-  try {
-    const r = await api.post("/products/ids", { ids });
-    const list = Array.isArray(r.data) ? r.data : r.data?.products;
-    return Array.isArray(list) ? list : [];
-  } catch {}
-
-  try {
-    const r = await api.get(`/products?ids=${encodeURIComponent(ids.join(","))}`);
-    const list = Array.isArray(r.data) ? r.data : r.data?.products;
-    return Array.isArray(list) ? list : [];
-  } catch {}
+     const results = await Promise.all(promises);
+     
+     for (const r of results) {
+        if (r && r.data) {
+            const list = Array.isArray(r.data) ? r.data : r.data.products;
+            if (Array.isArray(list)) return list;
+        }
+     }
+  } catch (err) {
+      console.error("Failed to fetch products by IDs", err);
+  }
 
   return [];
 }
@@ -58,11 +60,15 @@ const HotDealsPage: React.FC = () => {
   const [title, setTitle] = useState("Deals Of The Day");
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchData = async () => {
       try {
         setLoading(true);
 
         const { data } = await api.get("/home-config");
+        if (!isMounted) return;
+
         setTitle(data?.hotDealsTitle || "Deals Of The Day");
 
         const resolved = Array.isArray(data?.hotDealsItemsResolved)
@@ -88,9 +94,13 @@ const HotDealsPage: React.FC = () => {
         const ids = cfgItems.map((x: any) => x.productId).filter(Boolean);
 
         const products = await fetchProductsByIds(ids);
+        if (!isMounted) return;
+
+        // Use a Map for O(1) lookups instead of O(N^2) Array.find
+        const productMap = new Map(products.map(p => [p._id, p]));
 
         const joined: HotDealItem[] = cfgItems.map((it: any) => {
-          const p = products.find((x) => x._id === it.productId) || null;
+          const p = productMap.get(it.productId) || null;
           return {
             productId: it.productId,
             endsAt: it.endsAt ?? null,
@@ -104,11 +114,15 @@ const HotDealsPage: React.FC = () => {
       } catch (err) {
         console.error("Error fetching deals:", err);
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
+
+    return () => {
+        isMounted = false;
+    };
   }, []);
 
   const items = useMemo(() => {
@@ -153,9 +167,9 @@ const HotDealsPage: React.FC = () => {
           </div>
         ) : items.length > 0 ? (
           <div className="hd-pageGrid">
-            {items.map((item) => (
+            {items.map((item, index) => (
               <div className="hd-cardWrap" key={item.productId}>
-                <ProductCard product={item.product as any} />
+                <ProductCard product={item.product as any} index={index} />
               </div>
             ))}
           </div>

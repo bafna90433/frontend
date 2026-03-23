@@ -27,13 +27,14 @@
     radial-gradient(circle at top left, rgba(124, 58, 237, 0.08), transparent 28%),
     radial-gradient(circle at top right, rgba(239, 68, 68, 0.06), transparent 24%),
     linear-gradient(180deg, #f8fafc 0%, #f6f8fc 100%);
-  padding: 24px 20px; /* Thoda side padding kam kiya taaki edge-to-edge zyada space mile */
+  padding: 24px 20px;
   box-sizing: border-box;
+  will-change: background;
 }
 
 .hd-pageInner {
-  width: 100%; /* 👇 Pehle ye 1440px pe ruka hua tha, abhi full width lega */
-  max-width: 1920px; /* Ultra-wide screens ke liye bohot bada limit */
+  width: 100%;
+  max-width: 1920px;
   margin: 0 auto;
 }
 
@@ -74,6 +75,7 @@
   text-transform: uppercase;
   margin-bottom: 14px;
   backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .hd-pageTitle {
@@ -96,17 +98,21 @@
 .hd-pageGrid {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 12px; /* 👇 Gap ko 22px se hata kar 12px kar diya hai */
+  gap: 12px;
   width: 100%;
 }
 
 .hd-cardWrap {
   min-width: 0;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
+  will-change: transform;
 }
 
-.hd-cardWrap:hover {
-  transform: translateY(-6px);
+/* Avoid hover effect causing layout shifts on touch devices */
+@media (hover: hover) and (pointer: fine) {
+    .hd-cardWrap:hover {
+      transform: translateY(-6px);
+    }
 }
 
 /* Skeleton */
@@ -163,6 +169,7 @@
     transparent
   );
   animation: hdShimmer 1.3s infinite;
+  will-change: transform;
 }
 
 @keyframes hdShimmer {
@@ -219,6 +226,7 @@
   font-weight: 800;
   box-shadow: 0 8px 18px rgba(239, 68, 68, 0.28);
   animation: hdPulse 2s infinite;
+  will-change: transform;
 }
 
 @keyframes hdPulse {
@@ -289,7 +297,7 @@
 
   .hd-pageGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px; /* Mobile par gap aur kam kiya */
+    gap: 8px;
   }
 
   .hd-empty {

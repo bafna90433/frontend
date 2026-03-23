@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
 import {
   ShoppingCart,
-  Zap,
   Box,
   Plus,
   Minus,
@@ -11,7 +10,6 @@ import {
   Star,
   TrendingUp,
   Shield,
-  CheckCircle,
   Sparkles,
   Tag,
   Clock,
@@ -366,19 +364,21 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               )}
             </div>
 
-            {/* UPDATED PRICE SECTION */}
+            {/* UPDATED PRICE SECTION: STACKED LAYOUT */}
             <div className="pc-price-section">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
                 <span className="pc-amount">{finalPrice.toLocaleString()}</span>
               </div>
               
-              {itemCount > 0 && (
-                <div className="pc-inline-total">
-                  <span className="pc-inline-total-label">Total:</span>
-                  <span className="pc-inline-total-val">₹{(itemCount * finalPrice).toLocaleString()}</span>
-                </div>
-              )}
+              <div className="pc-total-wrapper">
+                {itemCount > 0 && (
+                  <div className="pc-bottom-total">
+                    <span className="pc-bottom-total-label">Total:</span>
+                    <span className="pc-bottom-total-val">₹{(itemCount * finalPrice).toLocaleString()}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div 

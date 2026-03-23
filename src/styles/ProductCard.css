@@ -442,9 +442,9 @@
 /* -------------------- PRICE SECTION -------------------- */
 .pc-price-section {
   display: flex;
-  align-items: center; /* Baseline se center kar diya */
-  justify-content: space-between; /* Isse total ekdum right mein chala jayega */
-  gap: var(--pc-space-2);
+  flex-direction: column; 
+  align-items: flex-start;
+  gap: 0.25rem;
   margin-top: auto;
 }
 
@@ -466,25 +466,39 @@
   line-height: 1;
 }
 
-/* -------------------- NEW INLINE TOTAL -------------------- */
-.pc-inline-total {
+.pc-total-wrapper {
+  min-height: 1.6rem; 
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+}
+
+/* -------------------- NEW BOTTOM TOTAL -------------------- */
+.pc-bottom-total {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
   background: var(--pc-primary-light);
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--pc-radius);
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--pc-radius-sm);
+  animation: pc-fade-in 200ms ease-out;
 }
 
-.pc-inline-total-label {
-  font-size: 0.75rem;
-  font-weight: 500;
+@keyframes pc-fade-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.pc-bottom-total-label {
+  font-size: 0.7rem;
+  font-weight: 600;
   color: var(--pc-primary-dark);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
-.pc-inline-total-val {
-  font-size: 0.875rem;
-  font-weight: 700;
+.pc-bottom-total-val {
+  font-size: 0.85rem;
+  font-weight: 800;
   color: var(--pc-primary-dark);
 }
 
