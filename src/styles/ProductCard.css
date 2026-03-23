@@ -442,7 +442,8 @@
 /* -------------------- PRICE SECTION -------------------- */
 .pc-price-section {
   display: flex;
-  align-items: baseline;
+  align-items: center; /* Baseline se center kar diya */
+  justify-content: space-between; /* Isse total ekdum right mein chala jayega */
   gap: var(--pc-space-2);
   margin-top: auto;
 }
@@ -463,6 +464,28 @@
   font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
+}
+
+/* -------------------- NEW INLINE TOTAL -------------------- */
+.pc-inline-total {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--pc-primary-light);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--pc-radius);
+}
+
+.pc-inline-total-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--pc-primary-dark);
+}
+
+.pc-inline-total-val {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--pc-primary-dark);
 }
 
 /* -------------------- ACTIONS -------------------- */
@@ -514,105 +537,59 @@
   box-shadow: none;
 }
 
-/* -------------------- QUANTITY CONTROLS -------------------- */
-.pc-quantity-controls {
+/* -------------------- INLINE QUANTITY CONTROLS -------------------- */
+.pc-inline-qty-container {
+  width: 100%;
   display: flex;
-  flex-direction: column;
-  gap: var(--pc-space-2);
-  padding: var(--pc-space-3);
-  background: var(--pc-gray-50);
-  border-radius: var(--pc-radius);
-  border: 1px solid var(--pc-gray-200);
-}
-
-.pc-qty-info {
-  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  background: var(--pc-white);
+  border: 1px solid var(--pc-primary);
+  border-radius: var(--pc-radius);
+  height: 2.875rem; /* Yeh height 'Add to Cart' button se match karegi */
+  overflow: hidden;
+  box-shadow: var(--pc-shadow-sm);
 }
 
-.pc-qty-label {
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--pc-gray-600);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.pc-qty-total {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--pc-primary);
-}
-
-.pc-quantity-buttons {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: var(--pc-space-2);
-  align-items: center;
-}
-
-.pc-qty-btn {
+.pc-inline-qty-btn {
+  background: transparent;
+  border: none;
+  color: var(--pc-primary-dark);
+  width: 3.5rem; /* Button ki chaurai */
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--pc-space-2);
-  background: var(--pc-white);
-  color: var(--pc-gray-700);
-  border: 1px solid var(--pc-gray-300);
-  border-radius: var(--pc-radius);
-  font-size: 0.8125rem;
-  font-weight: 600;
   cursor: pointer;
-  transition: transform var(--pc-transition-fast), background var(--pc-transition-fast), border-color var(--pc-transition-fast);
-  min-height: 2.5rem;
-  will-change: transform, background, border-color;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: background var(--pc-transition-fast);
   
   /* iOS Touch Optimization */
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
 }
 
-.pc-qty-btn:hover:not(:disabled) {
-  background: var(--pc-gray-100);
-  border-color: var(--pc-gray-400);
+.pc-inline-qty-btn:hover:not(:disabled) {
+  background: var(--pc-primary-light);
 }
 
-.pc-qty-btn:active:not(:disabled) {
-  transform: scale(0.95);
+.pc-inline-qty-btn:active:not(:disabled) {
+  background: #bbf7d0; /* Click karne par thoda dark effect */
 }
 
-.pc-qty-btn:disabled {
+.pc-inline-qty-btn:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
 
-.pc-qty-btn--decrease {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  color: #92400e;
-  border-color: #fcd34d;
-}
-
-.pc-qty-btn--decrease:hover:not(:disabled) {
-  background: linear-gradient(135deg, #fde68a 0%, #fcd34d 100%);
-}
-
-.pc-qty-btn--increase {
-  background: linear-gradient(135deg, var(--pc-primary-light) 0%, #a7f3d0 100%);
-  color: var(--pc-primary-dark);
-  border-color: #6ee7b7;
-}
-
-.pc-qty-btn--increase:hover:not(:disabled) {
-  background: linear-gradient(135deg, #a7f3d0 0%, #6ee7b7 100%);
-}
-
-.pc-qty-val {
-  text-align: center;
-  font-size: 1.125rem;
+.pc-inline-qty-val {
   font-weight: 700;
+  font-size: 1.125rem;
   color: var(--pc-gray-900);
   font-family: var(--pc-font-mono);
+  text-align: center;
+  flex: 1; /* Number ko center mein rakhega */
 }
 
 /* -------------------- RESPONSIVE DESIGN -------------------- */
@@ -701,7 +678,7 @@
 /* Focus Visible */
 .pc-card:focus-visible,
 .pc-add-to-cart:focus-visible,
-.pc-qty-btn:focus-visible {
+.pc-inline-qty-btn:focus-visible {
   outline: 2px solid var(--pc-primary);
   outline-offset: 2px;
 }
@@ -710,7 +687,7 @@
 @media (prefers-reduced-motion: reduce) {
   .pc-card,
   .pc-add-to-cart,
-  .pc-qty-btn,
+  .pc-inline-qty-btn,
   .pc-img,
   .pc-discount-ribbon {
     animation: none !important;
@@ -725,7 +702,7 @@
   }
   
   .pc-add-to-cart,
-  .pc-qty-btn {
+  .pc-inline-qty-btn {
     border: 2px solid currentColor;
   }
 }
@@ -760,7 +737,7 @@
   }
   
   .pc-add-to-cart,
-  .pc-quantity-controls {
+  .pc-inline-qty-container {
     display: none;
   }
 }

@@ -366,11 +366,19 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               )}
             </div>
 
+            {/* UPDATED PRICE SECTION */}
             <div className="pc-price-section">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
                 <span className="pc-amount">{finalPrice.toLocaleString()}</span>
               </div>
+              
+              {itemCount > 0 && (
+                <div className="pc-inline-total">
+                  <span className="pc-inline-total-label">Total:</span>
+                  <span className="pc-inline-total-val">₹{(itemCount * finalPrice).toLocaleString()}</span>
+                </div>
+              )}
             </div>
 
             <div 
@@ -404,46 +412,37 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                   )}
                 </button>
               ) : (
-                <div className="pc-quantity-controls">
-                  <div className="pc-qty-info">
-                    <span className="pc-qty-label">Total</span>
-                    <span className="pc-qty-total">
-                      ₹{(itemCount * finalPrice).toLocaleString()}
-                    </span>
-                  </div>
+                <div className="pc-inline-qty-container">
+                  <button
+                    onClick={handleDec}
+                    className="pc-inline-qty-btn"
+                    aria-label={
+                      itemCount === minQty
+                        ? "Remove from cart"
+                        : "Decrease quantity"
+                    }
+                  >
+                    {itemCount === minQty ? (
+                      "Del"
+                    ) : (
+                      <Minus size={18} strokeWidth={2.5} />
+                    )}
+                  </button>
 
-                  <div className="pc-quantity-buttons">
-                    <button
-                      onClick={handleDec}
-                      className="pc-qty-btn pc-qty-btn--decrease"
-                      aria-label={
-                        itemCount === minQty
-                          ? "Remove from cart"
-                          : "Decrease quantity"
-                      }
-                    >
-                      {itemCount === minQty ? (
-                        "Del"
-                      ) : (
-                        <Minus size={14} strokeWidth={2.5} />
-                      )}
-                    </button>
+                  <span className="pc-inline-qty-val" aria-label={`Quantity: ${itemCount}`}>
+                    {itemCount}
+                  </span>
 
-                    <span className="pc-qty-val" aria-label={`Quantity: ${itemCount}`}>
-                      {itemCount}
-                    </span>
-
-                    <button
-                      onClick={handleInc}
-                      className="pc-qty-btn pc-qty-btn--increase"
-                      disabled={
-                        product.stock !== undefined && itemCount >= product.stock
-                      }
-                      aria-label="Increase quantity"
-                    >
-                      <Plus size={14} strokeWidth={2.5} />
-                    </button>
-                  </div>
+                  <button
+                    onClick={handleInc}
+                    className="pc-inline-qty-btn"
+                    disabled={
+                      product.stock !== undefined && itemCount >= product.stock
+                    }
+                    aria-label="Increase quantity"
+                  >
+                    <Plus size={18} strokeWidth={2.5} />
+                  </button>
                 </div>
               )}
             </div>
