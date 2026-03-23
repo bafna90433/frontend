@@ -336,6 +336,18 @@ const ProductDetails: React.FC = () => {
         }
 
         setProduct(fetchedProduct);
+
+        // --- META PIXEL: VIEW CONTENT EVENT ---
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          (window as any).fbq('track', 'ViewContent', {
+            content_name: fetchedProduct.name,
+            content_ids: [fetchedProduct._id],
+            content_type: 'product',
+            value: fetchedProduct.price,
+            currency: 'INR'
+          });
+        }
+
       } catch (err) {
         if (!isMounted) return;
         console.error("Failed loading product", err);
@@ -444,8 +456,21 @@ const ProductDetails: React.FC = () => {
   }, [product, cartItems]);
 
   const handleAdd = useCallback(() => {
-    if (product) setCartItemQuantity(product, minQty);
-  }, [product, minQty, setCartItemQuantity]);
+    if (product) {
+      setCartItemQuantity(product, minQty);
+      
+      // --- META PIXEL: ADD TO CART EVENT ---
+      if (typeof window !== "undefined" && (window as any).fbq) {
+        (window as any).fbq('track', 'AddToCart', {
+          content_name: product.name,
+          content_ids: [product._id],
+          content_type: 'product',
+          value: unitPrice * minQty, // Total value of items added
+          currency: 'INR'
+        });
+      }
+    }
+  }, [product, minQty, setCartItemQuantity, unitPrice]);
 
   const handleInc = useCallback(() => {
     if (product) setCartItemQuantity(product, itemCount + 1);

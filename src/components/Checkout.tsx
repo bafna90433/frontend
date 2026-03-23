@@ -328,6 +328,17 @@ const Checkout: React.FC = () => {
         const orderNum = data.order?.orderNumber || data.orderNumber;
         setOrderNumber(orderNum);
         setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode: "COD", shippingAddress: selectedAddress, advancePaid: 0 });
+        
+        // --- META PIXEL: PURCHASE EVENT (COD) ---
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          (window as any).fbq('track', 'Purchase', {
+            value: finalTotalWithDiscount,
+            currency: 'INR',
+            content_type: 'product',
+            content_ids: items.map(item => item.productId)
+          });
+        }
+        
         setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
       } catch { alert("Failed to place order."); } finally { setPlacing(false); }
       return;
@@ -354,6 +365,17 @@ const Checkout: React.FC = () => {
             const orderNum = data.order?.orderNumber || data.orderNumber;
             setOrderNumber(orderNum);
             setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode, paymentId: response.razorpay_payment_id, shippingAddress: selectedAddress, advancePaid });
+            
+            // --- META PIXEL: PURCHASE EVENT (ONLINE/ADVANCE) ---
+            if (typeof window !== "undefined" && (window as any).fbq) {
+              (window as any).fbq('track', 'Purchase', {
+                value: finalTotalWithDiscount, // Send the full order value
+                currency: 'INR',
+                content_type: 'product',
+                content_ids: items.map(item => item.productId)
+              });
+            }
+
             setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
           } catch { alert("Order creation failed."); } finally { setPlacing(false); }
         },

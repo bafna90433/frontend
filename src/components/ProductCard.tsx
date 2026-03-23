@@ -157,8 +157,19 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
         e.preventDefault();
         e.stopPropagation();
         setCartItemQuantity(product, minQty);
+
+        // --- META PIXEL: ADD TO CART EVENT ---
+        if (typeof window !== "undefined" && (window as any).fbq) {
+          (window as any).fbq('track', 'AddToCart', {
+            content_name: product.name,
+            content_ids: [product._id],
+            content_type: 'product',
+            value: finalPrice * minQty, // Tracking the actual cost added to cart
+            currency: 'INR'
+          });
+        }
       },
-      [product, minQty, setCartItemQuantity]
+      [product, minQty, setCartItemQuantity, finalPrice]
     );
 
     const handleInc = useCallback(
