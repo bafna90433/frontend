@@ -151,11 +151,6 @@ const Checkout: React.FC = () => {
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
   
-  // NEW GST STATES
-  const [isVerifyingGst, setIsVerifyingGst] = useState(false);
-  const [gstData, setGstData] = useState<{ companyName: string; status: string } | null>(null);
-  const [gstError, setGstError] = useState<string | null>(null);
-  
   const [addressForm, setAddressForm] = useState<Partial<Address>>({
     shopName: "", fullName: "", phone: "", street: "", area: "", city: "", state: "", pincode: "", type: "Work", gstNumber: "", isDifferentShipping: false, shippingStreet: "", shippingArea: "", shippingPincode: "", shippingCity: "", shippingState: ""
   });
@@ -188,41 +183,6 @@ const Checkout: React.FC = () => {
     fetchCodSettings();
     fetchDiscountRules();
   }, []);
-
-  // --- GST LIVE VERIFICATION LOGIC ---
-  useEffect(() => {
-    const gst = addressForm.gstNumber?.toUpperCase() || "";
-    
-    if (gst.length === 15) {
-       verifyGst(gst);
-    } else if (gst.length < 15) {
-       setGstData(null);
-       setGstError(null);
-    }
-  }, [addressForm.gstNumber]);
-
-  const verifyGst = async (gstNumber: string) => {
-     setIsVerifyingGst(true);
-     setGstError(null);
-     setGstData(null);
-
-     try {
-        const { data } = await api.post("/addresses/verify-gst", { gstNumber });
-        if (data.success) {
-           setGstData({ companyName: data.companyName, status: data.status });
-           
-           // Magic Fill: Update Shop Name if it's empty
-           if (!addressForm.shopName) {
-              setAddressForm(prev => ({ ...prev, shopName: data.companyName }));
-           }
-        }
-     } catch (err: any) {
-        setGstError(err.response?.data?.message || "Invalid GST Number");
-     } finally {
-        setIsVerifyingGst(false);
-     }
-  };
-  // -----------------------------------
 
   const fetchCodSettings = async () => {
     try {
@@ -270,18 +230,15 @@ const Checkout: React.FC = () => {
   };
 
   const handleAddAddressClick = () => {
-    // ✅ PRE-FILL AUTOMATIC LOGIC HERE
     setAddressForm({ 
         shopName: user?.shopName || "", 
-        fullName: user?.ownerName || user?.fullName || "", // Contact Person
+        fullName: user?.ownerName || user?.fullName || "", 
         phone: user?.otpMobile || "", 
         street: "", area: "", city: "", state: "", pincode: "", type: "Work", 
-        gstNumber: user?.gstNumber || "", // ✅ Extract GST from registration
+        gstNumber: user?.gstNumber || "", 
         isDifferentShipping: false, 
         shippingStreet: "", shippingArea: "", shippingCity: "", shippingState: "", shippingPincode: "" 
     });
-    setGstData(null);
-    setGstError(null);
     setIsAddingAddress(true);
   };
 
@@ -301,13 +258,12 @@ const Checkout: React.FC = () => {
     const finalValue = name === "gstNumber" ? value.toUpperCase() : value;
     setAddressForm((prev) => ({ ...prev, [name]: finalValue }));
 
-    // Pincode Auto-Detect Logic (Triggers when 6 digits are entered)
+    // Pincode Auto-Detect Logic
     if ((name === "pincode" || name === "shippingPincode") && value.length === 6) {
         fetchCityStateFromPincode(value, name === "shippingPincode");
     }
   };
 
-  // API Call to Auto-Detect City & State based on Pincode
   const fetchCityStateFromPincode = async (pincode: string, isShipping: boolean) => {
     try {
         const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
@@ -411,6 +367,11 @@ const Checkout: React.FC = () => {
 
   const neededForFree = freeShippingThreshold - cartTotal;
   const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
+
+  // --- GST VALIDATION LOGIC ---
+  const gstValue = addressForm.gstNumber?.toUpperCase() || "";
+  // Check if GST is entered and does NOT match standard 15-digit alphanumeric format (e.g., 22AAAAA0000A1Z5)
+  const isGstInvalid = gstValue.length > 0 && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{3}$/.test(gstValue);
 
   /* ── SUCCESS PAGE ── */
   if (orderPlaced) {
@@ -620,7 +581,7 @@ const Checkout: React.FC = () => {
                         </select>
                       </div>
 
-                      {/* --- UPDATED GST FIELD WITH LIVE UI --- */}
+                      {/* --- UPDATED GST FIELD (WITH VALIDATION) --- */}
                       <div className="co-field co-field--full" style={{ marginBottom: '10px' }}>
                         <label>GST - Optional</label>
                         <input 
@@ -632,17 +593,14 @@ const Checkout: React.FC = () => {
                           style={{ 
                             marginBottom: '5px', 
                             textTransform: 'uppercase',
-                            borderColor: gstError ? '#dc2626' : gstData ? '#16a34a' : '#e2e8f0'
+                            borderColor: isGstInvalid ? '#dc2626' : '#e2e8f0'
                           }} 
                         />
-                        
-                        {isVerifyingGst && <span style={{ fontSize: '12px', color: '#0284c7', display: 'flex', alignItems: 'center', gap: '4px' }}>⏳ Verifying GST Database...</span>}
-                        
-                        {gstData && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#16a34a', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>✅ Verified: {gstData.companyName} ({gstData.status})</span>}
-                        
-                        {gstError && !isVerifyingGst && <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '4px' }}>❌ {gstError}</span>}
-
-                        {!isVerifyingGst && !gstData && !gstError && (
+                        {isGstInvalid ? (
+                          <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            ❌ Please enter a valid 15-digit GST number.
+                          </span>
+                        ) : (
                           <span style={{ fontSize: '12px', color: '#64748b' }}>
                             (Please enter your GST number to claim TAX input credit on your purchase. If no GST Number, goods will be sent on personal name)
                           </span>
@@ -698,7 +656,8 @@ const Checkout: React.FC = () => {
                     <div className="co-form-footer" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
                       <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', width: '100%' }}>
                          <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost" style={{ padding: '12px 24px' }}>Cancel</button>
-                         <button type="submit" disabled={savingAddress || isVerifyingGst} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
+                         {/* DISABLED IF GST IS INVALID OR SAVING */}
+                         <button type="submit" disabled={savingAddress || isGstInvalid} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
                            {savingAddress ? "Saving..." : "👉 Confirm Address & Continue"}
                          </button>
                       </div>
