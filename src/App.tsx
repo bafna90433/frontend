@@ -1,4 +1,3 @@
-// src/App.tsx
 import React, { useEffect, useState, Suspense } from "react";
 import {
   BrowserRouter as Router,
@@ -7,11 +6,9 @@ import {
   Navigate,
   useLocation,
 } from "react-router-dom";
-import api from "./utils/api"; // ✅ axios instance
+import api from "./utils/api";
 import { io } from "socket.io-client";
 import axios from "axios";
-
-// ✅ YAHAN STATUS BAR PLUGIN IMPORT KIYA HAI
 import { StatusBar } from "@capacitor/status-bar";
 
 import { ShopProvider, useShop } from "./context/ShopContext";
@@ -20,14 +17,14 @@ import { ThemeProvider } from "./context/ThemeContext";
 // --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
-import WhatsAppButton from "./components/WhatsAppButton";
-import FreeDeliveryModal from "./components/FreeDeliveryModal";
 import ComingSoon from "./components/ComingSoon";
 
-// ✅ NAYA NO INTERNET COMPONENT IMPORT KIYA HAI
-import NoInternet from "./components/NoInternet";
+// --- LAZY LOADED COMPONENTS (Non-critical) ---
+const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
+const FreeDeliveryModal = React.lazy(() => import("./components/FreeDeliveryModal"));
+const NoInternet = React.lazy(() => import("./components/NoInternet"));
 
-// --- LAZY LOADED PAGES (Improves Initial Load Speed) ---
+// --- LAZY LOADED PAGES ---
 const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
@@ -45,11 +42,9 @@ const TermsConditions = React.lazy(() => import("./components/TermsConditions"))
 const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"));
 const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
+const PendingReviews = React.lazy(() => import("./pages/PendingReviews"));
 
-// ✅ NEW: Pending Reviews Lazy Import kiya hai
-const PendingReviews = React.lazy(() => import("./pages/PendingReviews")); 
-
-// --- CONFIGURATION (✅ env-based) ---
+// --- CONFIGURATION ---
 const SOCKET_URL: string =
   (import.meta as any).env?.VITE_SOCKET_URL ||
   "https://bafnatoys-backend-production.up.railway.app";
@@ -85,13 +80,14 @@ const PageLoader = () => (
   </div>
 );
 
-// --- ✅ PAGE TRACKER COMPONENT (Analytics) ---
+// --- PAGE TRACKER (Deferred) ---
 const PageTracker = () => {
   const location = useLocation();
 
   useEffect(() => {
+    // Run tracking only when the browser is idle to not block main thread
     if (!navigator.onLine) return;
-
+    
     const trackPage = async () => {
       try {
         await api.post("/analytics/track", {
@@ -103,7 +99,11 @@ const PageTracker = () => {
       }
     };
 
-    trackPage();
+    if ('requestIdleCallback' in window) {
+      window.requestIdleCallback(trackPage);
+    } else {
+      setTimeout(trackPage, 2000);
+    }
   }, [location]);
 
   return null;
@@ -139,9 +139,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <>
-      <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
       <Header />
-
       <main 
         style={{ 
           paddingBottom: "60px", 
@@ -155,8 +153,12 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
       </main>
 
-      <WhatsAppButton />
-      <BottomNav />
+      {/* Non-critical elements lazy loaded */}
+      <Suspense fallback={null}>
+        <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
+        <WhatsAppButton />
+        <BottomNav />
+      </Suspense>
     </>
   );
 };
@@ -165,19 +167,19 @@ const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // ✅ APP KHULTE HI STATUS BAR HIDE
+  // Status Bar
   useEffect(() => {
     const hideStatusBar = async () => {
       try {
         await StatusBar.hide();
       } catch (error) {
-        console.log("Status bar feature works only on mobile devices:", error);
+        // Ignore silently in production web
       }
     };
     hideStatusBar();
   }, []);
 
-  // 1) MAINTENANCE CHECK
+  // Maintenance Check
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
@@ -198,15 +200,17 @@ const AppInner: React.FC = () => {
     checkMaintenance();
   }, []);
 
-  // 2) SOCKET CONNECTION (Real-time Online Count)
+  // Socket Connection (Deferred)
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
+    
+    // Connect socket later so it doesn't interrupt page load
     const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
         transports: ["websocket"],
         withCredentials: true,
       });
-    }, 1500);
+    }, 5000);
 
     return () => {
       clearTimeout(timer);
@@ -219,7 +223,9 @@ const AppInner: React.FC = () => {
 
   return (
     <Router>
-      <NoInternet />
+      <Suspense fallback={null}>
+         <NoInternet />
+      </Suspense>
       <PageTracker />
 
       <Routes>
@@ -249,67 +255,52 @@ const AppInner: React.FC = () => {
               <Route
                 path="/checkout"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <Checkout />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
               <Route
                 path="/my-account"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <MyAccount />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
               <Route
                 path="/edit-profile"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <EditProfile />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
               <Route
                 path="/orders"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <Orders />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
               <Route
                 path="/addresses"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <ManageAddresses />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
-              
-              {/* ✅ NAYA ROUTE: Pending Reviews */}
               <Route
                 path="/pending-reviews"
                 element={
-                  <Suspense fallback={<PageLoader />}>
                     <ProtectedRoute>
                       <PendingReviews />
                     </ProtectedRoute>
-                  </Suspense>
                 }
               />
 
-              {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </LayoutWrapper>

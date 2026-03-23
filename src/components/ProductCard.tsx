@@ -22,6 +22,7 @@ interface Product {
   _id: string;
   name: string;
   slug?: string;
+  category?: string | { _id?: string; name?: string };
   images?: string[];
   price: number;
   mrp?: number;
@@ -121,6 +122,12 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const itemCount = cartItem?.quantity ?? 0;
 
     const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
+
+    const displayCategory = useMemo(() => {
+      if (!product.category) return "";
+      if (typeof product.category === "object") return product.category.name || "";
+      return product.category;
+    }, [product.category]);
 
     const handleNavigate = useCallback(() => {
       navigate(
@@ -240,9 +247,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
           role="button"
           tabIndex={0}
           aria-label={`View ${product.name}`}
-          // iOS FIX: Prevent double-tap zoom on cards
           onTouchStart={(e) => {
-            // Prevent iOS double-tap zoom on product cards
             if (e.touches.length === 2) {
               e.preventDefault();
             }
@@ -251,7 +256,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
           {/* Image Section */}
           <div className="pc-image-container">
             <div className="pc-image-wrapper">
-              {/* Timer or Featured Badge */}
               {timeLeft ? (
                 <div className="pc-hotdeal-timer" aria-live="polite">
                   <Clock size={12} strokeWidth={2.5} />
@@ -268,10 +272,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                 )
               )}
 
-              {/* Skeleton Loader */}
               {!imgLoaded && <div className="pc-skeleton" aria-hidden="true" />}
 
-              {/* Product Image */}
               <img
                 src={imgSrc}
                 alt={product.name}
@@ -286,12 +288,10 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                   const target = e.currentTarget;
                   if (target.src !== FALLBACK_IMAGE) target.src = FALLBACK_IMAGE;
                 }}
-                // iOS FIX: Prevent image context menu and zoom
                 onContextMenu={(e) => e.preventDefault()}
               />
             </div>
 
-            {/* MRP Circle */}
             {product.mrp && product.mrp > finalPrice && (
               <div className="pc-mrp-circle" aria-label={`MRP ₹${product.mrp}`}>
                 <span className="pc-mrp-text">MRP</span>
@@ -301,7 +301,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             )}
 
-            {/* Discount Ribbon */}
             {discountPercent > 0 && (
               <div
                 className="pc-discount-ribbon"
@@ -315,7 +314,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
           {/* Card Body */}
           <div className="pc-body">
-            {/* Top Row */}
             <div className="pc-toprow">
               <div className="pc-topleft">
                 <div className="pc-min-qty">
@@ -326,31 +324,21 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
               <div className="pc-topright">
                 <div className="pc-stock-status">
-                  {product.stock === 0 ? (
-                    <span className="pc-stock pc-stock--out">Out of Stock</span>
-                  ) : product.stock && product.stock <= 10 ? (
-                    <span className="pc-stock pc-stock--low">
-                      <Zap size={10} fill="currentColor" />
-                      {product.stock} left
-                    </span>
-                  ) : (
+                  {displayCategory && (
                     <span className="pc-stock pc-stock--in">
-                      <CheckCircle size={10} />
-                      In Stock
+                      {displayCategory.toUpperCase()}
                     </span>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Title */}
             <h3 className="pc-title">
               {product.name.length > 50
                 ? product.name.slice(0, 50) + "…"
                 : product.name}
             </h3>
 
-            {/* Rating */}
             {(rating > 0 || totalReviews > 0) && (
               <div className="pc-rating-container">
                 <div className="pc-rating-badge">
@@ -363,7 +351,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             )}
 
-            {/* Meta Chips */}
             <div className="pc-meta-chips">
               {product.tagline && (
                 <span className="pc-chip pc-chip--tag">
@@ -379,7 +366,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               )}
             </div>
 
-            {/* Price */}
             <div className="pc-price-section">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
@@ -387,7 +373,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             </div>
 
-            {/* Actions */}
             <div 
               className="pc-actions"
               onClick={(e) => {

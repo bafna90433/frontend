@@ -1,33 +1,35 @@
 :root {
-  --banner-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  --banner-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
   --banner-border: 1px solid rgba(0,0,0,0.04);
   --banner-bg: #f8fafc;
 }
 
 body.dark {
-  --banner-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+  --banner-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
   --banner-border: 1px solid #2d3748;
   --banner-bg: #1a202c;
 }
 
 .banner-slider-row {
   width: 100%;
-  margin: 20px auto;
-  padding: 10px 0;
+  margin: 16px auto;
+  padding: 8px 0;
   overflow: hidden;
 }
 
 .banner-slide {
-  padding: 0 12px;
+  padding: 0 10px;
   box-sizing: border-box;
 }
 
 .banner-link-wrapper {
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   background-color: var(--banner-bg);
   box-shadow: var(--banner-shadow);
   border: var(--banner-border);
+  /* Fix for Safari border-radius overflow bug */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .banner-link {
@@ -35,33 +37,30 @@ body.dark {
   text-decoration: none;
 }
 
-/* ✅ PERFECT QUALITY & FIT */
 .banner-row-img {
   width: 100%;
   height: auto;
-  aspect-ratio: 5 / 3; /* Strictly 500x300 ratio */
+  aspect-ratio: 5 / 3;
   object-fit: cover;
   object-position: center;
   display: block;
+  background-color: var(--banner-bg); /* Prevents transparent flash while loading */
   
-  /* Sharpness Fix */
-  image-rendering: -webkit-optimize-contrast;
   transform: translateZ(0); 
   backface-visibility: hidden;
-
   will-change: transform, filter;
-  transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1), 
-              filter 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), filter 0.3s ease;
 }
 
 /* Hover Effect */
-.banner-link:hover .banner-row-img {
-  transform: scale(1.04);
+@media (hover: hover) and (pointer: fine) {
+    .banner-link:hover .banner-row-img {
+      transform: scale(1.03);
+    }
 }
 
-/* ✅ SMOOTH LOADING BLUR */
 .blur-up {
-  filter: blur(10px);
+  filter: blur(8px);
 }
 
 .blur-up.is-loaded {
@@ -71,6 +70,6 @@ body.dark {
 /* Mobile responsive padding */
 @media (max-width: 480px) {
   .banner-slide {
-    padding: 0 8px;
+    padding: 0 6px;
   }
 }

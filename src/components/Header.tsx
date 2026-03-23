@@ -61,6 +61,16 @@ const SuggestionSkeleton = () => (
   </div>
 );
 
+// Custom hook for performance optimization
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 const SearchForm = React.memo(React.forwardRef(function SearchForm(
   props: {
     mobile?: boolean;
@@ -212,6 +222,7 @@ const Header: React.FC = () => {
   }, [cartItems]);
 
   const [q, setQ] = useState("");
+  const debouncedQ = useDebounce(q, 300);
   const [sug, setSug] = useState<Suggestion[]>([]);
   const [loadingSug, setLoadingSug] = useState(false);
   const [openSug, setOpenSug] = useState(false);
@@ -222,11 +233,12 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  const [placeholderText, setPlaceholderText] = useState("");
+  const [placeholderText, setPlaceholderText] = useState("Search for toys...");
   const [currentWordIdx, setCurrentWordIdx] = useState(0);
   const [isDeleting, setIsDeleting] = useState(false);
   const [charIdx, setCharIdx] = useState(0);
 
+  // Typewriter effect deferred to idle time to not block thread
   useEffect(() => {
     const words = popularSearches.length > 0 ? popularSearches.map(cat => `Search for "${cat.name}"...`) : ["Search for wind-up toys...", "Search for soft toys...", "Search for pull-back cars..."];
     const currentFullWord = words[currentWordIdx % words.length];
@@ -270,7 +282,8 @@ const Header: React.FC = () => {
         }
       } catch (error) { console.error(error); }
     };
-    fetchPopularData();
+    // Defer API call
+    setTimeout(fetchPopularData, 1000);
   }, []);
 
   const saveSearchTerm = useCallback((term: string) => {
@@ -296,10 +309,9 @@ const Header: React.FC = () => {
   }, [location.search]);
 
   useEffect(() => {
-    let t: any;
     let alive = true;
     const run = async () => {
-      const needle = q.trim();
+      const needle = debouncedQ.trim();
       if (needle.length < 2) {
         if (alive) { setSug([]); setActiveIdx(-1); }
         return;
@@ -322,9 +334,9 @@ const Header: React.FC = () => {
         if (alive) { setSug([]); setActiveIdx(-1); }
       } finally { if (alive) setLoadingSug(false); }
     };
-    t = setTimeout(run, 200);
-    return () => { alive = false; clearTimeout(t); };
-  }, [q]);
+    run();
+    return () => { alive = false; };
+  }, [debouncedQ]);
 
   useEffect(() => {
     const onDoc = (e: MouseEvent) => {
@@ -414,15 +426,16 @@ const Header: React.FC = () => {
 
           {/* Logo + B2B Tagline + MASCOT */}
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
-            {/* Mascot Image is now FIRST */}
             <img 
               src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1774086370/Super_Car___05_vrkphh.webp" 
               alt="Mascot" 
               className="bafna-brand__mascot"
+              width={60}
+              height={60}
+              fetchPriority="high"
             />
-            {/* Logo and Tagline are SECOND */}
             <div className="bafna-brand__wrap">
-              <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} loading="eager" />
+              <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} fetchPriority="high" />
               <span className="bafna-brand__tagline">B2B Toys Manufacturer</span>
             </div>
           </Link>

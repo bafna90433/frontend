@@ -5,7 +5,7 @@ type Props = {
   limit: number;
 };
 
-const STORAGE_KEY = "freeDeliverySkip"; // you can keep same key
+const STORAGE_KEY = "freeDeliverySkip";
 
 const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
   const [show, setShow] = useState(false);
@@ -13,23 +13,14 @@ const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
   const remaining = useMemo(() => Math.max(0, (limit || 0) - (cartTotal || 0)), [cartTotal, limit]);
 
   useEffect(() => {
-    // ✅ basic guards
-    if (!limit || limit <= 0) {
+    if (!limit || limit <= 0 || cartTotal >= limit) {
       setShow(false);
       return;
     }
 
-    // ✅ if reached limit, no modal
-    if (cartTotal >= limit) {
-      setShow(false);
-      return;
-    }
-
-    // ✅ OPTIONAL: daily reset logic (remove if you want permanent skip)
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
     const saved = localStorage.getItem(STORAGE_KEY);
-    // store as "1|2026-02-12"
     if (saved) {
+      const today = new Date().toLocaleDateString('en-CA');
       const [flag, date] = saved.split("|");
       if (flag === "1" && date === today) {
         setShow(false);
@@ -43,26 +34,23 @@ const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
   useEffect(() => {
     if (!show) return;
 
-    // ✅ lock body scroll (prevents background shift)
-    const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
-    // ✅ esc to close
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") close();
     };
-    window.addEventListener("keydown", onKeyDown);
+    
+    window.addEventListener("keydown", onKeyDown, { passive: true });
 
     return () => {
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = "";
       window.removeEventListener("keydown", onKeyDown);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [show]);
 
   const close = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    localStorage.setItem(STORAGE_KEY, `1|${today}`); // daily skip
+    const today = new Date().toLocaleDateString('en-CA');
+    localStorage.setItem(STORAGE_KEY, `1|${today}`);
     setShow(false);
   };
 
@@ -110,8 +98,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: "center",
     padding: 16,
   },
-
-  // ✅ responsive + stable size (no huge 1000px)
   modal: {
     width: "min(92vw, 520px)",
     maxHeight: "min(86vh, 520px)",
@@ -123,7 +109,6 @@ const styles: Record<string, React.CSSProperties> = {
     boxShadow: "0 20px 60px rgba(0,0,0,0.35)",
     overflow: "auto",
   },
-
   closeBtn: {
     position: "absolute",
     top: 10,
@@ -135,7 +120,6 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1,
     padding: 6,
   },
-
   iconWrap: {
     width: 54,
     height: 54,
@@ -147,27 +131,23 @@ const styles: Record<string, React.CSSProperties> = {
     background: "rgba(255,107,107,0.12)",
     fontSize: 26,
   },
-
   title: {
     fontSize: 22,
     margin: "8px 0 10px",
     fontWeight: 800,
   },
-
   text: {
     fontSize: 14,
     margin: "0 0 6px",
     color: "#111827",
     lineHeight: 1.35,
   },
-
   subText: {
     fontSize: 13,
     margin: "0 0 16px",
     color: "#374151",
     lineHeight: 1.35,
   },
-
   btn: {
     padding: "10px 18px",
     fontSize: 14,

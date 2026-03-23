@@ -4,6 +4,8 @@ import React, {
   useMemo,
   useRef,
   useCallback,
+  Suspense,
+  lazy,
 } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
 import api, { MEDIA_URL } from "../utils/api";
@@ -11,7 +13,6 @@ import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
 import "../styles/Products.css";
 import CategorySEO from "./CategorySEO";
-import FloatingCheckoutButton from "./FloatingCheckoutButton";
 import {
   X,
   ChevronRight,
@@ -43,6 +44,8 @@ import {
   Award,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
+
+const FloatingCheckoutButton = lazy(() => import("./FloatingCheckoutButton"));
 
 // ════════════════════════════════════════════════════════════
 // TYPES
@@ -759,7 +762,10 @@ const Products: React.FC = () => {
                       {cat.image ? (
                         <img
                           src={optimizeCloudinary(cat.image, 36, 36)}
-                          alt=""
+                          alt={cat.name}
+                          width={36}
+                          height={36}
+                          loading="lazy"
                           className="sp-sb-cat-img"
                         />
                       ) : (
@@ -853,7 +859,9 @@ const Products: React.FC = () => {
                       {cat.image ? (
                         <img
                           src={optimizeCloudinary(cat.image, 80, 80)}
-                          alt=""
+                          alt={cat.name}
+                          width={80}
+                          height={80}
                           loading="lazy"
                         />
                       ) : (
@@ -1115,6 +1123,8 @@ const Products: React.FC = () => {
                             <img
                               src={optimizeCloudinary(item.image, 400, 280)}
                               alt={item.label || `Process ${i + 1}`}
+                              width={400}
+                              height={280}
                               loading="lazy"
                             />
                           </div>
@@ -1138,6 +1148,8 @@ const Products: React.FC = () => {
                             <img
                               src={optimizeCloudinary(item.img, 400, 280)}
                               alt={item.label}
+                              width={400}
+                              height={280}
                               loading="lazy"
                             />
                           </div>
@@ -1171,6 +1183,8 @@ const Products: React.FC = () => {
             <img
               src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
               alt="Factory"
+              width={1200}
+              height={400}
               className="sp-bis-img"
               loading="lazy"
             />
@@ -1202,6 +1216,8 @@ const Products: React.FC = () => {
                       <img
                         src={optimizeCloudinary(r.image, 400, 400)}
                         alt={r.reviewerName}
+                        width={400}
+                        height={400}
                         loading="lazy"
                       />
                     </div>
@@ -1253,17 +1269,17 @@ const Products: React.FC = () => {
                     <div className="sp-mp-logos">
                       {trustData.amazonLink && trustData.amazonLogo && (
                         <a href={trustData.amazonLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.amazonLogo, 80, 40, "c_fit")} alt="Amazon" />
+                          <img src={optimizeCloudinary(trustData.amazonLogo, 80, 40, "c_fit")} alt="Amazon" width={80} height={40} loading="lazy" />
                         </a>
                       )}
                       {trustData.flipkartLink && trustData.flipkartLogo && (
                         <a href={trustData.flipkartLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.flipkartLogo, 80, 40, "c_fit")} alt="Flipkart" />
+                          <img src={optimizeCloudinary(trustData.flipkartLogo, 80, 40, "c_fit")} alt="Flipkart" width={80} height={40} loading="lazy" />
                         </a>
                       )}
                       {trustData.meeshoLink && trustData.meeshoLogo && (
                         <a href={trustData.meeshoLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.meeshoLogo, 80, 40, "c_fit")} alt="Meesho" />
+                          <img src={optimizeCloudinary(trustData.meeshoLogo, 80, 40, "c_fit")} alt="Meesho" width={80} height={40} loading="lazy" />
                         </a>
                       )}
                     </div>
@@ -1273,6 +1289,9 @@ const Products: React.FC = () => {
                   <img
                     src={optimizeCloudinary(trustData.makeInIndiaLogo, 120, 60, "c_fit")}
                     alt="Make In India"
+                    width={120}
+                    height={60}
+                    loading="lazy"
                     className="sp-mii-logo"
                   />
                 )}
@@ -1397,7 +1416,9 @@ const Products: React.FC = () => {
         </div>
       )}
 
-      <FloatingCheckoutButton />
+      <Suspense fallback={null}>
+        <FloatingCheckoutButton />
+      </Suspense>
     </div>
   );
 };

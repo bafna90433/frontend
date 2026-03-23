@@ -66,19 +66,20 @@ const ProductDetails: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState(0);
-  const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [isSwiping, setIsSwiping] = useState(false);
-
+  
+  // Touch Swiping Refs (Optimized without React State for performance)
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchCurrentX = useRef(0);
   const isHorizontalSwipe = useRef<boolean | null>(null);
-  const carouselRef = useRef<HTMLDivElement>(null);
+  const carouselTrackRef = useRef<HTMLDivElement>(null);
+  const isSwipingRef = useRef(false);
+  const swipeOffsetRef = useRef(0);
+  
   const thumbnailRef = useRef<HTMLDivElement>(null);
   const autoplayRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -94,79 +95,78 @@ const ProductDetails: React.FC = () => {
       : [product.image].filter(Boolean) as string[];
   }, [product]);
 
-  // Preload all images
+  // Simplified Image Preloading (Browser handles this efficiently natively if rendered)
+  const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   useEffect(() => {
     if (images.length > 0) {
       setImgLoaded(new Array(images.length).fill(false));
-      images.forEach((img, index) => {
-        const imgEl = new Image();
-        imgEl.src = getImageUrl(img, 800);
-        imgEl.onload = () => {
-          setImgLoaded((prev) => {
-            const next = [...prev];
-            next[index] = true;
-            return next;
-          });
-        };
-      });
     }
-  }, [images]);
-
-  // Autoplay carousel
-  useEffect(() => {
-    if (images.length <= 1) return;
-
-    const startAutoplay = () => {
-      autoplayRef.current = setInterval(() => {
-        setSelectedImage((prev) =>
-          prev === images.length - 1 ? 0 : prev + 1
-        );
-      }, 5000);
-    };
-
-    startAutoplay();
-
-    return () => {
-      if (autoplayRef.current) clearInterval(autoplayRef.current);
-    };
   }, [images.length]);
 
-  const pauseAutoplay = () => {
+  const handleImageLoad = useCallback((index: number) => {
+    setImgLoaded(prev => {
+        if(prev[index]) return prev;
+        const next = [...prev];
+        next[index] = true;
+        return next;
+    });
+  }, []);
+
+  // Autoplay carousel
+  const startAutoplay = useCallback(() => {
+    if (images.length <= 1) return;
+    if (autoplayRef.current) clearInterval(autoplayRef.current);
+    
+    autoplayRef.current = setInterval(() => {
+      setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+    }, 5000);
+  }, [images.length]);
+
+  const pauseAutoplay = useCallback(() => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
       autoplayRef.current = null;
     }
-  };
+  }, []);
 
-  const resumeAutoplay = () => {
-    if (images.length <= 1) return;
-    pauseAutoplay();
-    autoplayRef.current = setInterval(() => {
-      setSelectedImage((prev) =>
-        prev === images.length - 1 ? 0 : prev + 1
-      );
-    }, 5000);
-  };
+  useEffect(() => {
+    startAutoplay();
+    return pauseAutoplay;
+  }, [startAutoplay, pauseAutoplay]);
 
-  // Touch handlers for native-like swipe
+  // Touch handlers for native-like swipe (Optimized with requestAnimationFrame)
+  const updateTrackTransform = useCallback((offset: number, animate: boolean = false) => {
+      if(!carouselTrackRef.current) return;
+      const el = carouselTrackRef.current;
+      el.style.transition = animate ? "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)" : "none";
+      el.style.transform = `translateX(calc(-${selectedImage * 100}% + ${offset}px))`;
+  }, [selectedImage]);
+
+  useEffect(() => {
+      // Reset track position when selectedImage changes normally
+      if(!isSwipingRef.current) {
+          updateTrackTransform(0, true);
+      }
+  }, [selectedImage, updateTrackTransform]);
+
   const handleTouchStart = (e: React.TouchEvent) => {
     pauseAutoplay();
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     touchCurrentX.current = e.touches[0].clientX;
     isHorizontalSwipe.current = null;
-    setIsSwiping(true);
+    isSwipingRef.current = true;
+    swipeOffsetRef.current = 0;
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isSwiping || images.length <= 1) return;
+    if (!isSwipingRef.current || images.length <= 1) return;
 
     const currentX = e.touches[0].clientX;
     const currentY = e.touches[0].clientY;
     const diffX = currentX - touchStartX.current;
     const diffY = currentY - touchStartY.current;
 
-    // Determine swipe direction on first significant movement
     if (isHorizontalSwipe.current === null) {
       if (Math.abs(diffX) > 8 || Math.abs(diffY) > 8) {
         isHorizontalSwipe.current = Math.abs(diffX) > Math.abs(diffY);
@@ -179,37 +179,51 @@ const ProductDetails: React.FC = () => {
     e.preventDefault();
     touchCurrentX.current = currentX;
 
-    // Add resistance at edges
     let offset = diffX;
     if (
       (selectedImage === 0 && offset > 0) ||
       (selectedImage === images.length - 1 && offset < 0)
     ) {
-      offset = offset * 0.3;
+      offset = offset * 0.3; // Resistance
     }
 
-    setSwipeOffset(offset);
+    swipeOffsetRef.current = offset;
+    
+    // Direct DOM manipulation to avoid React state batching delays
+    requestAnimationFrame(() => {
+        updateTrackTransform(offset, false);
+    });
   };
 
   const handleTouchEnd = () => {
-    if (!isSwiping) return;
-    setIsSwiping(false);
+    if (!isSwipingRef.current) return;
+    isSwipingRef.current = false;
 
-    const containerWidth = carouselRef.current?.offsetWidth || 300;
+    const containerWidth = carouselTrackRef.current?.parentElement?.offsetWidth || 300;
     const threshold = containerWidth * 0.2;
     const velocity = touchCurrentX.current - touchStartX.current;
+    const offset = swipeOffsetRef.current;
 
-    if (Math.abs(swipeOffset) > threshold || Math.abs(velocity) > 80) {
-      if (swipeOffset < 0 && selectedImage < images.length - 1) {
-        setSelectedImage((prev) => prev + 1);
-      } else if (swipeOffset > 0 && selectedImage > 0) {
-        setSelectedImage((prev) => prev - 1);
+    let nextImage = selectedImage;
+
+    if (Math.abs(offset) > threshold || Math.abs(velocity) > 80) {
+      if (offset < 0 && selectedImage < images.length - 1) {
+        nextImage = selectedImage + 1;
+      } else if (offset > 0 && selectedImage > 0) {
+        nextImage = selectedImage - 1;
       }
     }
 
-    setSwipeOffset(0);
+    swipeOffsetRef.current = 0;
     isHorizontalSwipe.current = null;
-    resumeAutoplay();
+    
+    if (nextImage !== selectedImage) {
+        setSelectedImage(nextImage); // This will trigger the useEffect to animate to new pos
+    } else {
+        updateTrackTransform(0, true); // Snap back to current
+    }
+
+    startAutoplay();
   };
 
   const handleImageChange = useCallback(
@@ -225,12 +239,12 @@ const ProductDetails: React.FC = () => {
         }
       });
 
-      resumeAutoplay();
+      startAutoplay();
     },
-    [images.length]
+    [images.length, pauseAutoplay, startAutoplay]
   );
 
-  const handleSelectImage = (index: number) => {
+  const handleSelectImage = useCallback((index: number) => {
     pauseAutoplay();
     setSelectedImage(index);
 
@@ -244,8 +258,8 @@ const ProductDetails: React.FC = () => {
         });
       }
     }
-    resumeAutoplay();
-  };
+    startAutoplay();
+  }, [pauseAutoplay, startAutoplay]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -265,8 +279,10 @@ const ProductDetails: React.FC = () => {
     setProduct(null);
     setSelectedImage(0);
     setImgLoaded([]);
-    setSwipeOffset(0);
+    swipeOffsetRef.current = 0;
     window.scrollTo(0, 0);
+
+    let isMounted = true;
 
     const fetchData = async () => {
       try {
@@ -274,6 +290,8 @@ const ProductDetails: React.FC = () => {
           api.get(`/products/${id}`),
           api.get("/home-config").catch(() => ({ data: {} })),
         ]);
+
+        if (!isMounted) return;
 
         let fetchedProduct = productRes.data;
         const configData = configRes.data;
@@ -319,14 +337,19 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
       } catch (err) {
+        if (!isMounted) return;
         console.error("Failed loading product", err);
         setError("Failed to load product. Please try again later.");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchData();
+    
+    return () => {
+        isMounted = false;
+    }
   }, [id]);
 
   // Timer
@@ -420,20 +443,20 @@ const ProductDetails: React.FC = () => {
     return { itemCount, minQty, unitPrice, discountPercent, hasDiscount };
   }, [product, cartItems]);
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     if (product) setCartItemQuantity(product, minQty);
-  };
+  }, [product, minQty, setCartItemQuantity]);
 
-  const handleInc = () => {
+  const handleInc = useCallback(() => {
     if (product) setCartItemQuantity(product, itemCount + 1);
-  };
+  }, [product, itemCount, setCartItemQuantity]);
 
-  const handleDec = () => {
+  const handleDec = useCallback(() => {
     if (product) {
       const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
       setCartItemQuantity(product, nextQty);
     }
-  };
+  }, [product, itemCount, minQty, setCartItemQuantity]);
 
   if (loading) {
     return (
@@ -513,20 +536,16 @@ const ProductDetails: React.FC = () => {
               {/* Carousel Track */}
               <div
                 className="pd-carousel"
-                ref={carouselRef}
                 onTouchStart={handleTouchStart}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
               >
                 <div
                   className="pd-carousel-track"
+                  ref={carouselTrackRef}
                   style={{
-                    transform: `translateX(calc(-${
-                      selectedImage * 100
-                    }% + ${swipeOffset}px))`,
-                    transition: isSwiping
-                      ? "none"
-                      : "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
+                    transform: `translateX(calc(-${selectedImage * 100}%))`,
+                    transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
                   }}
                 >
                   {images.map((img, i) => (
@@ -547,6 +566,7 @@ const ProductDetails: React.FC = () => {
                         draggable={false}
                         loading={i === 0 ? "eager" : "lazy"}
                         fetchPriority={i === 0 ? "high" : "auto"}
+                        onLoad={() => handleImageLoad(i)}
                       />
                     </div>
                   ))}
