@@ -199,12 +199,21 @@ const WhatsAppButton: React.FC = () => {
   // Don't render if disabled or settings not loaded
   if (!settings || !settings.enabled) return null;
 
-  // Check path and device
+  // 🔴 IMPORTANT FIX: Check if current page is Home OR Product page
+  const currentPath = window.location.pathname;
+  const isProductPage = currentPath.includes("/product");
+  const isHomePage = currentPath === "/";
+
+  // Agar na toh Home page hai aur na hi Product page, toh button hide kar do
+  if (!isProductPage && !isHomePage) return null;
+
+  // Check path and device from settings
   const pathOk = isPathAllowed(
-    window.location.pathname,
+    currentPath,
     settings.showOnPaths,
     settings.hideOnPaths
   );
+  
   const isMobile = window.innerWidth < 768;
   const deviceOk =
     (settings.showOnDesktop && !isMobile) ||
@@ -228,7 +237,6 @@ const WhatsAppButton: React.FC = () => {
         className={`wa-launcher ${settings.position}`}
         style={launcherStyle}
       >
-
         {/* Panel */}
         {isOpen && (
           <div className={`wa-panel ${isClosing ? "closing" : ""}`}>

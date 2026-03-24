@@ -43,6 +43,7 @@ const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"
 const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const PendingReviews = React.lazy(() => import("./pages/PendingReviews"));
+const FAQ = React.lazy(() => import("./components/FAQ")); // Added FAQ import
 
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
@@ -127,6 +128,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
     "/terms-conditions",
     "/shipping-delivery",
     "/cancellation-refund",
+    "/faq", // Added FAQ to public paths
   ];
 
   const isPublicPage =
@@ -245,11 +247,12 @@ const AppInner: React.FC = () => {
               <Route path="/register" element={<Register />} />
               <Route path="/login" element={<LoginOTP />} />
 
-              {/* Legal Routes */}
+              {/* Legal & Info Routes */}
               <Route path="/privacy-policy" element={<PrivacyPolicy />} />
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
+              <Route path="/faq" element={<FAQ />} /> {/* Added FAQ Route */}
 
               {/* Protected Routes */}
               <Route

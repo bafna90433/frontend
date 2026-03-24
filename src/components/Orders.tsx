@@ -261,11 +261,17 @@ const Orders: React.FC = () => {
 
   const toggleOrder = (id: string) => setExpandedOrder(expandedOrder === id ? null : id);
 
+  // ✅ UPDATED TRACKING URL LOGIC (Delhivery Deep Link setup)
   const getTrackingUrl = (order: Order) => {
     if (!order.trackingId) return "#";
     const c = (order.courierName || "").toLowerCase();
-    if (c.includes("delhivery")) return "https://www.delhivery.com/tracking";
-    if (c.includes("vxpress") || c.includes("v-xpress") || c.includes("v xpress")) return "https://vxpress.in/track-result/";
+    
+    if (c.includes("delhivery")) {
+      return `https://www.delhivery.com/track/package/?waybill=${order.trackingId}`;
+    }
+    if (c.includes("vxpress") || c.includes("v-xpress") || c.includes("v xpress")) {
+      return "https://vxpress.in/track-result/";
+    }
     return `https://www.google.com/search?q=${encodeURIComponent(`${order.trackingId} tracking`)}`;
   };
 

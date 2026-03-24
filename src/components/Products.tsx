@@ -42,6 +42,9 @@ import {
   TrendingUp,
   IndianRupee,
   Award,
+  Banknote,
+  Receipt,
+  Info,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
@@ -207,8 +210,7 @@ const Products: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   const [trustData, setTrustData] = useState<any>(null);
-  
-  // ✅ GRID CONFIG STATE
+
   const [gridConfig, setGridConfig] = useState({ pc: 5, mobile: 2 });
 
   const [loading, setLoading] = useState(true);
@@ -243,6 +245,8 @@ const Products: React.FC = () => {
       { icon: "🧾", text: "Easy Ordering for Retailers" },
       { icon: "🔁", text: "Regular New Launches" },
       { icon: "🏷️", text: "Beat E-Commerce Prices" },
+      { icon: "💳", text: "COD Available" },
+      { icon: "🧾", text: "GST Inclusive Prices" },
     ],
     []
   );
@@ -295,7 +299,6 @@ const Products: React.FC = () => {
       .then((r) => setTrustData(r.data))
       .catch(console.error);
 
-    // ✅ FETCH DYNAMIC GRID LAYOUT
     api
       .get("/grid-layout")
       .then((r) => {
@@ -442,7 +445,14 @@ const Products: React.FC = () => {
       f.sort((a, b) => a.name.localeCompare(b.name));
 
     return f;
-  }, [allProducts, categoryId, searchTerm, sortBy, activeDeals, activePriceFilter]);
+  }, [
+    allProducts,
+    categoryId,
+    searchTerm,
+    sortBy,
+    activeDeals,
+    activePriceFilter,
+  ]);
 
   const totalPages = Math.ceil(displayed.length / ITEMS_PER_PAGE);
 
@@ -494,7 +504,6 @@ const Products: React.FC = () => {
 
   return (
     <div className="sp-wrapper">
-      {/* ✅ DYNAMIC GRID SETTINGS */}
       <style>
         {`
           .sp-grid {
@@ -528,14 +537,15 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══ HERO BANNER (BLOB MESH) ═══ */}
+      {/* ═══════════════════════════════════════════════════════════
+           HERO BANNER — COD + GST BUILT INSIDE
+         ═══════════════════════════════════════════════════════════ */}
       <section className="sp-hero">
-        {/* Animated Blob Background */}
         <div className="sp-hero-glow sp-hero-glow-1" />
         <div className="sp-hero-glow sp-hero-glow-2" />
         <div className="sp-hero-glow sp-hero-glow-3" />
 
-        {/* ═══ DESKTOP HERO ═══ */}
+        {/* ─── DESKTOP HERO ─── */}
         <div className="sp-hero-grid sp-hero-desktop">
           <div className="sp-hero-content">
             <div className="sp-hero-badge">
@@ -547,7 +557,8 @@ const Products: React.FC = () => {
               <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
             </h1>
             <p className="sp-hero-sub">
-              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores and Resellers
+              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
+              and Resellers
             </p>
             <div className="sp-hero-features">
               <div className="sp-hero-feature">
@@ -556,7 +567,7 @@ const Products: React.FC = () => {
                 </div>
                 <div>
                   <strong>Free Delivery</strong>
-                  <span>Orders ₹5000+</span>
+                  <span>Orders ₹3000+</span>
                 </div>
               </div>
               <div className="sp-hero-feature">
@@ -577,6 +588,15 @@ const Products: React.FC = () => {
                   <span>Wide Range</span>
                 </div>
               </div>
+              <div className="sp-hero-feature">
+                <div className="sp-hero-feature-icon">
+                  <Banknote size={16} />
+                </div>
+                <div>
+                  <strong>COD Available</strong>
+                  <span>Cash on Delivery</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="sp-hero-visual">
@@ -595,10 +615,48 @@ const Products: React.FC = () => {
               <TrendingUp size={14} />
               High Margins
             </div>
+            <div className="sp-hero-float sp-hero-float-3">
+              <Banknote size={14} />
+              COD Available
+            </div>
           </div>
         </div>
 
-        {/* ═══ MOBILE HERO ═══ */}
+        {/* ─── COD + GST INFO BAR INSIDE HERO (Desktop) ─── */}
+        <div className="sp-hero-info-bar">
+          <div className="sp-hero-info-inner">
+            <div className="sp-hero-info-item sp-hero-info-cod">
+              <div className="sp-hero-info-icon sp-hero-info-icon-cod">
+                <Banknote size={16} />
+              </div>
+              <div className="sp-hero-info-text">
+                <strong>Cash on Delivery (COD) Available</strong>
+                <span>
+                  Pay when you receive your order — No advance payment needed!
+                </span>
+              </div>
+              <div className="sp-hero-info-pill">
+                <span className="sp-hero-info-dot" />
+                COD Active
+              </div>
+            </div>
+            <div className="sp-hero-info-divider" />
+            <div className="sp-hero-info-item sp-hero-info-gst">
+              <div className="sp-hero-info-icon sp-hero-info-icon-gst">
+                <Receipt size={16} />
+              </div>
+              <div className="sp-hero-info-text">
+                <strong>All prices are inclusive of GST</strong>
+                <span>
+                  E.g. if price is <strong>₹60</strong> → Base ₹57.14 + 5% GST
+                  = <strong>₹60</strong> (No extra tax!)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ─── MOBILE HERO ─── */}
         <div className="sp-hero-mobile">
           <div className="sp-mh-top">
             <div className="sp-mh-badge">
@@ -612,7 +670,8 @@ const Products: React.FC = () => {
               <span className="sp-mh-gradient">B2B Toy Manufacturer</span>
             </h1>
             <p className="sp-mh-sub">
-              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores and Resellers
+              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
+              and Resellers
             </p>
           </div>
 
@@ -622,7 +681,9 @@ const Products: React.FC = () => {
                 <div className="sp-mh-offer-ring">
                   <div className="sp-mh-offer-inner">
                     <span className="sp-mh-offer-up">UP TO</span>
-                    <span className="sp-mh-offer-num">50<small>%</small></span>
+                    <span className="sp-mh-offer-num">
+                      50<small>%</small>
+                    </span>
                     <span className="sp-mh-offer-tag">OFF MRP</span>
                   </div>
                 </div>
@@ -655,6 +716,41 @@ const Products: React.FC = () => {
                     <span>Orders above ₹5K</span>
                   </div>
                 </div>
+                <div className="sp-mh-perk">
+                  <div className="sp-mh-perk-icon sp-mh-perk-amber">
+                    <Banknote size={13} />
+                  </div>
+                  <div className="sp-mh-perk-text">
+                    <strong>COD Available</strong>
+                    <span>Cash on Delivery</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ─── Mobile COD + GST Cards Inside Hero ─── */}
+          <div className="sp-mh-info-cards">
+            <div className="sp-mh-info-card sp-mh-info-cod">
+              <div className="sp-mh-info-card-icon sp-mh-ic-amber">
+                <Banknote size={14} />
+              </div>
+              <div className="sp-mh-info-card-body">
+                <strong>COD Available</strong>
+                <span>Pay when you receive your order</span>
+              </div>
+              <div className="sp-mh-info-card-pill">
+                <span className="sp-mh-ic-dot" />
+                Active
+              </div>
+            </div>
+            <div className="sp-mh-info-card sp-mh-info-gst">
+              <div className="sp-mh-info-card-icon sp-mh-ic-green">
+                <Receipt size={14} />
+              </div>
+              <div className="sp-mh-info-card-body">
+                <strong>GST Inclusive Prices</strong>
+                <span>₹60 = ₹57.14 + 5% GST (No extra tax)</span>
               </div>
             </div>
           </div>
@@ -682,11 +778,11 @@ const Products: React.FC = () => {
             <div className="sp-mh-stat-divider" />
             <div className="sp-mh-stat">
               <div className="sp-mh-stat-icon">
-                <Factory size={12} />
+                <Banknote size={12} />
               </div>
               <div className="sp-mh-stat-info">
-                <strong>Direct</strong>
-                <span>Manufacturer</span>
+                <strong>COD</strong>
+                <span>Available</span>
               </div>
             </div>
             <div className="sp-mh-stat-divider" />
@@ -695,8 +791,8 @@ const Products: React.FC = () => {
                 <IndianRupee size={12} />
               </div>
               <div className="sp-mh-stat-info">
-                <strong>Best</strong>
-                <span>Prices</span>
+                <strong>GST</strong>
+                <span>Inclusive</span>
               </div>
             </div>
           </div>
@@ -742,6 +838,15 @@ const Products: React.FC = () => {
         {/* SIDEBAR */}
         <aside className="sp-sidebar" role="complementary">
           <div className="sp-sb-inner">
+            {/* Sidebar COD Badge */}
+            <div className="sp-sb-cod-badge">
+              <Banknote size={15} />
+              <div>
+                <strong>COD Available</strong>
+                <span>Cash on Delivery</span>
+              </div>
+            </div>
+
             <div className="sp-sb-section">
               <h3 className="sp-sb-heading">
                 <LayoutGrid size={14} />
@@ -749,7 +854,9 @@ const Products: React.FC = () => {
               </h3>
               <ul className="sp-sb-list">
                 {categories.map((cat) => {
-                  const isActive = categoryId === cat._id || (!categoryId && cat.link === "/");
+                  const isActive =
+                    categoryId === cat._id ||
+                    (!categoryId && cat.link === "/");
                   return (
                     <li
                       key={cat._id}
@@ -757,7 +864,9 @@ const Products: React.FC = () => {
                       onClick={() => handleCatClick(cat)}
                       role="button"
                       tabIndex={0}
-                      onKeyDown={(e) => e.key === "Enter" && handleCatClick(cat)}
+                      onKeyDown={(e) =>
+                        e.key === "Enter" && handleCatClick(cat)
+                      }
                     >
                       {cat.image ? (
                         <img
@@ -839,16 +948,28 @@ const Products: React.FC = () => {
                 Apply Filter
               </button>
             </div>
+
+            {/* Sidebar GST Info */}
+            <div className="sp-sb-divider" />
+            <div className="sp-sb-gst-info">
+              <Info size={13} />
+              <p>
+                All prices are <strong>inclusive of GST</strong>. No extra tax
+                will be charged.
+              </p>
+            </div>
           </div>
         </aside>
 
         {/* MAIN CONTENT */}
         <main className="sp-main">
-          {/* Mobile Horizontal Categories (Only shows on mobile) */}
+          {/* Mobile Horizontal Categories */}
           <div className="sp-mob-cats">
             <div className="sp-mob-cats-track">
               {categories.map((cat) => {
-                const isActive = categoryId === cat._id || (!categoryId && cat.link === "/");
+                const isActive =
+                  categoryId === cat._id ||
+                  (!categoryId && cat.link === "/");
                 return (
                   <button
                     key={cat._id}
@@ -887,10 +1008,13 @@ const Products: React.FC = () => {
               </button>
               <div className="sp-toolbar-info">
                 <h2 className="sp-toolbar-title">
-                  {searchTerm ? `"${searchTerm}"` : catName || "All Toys"}
+                  {searchTerm
+                    ? `"${searchTerm}"`
+                    : catName || "All Toys"}
                 </h2>
                 <span className="sp-toolbar-count">
-                  {displayed.length} product{displayed.length !== 1 && "s"}
+                  {displayed.length} product
+                  {displayed.length !== 1 && "s"}
                 </span>
               </div>
             </div>
@@ -977,7 +1101,9 @@ const Products: React.FC = () => {
                 <Search size={44} />
               </div>
               <h2>No products found</h2>
-              <p>Try adjusting your filters or browse a different category</p>
+              <p>
+                Try adjusting your filters or browse a different category
+              </p>
               <button onClick={handleClear}>Clear Filters</button>
             </div>
           ) : (
@@ -994,7 +1120,10 @@ const Products: React.FC = () => {
               </div>
 
               {totalPages > 1 && (
-                <nav className="sp-pagination" aria-label="Page navigation">
+                <nav
+                  className="sp-pagination"
+                  aria-label="Page navigation"
+                >
                   <button
                     disabled={currentPage === 1}
                     onClick={() => goPage(currentPage - 1)}
@@ -1010,7 +1139,9 @@ const Products: React.FC = () => {
                         pg === currentPage ? "active" : ""
                       } ${pg === "..." ? "dots" : ""}`}
                       disabled={pg === "..."}
-                      onClick={() => typeof pg === "number" && goPage(pg)}
+                      onClick={() =>
+                        typeof pg === "number" && goPage(pg)
+                      }
                     >
                       {pg}
                     </button>
@@ -1056,11 +1187,11 @@ const Products: React.FC = () => {
               sub: "Door Delivery",
             },
             {
-              icon: <Factory size={24} />,
-              gradient: "linear-gradient(135deg, #ede9fe, #ddd6fe)",
-              color: "#6d28d9",
-              title: "Direct",
-              sub: "Manufacturer",
+              icon: <Banknote size={24} />,
+              gradient: "linear-gradient(135deg, #fef9c3, #fde047)",
+              color: "#a16207",
+              title: "COD",
+              sub: "Cash on Delivery",
             },
             {
               icon: <Award size={24} />,
@@ -1068,7 +1199,7 @@ const Products: React.FC = () => {
               color: "#9d174d",
               title: "BIS Certified",
               sub: "All Products",
-            }
+            },
           ].map((s, i) => (
             <div className="sp-trust-card" key={i}>
               <div
@@ -1086,7 +1217,7 @@ const Products: React.FC = () => {
         </div>
       </section>
 
-      {/* ═══ FACTORY SECTION (NOW FULL WIDTH) ═══ */}
+      {/* ═══ FACTORY SECTION ═══ */}
       {!loading && trustData && (
         <section className="sp-factory">
           <div className="sp-factory-inner">
@@ -1121,7 +1252,11 @@ const Products: React.FC = () => {
                         <div className="sp-factory-card" key={i}>
                           <div className="sp-factory-card-img">
                             <img
-                              src={optimizeCloudinary(item.image, 400, 280)}
+                              src={optimizeCloudinary(
+                                item.image,
+                                400,
+                                280
+                              )}
                               alt={item.label || `Process ${i + 1}`}
                               width={400}
                               height={280}
@@ -1137,16 +1272,29 @@ const Products: React.FC = () => {
                       )
                   )
                 : [
-                    { img: trustData.manufacturingUnit, label: "Manufacturing" },
-                    { img: trustData.packingDispatch, label: "Packing & Dispatch" },
-                    { img: trustData.warehouseStorage, label: "Warehouse Storage" },
+                    {
+                      img: trustData.manufacturingUnit,
+                      label: "Manufacturing",
+                    },
+                    {
+                      img: trustData.packingDispatch,
+                      label: "Packing & Dispatch",
+                    },
+                    {
+                      img: trustData.warehouseStorage,
+                      label: "Warehouse Storage",
+                    },
                   ].map(
                     (item, i) =>
                       item.img && (
                         <div className="sp-factory-card" key={i}>
                           <div className="sp-factory-card-img">
                             <img
-                              src={optimizeCloudinary(item.img, 400, 280)}
+                              src={optimizeCloudinary(
+                                item.img,
+                                400,
+                                280
+                              )}
                               alt={item.label}
                               width={400}
                               height={280}
@@ -1227,8 +1375,12 @@ const Products: React.FC = () => {
                           <Star
                             key={si}
                             size={14}
-                            fill={si < (r.rating || 5) ? "#f59e0b" : "none"}
-                            color={si < (r.rating || 5) ? "#f59e0b" : "#e2e8f0"}
+                            fill={
+                              si < (r.rating || 5) ? "#f59e0b" : "none"
+                            }
+                            color={
+                              si < (r.rating || 5) ? "#f59e0b" : "#e2e8f0"
+                            }
                           />
                         ))}
                       </div>
@@ -1268,18 +1420,64 @@ const Products: React.FC = () => {
                     <span className="sp-mp-label">Also available on:</span>
                     <div className="sp-mp-logos">
                       {trustData.amazonLink && trustData.amazonLogo && (
-                        <a href={trustData.amazonLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.amazonLogo, 80, 40, "c_fit")} alt="Amazon" width={80} height={40} loading="lazy" />
+                        <a
+                          href={trustData.amazonLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={optimizeCloudinary(
+                              trustData.amazonLogo,
+                              80,
+                              40,
+                              "c_fit"
+                            )}
+                            alt="Amazon"
+                            width={80}
+                            height={40}
+                            loading="lazy"
+                          />
                         </a>
                       )}
-                      {trustData.flipkartLink && trustData.flipkartLogo && (
-                        <a href={trustData.flipkartLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.flipkartLogo, 80, 40, "c_fit")} alt="Flipkart" width={80} height={40} loading="lazy" />
-                        </a>
-                      )}
+                      {trustData.flipkartLink &&
+                        trustData.flipkartLogo && (
+                          <a
+                            href={trustData.flipkartLink}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            <img
+                              src={optimizeCloudinary(
+                                trustData.flipkartLogo,
+                                80,
+                                40,
+                                "c_fit"
+                              )}
+                              alt="Flipkart"
+                              width={80}
+                              height={40}
+                              loading="lazy"
+                            />
+                          </a>
+                        )}
                       {trustData.meeshoLink && trustData.meeshoLogo && (
-                        <a href={trustData.meeshoLink} target="_blank" rel="noreferrer">
-                          <img src={optimizeCloudinary(trustData.meeshoLogo, 80, 40, "c_fit")} alt="Meesho" width={80} height={40} loading="lazy" />
+                        <a
+                          href={trustData.meeshoLink}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          <img
+                            src={optimizeCloudinary(
+                              trustData.meeshoLogo,
+                              80,
+                              40,
+                              "c_fit"
+                            )}
+                            alt="Meesho"
+                            width={80}
+                            height={40}
+                            loading="lazy"
+                          />
                         </a>
                       )}
                     </div>
@@ -1287,7 +1485,12 @@ const Products: React.FC = () => {
                 )}
                 {trustData?.makeInIndiaLogo && (
                   <img
-                    src={optimizeCloudinary(trustData.makeInIndiaLogo, 120, 60, "c_fit")}
+                    src={optimizeCloudinary(
+                      trustData.makeInIndiaLogo,
+                      120,
+                      60,
+                      "c_fit"
+                    )}
                     alt="Make In India"
                     width={120}
                     height={60}
@@ -1305,7 +1508,9 @@ const Products: React.FC = () => {
                 <Link to="/privacy-policy">Privacy Policy</Link>
                 <Link to="/terms-conditions">Terms & Conditions</Link>
                 <Link to="/shipping-delivery">Shipping & Delivery</Link>
-                <Link to="/cancellation-refund">Cancellation & Refund</Link>
+                <Link to="/cancellation-refund">
+                  Cancellation & Refund
+                </Link>
               </nav>
               <div className="sp-footer-locations">
                 <h4>Our Locations</h4>
@@ -1314,28 +1519,40 @@ const Products: React.FC = () => {
                     <MapPin size={14} />
                     <div>
                       <strong>Unit 1</strong>
-                      <span>Bafna Toys 1, Shasha Warehousing, Thondamuthur Main Road, Coimbatore - 641007</span>
+                      <span>
+                        Bafna Toys 1, Shasha Warehousing, Thondamuthur Main
+                        Road, Coimbatore - 641007
+                      </span>
                     </div>
                   </div>
                   <div className="sp-location-item">
                     <MapPin size={14} />
                     <div>
                       <strong>Unit 2</strong>
-                      <span>Bafna Toys 2, Prashant Textiles Mills Warehouse, Sundapalayam, Coimbatore - 641 007</span>
+                      <span>
+                        Bafna Toys 2, Prashant Textiles Mills Warehouse,
+                        Sundapalayam, Coimbatore - 641 007
+                      </span>
                     </div>
                   </div>
                   <div className="sp-location-item">
                     <MapPin size={14} />
                     <div>
                       <strong>Unit 3</strong>
-                      <span>Bafna Toys 3 - 1-12 Warehouse, Rangasamy Nagar, Vedapatti, Coimbatore - 641007</span>
+                      <span>
+                        Bafna Toys 3 - 1-12 Warehouse, Rangasamy Nagar,
+                        Vedapatti, Coimbatore - 641007
+                      </span>
                     </div>
                   </div>
                   <div className="sp-location-item">
                     <MapPin size={14} />
                     <div>
                       <strong>Unit 4</strong>
-                      <span>Bafna Toys 4 - GRVR Farms, PSG Rangasamy Nagar, Vedapatti, Coimbatore - 641007</span>
+                      <span>
+                        Bafna Toys 4 - GRVR Farms, PSG Rangasamy Nagar,
+                        Vedapatti, Coimbatore - 641007
+                      </span>
                     </div>
                   </div>
                 </address>
@@ -1344,22 +1561,42 @@ const Products: React.FC = () => {
                 <h4>Connect With Us</h4>
                 <div className="sp-social-stack">
                   {trustData?.instagramLink && (
-                    <a href={trustData.instagramLink} target="_blank" rel="noreferrer" className="sp-social-link sp-social-insta">
+                    <a
+                      href={trustData.instagramLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-insta"
+                    >
                       <Instagram size={16} /> Instagram
                     </a>
                   )}
                   {trustData?.youtubeLink && (
-                    <a href={trustData.youtubeLink} target="_blank" rel="noreferrer" className="sp-social-link sp-social-yt">
+                    <a
+                      href={trustData.youtubeLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-yt"
+                    >
                       <Youtube size={16} /> YouTube
                     </a>
                   )}
                   {trustData?.facebookLink && (
-                    <a href={trustData.facebookLink} target="_blank" rel="noreferrer" className="sp-social-link sp-social-fb">
+                    <a
+                      href={trustData.facebookLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-fb"
+                    >
                       <Facebook size={16} /> Facebook
                     </a>
                   )}
                   {trustData?.linkedinLink && (
-                    <a href={trustData.linkedinLink} target="_blank" rel="noreferrer" className="sp-social-link sp-social-li">
+                    <a
+                      href={trustData.linkedinLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-li"
+                    >
                       <Linkedin size={16} /> LinkedIn
                     </a>
                   )}
@@ -1368,33 +1605,73 @@ const Products: React.FC = () => {
             </div>
           </div>
           <div className="sp-footer-bottom">
-            <span>© {new Date().getFullYear()} BafnaToys. All rights reserved.</span>
+            <span>
+              © {new Date().getFullYear()} BafnaToys. All rights reserved.
+            </span>
           </div>
         </footer>
       )}
 
       {/* ═══ MOBILE FILTER DRAWER ═══ */}
       {mobileFilterOpen && (
-        <div className="sp-drawer-overlay" onClick={() => setMobileFilterOpen(false)}>
-          <div className="sp-drawer" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div
+          className="sp-drawer-overlay"
+          onClick={() => setMobileFilterOpen(false)}
+        >
+          <div
+            className="sp-drawer"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+          >
             <div className="sp-drawer-handle" />
             <div className="sp-drawer-head">
-              <h3><Filter size={17} /> Filters</h3>
-              <button onClick={() => setMobileFilterOpen(false)} aria-label="Close filters"><X size={18} /></button>
+              <h3>
+                <Filter size={17} /> Filters
+              </h3>
+              <button
+                onClick={() => setMobileFilterOpen(false)}
+                aria-label="Close filters"
+              >
+                <X size={18} />
+              </button>
             </div>
             <div className="sp-drawer-body">
               <div className="sp-drawer-section">
                 <h4>Price Range</h4>
                 <div className="sp-range-wrap">
-                  <input type="range" min="0" max="10000" value={maxPriceInput || 0} onChange={(e) => setMaxPriceInput(Number(e.target.value))} className="sp-range" />
-                  <div className="sp-range-labels"><span>₹0</span><span>₹{maxPriceInput || 0}</span></div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="10000"
+                    value={maxPriceInput || 0}
+                    onChange={(e) =>
+                      setMaxPriceInput(Number(e.target.value))
+                    }
+                    className="sp-range"
+                  />
+                  <div className="sp-range-labels">
+                    <span>₹0</span>
+                    <span>₹{maxPriceInput || 0}</span>
+                  </div>
                 </div>
                 <div className="sp-price-row">
                   <div className="sp-price-field">
                     <label>Min</label>
                     <div className="sp-price-input-wrap">
                       <span>₹</span>
-                      <input type="number" placeholder="0" value={minPriceInput} onChange={(e) => setMinPriceInput(e.target.value ? Number(e.target.value) : "")} />
+                      <input
+                        type="number"
+                        placeholder="0"
+                        value={minPriceInput}
+                        onChange={(e) =>
+                          setMinPriceInput(
+                            e.target.value
+                              ? Number(e.target.value)
+                              : ""
+                          )
+                        }
+                      />
                     </div>
                   </div>
                   <span className="sp-price-dash">–</span>
@@ -1402,14 +1679,38 @@ const Products: React.FC = () => {
                     <label>Max</label>
                     <div className="sp-price-input-wrap">
                       <span>₹</span>
-                      <input type="number" placeholder="5000" value={maxPriceInput} onChange={(e) => setMaxPriceInput(e.target.value ? Number(e.target.value) : "")} />
+                      <input
+                        type="number"
+                        placeholder="5000"
+                        value={maxPriceInput}
+                        onChange={(e) =>
+                          setMaxPriceInput(
+                            e.target.value
+                              ? Number(e.target.value)
+                              : ""
+                          )
+                        }
+                      />
                     </div>
                   </div>
                 </div>
               </div>
               <div className="sp-drawer-actions">
-                <button className="sp-apply-btn" onClick={() => { handleApplyPrice(); setMobileFilterOpen(false); }}>Apply Filters</button>
-                <button className="sp-clear-drawer-btn" onClick={handleClear}>Clear All</button>
+                <button
+                  className="sp-apply-btn"
+                  onClick={() => {
+                    handleApplyPrice();
+                    setMobileFilterOpen(false);
+                  }}
+                >
+                  Apply Filters
+                </button>
+                <button
+                  className="sp-clear-drawer-btn"
+                  onClick={handleClear}
+                >
+                  Clear All
+                </button>
               </div>
             </div>
           </div>

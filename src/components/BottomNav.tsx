@@ -9,7 +9,8 @@ const BottomNav: React.FC = () => {
 
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  const allowedPaths = ["/", "/products", "/cart", "/my-account", "/orders"];
+  // Added "/faq" to the allowed paths
+  const allowedPaths = ["/", "/products", "/cart", "/my-account", "/orders", "/faq"];
 
   if (!allowedPaths.includes(location.pathname)) {
     return null;
@@ -91,6 +92,28 @@ const BottomNav: React.FC = () => {
             <>
               <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
               <circle cx="12" cy="7" r="4" />
+            </>
+          )}
+        </svg>
+      ),
+    },
+    // Added FAQ item here
+    {
+      label: "FAQ",
+      to: "/faq",
+      icon: (active: boolean) => (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          {active ? (
+            <>
+              <circle cx="12" cy="12" r="10" fill="currentColor" stroke="none" />
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" stroke="#fff" />
+              <circle cx="12" cy="17" r="1.5" fill="#fff" stroke="none" />
+            </>
+          ) : (
+            <>
+              <circle cx="12" cy="12" r="10" />
+              <path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3" />
+              <circle cx="12" cy="17" r="1" fill="currentColor" stroke="none" />
             </>
           )}
         </svg>
