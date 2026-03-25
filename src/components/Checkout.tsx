@@ -8,6 +8,7 @@ import {
   FileText, MapPin, User as UserIcon, CreditCard,
   Package, AlertCircle, Truck, Tag, Plus, ChevronRight,
   ChevronDown, ChevronUp, Shield, CheckCircle2, ShoppingBag,
+  Info,
 } from "lucide-react";
 
 interface Item {
@@ -105,9 +106,7 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   if (!printWindow) { alert("Popup blocked!"); return false; }
 
   const currentDate = new Date().toLocaleDateString("en-IN", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
+    year: "numeric", month: "long", day: "numeric",
   });
   
   const shippingAddr = orderData.shippingAddress;
@@ -147,7 +146,6 @@ const Checkout: React.FC = () => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMode, setPaymentMode] = useState<"ONLINE" | "COD">("ONLINE");
   
-  // ✅ COD States Updated
   const [codAdvance, setCodAdvance] = useState<number>(0);
   const [advanceType, setAdvanceType] = useState<"flat" | "percentage">("flat");
   const [isCodEnabled, setIsCodEnabled] = useState<boolean>(true);
@@ -193,7 +191,7 @@ const Checkout: React.FC = () => {
       const { data } = await api.get("/settings/cod");
       if (data) {
         if (data.advanceAmount !== undefined) setCodAdvance(Number(data.advanceAmount));
-        if (data.advanceType !== undefined) setAdvanceType(data.advanceType); // ✅ Type fetch
+        if (data.advanceType !== undefined) setAdvanceType(data.advanceType);
         if (data.enabled !== undefined) {
           setIsCodEnabled(data.enabled);
           if (!data.enabled && paymentMode === "COD") setPaymentMode("ONLINE");
@@ -236,13 +234,13 @@ const Checkout: React.FC = () => {
 
   const handleAddAddressClick = () => {
     setAddressForm({ 
-        shopName: user?.shopName || "", 
-        fullName: user?.ownerName || user?.fullName || "", 
-        phone: user?.otpMobile || "", 
-        street: "", area: "", city: "", state: "", pincode: "", type: "Work", 
-        gstNumber: user?.gstNumber || "", 
-        isDifferentShipping: false, 
-        shippingStreet: "", shippingArea: "", shippingCity: "", shippingState: "", shippingPincode: "" 
+      shopName: user?.shopName || "", 
+      fullName: user?.ownerName || user?.fullName || "", 
+      phone: user?.otpMobile || "", 
+      street: "", area: "", city: "", state: "", pincode: "", type: "Work", 
+      gstNumber: user?.gstNumber || "", 
+      isDifferentShipping: false, 
+      shippingStreet: "", shippingArea: "", shippingCity: "", shippingState: "", shippingPincode: "" 
     });
     setIsAddingAddress(true);
   };
@@ -250,42 +248,36 @@ const Checkout: React.FC = () => {
   const handleAddressFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     
-    // Checkbox logic for Different Shipping
     if (type === "checkbox") {
-        const checked = (e.target as HTMLInputElement).checked;
-        setAddressForm((prev) => ({ ...prev, [name]: checked }));
-        return;
+      const checked = (e.target as HTMLInputElement).checked;
+      setAddressForm((prev) => ({ ...prev, [name]: checked }));
+      return;
     }
 
     if ((name === "phone" || name === "pincode" || name === "shippingPincode") && !/^\d*$/.test(value)) return;
     
-    // Make sure GST stays uppercase in form state
     const finalValue = name === "gstNumber" ? value.toUpperCase() : value;
     setAddressForm((prev) => ({ ...prev, [name]: finalValue }));
 
-    // Pincode Auto-Detect Logic
     if ((name === "pincode" || name === "shippingPincode") && value.length === 6) {
-        fetchCityStateFromPincode(value, name === "shippingPincode");
+      fetchCityStateFromPincode(value, name === "shippingPincode");
     }
   };
 
   const fetchCityStateFromPincode = async (pincode: string, isShipping: boolean) => {
     try {
-        const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
-        const data = await res.json();
-        if (data[0].Status === "Success") {
-            const postOffice = data[0].PostOffice[0];
-            const detectedCity = postOffice.District;
-            const detectedState = postOffice.State;
-            
-            setAddressForm(prev => ({
-                ...prev,
-                [isShipping ? 'shippingCity' : 'city']: detectedCity,
-                [isShipping ? 'shippingState' : 'state']: detectedState,
-            }));
-        }
+      const res = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+      const data = await res.json();
+      if (data[0].Status === "Success") {
+        const postOffice = data[0].PostOffice[0];
+        setAddressForm(prev => ({
+          ...prev,
+          [isShipping ? 'shippingCity' : 'city']: postOffice.District,
+          [isShipping ? 'shippingState' : 'state']: postOffice.State,
+        }));
+      }
     } catch (error) {
-        console.error("Error fetching pincode data:", error);
+      console.error("Error fetching pincode data:", error);
     }
   };
 
@@ -307,7 +299,7 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // ✅ NEW CALCULATION LOGIC
+  // ── CALCULATIONS ──
   const discountAmt = appliedDiscount?.amount || 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
 
@@ -324,6 +316,15 @@ const Checkout: React.FC = () => {
     const { innerCount, minQty } = getItemValues(item);
     return innerCount >= minQty;
   });
+
+  // ── Determine what to show on the button ──
+  const getButtonText = () => {
+    if (paymentMode === "COD" && applicableAdvance > 0) {
+      return `Pay ₹${applicableAdvance.toLocaleString()} Advance`;
+    }
+    if (paymentMode === "COD") return "Place COD Order";
+    return `Pay ₹${finalTotalWithDiscount.toLocaleString()}`;
+  };
 
   const handlePlaceOrder = async () => {
     if (cartItems.some((item) => { const { innerCount, minQty } = getItemValues(item); return innerCount < minQty; })) {
@@ -342,14 +343,8 @@ const Checkout: React.FC = () => {
         setOrderNumber(orderNum);
         setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode: "COD", shippingAddress: selectedAddress, advancePaid: 0 });
         
-        // --- META PIXEL: PURCHASE EVENT (COD) ---
         if (typeof window !== "undefined" && (window as any).fbq) {
-          (window as any).fbq('track', 'Purchase', {
-            value: finalTotalWithDiscount,
-            currency: 'INR',
-            content_type: 'product',
-            content_ids: items.map(item => item.productId)
-          });
+          (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
         }
         
         setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
@@ -379,14 +374,8 @@ const Checkout: React.FC = () => {
             setOrderNumber(orderNum);
             setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode, paymentId: response.razorpay_payment_id, shippingAddress: selectedAddress, advancePaid });
             
-            // --- META PIXEL: PURCHASE EVENT (ONLINE/ADVANCE) ---
             if (typeof window !== "undefined" && (window as any).fbq) {
-              (window as any).fbq('track', 'Purchase', {
-                value: finalTotalWithDiscount, // Send the full order value
-                currency: 'INR',
-                content_type: 'product',
-                content_ids: items.map(item => item.productId)
-              });
+              (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
             }
 
             setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
@@ -403,7 +392,6 @@ const Checkout: React.FC = () => {
   const neededForFree = freeShippingThreshold - cartTotal;
   const progressPercent = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
 
-  // --- GST VALIDATION LOGIC ---
   const gstValue = addressForm.gstNumber?.toUpperCase() || "";
   const isGstInvalid = gstValue.length > 0 && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{3}$/.test(gstValue);
 
@@ -514,32 +502,24 @@ const Checkout: React.FC = () => {
         {/* Min Qty Alert */}
         {minimumQtyError && (
           <div className="co-alert-banner">
-            <div className="co-alert-icon">
-              <AlertCircle size={18} />
-            </div>
+            <div className="co-alert-icon"><AlertCircle size={18} /></div>
             <div className="co-alert-body">
               <strong>Minimum Quantity</strong>
               <p>{minimumQtyError}</p>
             </div>
-            <button className="co-alert-action" onClick={() => navigate("/cart")}>
-              Fix Cart
-            </button>
+            <button className="co-alert-action" onClick={() => navigate("/cart")}>Fix Cart</button>
           </div>
         )}
 
         {/* ── Mobile Steps Indicator ── */}
         <div className="co-steps-mob">
           <div className={`co-step ${selectedAddress ? "co-step--done" : "co-step--active"}`}>
-            <div className="co-step-dot">
-              {selectedAddress ? <CheckCircle2 size={14} /> : "1"}
-            </div>
+            <div className="co-step-dot">{selectedAddress ? <CheckCircle2 size={14} /> : "1"}</div>
             <span>Address</span>
           </div>
           <div className="co-step-line" />
           <div className={`co-step ${selectedAddress && paymentMode ? "co-step--done" : selectedAddress ? "co-step--active" : ""}`}>
-            <div className="co-step-dot">
-              {selectedAddress && paymentMode ? <CheckCircle2 size={14} /> : "2"}
-            </div>
+            <div className="co-step-dot">{selectedAddress && paymentMode ? <CheckCircle2 size={14} /> : "2"}</div>
             <span>Payment</span>
           </div>
           <div className="co-step-line" />
@@ -556,9 +536,7 @@ const Checkout: React.FC = () => {
             <div className="co-card" ref={addressRef}>
               <div className="co-card-head">
                 <div className="co-card-title">
-                  <div className="co-card-icon co-card-icon--blue">
-                    <MapPin size={16} />
-                  </div>
+                  <div className="co-card-icon co-card-icon--blue"><MapPin size={16} /></div>
                   <h2>BILLING & SHIPPING DETAILS</h2>
                 </div>
                 {!isAddingAddress && selectedAddress && (
@@ -566,9 +544,7 @@ const Checkout: React.FC = () => {
                     <button className="co-chip-btn co-chip-btn--fill" onClick={handleAddAddressClick}>
                       <Plus size={12} /> New
                     </button>
-                    <button className="co-chip-btn" onClick={() => navigate("/addresses?select=true")}>
-                      Change
-                    </button>
+                    <button className="co-chip-btn" onClick={() => navigate("/addresses?select=true")}>Change</button>
                   </div>
                 )}
               </div>
@@ -589,7 +565,6 @@ const Checkout: React.FC = () => {
                         <label>Phone - Compulsory</label>
                         <input required name="phone" maxLength={10} value={addressForm.phone} onChange={handleAddressFormChange} placeholder="10-digit number" />
                       </div>
-                      
                       <div className="co-field co-field--full">
                         <label>Shop Address - Compulsory</label>
                         <input required name="street" value={addressForm.street} onChange={handleAddressFormChange} placeholder="Billing street address" />
@@ -598,7 +573,6 @@ const Checkout: React.FC = () => {
                         <label>Landmark - Optional</label>
                         <input name="area" value={addressForm.area} onChange={handleAddressFormChange} placeholder="Optional" />
                       </div>
-
                       <div className="co-field">
                         <label>Pincode - Compulsory</label>
                         <input required name="pincode" maxLength={6} value={addressForm.pincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
@@ -614,102 +588,67 @@ const Checkout: React.FC = () => {
                           {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
                         </select>
                       </div>
-
                       <div className="co-field co-field--full" style={{ marginBottom: '10px' }}>
                         <label>GST - Optional</label>
-                        <input 
-                          name="gstNumber" 
-                          value={addressForm.gstNumber?.toUpperCase() || ""} 
-                          onChange={handleAddressFormChange} 
-                          placeholder="Enter 15-digit GST Number" 
-                          maxLength={15}
-                          style={{ 
-                            marginBottom: '5px', 
-                            textTransform: 'uppercase',
-                            borderColor: isGstInvalid ? '#dc2626' : '#e2e8f0'
-                          }} 
-                        />
+                        <input name="gstNumber" value={addressForm.gstNumber?.toUpperCase() || ""} onChange={handleAddressFormChange} placeholder="Enter 15-digit GST Number" maxLength={15} style={{ marginBottom: '5px', textTransform: 'uppercase', borderColor: isGstInvalid ? '#dc2626' : '#e2e8f0' }} />
                         {isGstInvalid ? (
-                          <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                            ❌ Please enter a valid 15-digit GST number.
-                          </span>
+                          <span style={{ fontSize: '13px', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>❌ Please enter a valid 15-digit GST number.</span>
                         ) : (
-                          <span style={{ fontSize: '12px', color: '#64748b' }}>
-                            (Please enter your GST number to claim TAX input credit on your purchase. If no GST Number, goods will be sent on personal name)
-                          </span>
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>(Please enter your GST number to claim TAX input credit on your purchase. If no GST Number, goods will be sent on personal name)</span>
                         )}
                       </div>
 
-                      {/* Different Shipping Logic */}
                       <div className="co-field co-field--full" style={{ marginTop: '10px', padding: '15px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                         <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0, fontWeight: 600 }}>
-                            <input 
-                               type="checkbox" 
-                               name="isDifferentShipping" 
-                               checked={addressForm.isDifferentShipping} 
-                               onChange={handleAddressFormChange} 
-                               style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                            />
-                            Different Billing and Shipping address?
-                         </label>
+                        <label style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', margin: 0, fontWeight: 600 }}>
+                          <input type="checkbox" name="isDifferentShipping" checked={addressForm.isDifferentShipping} onChange={handleAddressFormChange} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                          Different Billing and Shipping address?
+                        </label>
                       </div>
 
                       {addressForm.isDifferentShipping && (
-                         <div style={{ gridColumn: "1 / -1", display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', padding: '20px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
-                            <h4 style={{ gridColumn: '1 / -1', margin: '0 0 10px 0', color: '#16a34a' }}>Shipping Details</h4>
-                            <div className="co-field co-field--full">
-                               <label>Address - Compulsory</label>
-                               <input required={addressForm.isDifferentShipping} name="shippingStreet" value={addressForm.shippingStreet} onChange={handleAddressFormChange} placeholder="Delivery address" />
-                            </div>
-                            <div className="co-field co-field--full">
-                               <label>Landmark - Optional</label>
-                               <input name="shippingArea" value={addressForm.shippingArea} onChange={handleAddressFormChange} placeholder="Optional" />
-                            </div>
-                            <div className="co-field">
-                               <label>Pincode - Compulsory</label>
-                               <input required={addressForm.isDifferentShipping} name="shippingPincode" maxLength={6} value={addressForm.shippingPincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
-                            </div>
-                            <div className="co-field">
-                               <label>City - Compulsory</label>
-                               <input required={addressForm.isDifferentShipping} name="shippingCity" value={addressForm.shippingCity} onChange={handleAddressFormChange} placeholder="City" />
-                            </div>
-                            <div className="co-field">
-                               <label>State - Compulsory</label>
-                               <select required={addressForm.isDifferentShipping} name="shippingState" value={addressForm.shippingState} onChange={handleAddressFormChange}>
-                                 <option value="">Select</option>
-                                 {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
-                               </select>
-                            </div>
-                         </div>
+                        <div style={{ gridColumn: "1 / -1", display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '15px', padding: '20px', background: '#f0fdf4', borderRadius: '8px', border: '1px solid #bbf7d0' }}>
+                          <h4 style={{ gridColumn: '1 / -1', margin: '0 0 10px 0', color: '#16a34a' }}>Shipping Details</h4>
+                          <div className="co-field co-field--full">
+                            <label>Address - Compulsory</label>
+                            <input required={addressForm.isDifferentShipping} name="shippingStreet" value={addressForm.shippingStreet} onChange={handleAddressFormChange} placeholder="Delivery address" />
+                          </div>
+                          <div className="co-field co-field--full">
+                            <label>Landmark - Optional</label>
+                            <input name="shippingArea" value={addressForm.shippingArea} onChange={handleAddressFormChange} placeholder="Optional" />
+                          </div>
+                          <div className="co-field">
+                            <label>Pincode - Compulsory</label>
+                            <input required={addressForm.isDifferentShipping} name="shippingPincode" maxLength={6} value={addressForm.shippingPincode} onChange={handleAddressFormChange} placeholder="6-digit pincode" />
+                          </div>
+                          <div className="co-field">
+                            <label>City - Compulsory</label>
+                            <input required={addressForm.isDifferentShipping} name="shippingCity" value={addressForm.shippingCity} onChange={handleAddressFormChange} placeholder="City" />
+                          </div>
+                          <div className="co-field">
+                            <label>State - Compulsory</label>
+                            <select required={addressForm.isDifferentShipping} name="shippingState" value={addressForm.shippingState} onChange={handleAddressFormChange}>
+                              <option value="">Select</option>
+                              {INDIAN_STATES.map((st) => <option key={st} value={st}>{st}</option>)}
+                            </select>
+                          </div>
+                        </div>
                       )}
-
                     </div>
                     
-                    {/* BUTTON UPGRADE & TRUST BADGES */}
                     <div className="co-form-footer" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
                       <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', width: '100%' }}>
-                         <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost" style={{ padding: '12px 24px' }}>Cancel</button>
-                         <button type="submit" disabled={savingAddress || isGstInvalid} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
-                           {savingAddress ? "Saving..." : "👉 Confirm Address & Continue"}
-                         </button>
+                        <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost" style={{ padding: '12px 24px' }}>Cancel</button>
+                        <button type="submit" disabled={savingAddress || isGstInvalid} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
+                          {savingAddress ? "Saving..." : "👉 Confirm Address & Continue"}
+                        </button>
                       </div>
-
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px dashed #cbd5e1', width: '100%' }}>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
-                            <CheckCircle2 size={16} /> GST Invoice Available
-                         </div>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
-                            <CheckCircle2 size={16} /> Secure Payments (Razorpay)
-                         </div>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
-                            <CheckCircle2 size={16} /> Trusted by 1000+ Retailers
-                         </div>
-                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}>
-                            <CheckCircle2 size={16} /> Fast Dispatch Across India
-                         </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}><CheckCircle2 size={16} /> GST Invoice Available</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}><CheckCircle2 size={16} /> Secure Payments (Razorpay)</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}><CheckCircle2 size={16} /> Trusted by 1000+ Retailers</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#15803d', fontSize: '13px', fontWeight: 600 }}><CheckCircle2 size={16} /> Fast Dispatch Across India</div>
                       </div>
                     </div>
-
                   </form>
                 ) : selectedAddress ? (
                   <div className="co-addr-display">
@@ -719,18 +658,17 @@ const Checkout: React.FC = () => {
                       <span className="co-addr-badge">{selectedAddress.type}</span>
                     </div>
                     {selectedAddress.gstNumber && (
-                        <p style={{ margin: '5px 0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>GST: {selectedAddress.gstNumber}</p>
+                      <p style={{ margin: '5px 0', fontSize: '13px', color: '#475569', fontWeight: 600 }}>GST: {selectedAddress.gstNumber}</p>
                     )}
                     <p className="co-addr-line">{selectedAddress.street}{selectedAddress.area ? `, ${selectedAddress.area}` : ""}</p>
                     <p className="co-addr-line">{selectedAddress.city}, {selectedAddress.state} — {selectedAddress.pincode}</p>
                     <p className="co-addr-phone">📞 {selectedAddress.phone}</p>
-                    
                     {selectedAddress.isDifferentShipping && (
-                       <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #cbd5e1' }}>
-                          <strong style={{ fontSize: '13px', color: '#16a34a' }}>Deliver To (Shipping Address):</strong>
-                          <p className="co-addr-line" style={{ marginTop: '5px' }}>{selectedAddress.shippingStreet}{selectedAddress.shippingArea ? `, ${selectedAddress.shippingArea}` : ""}</p>
-                          <p className="co-addr-line">{selectedAddress.shippingCity}, {selectedAddress.shippingState} — {selectedAddress.shippingPincode}</p>
-                       </div>
+                      <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #cbd5e1' }}>
+                        <strong style={{ fontSize: '13px', color: '#16a34a' }}>Deliver To (Shipping Address):</strong>
+                        <p className="co-addr-line" style={{ marginTop: '5px' }}>{selectedAddress.shippingStreet}{selectedAddress.shippingArea ? `, ${selectedAddress.shippingArea}` : ""}</p>
+                        <p className="co-addr-line">{selectedAddress.shippingCity}, {selectedAddress.shippingState} — {selectedAddress.shippingPincode}</p>
+                      </div>
                     )}
                   </div>
                 ) : (
@@ -738,12 +676,8 @@ const Checkout: React.FC = () => {
                     <MapPin size={28} strokeWidth={1.5} />
                     <p>No details provided</p>
                     <div className="co-addr-empty-btns">
-                      <button className="co-btn-solid" onClick={handleAddAddressClick}>
-                        <Plus size={14} /> Add Details
-                      </button>
-                      <button className="co-btn-ghost" onClick={() => navigate("/addresses?select=true")}>
-                        Choose Saved
-                      </button>
+                      <button className="co-btn-solid" onClick={handleAddAddressClick}><Plus size={14} /> Add Details</button>
+                      <button className="co-btn-ghost" onClick={() => navigate("/addresses?select=true")}>Choose Saved</button>
                     </div>
                   </div>
                 )}
@@ -754,9 +688,7 @@ const Checkout: React.FC = () => {
             <div className="co-card" ref={paymentRef}>
               <div className="co-card-head">
                 <div className="co-card-title">
-                  <div className="co-card-icon co-card-icon--purple">
-                    <CreditCard size={16} />
-                  </div>
+                  <div className="co-card-icon co-card-icon--purple"><CreditCard size={16} /></div>
                   <h2>Payment Method</h2>
                 </div>
               </div>
@@ -776,8 +708,8 @@ const Checkout: React.FC = () => {
                         <span>
                           {codAdvance > 0 && applicableAdvance > 0
                             ? advanceType === "percentage"
-                               ? `${codAdvance}% (₹${applicableAdvance}) advance required`
-                               : `₹${applicableAdvance} advance required`
+                              ? `${codAdvance}% (₹${applicableAdvance.toLocaleString()}) advance required`
+                              : `₹${applicableAdvance.toLocaleString()} advance required`
                             : "Pay when you receive"
                           }
                         </span>
@@ -811,9 +743,7 @@ const Checkout: React.FC = () => {
             <div className="co-card">
               <div className="co-card-head">
                 <div className="co-card-title">
-                  <div className="co-card-icon co-card-icon--orange">
-                    <ShoppingBag size={16} />
-                  </div>
+                  <div className="co-card-icon co-card-icon--orange"><ShoppingBag size={16} /></div>
                   <h2>Order Items ({cartItems.length})</h2>
                 </div>
               </div>
@@ -850,19 +780,13 @@ const Checkout: React.FC = () => {
             <div className="co-card">
               <div className="co-card-head">
                 <div className="co-card-title">
-                  <div className="co-card-icon co-card-icon--blue">
-                    <FileText size={16} />
-                  </div>
+                  <div className="co-card-icon co-card-icon--blue"><FileText size={16} /></div>
                   <h2>Store Policies</h2>
                 </div>
               </div>
               <div className="co-card-body co-policies-body">
                 <div className="co-policy-acc">
-                  <button
-                    className="co-policy-toggle"
-                    onClick={() => setOpenPolicy(openPolicy === "shipping" ? null : "shipping")}
-                    type="button"
-                  >
+                  <button className="co-policy-toggle" onClick={() => setOpenPolicy(openPolicy === "shipping" ? null : "shipping")} type="button">
                     <span>Shipping & Delivery</span>
                     {openPolicy === "shipping" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </button>
@@ -873,21 +797,13 @@ const Checkout: React.FC = () => {
                         <li><strong>Metro Cities:</strong> 3-6 Business Days.</li>
                         <li><strong>Other Locations:</strong> 5-9 Business Days.</li>
                       </ul>
-                      <Link to="/shipping-delivery" target="_blank" className="co-policy-link">
-                        Read Full Policy <ChevronRight size={12} />
-                      </Link>
+                      <Link to="/shipping-delivery" target="_blank" className="co-policy-link">Read Full Policy <ChevronRight size={12} /></Link>
                     </div>
                   )}
                 </div>
-
                 <div className="co-policy-divider" />
-
                 <div className="co-policy-acc">
-                  <button
-                    className="co-policy-toggle"
-                    onClick={() => setOpenPolicy(openPolicy === "return" ? null : "return")}
-                    type="button"
-                  >
+                  <button className="co-policy-toggle" onClick={() => setOpenPolicy(openPolicy === "return" ? null : "return")} type="button">
                     <span>Return & Refund</span>
                     {openPolicy === "return" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                   </button>
@@ -898,9 +814,7 @@ const Checkout: React.FC = () => {
                         <li><strong>Timeframe:</strong> Request within 2-4 days of delivery with photo/video proof.</li>
                         <li><strong>Refunds:</strong> Processed within 5-7 working days.</li>
                       </ul>
-                      <Link to="/cancellation-refund" target="_blank" className="co-policy-link">
-                        Read Full Policy <ChevronRight size={12} />
-                      </Link>
+                      <Link to="/cancellation-refund" target="_blank" className="co-policy-link">Read Full Policy <ChevronRight size={12} /></Link>
                     </div>
                   )}
                 </div>
@@ -915,11 +829,7 @@ const Checkout: React.FC = () => {
 
             {/* ═══ MOBILE PRICE BREAKDOWN ═══ */}
             <div className="co-mob-summary-card">
-              <button
-                className="co-mob-summary-toggle"
-                onClick={() => setMobSummaryOpen(!mobSummaryOpen)}
-                type="button"
-              >
+              <button className="co-mob-summary-toggle" onClick={() => setMobSummaryOpen(!mobSummaryOpen)} type="button">
                 <span>Price Details</span>
                 {mobSummaryOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
               </button>
@@ -942,19 +852,34 @@ const Checkout: React.FC = () => {
                     </div>
                   )}
                   <div className="co-sum-divider" />
+
                   {showCodAdvance ? (
                     <>
                       <div className="co-sum-row co-sum-row--bold">
-                        <span>Total</span>
+                        <span>Order Total</span>
                         <span>₹{finalTotalWithDiscount.toLocaleString()}</span>
                       </div>
-                      <div className="co-sum-row co-sum-row--advance">
-                        <span>Pay Now (Advance)</span>
-                        <span>₹{applicableAdvance.toLocaleString()}</span>
-                      </div>
-                      <div className="co-sum-row co-sum-row--grand">
-                        <span>Due on Delivery</span>
-                        <span>₹{payOnDeliveryAmount.toLocaleString()}</span>
+
+                      {/* ── Mobile COD Advance Box ── */}
+                      <div className="co-mob-cod-box">
+                        <div className="co-mob-cod-header">
+                          <Info size={14} />
+                          <span>COD Advance Payment Required</span>
+                        </div>
+                        <div className="co-mob-cod-rows">
+                          <div className="co-mob-cod-row co-mob-cod-row--advance">
+                            <span>⚡ Pay Now (Advance {advanceType === "percentage" ? `${codAdvance}%` : ""})</span>
+                            <span>₹{applicableAdvance.toLocaleString()}</span>
+                          </div>
+                          <div style={{ height: '1px', background: 'rgba(217,119,6,.15)', margin: '4px 0' }} />
+                          <div className="co-mob-cod-row co-mob-cod-row--delivery">
+                            <span>Pay on Delivery</span>
+                            <span>₹{payOnDeliveryAmount.toLocaleString()}</span>
+                          </div>
+                          <div className="co-mob-cod-note">
+                            💡 Pay ₹{applicableAdvance.toLocaleString()} advance now. Rest ₹{payOnDeliveryAmount.toLocaleString()} at delivery.
+                          </div>
+                        </div>
                       </div>
                     </>
                   ) : (
@@ -968,14 +893,23 @@ const Checkout: React.FC = () => {
             </div>
           </div>
 
-          {/* ═══ DESKTOP SUMMARY SIDEBAR ═══ */}
+          {/* ═══ DESKTOP SUMMARY SIDEBAR — REDESIGNED ═══ */}
           <div className="co-sidebar">
             <div className="co-sidebar-inner">
-              <h3 className="co-sidebar-title">Order Summary</h3>
+              <h3 className="co-sidebar-title">
+                <ShoppingBag size={18} />
+                Order Summary
+              </h3>
+
+              {/* Payment Method Tag */}
+              <div className={`co-side-pay-method ${paymentMode === "ONLINE" ? "co-side-pay-method--online" : "co-side-pay-method--cod"}`}>
+                {paymentMode === "ONLINE" ? <CreditCard size={16} /> : <Package size={16} />}
+                <span>{paymentMode === "ONLINE" ? "Pay Online (Full Payment)" : "Cash on Delivery"}</span>
+              </div>
 
               <div className="co-side-rows">
                 <div className="co-side-row">
-                  <span>Items Total</span>
+                  <span>Items Total ({cartItems.length})</span>
                   <span>₹{cartTotal.toLocaleString()}</span>
                 </div>
                 <div className="co-side-row">
@@ -994,45 +928,67 @@ const Checkout: React.FC = () => {
 
               <div className="co-side-divider" />
 
-              {showCodAdvance ? (
-                <>
-                  <div className="co-side-row">
-                    <span>Order Total</span>
-                    <span className="co-side-bold">₹{finalTotalWithDiscount.toLocaleString()}</span>
+              {/* ── Grand Total ── */}
+              <div className="co-side-grand">
+                <span>Order Total</span>
+                <span>₹{finalTotalWithDiscount.toLocaleString()}</span>
+              </div>
+
+              {/* ── COD Advance Payment Box — PROMINENT, shown BEFORE button ── */}
+              {showCodAdvance && (
+                <div className="co-side-cod-box">
+                  <div className="co-side-cod-header">
+                    <div className="co-side-cod-header-icon">
+                      <Info size={14} />
+                    </div>
+                    <div className="co-side-cod-header-text">
+                      <strong>COD Advance Required</strong>
+                      <span>Pay advance to confirm your order</span>
+                    </div>
                   </div>
-                  <div className="co-side-row co-side-row--adv">
-                    <span>Advance Now</span>
-                    <span>₹{applicableAdvance.toLocaleString()}</span>
+                  <div className="co-side-cod-rows">
+                    <div className="co-side-cod-row co-side-cod-row--advance">
+                      <span>⚡ Advance Now {advanceType === "percentage" ? `(${codAdvance}%)` : ""}</span>
+                      <span>₹{applicableAdvance.toLocaleString()}</span>
+                    </div>
+                    <div className="co-side-cod-divider" />
+                    <div className="co-side-cod-row co-side-cod-row--delivery">
+                      <span>Pay on Delivery</span>
+                      <span>₹{payOnDeliveryAmount.toLocaleString()}</span>
+                    </div>
+                    <div className="co-side-cod-note">
+                      <Info size={12} />
+                      <span>Pay ₹{applicableAdvance.toLocaleString()} advance now. Remaining ₹{payOnDeliveryAmount.toLocaleString()} will be collected when the product is delivered to you.</span>
+                    </div>
                   </div>
-                  <div className="co-side-grand">
-                    <span>Due on Delivery</span>
-                    <span>₹{payOnDeliveryAmount.toLocaleString()}</span>
-                  </div>
-                </>
-              ) : (
-                <div className="co-side-grand">
-                  <span>Grand Total</span>
-                  <span>₹{finalTotalWithDiscount.toLocaleString()}</span>
                 </div>
               )}
 
-              <button
-                className={`co-place-btn ${placing ? "co-place-btn--loading" : ""}`}
-                onClick={handlePlaceOrder}
-                disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty || isAddingAddress}
-              >
-                {placing ? (
-                  <><span className="co-spinner" /> Processing...</>
-                ) : (
-                  <>
-                    <Shield size={16} />
-                    {paymentMode === "COD" ? "Place COD Order" : "Pay Now"}
-                  </>
+              {/* ── Place Order Button ── */}
+              <div className="co-place-btn-wrap">
+                <button
+                  className={`co-place-btn ${placing ? "co-place-btn--loading" : ""} ${showCodAdvance ? "co-place-btn--cod-advance" : ""}`}
+                  onClick={handlePlaceOrder}
+                  disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty || isAddingAddress}
+                >
+                  {placing ? (
+                    <><span className="co-spinner" /> Processing...</>
+                  ) : (
+                    <>
+                      <Shield size={16} />
+                      {getButtonText()}
+                    </>
+                  )}
+                </button>
+                {showCodAdvance && (
+                  <p className="co-place-btn-sub">
+                    Remaining ₹{payOnDeliveryAmount.toLocaleString()} payable at delivery
+                  </p>
                 )}
-              </button>
+              </div>
 
               {(!selectedAddress || isAddingAddress) && (
-                <p className="co-side-warn" style={{ color: '#ea580c', fontSize: '13px', textAlign: 'center', margin: '10px 0', fontWeight: 600 }}>
+                <p className="co-side-warn" style={{ color: '#ea580c', fontSize: '13px', textAlign: 'center', margin: '0 20px 14px', fontWeight: 600 }}>
                   ⚠ Please add your address to continue
                 </p>
               )}
@@ -1043,7 +999,6 @@ const Checkout: React.FC = () => {
                 <span>✓ Genuine Products</span>
               </div>
 
-              {/* ══ LEGAL TEXT ══ */}
               <div className="co-legal-text">
                 By placing your order, you agree to our <br />
                 <Link to="/shipping-delivery" target="_blank">Shipping Policy</Link> and{" "}
@@ -1058,15 +1013,24 @@ const Checkout: React.FC = () => {
       {!orderPlaced && cartItems.length > 0 && (
         <div className="co-bottom-bar">
           <div className="co-bottom-left">
-            <div className="co-bottom-price">₹{finalTotalWithDiscount.toLocaleString()}</div>
+            <div className="co-bottom-price">
+              {showCodAdvance ? `₹${applicableAdvance.toLocaleString()}` : `₹${finalTotalWithDiscount.toLocaleString()}`}
+            </div>
             <div className="co-bottom-detail">
-              {showCodAdvance && <span className="co-bottom-adv">Pay ₹{applicableAdvance} now</span>}
+              {showCodAdvance && (
+                <>
+                  <span className="co-bottom-adv">Advance Now</span>
+                  <span style={{ fontSize: '10px', color: 'var(--co-muted)' }}>
+                    | ₹{payOnDeliveryAmount.toLocaleString()} later
+                  </span>
+                </>
+              )}
               {!showCodAdvance && shippingFee === 0 && <span className="co-bottom-free">Free Delivery</span>}
               {appliedDiscount && <span className="co-bottom-save">Save ₹{discountAmt}</span>}
             </div>
           </div>
           <button
-            className={`co-bottom-btn ${placing ? "co-bottom-btn--busy" : ""}`}
+            className={`co-bottom-btn ${placing ? "co-bottom-btn--busy" : ""} ${showCodAdvance ? "co-bottom-btn--cod-advance" : ""}`}
             onClick={handlePlaceOrder}
             disabled={placing || !cartItems.length || !selectedAddress || !allItemsMeetMinQty || isAddingAddress}
           >
@@ -1074,7 +1038,7 @@ const Checkout: React.FC = () => {
               <><span className="co-bottom-spin" /> Wait...</>
             ) : (
               <>
-                {paymentMode === "COD" ? "Place Order" : "Pay Now"}
+                {showCodAdvance ? `Pay ₹${applicableAdvance.toLocaleString()}` : paymentMode === "COD" ? "Place Order" : "Pay Now"}
                 <ChevronRight size={16} strokeWidth={3} />
               </>
             )}

@@ -92,7 +92,7 @@ body.dark {
    ══════════════════════ */
 .co-grid {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 420px;
   gap: 24px;
   align-items: start;
 }
@@ -464,7 +464,7 @@ body.dark {
 @keyframes co-pop { from { transform: scale(0); } to { transform: scale(1); } }
 
 /* ══════════════════════
-   ORDER ITEMS — Updated for bigger PC images
+   ORDER ITEMS
    ══════════════════════ */
 .co-items-body {
   display: flex;
@@ -487,7 +487,6 @@ body.dark {
 }
 .co-item--warn { border-color: rgba(217,119,6,.3); background: var(--co-alight); }
 
-/* ── PC IMAGE — BIGGER ── */
 .co-item-img {
   width: 130px;
   height: 130px;
@@ -582,7 +581,7 @@ body.dark {
   letter-spacing: -.02em;
 }
 
-/* ═══ LARGE SCREENS — Even bigger images ═══ */
+/* ═══ LARGE SCREENS ═══ */
 @media (min-width: 1400px) {
   .co-item-img {
     width: 150px;
@@ -597,7 +596,6 @@ body.dark {
   .co-item { padding: 16px; gap: 20px; border-radius: 14px; }
 }
 
-/* ═══ ULTRA WIDE ═══ */
 @media (min-width: 1800px) {
   .co-item-img {
     width: 160px;
@@ -610,8 +608,6 @@ body.dark {
   .co-item-total { font-size: 22px; }
 }
 
-
-/* ═══ TABLET — Slightly smaller ═══ */
 @media (max-width: 1024px) {
   .co-item-img {
     width: 110px;
@@ -621,8 +617,6 @@ body.dark {
   .co-item-total { font-size: 16px; }
 }
 
-
-/* ═══ MOBILE — Compact ═══ */
 @media (max-width: 768px) {
   .co-item {
     padding: 10px;
@@ -651,7 +645,6 @@ body.dark {
   .co-item-total { font-size: 13px; }
 }
 
-/* ═══ SMALL PHONE ═══ */
 @media (max-width: 400px) {
   .co-item { padding: 8px; gap: 8px; border-radius: 8px; }
   .co-item-img { width: 60px; height: 60px; border-radius: 6px; }
@@ -664,15 +657,13 @@ body.dark {
   .co-item-info h4 { font-size: 10px; }
 }
 
-
 /* ══════════════════════
-   MOBILE SUMMARY CARD (price breakdown)
-   Hidden on desktop
+   MOBILE SUMMARY CARD
    ══════════════════════ */
 .co-mob-summary-card { display: none; }
 
 /* ══════════════════════
-   DESKTOP SIDEBAR
+   DESKTOP SIDEBAR — REDESIGNED
    ══════════════════════ */
 .co-sidebar {
   position: sticky;
@@ -700,15 +691,18 @@ body.dark {
   100% { background-position: 200% 50%; }
 }
 .co-sidebar-title {
-  padding: 16px 18px;
+  padding: 18px 20px 14px;
   border-bottom: 1px solid var(--co-blight);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
   color: var(--co-text);
   margin: 0;
   letter-spacing: -.02em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.co-side-rows { padding: 16px 18px 0; }
+.co-side-rows { padding: 16px 20px 0; }
 .co-side-row {
   display: flex;
   justify-content: space-between;
@@ -729,37 +723,130 @@ body.dark {
 }
 .co-side-row--discount { color: #ea580c; }
 .co-side-row--discount span { display: flex; align-items: center; gap: 4px; }
-.co-side-row--adv { color: var(--co-primary); }
 .co-side-divider {
   height: 1px;
   background: var(--co-border);
-  margin: 6px 18px 10px;
+  margin: 6px 20px 10px;
 }
+
+/* ── COD Advance Payment Box — PROMINENT ── */
+.co-side-cod-box {
+  margin: 4px 20px 16px;
+  border-radius: var(--co-rs);
+  overflow: hidden;
+  border: 2px solid var(--co-amber);
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+}
+.co-side-cod-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #fff;
+}
+.co-side-cod-header-icon {
+  width: 28px;
+  height: 28px;
+  background: rgba(255,255,255,.2);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.co-side-cod-header-text {
+  flex: 1;
+}
+.co-side-cod-header-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: .3px;
+}
+.co-side-cod-header-text span {
+  font-size: 11px;
+  opacity: .9;
+  font-weight: 500;
+}
+.co-side-cod-rows {
+  padding: 12px 14px;
+}
+.co-side-cod-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.co-side-cod-row--advance {
+  color: var(--co-amber);
+  font-weight: 700;
+}
+.co-side-cod-row--advance span:last-child {
+  font-size: 16px;
+  font-weight: 900;
+  color: #b45309;
+}
+.co-side-cod-row--delivery {
+  color: var(--co-text2);
+}
+.co-side-cod-row--delivery span:last-child {
+  font-weight: 700;
+  color: var(--co-text);
+}
+.co-side-cod-divider {
+  height: 1px;
+  background: rgba(217,119,6,.2);
+  margin: 4px 0;
+}
+.co-side-cod-note {
+  margin-top: 8px;
+  padding: 8px 10px;
+  background: rgba(217,119,6,.08);
+  border-radius: 6px;
+  font-size: 11px;
+  color: #92400e;
+  font-weight: 600;
+  line-height: 1.5;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+.co-side-cod-note svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* ── Grand Total — Sidebar ── */
 .co-side-grand {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
+  padding: 16px 20px;
   border-top: 2px solid var(--co-border);
   margin-top: 4px;
+  background: var(--co-surface);
 }
 .co-side-grand span:first-child {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
   color: var(--co-text);
 }
 .co-side-grand span:last-child {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 900;
   color: var(--co-primary);
   letter-spacing: -.03em;
 }
 
 /* ── Place Order Button ── */
+.co-place-btn-wrap {
+  padding: 0 20px 16px;
+}
 .co-place-btn {
-  width: calc(100% - 36px);
-  margin: 16px 18px;
-  padding: 14px;
+  width: 100%;
+  padding: 15px;
   border: none;
   border-radius: var(--co-rs);
   background: var(--co-primary);
@@ -798,6 +885,26 @@ body.dark {
 }
 .co-place-btn--loading { pointer-events: none; opacity: .8; }
 
+/* COD Advance Button — Different style */
+.co-place-btn--cod-advance {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  box-shadow: 0 6px 20px rgba(217,119,6,.3);
+}
+.co-place-btn--cod-advance:hover:not(:disabled) {
+  background: linear-gradient(135deg, #d97706, #b45309);
+  box-shadow: 0 10px 28px rgba(217,119,6,.4);
+}
+
+.co-place-btn-sub {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: var(--co-muted);
+  margin-top: 6px;
+  font-weight: 500;
+  padding: 0 20px;
+}
+
 .co-spinner {
   width: 18px; height: 18px;
   border: 3px solid rgba(255,255,255,.3);
@@ -811,19 +918,46 @@ body.dark {
   text-align: center;
   font-size: 12px;
   color: var(--co-red);
-  margin: 0 18px 14px;
+  margin: 0 20px 14px;
   font-weight: 600;
 }
+
+/* ── Trust Badges — Sidebar ── */
 .co-side-trust {
   display: flex;
   justify-content: space-around;
-  padding: 14px 18px;
+  padding: 14px 20px;
   border-top: 1px solid var(--co-blight);
 }
 .co-side-trust span {
   font-size: 10px;
   font-weight: 700;
   color: var(--co-muted);
+}
+
+/* ── Payment Method Tag in Sidebar ── */
+.co-side-pay-method {
+  margin: 0 20px 12px;
+  padding: 10px 14px;
+  border-radius: var(--co-rxs);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.co-side-pay-method--online {
+  background: var(--co-glight);
+  color: var(--co-green);
+  border: 1px solid rgba(5,150,105,.2);
+}
+.co-side-pay-method--cod {
+  background: var(--co-alight);
+  color: #92400e;
+  border: 1px solid rgba(217,119,6,.2);
+}
+.co-side-pay-method svg {
+  flex-shrink: 0;
 }
 
 /* ══════════════════════
@@ -865,7 +999,6 @@ body.dark {
   animation: co-gradient-slide 3s linear infinite;
 }
 
-/* Animated Check */
 .co-success-anim { margin-bottom: 20px; }
 .co-success-circle {
   width: 72px; height: 72px;
@@ -971,7 +1104,7 @@ body.dark {
    ══════════════════════════════════════════ */
 @media (max-width: 1024px) {
   .co-page { padding: 24px 20px 60px; }
-  .co-grid { grid-template-columns: 1fr 360px; gap: 20px; }
+  .co-grid { grid-template-columns: 1fr 380px; gap: 20px; }
   .co-desk-header h1 { font-size: 24px; }
 }
 
@@ -982,21 +1115,16 @@ body.dark {
 
 /* ══════════════════════════════════════════
    ██  MOBILE  (≤ 768px)
-   App-like clean professional design
    ══════════════════════════════════════════ */
 @media (max-width: 768px) {
 
-  /* ── Page ── */
   .co-page {
     padding: 0 0 90px;
     background: var(--co-bg);
     min-height: 100dvh;
   }
 
-  /* ── Hide Desktop Header ── */
   .co-desk-header { display: none; }
-
-  /* ── Hide Desktop Sidebar ── */
   .co-sidebar { display: none !important; }
 
   /* ══ MOBILE HEADER ══ */
@@ -1103,14 +1231,12 @@ body.dark {
     border-radius: 2px;
   }
 
-  /* ── Grid & Left ── */
   .co-grid { gap: 0; }
   .co-left {
     padding: 12px 12px 0;
     gap: 10px;
   }
 
-  /* ── Shipping bar ── */
   .co-ship-bar {
     margin: 10px 12px 0;
     padding: 10px 14px;
@@ -1120,7 +1246,6 @@ body.dark {
   .co-ship-text svg { width: 14px; height: 14px; }
   .co-ship-track { height: 4px; }
 
-  /* ── Alert ── */
   .co-alert-banner {
     margin: 10px 12px 0;
     padding: 10px 12px;
@@ -1128,7 +1253,6 @@ body.dark {
     font-size: 11px;
   }
 
-  /* ── Cards ── */
   .co-card {
     border-radius: 14px;
     border: none;
@@ -1136,18 +1260,12 @@ body.dark {
   }
   .co-card:hover { box-shadow: 0 1px 4px rgba(0,0,0,.04); }
 
-  .co-card-head {
-    padding: 12px 14px;
-  }
-  .co-card-icon {
-    width: 28px; height: 28px;
-    border-radius: 7px;
-  }
+  .co-card-head { padding: 12px 14px; }
+  .co-card-icon { width: 28px; height: 28px; border-radius: 7px; }
   .co-card-icon svg { width: 14px; height: 14px; }
   .co-card-head h2 { font-size: 13px; }
   .co-card-body { padding: 12px 14px; }
 
-  /* ── Address ── */
   .co-addr-display { padding: 12px; border-radius: 10px; }
   .co-addr-top { font-size: 13px; margin-bottom: 6px; }
   .co-addr-line { font-size: 12px; }
@@ -1165,7 +1283,6 @@ body.dark {
   .co-form-footer { margin-top: 12px; }
   .co-btn-ghost, .co-btn-solid { padding: 10px 16px; font-size: 13px; }
 
-  /* ── Payment ── */
   .co-pay-body { padding: 10px 14px; }
   .co-pay-grid { gap: 8px; }
   .co-pay-opt {
@@ -1180,10 +1297,9 @@ body.dark {
   .co-pay-radio { width: 18px; height: 18px; }
   .co-pay-radio--on .co-pay-radio-dot { width: 9px; height: 9px; }
 
-  /* ── Items ── */
   .co-items-body { gap: 8px; }
 
-  /* ══ MOBILE PRICE BREAKDOWN (replaces sidebar) ══ */
+  /* ══ MOBILE PRICE BREAKDOWN ══ */
   .co-mob-summary-card {
     display: block;
     background: var(--co-white);
@@ -1233,6 +1349,62 @@ body.dark {
   .co-sum-divider { height: 1px; background: var(--co-border); margin: 6px 0; }
   .co-sum-row--bold span { font-weight: 700 !important; }
   .co-sum-row--advance { color: var(--co-primary); }
+
+  /* ── Mobile COD Advance Box ── */
+  .co-mob-cod-box {
+    margin: 8px 0;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1.5px solid var(--co-amber);
+    background: linear-gradient(135deg, #fffbeb, #fef3c7);
+  }
+  .co-mob-cod-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .co-mob-cod-rows {
+    padding: 10px 12px;
+  }
+  .co-mob-cod-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    font-size: 12px;
+  }
+  .co-mob-cod-row--advance {
+    color: #92400e;
+    font-weight: 700;
+  }
+  .co-mob-cod-row--advance span:last-child {
+    font-size: 15px;
+    font-weight: 900;
+    color: #b45309;
+  }
+  .co-mob-cod-row--delivery {
+    color: var(--co-text2);
+  }
+  .co-mob-cod-row--delivery span:last-child {
+    font-weight: 700;
+    color: var(--co-text);
+  }
+  .co-mob-cod-note {
+    margin-top: 6px;
+    padding: 6px 8px;
+    background: rgba(217,119,6,.08);
+    border-radius: 6px;
+    font-size: 10px;
+    color: #92400e;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
   .co-sum-row--grand {
     padding-top: 8px;
     border-top: 1.5px solid var(--co-border);
@@ -1346,6 +1518,13 @@ body.dark {
   }
   .co-bottom-btn:disabled::after { display: none; }
   .co-bottom-btn--busy { pointer-events: none; opacity: .8; }
+  .co-bottom-btn--cod-advance {
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    box-shadow: 0 4px 14px rgba(217,119,6,.3);
+  }
+  .co-bottom-btn--cod-advance:active:not(:disabled) {
+    box-shadow: 0 2px 8px rgba(217,119,6,.2);
+  }
   .co-bottom-spin {
     width: 14px; height: 14px;
     border: 2.5px solid rgba(255,255,255,.3);
@@ -1371,7 +1550,6 @@ body.dark {
   .co-success-row { font-size: 12px; padding: 5px 0; }
   .co-success-btn { padding: 12px; font-size: 13px; border-radius: 10px; }
 }
-
 
 /* ══════════════════════════════════════════
    ██  SMALL PHONES  (≤ 400px)
@@ -1414,7 +1592,6 @@ body.dark {
   .co-success-title { font-size: 20px; }
   .co-success-circle { width: 52px; height: 52px; }
 }
-
 
 /* ══════════════════════════════════════════
    ██  VERY SMALL  (≤ 340px)
@@ -1476,10 +1653,21 @@ body.dark .co-btn-ghost {
   border-color: var(--co-border);
   color: var(--co-text);
 }
-
+body.dark .co-side-cod-box {
+  background: linear-gradient(135deg, rgba(217,119,6,.15), rgba(217,119,6,.08));
+  border-color: rgba(217,119,6,.4);
+}
+body.dark .co-side-cod-rows,
+body.dark .co-side-cod-note {
+  color: var(--co-text2);
+}
+body.dark .co-mob-cod-box {
+  background: linear-gradient(135deg, rgba(217,119,6,.15), rgba(217,119,6,.08));
+  border-color: rgba(217,119,6,.4);
+}
 
 /* ══════════════════════
-   STORE POLICIES ACCORDION (NEWLY ADDED)
+   STORE POLICIES ACCORDION
    ══════════════════════ */
 .co-policies-body {
   padding: 0 !important;
@@ -1546,12 +1734,12 @@ body.dark .co-btn-ghost {
   margin: 0;
 }
 
-/* ── LEGAL TEXT (Disclaimer) ── */
+/* ── LEGAL TEXT ── */
 .co-legal-text {
   text-align: center;
   font-size: 11px;
   color: var(--co-muted);
-  margin: 12px 18px 16px;
+  margin: 12px 20px 16px;
   line-height: 1.5;
 }
 .co-legal-text a {
