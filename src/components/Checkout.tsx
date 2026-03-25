@@ -161,7 +161,10 @@ const Checkout: React.FC = () => {
   const [appliedDiscount, setAppliedDiscount] = useState<{ amount: number; percentage: number } | null>(null);
   const [user, setUser] = useState<any>(null);
   const [minimumQtyError, setMinimumQtyError] = useState<string | null>(null);
-  const [mobSummaryOpen, setMobSummaryOpen] = useState(false);
+  
+  // CHANGED: Set to true so Price Details is expanded by default on mobile
+  const [mobSummaryOpen, setMobSummaryOpen] = useState(true); 
+  
   const [activeStep, setActiveStep] = useState(1);
   const [openPolicy, setOpenPolicy] = useState<"shipping" | "return" | null>(null);
   const addressRef = useRef<HTMLDivElement>(null);
@@ -888,6 +891,13 @@ const Checkout: React.FC = () => {
                       <span>₹{finalTotalWithDiscount.toLocaleString()}</span>
                     </div>
                   )}
+                </div>
+              )}
+              
+              {/* CHANGED: Missing address warning dynamically injected at bottom of the mobile summary card */}
+              {(!selectedAddress || isAddingAddress) && (
+                <div style={{ padding: '12px 14px', background: '#fff7ed', borderTop: '1px solid #ffedd5', color: '#ea580c', fontSize: '13px', textAlign: 'center', fontWeight: 600 }}>
+                  ⚠ Please add your address to continue
                 </div>
               )}
             </div>

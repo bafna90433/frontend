@@ -525,8 +525,15 @@ const Products: React.FC = () => {
         jsonLd={{}}
       />
 
-      {/* ═══ MARQUEE TICKER ═══ */}
+      {/* ═══ MARQUEE TICKER WITH FAQ STICKY BUTTON ═══ */}
       <div className="sp-marquee">
+        {/* ADDED: Sticky Help & FAQ Button (PC Only) */}
+        <Link to="/faq" className="sp-marquee-faq-btn">
+          <span className="sp-faq-pulse"></span>
+          <Info size={14} />
+          Retailer FAQ & Help
+        </Link>
+        
         <div className="sp-marquee-track">
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
             <span className="sp-marquee-chip" key={i}>
