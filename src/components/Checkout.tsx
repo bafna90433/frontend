@@ -146,8 +146,12 @@ const Checkout: React.FC = () => {
   const [orderDetails, setOrderDetails] = useState<OrderData | null>(null);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [paymentMode, setPaymentMode] = useState<"ONLINE" | "COD">("ONLINE");
+  
+  // ✅ COD States Updated
   const [codAdvance, setCodAdvance] = useState<number>(0);
+  const [advanceType, setAdvanceType] = useState<"flat" | "percentage">("flat");
   const [isCodEnabled, setIsCodEnabled] = useState<boolean>(true);
+  
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
   
@@ -189,6 +193,7 @@ const Checkout: React.FC = () => {
       const { data } = await api.get("/settings/cod");
       if (data) {
         if (data.advanceAmount !== undefined) setCodAdvance(Number(data.advanceAmount));
+        if (data.advanceType !== undefined) setAdvanceType(data.advanceType); // ✅ Type fetch
         if (data.enabled !== undefined) {
           setIsCodEnabled(data.enabled);
           if (!data.enabled && paymentMode === "COD") setPaymentMode("ONLINE");
@@ -302,11 +307,19 @@ const Checkout: React.FC = () => {
     }
   };
 
+  // ✅ NEW CALCULATION LOGIC
   const discountAmt = appliedDiscount?.amount || 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
-  const applicableAdvance = Math.min(codAdvance, finalTotalWithDiscount);
+
+  let calculatedAdvance = codAdvance;
+  if (advanceType === "percentage") {
+    calculatedAdvance = Math.floor((finalTotalWithDiscount * codAdvance) / 100);
+  }
+
+  const applicableAdvance = Math.min(calculatedAdvance, finalTotalWithDiscount);
   const showCodAdvance = paymentMode === "COD" && applicableAdvance > 0;
   const payOnDeliveryAmount = Math.max(finalTotalWithDiscount - applicableAdvance, 0);
+  
   const allItemsMeetMinQty = cartItems.every((item) => {
     const { innerCount, minQty } = getItemValues(item);
     return innerCount >= minQty;
@@ -392,7 +405,6 @@ const Checkout: React.FC = () => {
 
   // --- GST VALIDATION LOGIC ---
   const gstValue = addressForm.gstNumber?.toUpperCase() || "";
-  // Check if GST is entered and does NOT match standard 15-digit alphanumeric format (e.g., 22AAAAA0000A1Z5)
   const isGstInvalid = gstValue.length > 0 && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[A-Z0-9]{3}$/.test(gstValue);
 
   /* ── SUCCESS PAGE ── */
@@ -603,7 +615,6 @@ const Checkout: React.FC = () => {
                         </select>
                       </div>
 
-                      {/* --- UPDATED GST FIELD (WITH VALIDATION) --- */}
                       <div className="co-field co-field--full" style={{ marginBottom: '10px' }}>
                         <label>GST - Optional</label>
                         <input 
@@ -678,7 +689,6 @@ const Checkout: React.FC = () => {
                     <div className="co-form-footer" style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginTop: '30px' }}>
                       <div style={{ display: 'flex', gap: '15px', justifyContent: 'flex-end', width: '100%' }}>
                          <button type="button" onClick={() => setIsAddingAddress(false)} className="co-btn-ghost" style={{ padding: '12px 24px' }}>Cancel</button>
-                         {/* DISABLED IF GST IS INVALID OR SAVING */}
                          <button type="submit" disabled={savingAddress || isGstInvalid} className="co-btn-solid" style={{ padding: '12px 24px', fontSize: '15px', fontWeight: 'bold' }}>
                            {savingAddress ? "Saving..." : "👉 Confirm Address & Continue"}
                          </button>
@@ -765,7 +775,9 @@ const Checkout: React.FC = () => {
                         <strong>Cash on Delivery</strong>
                         <span>
                           {codAdvance > 0 && applicableAdvance > 0
-                            ? `₹${applicableAdvance} advance required`
+                            ? advanceType === "percentage"
+                               ? `${codAdvance}% (₹${applicableAdvance}) advance required`
+                               : `₹${applicableAdvance} advance required`
                             : "Pay when you receive"
                           }
                         </span>
