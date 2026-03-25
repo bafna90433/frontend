@@ -217,7 +217,7 @@ const Header: React.FC = () => {
   const { theme, toggleTheme } = useTheme();
 
   const cartCount = useMemo(() => {
-    if (!Array.isArray(cartItems)) return 0;
+    if (!Array.isArray(cartItems) || cartItems.length === 0) return 0;
     return cartItems.reduce((sum: number, it: any) => sum + (Number.isFinite(it?.qty || it?.quantity) ? (it?.qty || it?.quantity) : 1), 0);
   }, [cartItems]);
 
@@ -234,37 +234,24 @@ const Header: React.FC = () => {
   const mobRef = useRef<HTMLFormElement | null>(null);
 
   const [placeholderText, setPlaceholderText] = useState("Search for toys...");
-  const [currentWordIdx, setCurrentWordIdx] = useState(0);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [charIdx, setCharIdx] = useState(0);
 
-  // Typewriter effect deferred to idle time to not block thread
+  // Removed Typewriter effect completely to free up the main thread
   useEffect(() => {
-    const words = popularSearches.length > 0 ? popularSearches.map(cat => `Search for "${cat.name}"...`) : ["Search for wind-up toys...", "Search for soft toys...", "Search for pull-back cars..."];
-    const currentFullWord = words[currentWordIdx % words.length];
-    const typingSpeed = isDeleting ? 40 : 80;
-    const timeout = setTimeout(() => {
-      if (!isDeleting && charIdx < currentFullWord.length) {
-        setPlaceholderText(currentFullWord.substring(0, charIdx + 1));
-        setCharIdx(prev => prev + 1);
-      } else if (isDeleting && charIdx > 0) {
-        setPlaceholderText(currentFullWord.substring(0, charIdx - 1));
-        setCharIdx(prev => prev - 1);
-      } else if (!isDeleting && charIdx === currentFullWord.length) {
-        setTimeout(() => setIsDeleting(true), 2000);
-      } else if (isDeleting && charIdx === 0) {
-        setIsDeleting(false);
-        setCurrentWordIdx(prev => prev + 1);
-      }
-    }, typingSpeed);
-    return () => clearTimeout(timeout);
-  }, [charIdx, isDeleting, currentWordIdx, popularSearches]);
+     if(popularSearches.length > 0) {
+        setPlaceholderText(`Search for "${popularSearches[0].name}"...`);
+     }
+  }, [popularSearches]);
+
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem("bafna_recent_searches");
-      if (saved) setRecentSearches(JSON.parse(saved));
-    } catch (error) { console.error(error); }
+    // Delay localStorage read
+    const timer = setTimeout(() => {
+        try {
+          const saved = localStorage.getItem("bafna_recent_searches");
+          if (saved) setRecentSearches(JSON.parse(saved));
+        } catch (error) { console.error(error); }
+    }, 500);
+    return () => clearTimeout(timer);
   }, []);
 
   const clearRecentSearches = useCallback(() => {
@@ -411,10 +398,15 @@ const Header: React.FC = () => {
       try { return JSON.parse(localStorage.getItem("user") || "null"); }
       catch { return null; }
     };
-    setUser(parseUser());
+    // Deferred User parsing to not block render
+    const timer = setTimeout(() => setUser(parseUser()), 200);
+    
     const handleStorageChange = () => { setUser(parseUser()); };
     window.addEventListener("storage", handleStorageChange);
-    return () => { window.removeEventListener("storage", handleStorageChange); };
+    return () => { 
+        clearTimeout(timer);
+        window.removeEventListener("storage", handleStorageChange); 
+    };
   }, []);
 
   return (

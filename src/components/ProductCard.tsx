@@ -245,7 +245,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
       return () => window.clearInterval(timer);
     }, [endsAt]);
 
-    const eager = index < 2;
+    const eager = index < 4;
 
     return (
       <div className="pc-wrapper">

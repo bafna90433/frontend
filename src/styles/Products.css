@@ -255,7 +255,7 @@
 .sp-filter-chip button:hover { opacity: 1; }
 .sp-clear-all { background: var(--sp-accent-soft); color: var(--sp-accent); border: 1px solid rgba(249, 115, 22, 0.1); padding: 6px 14px; border-radius: var(--sp-r-full); font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.2s var(--sp-ease), color 0.2s; }
 .sp-clear-all:hover { background: var(--sp-accent); color: white; }
-.sp-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; width: 100%; }
+.sp-grid { display: grid; grid-template-columns: repeat(var(--pc-cols, 5), 1fr) !important; gap: 16px; width: 100%; }
 @media (min-width: 1800px) { .sp-grid { grid-template-columns: repeat(6, 1fr); } }
 @media (min-width: 2200px) { .sp-grid { grid-template-columns: repeat(7, 1fr); } }
 .sp-grid > * { animation: card-enter 0.5s var(--sp-ease) forwards; opacity: 0; transform: translateY(24px) scale(0.97); will-change: opacity, transform; }
@@ -493,7 +493,7 @@
   .sp-insta-strip { font-size: 12px; }
   .sp-banner-skeleton, .sp-banner-wrap { padding: 10px 12px; }
   .sp-layout { padding: 0 10px; margin-top: 10px; }
-  .sp-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .sp-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 8px; }
   .sp-toolbar { padding: 8px 12px; gap: 8px; }
   .sp-toolbar-info { flex-direction: column; gap: 2px; }
   .sp-toolbar-title { font-size: 14px; }

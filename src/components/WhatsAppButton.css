@@ -650,18 +650,18 @@
 @media (max-width: 480px) {
   .wa-launcher.right,
   .wa-launcher.left {
-    right: 12px !important;
-    bottom: 80px !important;
+    right: 10px !important;
+    bottom: 72px !important;
   }
 
   .wa-fab {
-    width: 52px;
-    height: 52px;
+    width: 46px;
+    height: 46px;
   }
 
   .wa-fab-icon {
-    width: 24px;
-    height: 24px;
+    width: 22px;
+    height: 22px;
   }
 
   .wa-panel {
@@ -677,7 +677,7 @@
   }
 
   .wa-panel-head {
-    padding: 20px 16px 16px;
+    padding: 16px 14px 14px;
     border-radius: var(--wa-radius) var(--wa-radius) 0 0;
   }
 
@@ -695,36 +695,72 @@
   }
 
   .wa-header-row {
-    margin-top: 8px;
+    margin-top: 4px;
+  }
+
+  .wa-title {
+    font-size: 15px;
+  }
+
+  .wa-sub {
+    font-size: 11px;
+    line-height: 1.3;
   }
 
   .wa-panel-body {
     max-height: 50vh;
-    padding: 12px 16px;
-    gap: 8px;
+    padding: 10px 12px;
+    gap: 6px;
   }
 
   .wa-agent-item {
-    padding: 14px 16px;
-    border-radius: var(--wa-radius-sm);
+    padding: 10px 12px;
+    border-radius: var(--wa-radius-xs);
+    gap: 10px;
   }
 
   .wa-agent-avatar {
-    width: 46px;
-    height: 46px;
+    width: 38px;
+    height: 38px;
+  }
+
+  .wa-agent-name {
+    font-size: 13px;
+  }
+
+  .wa-agent-title {
+    font-size: 11px;
+  }
+
+  .wa-agent-arrow {
+    width: 24px;
+    height: 24px;
+  }
+
+  .wa-agent-arrow svg {
+    width: 14px;
+    height: 14px;
   }
 
   .wa-online-dot {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 8px;
+    bottom: 0px;
+    right: 0px;
+    border-width: 1.5px;
   }
 
   .wa-greeting {
     position: fixed;
-    bottom: 140px;
+    bottom: 125px;
     right: 12px;
     left: auto;
-    max-width: calc(100vw - 80px);
+    max-width: calc(100vw - 70px);
+    padding: 10px 14px;
+  }
+
+  .wa-greeting-text {
+    font-size: 12px;
   }
 
   .wa-greeting::after {
@@ -732,8 +768,12 @@
   }
 
   .wa-panel-footer {
-    padding: 14px 16px;
-    padding-bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    padding: 10px 14px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .wa-footer-text {
+    font-size: 10px;
   }
 }
 

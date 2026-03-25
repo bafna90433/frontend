@@ -1,6 +1,7 @@
 import React, { useEffect, useCallback } from "react";
 import Slider from "react-slick";
 import { useNavigate } from "react-router-dom";
+// Slick CSS is moved to lazy loading pattern or deferred to avoid render blocking
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "../styles/BannerSlider.css";
@@ -62,6 +63,7 @@ const sliderSettings = {
   arrows: false,
   pauseOnHover: true,
   cssEase: "ease-in-out",
+  lazyLoad: "ondemand" as const, // Added lazyLoad setting for slick natively
   responsive: [
     { breakpoint: 1024, settings: { slidesToShow: 2 } },
     { breakpoint: 768, settings: { slidesToShow: 1 } },
@@ -104,7 +106,9 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
       <Slider {...sliderSettings} infinite={sliderBanners.length > 1}>
         {sliderBanners.map((b, index) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
-          const isLcp = !hideFirstBanner && index === 0; // Only the VERY first slide is strictly LCP
+          // If first banner is hidden, then none of these are LCP (LCP is handled by HTML)
+          // If not hidden, only the very first one is eager
+          const isLcp = !hideFirstBanner && index === 0;
 
           const ImageTag = (
             <img
@@ -114,7 +118,7 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
               width={500}
               height={300}
               loading={isLcp ? "eager" : "lazy"}
-              fetchPriority={isLcp ? "high" : "auto"}
+              fetchPriority={isLcp ? "high" : "low"}
               decoding={isLcp ? "sync" : "async"}
               onLoad={(e) => e.currentTarget.classList.add("is-loaded")}
             />

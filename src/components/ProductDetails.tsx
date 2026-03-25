@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useMemo, useCallback } from "react";
+import React, { useEffect, useState, useRef, useMemo, useCallback, Suspense, lazy } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "../utils/api";
 import "../styles/ProductDetails.css";
@@ -25,11 +25,13 @@ import {
 } from "react-icons/fi";
 import { FaTag, FaRegHeart, FaHeart } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
-import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 import { getImageUrl } from "../utils/image";
 import ProductSEO from "./ProductSEO";
-import ProductCard from "./ProductCard";
-import ReviewSection from "../components/ReviewSection";
+
+// --- LAZY LOADED COMPONENTS (Below the fold) ---
+const FloatingCheckoutButton = lazy(() => import("../components/FloatingCheckoutButton"));
+const ProductCard = lazy(() => import("./ProductCard"));
+const ReviewSection = lazy(() => import("../components/ReviewSection"));
 
 interface BulkTier {
   inner: string;
@@ -199,7 +201,8 @@ const ProductDetails: React.FC = () => {
     if (!isSwipingRef.current) return;
     isSwipingRef.current = false;
 
-    const containerWidth = carouselTrackRef.current?.parentElement?.offsetWidth || 300;
+    // Fast check to avoid forced reflow from offsetWidth read
+    const containerWidth = window.innerWidth > 768 ? 400 : window.innerWidth;
     const threshold = containerWidth * 0.2;
     const velocity = touchCurrentX.current - touchStartX.current;
     const offset = swipeOffsetRef.current;
@@ -880,7 +883,9 @@ const ProductDetails: React.FC = () => {
 
         {/* Reviews */}
         <div className="pd-section-wrap">
-          <ReviewSection productId={product._id} />
+          <Suspense fallback={<div className="pd-loading" style={{ minHeight: "200px" }} />}>
+            <ReviewSection productId={product._id} />
+          </Suspense>
         </div>
 
         {/* Related Products */}
@@ -890,11 +895,13 @@ const ProductDetails: React.FC = () => {
             <div className="pd-related-grid">
               {product.relatedProducts.map((rel, i) => (
                 <div key={rel._id} className="pd-related-cell">
-                  <ProductCard
-                    product={rel}
-                    userRole="customer"
-                    index={i + 4}
-                  />
+                  <Suspense fallback={<div className="pd-loading" style={{ minHeight: "250px" }} />}>
+                    <ProductCard
+                      product={rel}
+                      userRole="customer"
+                      index={i + 4}
+                    />
+                  </Suspense>
                 </div>
               ))}
             </div>
@@ -959,7 +966,9 @@ const ProductDetails: React.FC = () => {
         )}
       </div>
 
-      <FloatingCheckoutButton />
+      <Suspense fallback={null}>
+        <FloatingCheckoutButton />
+      </Suspense>
     </>
   );
 };

@@ -503,20 +503,15 @@ const Products: React.FC = () => {
   // ══════════════════════════════════════════════════
 
   return (
-    <div className="sp-wrapper">
-      <style>
-        {`
-          .sp-grid {
-            grid-template-columns: repeat(${gridConfig.pc}, 1fr) !important;
-          }
-          @media (max-width: 768px) {
-            .sp-grid {
-              grid-template-columns: repeat(${gridConfig.mobile}, 1fr) !important;
-            }
-          }
-        `}
-      </style>
-
+    <div
+      className="sp-wrapper"
+      style={
+        {
+          "--pc-cols": gridConfig.pc,
+          "--mob-cols": gridConfig.mobile,
+        } as React.CSSProperties
+      }
+    >
       <CategorySEO
         title={seoTitle}
         description="Buy bulk toys at wholesale prices from India's leading B2B toy supplier."

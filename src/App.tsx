@@ -18,6 +18,8 @@ import { ThemeProvider } from "./context/ThemeContext";
 import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import ComingSoon from "./components/ComingSoon";
+// We make Products static to improve LCP on the home page.
+import Products from "./components/Products"; 
 
 // --- LAZY LOADED COMPONENTS (Non-critical) ---
 const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
@@ -25,7 +27,6 @@ const FreeDeliveryModal = React.lazy(() => import("./components/FreeDeliveryModa
 const NoInternet = React.lazy(() => import("./components/NoInternet"));
 
 // --- LAZY LOADED PAGES ---
-const Products = React.lazy(() => import("./components/Products"));
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
 const Wishlist = React.lazy(() => import("./components/Wishlist"));
