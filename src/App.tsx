@@ -37,6 +37,7 @@ const LoginOTP = React.lazy(() => import("./components/LoginOTP"));
 const MyAccount = React.lazy(() => import("./components/MyAccount"));
 const EditProfile = React.lazy(() => import("./components/EditProfile"));
 const Orders = React.lazy(() => import("./components/Orders"));
+const OrderDetails = React.lazy(() => import("./components/OrderDetails")); // ✅ Added OrderDetails
 const ManageAddresses = React.lazy(() => import("./components/ManageAddresses"));
 const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
 const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
@@ -44,7 +45,7 @@ const ShippingDelivery = React.lazy(() => import("./components/ShippingDelivery"
 const CancellationRefund = React.lazy(() => import("./components/CancellationRefund"));
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const PendingReviews = React.lazy(() => import("./pages/PendingReviews"));
-const FAQ = React.lazy(() => import("./components/FAQ")); // Added FAQ import
+const FAQ = React.lazy(() => import("./components/FAQ"));
 
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
@@ -129,7 +130,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
     "/terms-conditions",
     "/shipping-delivery",
     "/cancellation-refund",
-    "/faq", // Added FAQ to public paths
+    "/faq",
   ];
 
   const isPublicPage =
@@ -253,7 +254,7 @@ const AppInner: React.FC = () => {
               <Route path="/terms-conditions" element={<TermsConditions />} />
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
-              <Route path="/faq" element={<FAQ />} /> {/* Added FAQ Route */}
+              <Route path="/faq" element={<FAQ />} />
 
               {/* Protected Routes */}
               <Route
@@ -285,6 +286,15 @@ const AppInner: React.FC = () => {
                 element={
                     <ProtectedRoute>
                       <Orders />
+                    </ProtectedRoute>
+                }
+              />
+              {/* ✅ Added OrderDetails Protected Route */}
+              <Route
+                path="/orders/:orderId"
+                element={
+                    <ProtectedRoute>
+                      <OrderDetails />
                     </ProtectedRoute>
                 }
               />

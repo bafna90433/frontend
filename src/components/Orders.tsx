@@ -32,7 +32,6 @@ type ReturnRequest = {
   requestDate?: string;
 };
 
-// ✅ Updated Shipping Address Type
 type ShippingAddress = {
   shopName?: string;
   gstNumber?: string;
@@ -63,7 +62,7 @@ type Order = {
   trackingId?: string;
   courierName?: string;
   isShipped?: boolean;
-  shippingAddress?: string | ShippingAddress; // ✅ Used new type
+  shippingAddress?: string | ShippingAddress;
   returnRequest?: ReturnRequest;
 };
 
@@ -149,7 +148,6 @@ const generateInvoice = (order: Order) => {
 
   let shippingHtml = "No shipping address provided";
   
-  // ✅ Handling Different Shipping Logic
   if (sa && typeof sa === "object") {
     if (sa.isDifferentShipping) {
       shippingHtml = [
@@ -247,6 +245,29 @@ const Orders: React.FC = () => {
     fetchOrders();
   }, [apiBase]);
 
+  useEffect(() => {
+    if (orders.length > 0) {
+      const params = new URLSearchParams(window.location.search);
+      const targetOrder = params.get("orderId");
+
+      if (targetOrder) {
+        const orderToOpen = orders.find(
+          (o) => o._id === targetOrder || o.orderNumber === targetOrder
+        );
+
+        if (orderToOpen) {
+          setExpandedOrder(orderToOpen._id);
+          setTimeout(() => {
+            const element = document.getElementById(`order-${orderToOpen._id}`);
+            if (element) {
+              element.scrollIntoView({ behavior: "smooth", block: "center" });
+            }
+          }, 300);
+        }
+      }
+    }
+  }, [orders]);
+
   const filteredOrders = useMemo(() => {
     let list = statusFilter === "all" ? orders : orders.filter(o => o.status === statusFilter);
     if (searchQuery.trim()) {
@@ -261,13 +282,13 @@ const Orders: React.FC = () => {
 
   const toggleOrder = (id: string) => setExpandedOrder(expandedOrder === id ? null : id);
 
-  // ✅ UPDATED TRACKING URL LOGIC (Delhivery Deep Link setup)
   const getTrackingUrl = (order: Order) => {
     if (!order.trackingId) return "#";
     const c = (order.courierName || "").toLowerCase();
     
     if (c.includes("delhivery")) {
-      return `https://www.delhivery.com/track/package/?waybill=${order.trackingId}`;
+      // ✅ DELHIIVERY URL UPDATED HERE
+      return `https://www.delhivery.com/track-v2/package/${order.trackingId}`;
     }
     if (c.includes("vxpress") || c.includes("v-xpress") || c.includes("v xpress")) {
       return "https://vxpress.in/track-result/";
@@ -448,7 +469,7 @@ const Orders: React.FC = () => {
               const retSt = hasReturn ? returnStatusConfig[order.returnRequest!.status] : null;
 
               return (
-                <div key={order._id} className={`ord-card ${isOpen ? "ord-card--open" : ""}`}>
+                <div key={order._id} id={`order-${order._id}`} className={`ord-card ${isOpen ? "ord-card--open" : ""}`}>
                   {/* ── Summary ── */}
                   <div className="ord-card-top" onClick={() => toggleOrder(order._id)}>
                     <div className="ord-card-row1">
