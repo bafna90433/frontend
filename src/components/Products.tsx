@@ -312,11 +312,11 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
+  // UPDATED fetchProducts WITH RETRY LOGIC 
   useEffect(() => {
     let alive = true;
     const ctrl = new AbortController();
-
-    const fetchProducts = async () => {
+    const fetchProducts = async (retryCount = 0) => {
       setLoading(true);
       setError(null);
       try {
@@ -334,15 +334,19 @@ const Products: React.FC = () => {
         setAllProducts(arr.map(cleanProduct));
       } catch (e: any) {
         if (!ctrl.signal.aborted) {
-          setError(
-            e?.response?.data?.message || e.message || "Failed to load"
-          );
+          // Pehli failure par automatically 3 sec baad retry
+          if (retryCount < 1) {
+            setTimeout(() => {
+              if (alive) fetchProducts(retryCount + 1);
+            }, 3000);
+            return;
+          }
+          setError(e?.response?.data?.message || e.message || "Failed to load");
         }
       } finally {
         if (alive) setLoading(false);
       }
     };
-
     fetchProducts();
     return () => {
       alive = false;
