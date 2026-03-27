@@ -31,6 +31,9 @@ interface Product {
   reviews?: number;
   featured?: boolean;
   sale_end_time?: string;
+  unit?: string;
+  piecesPerUnit?: number;
+  isBulkOnly?: boolean; // ✅ Added this for strict box/tray logic
 }
 
 export type Deal = {
@@ -119,7 +122,31 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
-    const minQty = useMemo(() => (product.price < 60 ? 3 : 2), [product.price]);
+    // 🔥 STRICT ADMIN CONTROL LOGIC
+    const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
+      const dbPieces = Number(product.piecesPerUnit) || 1;
+      const dbUnit = product.unit || "Piece";
+      const strictBulk = product.isBulkOnly || false;
+
+      if (strictBulk && dbPieces > 1) {
+        // Agar strictly box/tray me bhejna hai (e.g. step by 24)
+        return { stepQty: dbPieces, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+      } else if (dbPieces > 1) {
+        // Box/Tray hai but loose bhi bhej sakte ho
+        return { stepQty: 1, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+      } else {
+        // Normal products
+        const fallbackMin = Number(product.price) < 60 ? 3 : 2;
+        return { stepQty: 1, minQty: fallbackMin, parsedUnit: dbUnit, isBulk: false };
+      }
+    }, [product.piecesPerUnit, product.unit, product.price, product.isBulkOnly]);
+
+    const showTagline = useMemo(() => {
+      if (!product.tagline) return false;
+      const lower = product.tagline.toLowerCase();
+      if (lower.includes("per ") || lower.includes("price")) return false;
+      return true;
+    }, [product.tagline]);
 
     const displayCategory = useMemo(() => {
       if (!product.category) return "";
@@ -164,7 +191,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
             content_name: product.name,
             content_ids: [product._id],
             content_type: 'product',
-            value: finalPrice * minQty, // Tracking the actual cost added to cart
+            value: finalPrice * minQty,
             currency: 'INR'
           });
         }
@@ -176,19 +203,19 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
       (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setCartItemQuantity(product, itemCount + 1);
+        setCartItemQuantity(product, itemCount + stepQty);
       },
-      [product, itemCount, setCartItemQuantity]
+      [product, itemCount, stepQty, setCartItemQuantity]
     );
 
     const handleDec = useCallback(
       (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
+        const nextQty = itemCount <= minQty ? 0 : itemCount - stepQty;
         setCartItemQuantity(product, nextQty);
       },
-      [product, itemCount, minQty, setCartItemQuantity]
+      [product, itemCount, minQty, stepQty, setCartItemQuantity]
     );
 
     const discountPercent = useMemo(() => {
@@ -327,7 +354,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               <div className="pc-topleft">
                 <div className="pc-min-qty">
                   <Info size={10} strokeWidth={2.5} />
-                  Min: {minQty}
+                  Min: {minQty} {isBulk && !product.isBulkOnly ? "Pcs" : ""}
                 </div>
               </div>
 
@@ -361,21 +388,34 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
             )}
 
             <div className="pc-meta-chips">
-              {product.tagline && (
+              {showTagline && (
                 <span className="pc-chip pc-chip--tag">
                   <Tag size={10} strokeWidth={2.5} />
                   {product.tagline}
                 </span>
               )}
-              {product.packSize && (
-                <span className="pc-chip pc-chip--box">
+
+              <span className="pc-chip pc-chip--tag" style={{ background: "#f3e8ff", color: "#7e22ce" }}>
+                <Tag size={10} strokeWidth={2.5} />
+                Per piece Price
+              </span>
+
+              {isBulk ? (
+                <span className="pc-chip pc-chip--box" style={{ background: "#e0f2fe", color: "#0369a1" }}>
                   <Box size={10} strokeWidth={2.5} />
-                  {product.packSize}
+                  Per {parsedUnit} {product.piecesPerUnit} Pieces
                 </span>
+              ) : (
+                product.packSize && (
+                  <span className="pc-chip pc-chip--box">
+                    <Box size={10} strokeWidth={2.5} />
+                    {product.packSize}
+                  </span>
+                )
               )}
             </div>
 
-            {/* UPDATED PRICE SECTION: STACKED LAYOUT */}
+            {/* PRICE SECTION */}
             <div className="pc-price-section">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
@@ -448,7 +488,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                     onClick={handleInc}
                     className="pc-inline-qty-btn"
                     disabled={
-                      product.stock !== undefined && itemCount >= product.stock
+                      product.stock !== undefined && product.stock > 0 && itemCount + stepQty > product.stock
                     }
                     aria-label="Increase quantity"
                   >
