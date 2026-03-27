@@ -19,6 +19,7 @@ type OrderItem = {
   innerQty?: number;
   inners?: number;
   nosPerInner?: number;
+  sku?: string;
 };
 
 type ReturnRequest = {
@@ -105,8 +106,8 @@ const toPackets = (it: OrderItem) => {
   return Math.ceil((it.qty || 0) / perInner);
 };
 
+// ✅ Removed Pending from main configs since we merge it
 const statusConfig: Record<string, { color: string; bg: string; icon: React.ReactNode; label: string }> = {
-  pending: { color: "#f59e0b", bg: "rgba(245,158,11,.08)", icon: <Clock size={14} />, label: "Pending" },
   processing: { color: "#3b82f6", bg: "rgba(59,130,246,.08)", icon: <CheckCircle2 size={14} />, label: "Confirmed" },
   shipped: { color: "#8b5cf6", bg: "rgba(139,92,246,.08)", icon: <Truck size={14} />, label: "Shipped" },
   delivered: { color: "#10b981", bg: "rgba(16,185,129,.08)", icon: <CheckCircle2 size={14} />, label: "Delivered" },
@@ -268,8 +269,13 @@ const Orders: React.FC = () => {
     }
   }, [orders]);
 
+  // ✅ Maps pending -> processing for frontend filters
   const filteredOrders = useMemo(() => {
-    let list = statusFilter === "all" ? orders : orders.filter(o => o.status === statusFilter);
+    let list = statusFilter === "all" ? orders : orders.filter(o => {
+      const displayStatus = o.status === "pending" ? "processing" : o.status;
+      return displayStatus === statusFilter;
+    });
+    
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       list = list.filter(o =>
@@ -287,23 +293,12 @@ const Orders: React.FC = () => {
     const c = (order.courierName || "").toLowerCase();
     
     if (c.includes("delhivery")) {
-      // ✅ DELHIIVERY URL UPDATED HERE
       return `https://www.delhivery.com/track-v2/package/${order.trackingId}`;
     }
     if (c.includes("vxpress") || c.includes("v-xpress") || c.includes("v xpress")) {
       return "https://vxpress.in/track-result/";
     }
     return `https://www.google.com/search?q=${encodeURIComponent(`${order.trackingId} tracking`)}`;
-  };
-
-  const handleCancelOrder = async (orderId: string) => {
-    if (!window.confirm("Cancel this order?")) return;
-    try {
-      const token = localStorage.getItem("token");
-      await axios.put(`${apiBase}/orders/${orderId}/status`, { status: "cancelled", cancelledBy: "Customer" },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} });
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, status: "cancelled" } : o));
-    } catch { alert("Failed to cancel."); }
   };
 
   const handleOpenReturn = (orderId: string) => {
@@ -351,15 +346,19 @@ const Orders: React.FC = () => {
 
   const getSelectedOrderItems = () => orders.find(o => o._id === selectedOrderId)?.items || [];
 
+  // ✅ Merge Pending into Confirmed
   const statusCounts = useMemo(() => {
     const counts: Record<string, number> = { all: orders.length };
-    orders.forEach(o => { counts[o.status] = (counts[o.status] || 0) + 1; });
+    orders.forEach(o => { 
+      const displayStatus = o.status === "pending" ? "processing" : o.status;
+      counts[displayStatus] = (counts[displayStatus] || 0) + 1; 
+    });
     return counts;
   }, [orders]);
 
+  // ✅ Removed Pending from tabs
   const filterTabs = [
     { key: "all", label: "All", icon: <Package size={14} /> },
-    { key: "pending", label: "Pending", icon: <Clock size={14} /> },
     { key: "processing", label: "Confirmed", icon: <CheckCircle2 size={14} /> },
     { key: "shipped", label: "Shipped", icon: <Truck size={14} /> },
     { key: "delivered", label: "Delivered", icon: <CheckCircle2 size={14} /> },
@@ -464,7 +463,11 @@ const Orders: React.FC = () => {
           <div className="ord-list">
             {filteredOrders.map(order => {
               const isOpen = expandedOrder === order._id;
-              const st = statusConfig[order.status];
+              
+              // ✅ Virtual Display status forces "pending" -> "processing"
+              const displayStatus = order.status === "pending" ? "processing" : order.status;
+              const st = statusConfig[displayStatus];
+              
               const hasReturn = order.returnRequest?.isRequested;
               const retSt = hasReturn ? returnStatusConfig[order.returnRequest!.status] : null;
 
@@ -514,11 +517,11 @@ const Orders: React.FC = () => {
                   {/* ── Expanded Details ── */}
                   {isOpen && (
                     <div className="ord-card-body">
-                      {/* Progress */}
+                      {/* Progress (Starts directly from processing/Confirmed) */}
                       <div className={`ord-progress ${order.status === "cancelled" ? "ord-progress--off" : ""}`}>
-                        {(["pending", "processing", "shipped", "delivered"] as const).map((step, i) => {
-                          const stepOrder = ["pending", "processing", "shipped", "delivered"];
-                          const currentIdx = stepOrder.indexOf(order.status);
+                        {(["processing", "shipped", "delivered"] as const).map((step, i) => {
+                          const stepOrder = ["processing", "shipped", "delivered"];
+                          const currentIdx = stepOrder.indexOf(displayStatus);
                           const isActive = i <= currentIdx;
                           const isCurrent = i === currentIdx;
                           return (
@@ -531,14 +534,15 @@ const Orders: React.FC = () => {
                                 </div>
                                 <span className="ord-prog-label">{statusConfig[step].label}</span>
                               </div>
-                              {i < 3 && <div className={`ord-prog-line ${isActive && i < currentIdx ? "ord-prog-line--on" : ""}`} />}
+                              {/* Shortened array length from 3 to 2 for line generation */}
+                              {i < 2 && <div className={`ord-prog-line ${isActive && i < currentIdx ? "ord-prog-line--on" : ""}`} />}
                             </React.Fragment>
                           );
                         })}
                       </div>
 
                       {/* Tracking */}
-                      {order.status === "shipped" && order.trackingId && (
+                      {displayStatus === "shipped" && order.trackingId && (
                         <div className="ord-tracking">
                           <div className="ord-tracking-info">
                             <Truck size={18} />
@@ -553,15 +557,10 @@ const Orders: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Cancel */}
-                      {order.status === "pending" && (
-                        <button className="ord-cancel-btn" onClick={() => handleCancelOrder(order._id)}>
-                          <XCircle size={15} /> Cancel Order
-                        </button>
-                      )}
+                      {/* ✅ Cancel Order button completely removed from here */}
 
                       {/* Return Section */}
-                      {order.status === "delivered" && !hasReturn && (
+                      {displayStatus === "delivered" && !hasReturn && (
                         <div className="ord-return-cta">
                           <div>
                             <strong>Need to return?</strong>

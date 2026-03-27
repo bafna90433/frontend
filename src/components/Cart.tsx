@@ -3,14 +3,35 @@ import { useShop } from "../context/ShopContext";
 import { useNavigate } from "react-router-dom";
 import "../styles/Cart.css";
 
-const getMinQty = (price: number) => (price < 60 ? 3 : 2);
+// 🔥 STRICT BULK BUY LOGIC FOR CART ITEMS
+const getCartItemConfig = (item: any) => {
+  const dbPieces = Number(item.piecesPerUnit) || 1;
+  const dbUnit = item.unit || "Piece";
+  const strictBulk = item.isBulkOnly || false;
 
-const getValues = (item: any) => {
+  let stepQty = 1;
+  let minQty = 1;
+  let isBulk = false;
+
+  if (strictBulk && dbPieces > 1) {
+    stepQty = dbPieces;
+    minQty = dbPieces;
+    isBulk = true;
+  } else if (dbPieces > 1) {
+    stepQty = 1;
+    minQty = dbPieces;
+    isBulk = true;
+  } else {
+    minQty = Number(item.price) < 60 ? 3 : 2;
+    stepQty = 1;
+    isBulk = false;
+  }
+
   const qty = item.quantity || 0;
-  const min = getMinQty(item.price);
-  const unit = item.price;
-  const total = qty * unit;
-  return { qty, min, unit, total };
+  const unitPrice = item.price;
+  const total = qty * unitPrice;
+
+  return { qty, min: minQty, step: stepQty, unit: unitPrice, total, parsedUnit: dbUnit, isBulk };
 };
 
 /* ═══════════════════════════════════
@@ -117,8 +138,9 @@ const Cart: React.FC = () => {
   const totalQty = cartItems.reduce((s, i) => s + (i.quantity || 0), 0);
   const needed = freeShippingThreshold - cartTotal;
   const progress = Math.min(100, (cartTotal / freeShippingThreshold) * 100);
+  
   const hasMinError = cartItems.some((i) => {
-    const { qty, min } = getValues(i);
+    const { qty, min } = getCartItemConfig(i);
     return qty < min;
   });
 
@@ -201,7 +223,9 @@ const Cart: React.FC = () => {
 
             {/* Cards */}
             {cartItems.map((item: any) => {
-              const { qty, min, unit, total } = getValues(item);
+              // 🔥 USING THE NEW BULK CONFIG LOGIC
+              const { qty, min, step, unit, total, parsedUnit, isBulk } = getCartItemConfig(item);
+              
               const imgSrc = item.image?.startsWith("http")
                 ? item.image
                 : item.image?.includes("/uploads/")
@@ -231,11 +255,12 @@ const Cart: React.FC = () => {
 
                     <div className="ct-card-price-row">
                       <span className="ct-card-price">₹{unit.toLocaleString()}</span>
-                      <span className="ct-card-per">/ packet</span>
+                      <span className="ct-card-per">/ {parsedUnit}</span>
                     </div>
 
                     <div className="ct-card-pills">
                       <span className="ct-pill ct-pill--min">Min {min}</span>
+                      {isBulk && <span className="ct-pill" style={{ background: "#e0f2fe", color: "#0369a1" }}>Per {step} pcs</span>}
                       {qty < min && <span className="ct-pill ct-pill--err">Below min!</span>}
                     </div>
 
@@ -243,7 +268,7 @@ const Cart: React.FC = () => {
                       <div className="ct-stepper">
                         <button
                           className="ct-step-btn"
-                          onClick={() => qty > min && setCartItemQuantity(item, qty - 1)}
+                          onClick={() => qty > min && setCartItemQuantity(item, qty - step)}
                           disabled={qty <= min}
                         >
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">
@@ -253,7 +278,7 @@ const Cart: React.FC = () => {
                         <span className="ct-step-val">{qty}</span>
                         <button
                           className="ct-step-btn ct-step-btn--add"
-                          onClick={() => setCartItemQuantity(item, qty + 1)}
+                          onClick={() => setCartItemQuantity(item, qty + step)}
                           disabled={item.stock !== undefined && qty >= item.stock}
                         >
                           <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="3">

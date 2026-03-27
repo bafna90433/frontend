@@ -60,6 +60,9 @@ interface Product {
   sale_end_time?: string;
   hotDealType?: "PERCENT" | "FLAT" | "NONE";
   hotDealValue?: number;
+  unit?: string;
+  piecesPerUnit?: number;
+  isBulkOnly?: boolean; // ✅ Added Bulk Buy Fields
 }
 
 const ProductDetails: React.FC = () => {
@@ -73,7 +76,7 @@ const ProductDetails: React.FC = () => {
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
   
-  // Touch Swiping Refs (Optimized without React State for performance)
+  // Touch Swiping Refs
   const touchStartX = useRef(0);
   const touchStartY = useRef(0);
   const touchCurrentX = useRef(0);
@@ -97,7 +100,6 @@ const ProductDetails: React.FC = () => {
       : [product.image].filter(Boolean) as string[];
   }, [product]);
 
-  // Simplified Image Preloading (Browser handles this efficiently natively if rendered)
   const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   useEffect(() => {
     if (images.length > 0) {
@@ -136,7 +138,6 @@ const ProductDetails: React.FC = () => {
     return pauseAutoplay;
   }, [startAutoplay, pauseAutoplay]);
 
-  // Touch handlers for native-like swipe (Optimized with requestAnimationFrame)
   const updateTrackTransform = useCallback((offset: number, animate: boolean = false) => {
       if(!carouselTrackRef.current) return;
       const el = carouselTrackRef.current;
@@ -145,7 +146,6 @@ const ProductDetails: React.FC = () => {
   }, [selectedImage]);
 
   useEffect(() => {
-      // Reset track position when selectedImage changes normally
       if(!isSwipingRef.current) {
           updateTrackTransform(0, true);
       }
@@ -191,7 +191,6 @@ const ProductDetails: React.FC = () => {
 
     swipeOffsetRef.current = offset;
     
-    // Direct DOM manipulation to avoid React state batching delays
     requestAnimationFrame(() => {
         updateTrackTransform(offset, false);
     });
@@ -201,7 +200,6 @@ const ProductDetails: React.FC = () => {
     if (!isSwipingRef.current) return;
     isSwipingRef.current = false;
 
-    // Fast check to avoid forced reflow from offsetWidth read
     const containerWidth = window.innerWidth > 768 ? 400 : window.innerWidth;
     const threshold = containerWidth * 0.2;
     const velocity = touchCurrentX.current - touchStartX.current;
@@ -221,9 +219,9 @@ const ProductDetails: React.FC = () => {
     isHorizontalSwipe.current = null;
     
     if (nextImage !== selectedImage) {
-        setSelectedImage(nextImage); // This will trigger the useEffect to animate to new pos
+        setSelectedImage(nextImage);
     } else {
-        updateTrackTransform(0, true); // Snap back to current
+        updateTrackTransform(0, true); 
     }
 
     startAutoplay();
@@ -264,7 +262,6 @@ const ProductDetails: React.FC = () => {
     startAutoplay();
   }, [pauseAutoplay, startAutoplay]);
 
-  // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "ArrowLeft") handleImageChange("prev");
@@ -340,7 +337,6 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
 
-        // --- META PIXEL: VIEW CONTENT EVENT ---
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'ViewContent', {
             content_name: fetchedProduct.name,
@@ -422,31 +418,39 @@ const ProductDetails: React.FC = () => {
     }
   };
 
+  // 🔥 STRICT ADMIN CONTROL LOGIC (Same as ProductCard)
+  const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
+    if (!product) return { stepQty: 1, minQty: 1, parsedUnit: "Piece", isBulk: false };
+
+    const dbPieces = Number(product.piecesPerUnit) || 1;
+    const dbUnit = product.unit || "Piece";
+    const strictBulk = product.isBulkOnly || false;
+
+    if (strictBulk && dbPieces > 1) {
+      return { stepQty: dbPieces, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+    } else if (dbPieces > 1) {
+      return { stepQty: 1, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+    } else {
+      const fallbackMin = Number(product.price) < 60 ? 3 : 2;
+      return { stepQty: 1, minQty: fallbackMin, parsedUnit: dbUnit, isBulk: false };
+    }
+  }, [product]);
+
   const {
     itemCount,
-    minQty,
     unitPrice,
     discountPercent,
     hasDiscount,
   } = useMemo(() => {
     if (!product) {
-      return {
-        itemCount: 0,
-        minQty: 1,
-        unitPrice: 0,
-        discountPercent: 0,
-        hasDiscount: false,
-      };
+      return { itemCount: 0, unitPrice: 0, discountPercent: 0, hasDiscount: false };
     }
 
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
-    const minQty = product.price < 60 ? 3 : 2;
     const unitPrice = product.price;
 
-    const hasDiscount =
-      !!(product.mrp && product.mrp > unitPrice) ||
-      product.hotDealType !== "NONE";
+    const hasDiscount = !!(product.mrp && product.mrp > unitPrice) || product.hotDealType !== "NONE";
 
     const discountPercent =
       product.hotDealType === "PERCENT" && product.hotDealValue
@@ -455,20 +459,19 @@ const ProductDetails: React.FC = () => {
         ? Math.round(((product.mrp - unitPrice) / product.mrp) * 100)
         : 0;
 
-    return { itemCount, minQty, unitPrice, discountPercent, hasDiscount };
+    return { itemCount, unitPrice, discountPercent, hasDiscount };
   }, [product, cartItems]);
 
   const handleAdd = useCallback(() => {
     if (product) {
       setCartItemQuantity(product, minQty);
       
-      // --- META PIXEL: ADD TO CART EVENT ---
       if (typeof window !== "undefined" && (window as any).fbq) {
         (window as any).fbq('track', 'AddToCart', {
           content_name: product.name,
           content_ids: [product._id],
           content_type: 'product',
-          value: unitPrice * minQty, // Total value of items added
+          value: unitPrice * minQty, 
           currency: 'INR'
         });
       }
@@ -476,15 +479,15 @@ const ProductDetails: React.FC = () => {
   }, [product, minQty, setCartItemQuantity, unitPrice]);
 
   const handleInc = useCallback(() => {
-    if (product) setCartItemQuantity(product, itemCount + 1);
-  }, [product, itemCount, setCartItemQuantity]);
+    if (product) setCartItemQuantity(product, itemCount + stepQty);
+  }, [product, itemCount, stepQty, setCartItemQuantity]);
 
   const handleDec = useCallback(() => {
     if (product) {
-      const nextQty = itemCount <= minQty ? 0 : itemCount - 1;
+      const nextQty = itemCount <= minQty ? 0 : itemCount - stepQty;
       setCartItemQuantity(product, nextQty);
     }
-  }, [product, itemCount, minQty, setCartItemQuantity]);
+  }, [product, itemCount, minQty, stepQty, setCartItemQuantity]);
 
   if (loading) {
     return (
@@ -499,10 +502,7 @@ const ProductDetails: React.FC = () => {
   if (!product) return <div className="pd-error">Product not found</div>;
 
   const isOutOfStock = product.stock === 0;
-  const currentImageUrl = getImageUrl(
-    images[selectedImage] || "",
-    800
-  );
+  const currentImageUrl = getImageUrl(images[selectedImage] || "", 800);
 
   return (
     <>
@@ -524,7 +524,6 @@ const ProductDetails: React.FC = () => {
           {/* ===== GALLERY ===== */}
           <div className="pd-gallery">
             <div className="pd-carousel-wrapper">
-              {/* Top Badges Row */}
               <div className="pd-badge-row-top">
                 {hasDiscount && (
                   <div className="pd-discount-tag">
@@ -537,31 +536,19 @@ const ProductDetails: React.FC = () => {
                 <button
                   className={`pd-wishlist-btn ${isWishlisted ? "active" : ""}`}
                   onClick={() => setIsWishlisted(!isWishlisted)}
-                  aria-label={
-                    isWishlisted
-                      ? "Remove from wishlist"
-                      : "Add to wishlist"
-                  }
+                  aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
                 >
-                  {isWishlisted ? (
-                    <FaHeart size={18} />
-                  ) : (
-                    <FaRegHeart size={18} />
-                  )}
+                  {isWishlisted ? <FaHeart size={18} /> : <FaRegHeart size={18} />}
                 </button>
               </div>
 
-              {/* MRP Circle */}
               {product.mrp && product.mrp > unitPrice && (
                 <div className="pd-mrp-badge">
                   <span className="pd-mrp-label">MRP</span>
-                  <span className="pd-mrp-val">
-                    ₹{product.mrp.toLocaleString()}
-                  </span>
+                  <span className="pd-mrp-val">₹{product.mrp.toLocaleString()}</span>
                 </div>
               )}
 
-              {/* Carousel Track */}
               <div
                 className="pd-carousel"
                 onTouchStart={handleTouchStart}
@@ -582,15 +569,11 @@ const ProductDetails: React.FC = () => {
                       className="pd-carousel-slide"
                       onClick={() => setShowZoom(true)}
                     >
-                      {!imgLoaded[i] && (
-                        <div className="pd-skeleton-loader" />
-                      )}
+                      {!imgLoaded[i] && <div className="pd-skeleton-loader" />}
                       <img
                         src={getImageUrl(img, 800)}
                         alt={`${product.name} - ${i + 1}`}
-                        className={`pd-carousel-img ${
-                          imgLoaded[i] ? "loaded" : ""
-                        }`}
+                        className={`pd-carousel-img ${imgLoaded[i] ? "loaded" : ""}`}
                         draggable={false}
                         loading={i === 0 ? "eager" : "lazy"}
                         fetchPriority={i === 0 ? "high" : "auto"}
@@ -601,60 +584,39 @@ const ProductDetails: React.FC = () => {
                 </div>
               </div>
 
-              {/* Desktop Arrows */}
               {images.length > 1 && (
                 <>
-                  <button
-                    className="pd-arrow pd-arrow--prev"
-                    onClick={() => handleImageChange("prev")}
-                    aria-label="Previous image"
-                  >
+                  <button className="pd-arrow pd-arrow--prev" onClick={() => handleImageChange("prev")}>
                     <FiChevronLeft size={20} />
                   </button>
-                  <button
-                    className="pd-arrow pd-arrow--next"
-                    onClick={() => handleImageChange("next")}
-                    aria-label="Next image"
-                  >
+                  <button className="pd-arrow pd-arrow--next" onClick={() => handleImageChange("next")}>
                     <FiChevronRight size={20} />
                   </button>
                 </>
               )}
 
-              {/* Dot Indicators */}
               {images.length > 1 && (
                 <div className="pd-dots">
                   {images.map((_, i) => (
                     <button
                       key={i}
-                      className={`pd-dot ${
-                        selectedImage === i ? "active" : ""
-                      }`}
+                      className={`pd-dot ${selectedImage === i ? "active" : ""}`}
                       onClick={() => handleSelectImage(i)}
-                      aria-label={`Go to image ${i + 1}`}
                     />
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Thumbnails (Desktop) */}
             {images.length > 1 && (
               <div className="pd-thumbs-row" ref={thumbnailRef}>
                 {images.map((img, i) => (
                   <button
                     key={i}
-                    className={`pd-thumb ${
-                      selectedImage === i ? "active" : ""
-                    }`}
+                    className={`pd-thumb ${selectedImage === i ? "active" : ""}`}
                     onClick={() => handleSelectImage(i)}
                   >
-                    <img
-                      src={getImageUrl(img, 150)}
-                      alt={`Thumbnail ${i + 1}`}
-                      loading="lazy"
-                      draggable={false}
-                    />
+                    <img src={getImageUrl(img, 150)} alt={`Thumbnail ${i + 1}`} loading="lazy" draggable={false} />
                   </button>
                 ))}
               </div>
@@ -663,20 +625,14 @@ const ProductDetails: React.FC = () => {
 
           {/* ===== INFO SECTION ===== */}
           <div className="pd-info">
-            {/* Title + Share */}
             <div className="pd-info-card pd-header-card">
               <div className="pd-title-row">
                 <h1 className="pd-title">{product.name}</h1>
-                <button
-                  onClick={handleShare}
-                  className="pd-icon-btn"
-                  title="Share Product"
-                >
+                <button onClick={handleShare} className="pd-icon-btn" title="Share Product">
                   <FiShare2 size={18} />
                 </button>
               </div>
 
-              {/* Timer */}
               {timeLeft && (
                 <div className="pd-timer">
                   <FiClock className="pd-timer-pulse" />
@@ -685,65 +641,56 @@ const ProductDetails: React.FC = () => {
                 </div>
               )}
 
-              {/* Meta Chips */}
+              {/* ✅ META CHIPS UPDATED WITH BULK LOGIC */}
               <div className="pd-chips">
                 {product.sku && (
-                  <span className="pd-chip sku">
-                    <FiHash size={12} /> {product.sku}
-                  </span>
+                  <span className="pd-chip sku"><FiHash size={12} /> {product.sku}</span>
                 )}
                 {(product.rating || product.reviews) && (
                   <span className="pd-chip rating">
                     <FiStar size={12} fill="#FBC02D" stroke="none" />
                     <strong>{product.rating || 4.5}</strong>
-                    {product.reviews && (
-                      <span className="pd-chip-sub">
-                        ({product.reviews})
-                      </span>
-                    )}
+                    {product.reviews && <span className="pd-chip-sub">({product.reviews})</span>}
                   </span>
                 )}
                 {product.tagline && (
-                  <span className="pd-chip tag">
-                    <FiTag size={12} /> {product.tagline}
-                  </span>
+                  <span className="pd-chip tag"><FiTag size={12} /> {product.tagline}</span>
                 )}
-                {product.packSize && (
-                  <span className="pd-chip box">
-                    <FiBox size={12} /> {product.packSize}
+                
+                <span className="pd-chip tag" style={{ background: "#f3e8ff", color: "#7e22ce" }}>
+                  <FiTag size={12} /> Per piece Price
+                </span>
+
+                {isBulk ? (
+                  <span className="pd-chip box" style={{ background: "#e0f2fe", color: "#0369a1" }}>
+                    <FiBox size={12} /> Per {parsedUnit} {product.piecesPerUnit} Pieces
                   </span>
+                ) : (
+                  product.packSize && (
+                    <span className="pd-chip box">
+                      <FiBox size={12} /> {product.packSize}
+                    </span>
+                  )
                 )}
               </div>
 
-              {/* Stock */}
               <div className="pd-stock-row">
                 {isOutOfStock ? (
-                  <span className="pd-stock out">
-                    <FiAlertCircle size={14} /> Out of Stock
-                  </span>
+                  <span className="pd-stock out"><FiAlertCircle size={14} /> Out of Stock</span>
                 ) : product.stock && product.stock <= 10 ? (
-                  <span className="pd-stock low">
-                    <FiAlertCircle size={14} /> Only {product.stock} left!
-                  </span>
+                  <span className="pd-stock low"><FiAlertCircle size={14} /> Only {product.stock} left!</span>
                 ) : (
-                  <span className="pd-stock in">
-                    <FiCheckCircle size={14} /> In Stock
-                  </span>
+                  <span className="pd-stock in"><FiCheckCircle size={14} /> In Stock</span>
                 )}
               </div>
             </div>
 
-            {/* Price Block */}
             <div className="pd-info-card pd-price-card">
               <div className="pd-price-top">
                 <div className="pd-price-main">
-                  <span className="pd-price-now">
-                    ₹{unitPrice.toFixed(0)}
-                  </span>
+                  <span className="pd-price-now">₹{unitPrice.toFixed(0)}</span>
                   {product.mrp && product.mrp > unitPrice && (
-                    <span className="pd-price-was">
-                      ₹{product.mrp.toFixed(0)}
-                    </span>
+                    <span className="pd-price-was">₹{product.mrp.toFixed(0)}</span>
                   )}
                 </div>
                 {hasDiscount && product.mrp && (
@@ -752,39 +699,31 @@ const ProductDetails: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div className="pd-moq-notice">
+
+              {/* ✅ TOTAL DISPLAY WHEN ITEM ADDED */}
+              {itemCount > 0 && (
+                <div style={{ marginTop: "10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
+                  Total Price: <span style={{ color: "#059669" }}>₹{(itemCount * unitPrice).toLocaleString()}</span>
+                </div>
+              )}
+
+              {/* ✅ MOQ UPDATED */}
+              <div className="pd-moq-notice" style={{ marginTop: itemCount > 0 ? "8px" : "15px" }}>
                 <FiInfo size={13} />
                 <span>
-                  Minimum Order: <strong>{minQty} units</strong>
+                  Minimum Order: <strong>{minQty} {isBulk && !product.isBulkOnly ? "Pieces" : ""}</strong>
                 </span>
               </div>
             </div>
 
-            {/* Cart Actions */}
             <div className="pd-info-card pd-actions-card">
               {itemCount === 0 ? (
-                <button
-                  className="pd-add-btn"
-                  onClick={handleAdd}
-                  disabled={isOutOfStock}
-                >
-                  {isOutOfStock ? (
-                    <>
-                      <FiShield size={18} /> Notify When Available
-                    </>
-                  ) : (
-                    <>
-                      <FiShoppingCart size={18} /> Add to Cart
-                    </>
-                  )}
+                <button className="pd-add-btn" onClick={handleAdd} disabled={isOutOfStock}>
+                  {isOutOfStock ? <><FiShield size={18} /> Notify When Available</> : <><FiShoppingCart size={18} /> Add to Cart</>}
                 </button>
               ) : (
                 <div className="pd-qty-controls">
-                  <button
-                    onClick={handleDec}
-                    className="pd-qty-btn dec"
-                    aria-label="Decrease"
-                  >
+                  <button onClick={handleDec} className="pd-qty-btn dec">
                     {itemCount === minQty ? "✕" : <FiMinus size={18} />}
                   </button>
                   <div className="pd-qty-display">
@@ -794,11 +733,7 @@ const ProductDetails: React.FC = () => {
                   <button
                     onClick={handleInc}
                     className="pd-qty-btn inc"
-                    disabled={
-                      product.stock !== undefined &&
-                      itemCount >= product.stock
-                    }
-                    aria-label="Increase"
+                    disabled={product.stock !== undefined && itemCount + stepQty > product.stock}
                   >
                     <FiPlus size={18} />
                   </button>
@@ -806,89 +741,57 @@ const ProductDetails: React.FC = () => {
               )}
             </div>
 
-            {/* Description Accordion */}
             {product.description && (
-              <div
-                className={`pd-info-card pd-accordion ${
-                  isDescriptionExpanded ? "open" : ""
-                }`}
-              >
-                <button
-                  className="pd-accordion-header"
-                  onClick={toggleDescription}
-                >
+              <div className={`pd-info-card pd-accordion ${isDescriptionExpanded ? "open" : ""}`}>
+                <button className="pd-accordion-header" onClick={toggleDescription}>
                   <h3>Product Description</h3>
-                  <span className="pd-accordion-icon">
-                    {isDescriptionExpanded ? (
-                      <FiChevronUp size={20} />
-                    ) : (
-                      <FiChevronDown size={20} />
-                    )}
-                  </span>
+                  <span className="pd-accordion-icon">{isDescriptionExpanded ? <FiChevronUp size={20} /> : <FiChevronDown size={20} />}</span>
                 </button>
                 <div className="pd-accordion-body">
                   <div className="pd-accordion-content">
-                    {product.description
-                      .split("\n")
-                      .filter((l) => l.trim())
-                      .map((line, i) => (
-                        <p key={i}>{line}</p>
-                      ))}
+                    {product.description.split("\n").filter((l) => l.trim()).map((line, i) => (
+                      <p key={i}>{line}</p>
+                    ))}
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Trust Badges */}
             <div className="pd-trust-grid">
               <div className="pd-trust-item">
-                <div className="pd-trust-icon">
-                  <FiShield size={20} />
-                </div>
+                <div className="pd-trust-icon"><FiShield size={20} /></div>
                 <div className="pd-trust-text">
-                  <strong>Secure Payment</strong>
-                  <span>100% safe checkout</span>
+                  <strong>Secure Payment</strong><span>100% safe checkout</span>
                 </div>
               </div>
               <div className="pd-trust-item">
-                <div className="pd-trust-icon">
-                  <FiTruck size={20} />
-                </div>
+                <div className="pd-trust-icon"><FiTruck size={20} /></div>
                 <div className="pd-trust-text">
-                  <strong>Fast Delivery</strong>
-                  <span>2-4 business days</span>
+                  <strong>Fast Delivery</strong><span>2-4 business days</span>
                 </div>
               </div>
               <div className="pd-trust-item">
-                <div className="pd-trust-icon">
-                  <FiRefreshCw size={20} />
-                </div>
+                <div className="pd-trust-icon"><FiRefreshCw size={20} /></div>
                 <div className="pd-trust-text">
-                  <strong>Easy Returns</strong>
-                  <span>Hassle-free policy</span>
+                  <strong>Easy Returns</strong><span>Hassle-free policy</span>
                 </div>
               </div>
               <div className="pd-trust-item">
-                <div className="pd-trust-icon">
-                  <FiCheckCircle size={20} />
-                </div>
+                <div className="pd-trust-icon"><FiCheckCircle size={20} /></div>
                 <div className="pd-trust-text">
-                  <strong>Quality Assured</strong>
-                  <span>Premium products</span>
+                  <strong>Quality Assured</strong><span>Premium products</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Reviews */}
         <div className="pd-section-wrap">
           <Suspense fallback={<div className="pd-loading" style={{ minHeight: "200px" }} />}>
             <ReviewSection productId={product._id} />
           </Suspense>
         </div>
 
-        {/* Related Products */}
         {product.relatedProducts && product.relatedProducts.length > 0 && (
           <div className="pd-section-wrap">
             <h3 className="pd-section-heading">You May Also Like</h3>
@@ -896,11 +799,7 @@ const ProductDetails: React.FC = () => {
               {product.relatedProducts.map((rel, i) => (
                 <div key={rel._id} className="pd-related-cell">
                   <Suspense fallback={<div className="pd-loading" style={{ minHeight: "250px" }} />}>
-                    <ProductCard
-                      product={rel}
-                      userRole="customer"
-                      index={i + 4}
-                    />
+                    <ProductCard product={rel} userRole="customer" index={i + 4} />
                   </Suspense>
                 </div>
               ))}
@@ -909,23 +808,11 @@ const ProductDetails: React.FC = () => {
         )}
       </div>
 
-      {/* Zoom Modal */}
       {showZoom && (
-        <div
-          className="pd-zoom-overlay"
-          onClick={() => setShowZoom(false)}
-        >
-          <div
-            className="pd-zoom-body"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="pd-zoom-overlay" onClick={() => setShowZoom(false)}>
+          <div className="pd-zoom-body" onClick={(e) => e.stopPropagation()}>
             <img src={currentImageUrl} alt={product.name} />
-            <button
-              className="pd-zoom-x"
-              onClick={() => setShowZoom(false)}
-            >
-              ×
-            </button>
+            <button className="pd-zoom-x" onClick={() => setShowZoom(false)}>×</button>
           </div>
         </div>
       )}
@@ -939,11 +826,7 @@ const ProductDetails: React.FC = () => {
           )}
         </div>
         {itemCount === 0 ? (
-          <button
-            className="pd-mobile-cart-btn"
-            onClick={handleAdd}
-            disabled={isOutOfStock}
-          >
+          <button className="pd-mobile-cart-btn" onClick={handleAdd} disabled={isOutOfStock}>
             <FiShoppingCart size={16} />
             {isOutOfStock ? "Notify Me" : "Add to Cart"}
           </button>
@@ -956,9 +839,7 @@ const ProductDetails: React.FC = () => {
             <button
               onClick={handleInc}
               className="pd-mq-btn inc"
-              disabled={
-                product.stock !== undefined && itemCount >= product.stock
-              }
+              disabled={product.stock !== undefined && itemCount + stepQty > product.stock}
             >
               <FiPlus size={16} />
             </button>
