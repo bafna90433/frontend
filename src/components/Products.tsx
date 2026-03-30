@@ -52,7 +52,7 @@ const FloatingCheckoutButton = lazy(() => import("./FloatingCheckoutButton"));
 
 // ════════════════════════════════════════════════════════════
 // TYPES
-// ════════════════════════════════════════════════════════════
+// ��═══════════════════════════════════════════════════════════
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -312,7 +312,6 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
-  // UPDATED fetchProducts WITH RETRY LOGIC 
   useEffect(() => {
     let alive = true;
     const ctrl = new AbortController();
@@ -334,7 +333,6 @@ const Products: React.FC = () => {
         setAllProducts(arr.map(cleanProduct));
       } catch (e: any) {
         if (!ctrl.signal.aborted) {
-          // Pehli failure par automatically 3 sec baad retry
           if (retryCount < 1) {
             setTimeout(() => {
               if (alive) fetchProducts(retryCount + 1);
@@ -526,13 +524,12 @@ const Products: React.FC = () => {
 
       {/* ═══ MARQUEE TICKER WITH FAQ STICKY BUTTON ═══ */}
       <div className="sp-marquee">
-        {/* ADDED: Sticky Help & FAQ Button (PC Only) */}
         <Link to="/faq" className="sp-marquee-faq-btn">
           <span className="sp-faq-pulse"></span>
           <Info size={14} />
           Retailer FAQ & Help
         </Link>
-        
+
         <div className="sp-marquee-track">
           {[...marqueeItems, ...marqueeItems].map((item, i) => (
             <span className="sp-marquee-chip" key={i}>
@@ -543,15 +540,13 @@ const Products: React.FC = () => {
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════════════════════
-           HERO BANNER — COD + GST BUILT INSIDE
-         ═══════════════════════════════════════════════════════════ */}
+      {/* ═══ HERO BANNER ═══ */}
       <section className="sp-hero">
         <div className="sp-hero-glow sp-hero-glow-1" />
         <div className="sp-hero-glow sp-hero-glow-2" />
         <div className="sp-hero-glow sp-hero-glow-3" />
 
-        {/* ─── DESKTOP HERO ─── */}
+        {/* DESKTOP HERO */}
         <div className="sp-hero-grid sp-hero-desktop">
           <div className="sp-hero-content">
             <div className="sp-hero-badge">
@@ -603,6 +598,15 @@ const Products: React.FC = () => {
                   <span>Cash on Delivery</span>
                 </div>
               </div>
+              <div className="sp-hero-feature">
+                <div className="sp-hero-feature-icon">
+                  <MapPin size={16} />
+                </div>
+                <div>
+                  <strong>Factory & Dispatch</strong>
+                  <span>Coimbatore, Tamil Nadu</span>
+                </div>
+              </div>
             </div>
           </div>
           <div className="sp-hero-visual">
@@ -628,7 +632,7 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* ─── COD + GST INFO BAR INSIDE HERO (Desktop) ─── */}
+        {/* COD + GST INFO BAR INSIDE HERO (Desktop) */}
         <div className="sp-hero-info-bar">
           <div className="sp-hero-info-inner">
             <div className="sp-hero-info-item sp-hero-info-cod">
@@ -662,7 +666,7 @@ const Products: React.FC = () => {
           </div>
         </div>
 
-        {/* ─── MOBILE HERO ─── */}
+        {/* MOBILE HERO */}
         <div className="sp-hero-mobile">
           <div className="sp-mh-top">
             <div className="sp-mh-badge">
@@ -731,11 +735,26 @@ const Products: React.FC = () => {
                     <span>Cash on Delivery</span>
                   </div>
                 </div>
+                <div className="sp-mh-perk">
+                  <div
+                    className="sp-mh-perk-icon"
+                    style={{
+                      backgroundColor: "rgba(239, 68, 68, 0.1)",
+                      color: "#ef4444",
+                    }}
+                  >
+                    <MapPin size={13} />
+                  </div>
+                  <div className="sp-mh-perk-text">
+                    <strong>FACTORY & DISPATCH</strong>
+                    <span>Coimbatore, Tamil Nadu</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* ─── Mobile COD + GST Cards Inside Hero ─── */}
+          {/* Mobile COD + GST Cards */}
           <div className="sp-mh-info-cards">
             <div className="sp-mh-info-card sp-mh-info-cod">
               <div className="sp-mh-info-card-icon sp-mh-ic-amber">
@@ -841,7 +860,9 @@ const Products: React.FC = () => {
 
       {/* ═══ MAIN LAYOUT (SIDEBAR + GRID) ═══ */}
       <div className="sp-layout">
-        {/* SIDEBAR */}
+        {/* ──────────────────────────────────────────────
+            SIDEBAR — BIGGER CATEGORY IMAGES (48×48)
+           ────────────────────────────────────────────── */}
         <aside className="sp-sidebar" role="complementary">
           <div className="sp-sb-inner">
             {/* Sidebar COD Badge */}
@@ -876,10 +897,10 @@ const Products: React.FC = () => {
                     >
                       {cat.image ? (
                         <img
-                          src={optimizeCloudinary(cat.image, 36, 36)}
+                          src={optimizeCloudinary(cat.image, 48, 48)}
                           alt={cat.name}
-                          width={36}
-                          height={36}
+                          width={48}
+                          height={48}
                           loading="lazy"
                           className="sp-sb-cat-img"
                         />
@@ -1406,7 +1427,7 @@ const Products: React.FC = () => {
         </section>
       )}
 
-      {/* ═══ FOOTER WITH WAVE ═══ */}
+      {/* ═══ FOOTER ═══ */}
       {!loading && (
         <footer className="sp-footer">
           <div className="sp-footer-wave" />

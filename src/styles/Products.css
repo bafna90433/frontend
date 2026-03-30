@@ -710,3 +710,24 @@ body.dark .sp-shimmer { background: linear-gradient(90deg, var(--sp-border-2) 25
 body.dark .sp-error-icon { background: rgba(239,68,68,0.08); }
 body.dark .sp-empty-icon { background: var(--sp-border-2); }
 body.dark .MuiSkeleton-root { background-color: var(--sp-border) !important; }
+/* ═══ BIGGER SIDEBAR CATEGORY IMAGE (PC) ═══ */
+.sp-sb-cat-img {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 12px;
+  object-fit: cover;
+  border: 2px solid rgba(99, 102, 241, 0.1);
+  background: #f8fafc;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.sp-sb-list li:hover .sp-sb-cat-img {
+  transform: scale(1.08);
+  border-color: rgba(99, 102, 241, 0.3);
+}
+
+.sp-sb-list li.active .sp-sb-cat-img {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+}
