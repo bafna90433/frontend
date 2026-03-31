@@ -1,3 +1,4 @@
+// Products.tsx
 import React, {
   useEffect,
   useState,
@@ -45,6 +46,12 @@ import {
   Banknote,
   Receipt,
   Info,
+  Lock,
+  ShieldCheck,
+  SmartphoneNfc,
+  Wallet,
+  CreditCard,
+  Landmark,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
 
@@ -52,7 +59,7 @@ const FloatingCheckoutButton = lazy(() => import("./FloatingCheckoutButton"));
 
 // ════════════════════════════════════════════════════════════
 // TYPES
-// ��═══════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
 
 type BulkTier = { inner: number; qty: number; price: number };
 
@@ -195,6 +202,50 @@ const ProductSkeleton: React.FC = () => (
       />
     </div>
   </div>
+);
+
+// ════════════════════════════════════════════════════════════
+// RAZORPAY SVG ICON
+// ════════════════════════════════════════════════════════════
+const RazorpayIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M7.076 21.337H2L14.47 2.663h5.024L7.076 21.337z"
+      fill="#3395FF"
+    />
+    <path
+      d="M13.228 15.262L10.916 21.337H16.94L22 6.876h-5.012l-3.76 8.386z"
+      fill="#072654"
+    />
+  </svg>
+);
+
+// ════════════════════════════════════════════════════════════
+// DELHIVERY SVG ICON
+// ════════════════════════════════════════════════════════════
+const DelhiveryIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
+  <svg
+    width={size}
+    height={size}
+    viewBox="0 0 24 24"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M2 17h2v-4h2l3 4h2.5l-3.4-4.5C9.8 12 11 10.8 11 9c0-2.2-1.8-4-4-4H2v12zm2-6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2H4z"
+      fill="#E42529"
+    />
+    <path
+      d="M13 5v12h2v-4h3c2.2 0 4-1.8 4-4s-1.8-4-4-4h-5zm2 6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2h-3z"
+      fill="#E42529"
+    />
+  </svg>
 );
 
 // ════════════════════════════════════════════════════════════
@@ -838,6 +889,87 @@ const Products: React.FC = () => {
         <ExternalLink size={13} />
       </a>
 
+      {/* ═══ TRUST PARTNERS STRIP (Delhivery, Razorpay, PhonePe, GPay, Cards, NetBanking) ═══ */}
+      <div className="sp-trust-partners-strip">
+        <div className="sp-trust-partners-inner">
+          <div className="sp-trust-partner sp-partner-delhivery">
+            <div className="sp-partner-icon-wrap sp-partner-icon-delhivery">
+              <Truck size={16} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Shipped via</span>
+              <strong className="sp-partner-name">Delhivery</strong>
+            </div>
+            <div className="sp-partner-verified">
+              <ShieldCheck size={13} />
+            </div>
+          </div>
+
+          <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+          <div className="sp-trust-partner sp-partner-razorpay">
+            <div className="sp-partner-icon-wrap sp-partner-icon-razorpay">
+              <RazorpayIcon size={18} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Powered by</span>
+              <strong className="sp-partner-name">Razorpay</strong>
+            </div>
+            <div className="sp-partner-verified">
+              <ShieldCheck size={13} />
+            </div>
+          </div>
+
+          <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+          <div className="sp-trust-partner">
+            <div className="sp-partner-icon-wrap sp-partner-icon-phonepe">
+              <SmartphoneNfc size={16} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Accepted</span>
+              <strong className="sp-partner-name">PhonePe</strong>
+            </div>
+          </div>
+
+          <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+          <div className="sp-trust-partner">
+            <div className="sp-partner-icon-wrap sp-partner-icon-gpay">
+              <Wallet size={16} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Accepted</span>
+              <strong className="sp-partner-name">GPay</strong>
+            </div>
+          </div>
+
+          <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+          <div className="sp-trust-partner">
+            <div className="sp-partner-icon-wrap sp-partner-icon-cards">
+              <CreditCard size={16} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Accepted</span>
+              <strong className="sp-partner-name">Debit/Credit</strong>
+            </div>
+          </div>
+
+          <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+          <div className="sp-trust-partner">
+            <div className="sp-partner-icon-wrap sp-partner-icon-netbanking">
+              <Landmark size={16} />
+            </div>
+            <div className="sp-partner-info">
+              <span className="sp-partner-label">Accepted</span>
+              <strong className="sp-partner-name">Net Banking</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* ═══ BANNERS ═══ */}
       {!categoryId &&
         !searchTerm &&
@@ -861,7 +993,7 @@ const Products: React.FC = () => {
       {/* ═══ MAIN LAYOUT (SIDEBAR + GRID) ═══ */}
       <div className="sp-layout">
         {/* ──────────────────────────────────────────────
-            SIDEBAR — BIGGER CATEGORY IMAGES (48×48)
+            SIDEBAR
            ────────────────────────────────────────────── */}
         <aside className="sp-sidebar" role="complementary">
           <div className="sp-sb-inner">
@@ -1442,6 +1574,35 @@ const Products: React.FC = () => {
                   Inspiring imagination through play. Premium wholesale toys
                   with the best deals and fast delivery across India.
                 </p>
+
+                {/* Footer Trust Partners */}
+                <div className="sp-footer-trust-partners">
+                  <div className="sp-ftp-badge sp-ftp-delhivery">
+                    <Truck size={13} />
+                    <span>Delhivery</span>
+                  </div>
+                  <div className="sp-ftp-badge sp-ftp-razorpay">
+                    <Lock size={13} />
+                    <span>Razorpay</span>
+                  </div>
+                  <div className="sp-ftp-badge sp-ftp-phonepe">
+                    <SmartphoneNfc size={13} />
+                    <span>PhonePe</span>
+                  </div>
+                  <div className="sp-ftp-badge sp-ftp-gpay">
+                    <Wallet size={13} />
+                    <span>GPay</span>
+                  </div>
+                  <div className="sp-ftp-badge sp-ftp-cards">
+                    <CreditCard size={13} />
+                    <span>Debit/Credit</span>
+                  </div>
+                  <div className="sp-ftp-badge sp-ftp-netbanking">
+                    <Landmark size={13} />
+                    <span>Net Banking</span>
+                  </div>
+                </div>
+
                 {trustData && (
                   <div className="sp-marketplace-row">
                     <span className="sp-mp-label">Also available on:</span>
