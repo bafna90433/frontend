@@ -1,7 +1,7 @@
 User-agent: *
 Allow: /
 
-# Allow AI bots (IMPORTANT)
+# Allow AI bots
 User-agent: GPTBot
 Allow: /
 
@@ -14,5 +14,4 @@ Allow: /
 User-agent: meta-externalagent
 Allow: /
 
-# Sitemap
 Sitemap: https://bafnatoys.com/sitemap.xml
