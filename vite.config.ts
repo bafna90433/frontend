@@ -13,16 +13,19 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
 
-      // ✅ Sitemap (Google indexing)
+      // ✅ Sitemap (Google indexing) - Static Routes only
       sitemap({
         hostname: "https://bafnatoys.com",
-        // Apne public/static routes yahan add karo
         dynamicRoutes: [
           "/",
           "/products",
           "/categories",
+          "/hot-deals",
           "/privacy-policy",
           "/terms-conditions",
+          "/shipping-delivery",
+          "/cancellation-refund",
+          "/faq"
         ],
       }),
 
@@ -86,6 +89,16 @@ export default defineConfig(({ mode }) => {
       cssMinify: true,
       sourcemap: false,
       chunkSizeWarningLimit: 1500,
+      
+      // ✅ ADDED: Code Splitting to optimize load speeds
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            vendor: ['react', 'react-dom', 'react-router-dom'],
+            icons: ['lucide-react', 'react-icons'],
+          }
+        }
+      }
     },
 
     // ✅ Production mein console/debugger remove

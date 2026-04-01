@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Helmet } from "react-helmet-async";
 
 type ProductSEOProps = {
@@ -28,16 +28,14 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
   rating,
   reviews,
 }) => {
+  // 1. Strings ko define kiya
   const seoTitle = `${name} | Wholesale Toy Supplier - Bafna Toys`;
-
   const seoDescription =
     description ||
     `Buy ${name} wholesale from Bafna Toys, Coimbatore. Available in bulk at the best wholesale prices for shops and distributors in India.`;
-
   const seoKeywords = `wholesale ${name}, bulk ${name}, ${name} supplier India, Bafna Toys wholesale`;
 
   let seoImage = "https://bafnatoys.com/logo.webp";
-
   if (image) {
     if (image.startsWith("http")) {
       seoImage = image;
@@ -46,85 +44,101 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
     }
   }
 
-  const productSchema: Record<string, any> = {
-    "@context": "https://schema.org",
-    "@type": "Product",
-    name,
-    image: [seoImage],
-    description: seoDescription,
-    brand: {
-      "@type": "Brand",
-      name: "Bafna Toys",
-    },
-    url,
-  };
-
-  if (sku) {
-    productSchema.sku = sku;
-  }
-
-  if (category) {
-    productSchema.category = category;
-  }
-
-  if (typeof price === "number" && price > 0) {
-    productSchema.offers = {
-      "@type": "Offer",
+  // 2. PERFORMANCE & SEO: useMemo se schema object create kiya
+  const productSchema = useMemo(() => {
+    const schema: Record<string, any> = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      name,
+      image: [seoImage],
+      description: seoDescription,
+      brand: {
+        "@type": "Brand",
+        name: "Bafna Toys",
+      },
       url,
-      priceCurrency: "INR",
-      price: price.toString(),
-      availability:
-        stock === 0
-          ? "https://schema.org/OutOfStock"
-          : "https://schema.org/InStock",
-      itemCondition: "https://schema.org/NewCondition",
-
-      shippingDetails: {
-        "@type": "OfferShippingDetails",
-        shippingRate: {
-          "@type": "MonetaryAmount",
-          value: "0",
-          currency: "INR",
-        },
-        shippingDestination: {
-          "@type": "DefinedRegion",
-          addressCountry: "IN",
-        },
-      },
-
-      hasMerchantReturnPolicy: {
-        "@type": "MerchantReturnPolicy",
-        applicableCountry: "IN",
-        returnPolicyCategory:
-          "https://schema.org/MerchantReturnFiniteReturnWindow",
-        merchantReturnDays: 7,
-        returnMethod: "https://schema.org/ReturnByMail",
-        returnFees: "https://schema.org/FreeReturn",
-      },
     };
-  }
 
-  if (
-    typeof rating === "number" &&
-    rating > 0 &&
-    typeof reviews === "number" &&
-    reviews > 0
-  ) {
-    productSchema.aggregateRating = {
-      "@type": "AggregateRating",
-      ratingValue: rating.toString(),
-      reviewCount: reviews.toString(),
-    };
-  }
+    if (sku) {
+      schema.sku = sku;
+    }
+
+    if (category) {
+      schema.category = category;
+    }
+
+    if (typeof price === "number" && price > 0) {
+      // GSC fix: Ek default valid date lagani padti hai (e.g., 1 year from now)
+      const validUntil = new Date();
+      validUntil.setFullYear(validUntil.getFullYear() + 1);
+
+      schema.offers = {
+        "@type": "Offer",
+        url,
+        priceCurrency: "INR",
+        price: price.toString(),
+        priceValidUntil: validUntil.toISOString().split("T")[0], // YYYY-MM-DD
+        availability:
+          stock === 0
+            ? "https://schema.org/OutOfStock"
+            : "https://schema.org/InStock",
+        itemCondition: "https://schema.org/NewCondition",
+
+        shippingDetails: {
+          "@type": "OfferShippingDetails",
+          shippingRate: {
+            "@type": "MonetaryAmount",
+            value: "0",
+            currency: "INR",
+          },
+          shippingDestination: {
+            "@type": "DefinedRegion",
+            addressCountry: "IN",
+          },
+        },
+
+        hasMerchantReturnPolicy: {
+          "@type": "MerchantReturnPolicy",
+          applicableCountry: "IN",
+          returnPolicyCategory:
+            "https://schema.org/MerchantReturnFiniteReturnWindow",
+          merchantReturnDays: 7,
+          returnMethod: "https://schema.org/ReturnByMail",
+          returnFees: "https://schema.org/FreeReturn",
+        },
+      };
+    }
+
+    if (
+      typeof rating === "number" &&
+      rating > 0 &&
+      typeof reviews === "number" &&
+      reviews > 0
+    ) {
+      schema.aggregateRating = {
+        "@type": "AggregateRating",
+        ratingValue: rating.toString(),
+        reviewCount: reviews.toString(),
+      };
+    }
+
+    return schema;
+  }, [name, seoDescription, seoImage, url, sku, category, price, stock, rating, reviews]); // Dependencies
 
   return (
     <Helmet>
+      {/* Primary Meta */}
       <title>{seoTitle}</title>
       <meta name="description" content={seoDescription} />
       <meta name="keywords" content={seoKeywords} />
+      
+      {/* 3. SEO Fix: Image Preview directive for Google Discover/Images */}
+      <meta name="robots" content="index, follow, max-image-preview:large" />
       <link rel="canonical" href={url} />
 
+      {/* Open Graph */}
       <meta property="og:type" content="product" />
+      <meta property="og:site_name" content="Bafna Toys" />
       <meta property="og:title" content={seoTitle} />
       <meta property="og:description" content={seoDescription} />
       <meta property="og:url" content={url} />
@@ -138,14 +152,17 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
         <meta property="product:price:currency" content="INR" />
       )}
 
+      {/* Twitter */}
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={seoTitle} />
       <meta name="twitter:description" content={seoDescription} />
       <meta name="twitter:image" content={seoImage} />
 
-      <script type="application/ld+json">
-        {JSON.stringify(productSchema)}
-      </script>
+      {/* 4. BUG FIX: Safe injection using dangerouslySetInnerHTML */}
+      <script 
+        type="application/ld+json" 
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} 
+      />
     </Helmet>
   );
 };

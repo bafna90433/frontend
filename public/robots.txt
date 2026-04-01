@@ -1,7 +1,4 @@
-User-agent: *
-Allow: /
-
-# Allow AI bots
+# Allow AI Bots to read your catalog (Great for AI Recommendations)
 User-agent: GPTBot
 Allow: /
 
@@ -14,4 +11,24 @@ Allow: /
 User-agent: meta-externalagent
 Allow: /
 
+# General Search Engines (Google, Bing, etc.)
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /product/
+Allow: /hot-deals
+Allow: /categories
+
+# DO NOT crawl private/user-specific pages (Saves Crawl Budget!)
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /my-account
+Disallow: /orders
+Disallow: /addresses
+Disallow: /login
+Disallow: /register
+Disallow: /pending-reviews
+
+# Link to your Dynamic Sitemap
 Sitemap: https://bafnatoys.com/sitemap.xml

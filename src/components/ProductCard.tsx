@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom"; // ✅ Added Link for SEO
 import { useShop } from "../context/ShopContext";
 import {
   ShoppingCart,
@@ -33,7 +33,7 @@ interface Product {
   sale_end_time?: string;
   unit?: string;
   piecesPerUnit?: number;
-  isBulkOnly?: boolean; // ✅ Added this for strict box/tray logic
+  isBulkOnly?: boolean;
 }
 
 export type Deal = {
@@ -115,27 +115,25 @@ const getOptimizedImageUrl = (
 const ProductCard: React.FC<ProductCardProps> = React.memo(
   ({ product, deal, index = 0 }) => {
     const { cartItems, setCartItemQuantity } = useShop();
-    const navigate = useNavigate();
     const [imgLoaded, setImgLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
 
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
-    // 🔥 STRICT ADMIN CONTROL LOGIC
+    // ✅ Generate SEO friendly URL
+    const productUrl = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
+
     const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
       const dbPieces = Number(product.piecesPerUnit) || 1;
       const dbUnit = product.unit || "Piece";
       const strictBulk = product.isBulkOnly || false;
 
       if (strictBulk && dbPieces > 1) {
-        // Agar strictly box/tray me bhejna hai (e.g. step by 24)
         return { stepQty: dbPieces, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
       } else if (dbPieces > 1) {
-        // Box/Tray hai but loose bhi bhej sakte ho
         return { stepQty: 1, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
       } else {
-        // Normal products
         const fallbackMin = Number(product.price) < 60 ? 3 : 2;
         return { stepQty: 1, minQty: fallbackMin, parsedUnit: dbUnit, isBulk: false };
       }
@@ -153,12 +151,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
       if (typeof product.category === "object") return product.category.name || "";
       return product.category;
     }, [product.category]);
-
-    const handleNavigate = useCallback(() => {
-      navigate(
-        product.slug ? `/product/${product.slug}` : `/product/${product._id}`
-      );
-    }, [navigate, product.slug, product._id]);
 
     const finalPrice = useMemo(() => {
       const price = Number(product.price) || 0;
@@ -185,7 +177,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
         e.stopPropagation();
         setCartItemQuantity(product, minQty);
 
-        // --- META PIXEL: ADD TO CART EVENT ---
+        // --- META PIXEL ---
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'AddToCart', {
             content_name: product.name,
@@ -276,21 +268,11 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     return (
       <div className="pc-wrapper">
-        <article
-          className="pc-card"
-          onClick={handleNavigate}
-          onKeyDown={(e) => e.key === "Enter" && handleNavigate()}
-          role="button"
-          tabIndex={0}
-          aria-label={`View ${product.name}`}
-          onTouchStart={(e) => {
-            if (e.touches.length === 2) {
-              e.preventDefault();
-            }
-          }}
-        >
-          {/* Image Section */}
-          <div className="pc-image-container">
+        {/* ✅ SEO Fix: Changed onClick to standard <article> containing Links */}
+        <article className="pc-card">
+          
+          {/* ✅ SEO Fix: Wrapped Image with <Link> for crawlers */}
+          <Link to={productUrl} className="pc-image-container" style={{ display: 'block', textDecoration: 'none' }}>
             <div className="pc-image-wrapper">
               {timeLeft ? (
                 <div className="pc-hotdeal-timer" aria-live="polite">
@@ -346,7 +328,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                 <span>{discountPercent}% OFF</span>
               </div>
             )}
-          </div>
+          </Link>
 
           {/* Card Body */}
           <div className="pc-body">
@@ -369,11 +351,14 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             </div>
 
-            <h3 className="pc-title">
-              {product.name.length > 50
-                ? product.name.slice(0, 50) + "…"
-                : product.name}
-            </h3>
+            {/* ✅ SEO Fix: Title linked properly */}
+            <Link to={productUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
+              <h3 className="pc-title">
+                {product.name.length > 50
+                  ? product.name.slice(0, 50) + "…"
+                  : product.name}
+              </h3>
+            </Link>
 
             {(rating > 0 || totalReviews > 0) && (
               <div className="pc-rating-container">
@@ -432,13 +417,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             </div>
 
-            <div 
-              className="pc-actions"
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-            >
+            {/* ACTION BUTTONS (Kept separate so they don't trigger the link) */}
+            <div className="pc-actions">
               {itemCount === 0 ? (
                 <button
                   className="pc-add-to-cart"

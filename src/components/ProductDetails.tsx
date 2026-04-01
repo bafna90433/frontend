@@ -62,7 +62,7 @@ interface Product {
   hotDealValue?: number;
   unit?: string;
   piecesPerUnit?: number;
-  isBulkOnly?: boolean; // ✅ Added Bulk Buy Fields
+  isBulkOnly?: boolean;
 }
 
 const ProductDetails: React.FC = () => {
@@ -75,6 +75,7 @@ const ProductDetails: React.FC = () => {
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
   const [isWishlisted, setIsWishlisted] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   
   // Touch Swiping Refs
   const touchStartX = useRef(0);
@@ -91,7 +92,9 @@ const ProductDetails: React.FC = () => {
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
 
-  const toggleDescription = () => setIsDescriptionExpanded((prev) => !prev);
+  const toggleDescription = useCallback(() => {
+    setIsDescriptionExpanded((prev) => !prev);
+  }, []);
 
   const images = useMemo(() => {
     if (!product) return [];
@@ -100,7 +103,6 @@ const ProductDetails: React.FC = () => {
       : [product.image].filter(Boolean) as string[];
   }, [product]);
 
-  const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   useEffect(() => {
     if (images.length > 0) {
       setImgLoaded(new Array(images.length).fill(false));
@@ -116,7 +118,7 @@ const ProductDetails: React.FC = () => {
     });
   }, []);
 
-  // Autoplay carousel
+  // Autoplay logic
   const startAutoplay = useCallback(() => {
     if (images.length <= 1) return;
     if (autoplayRef.current) clearInterval(autoplayRef.current);
@@ -151,7 +153,8 @@ const ProductDetails: React.FC = () => {
       }
   }, [selectedImage, updateTrackTransform]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
+  // 🔥 Memoized Touch Handlers
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
     pauseAutoplay();
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
@@ -159,9 +162,9 @@ const ProductDetails: React.FC = () => {
     isHorizontalSwipe.current = null;
     isSwipingRef.current = true;
     swipeOffsetRef.current = 0;
-  };
+  }, [pauseAutoplay]);
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!isSwipingRef.current || images.length <= 1) return;
 
     const currentX = e.touches[0].clientX;
@@ -182,21 +185,22 @@ const ProductDetails: React.FC = () => {
     touchCurrentX.current = currentX;
 
     let offset = diffX;
+    // Edge resistance
     if (
       (selectedImage === 0 && offset > 0) ||
       (selectedImage === images.length - 1 && offset < 0)
     ) {
-      offset = offset * 0.3; // Resistance
+      offset = offset * 0.3; 
     }
 
     swipeOffsetRef.current = offset;
     
     requestAnimationFrame(() => {
-        updateTrackTransform(offset, false);
+      updateTrackTransform(offset, false);
     });
-  };
+  }, [images.length, selectedImage, updateTrackTransform]);
 
-  const handleTouchEnd = () => {
+  const handleTouchEnd = useCallback(() => {
     if (!isSwipingRef.current) return;
     isSwipingRef.current = false;
 
@@ -225,7 +229,7 @@ const ProductDetails: React.FC = () => {
     }
 
     startAutoplay();
-  };
+  }, [images.length, selectedImage, startAutoplay, updateTrackTransform]);
 
   const handleImageChange = useCallback(
     (direction: "next" | "prev") => {
@@ -272,7 +276,7 @@ const ProductDetails: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleImageChange, showZoom]);
 
-  // Fetch product
+  // Data Fetching
   useEffect(() => {
     setLoading(true);
     setError(null);
@@ -337,6 +341,7 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
 
+        // Track initial view content
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'ViewContent', {
             content_name: fetchedProduct.name,
@@ -363,7 +368,7 @@ const ProductDetails: React.FC = () => {
     }
   }, [id]);
 
-  // Timer
+  // Timer logic
   useEffect(() => {
     if (!product?.sale_end_time) {
       setTimeLeft(null);
@@ -399,7 +404,7 @@ const ProductDetails: React.FC = () => {
     return () => clearInterval(timer);
   }, [product?.sale_end_time]);
 
-  const handleShare = async () => {
+  const handleShare = useCallback(async () => {
     if (!product) return;
     const shareData = {
       title: product.name,
@@ -416,9 +421,8 @@ const ProductDetails: React.FC = () => {
     } catch (err) {
       console.log("Error sharing:", err);
     }
-  };
+  }, [product]);
 
-  // 🔥 STRICT ADMIN CONTROL LOGIC (Same as ProductCard)
   const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
     if (!product) return { stepQty: 1, minQty: 1, parsedUnit: "Piece", isBulk: false };
 
@@ -641,7 +645,6 @@ const ProductDetails: React.FC = () => {
                 </div>
               )}
 
-              {/* ✅ META CHIPS UPDATED WITH BULK LOGIC */}
               <div className="pd-chips">
                 {product.sku && (
                   <span className="pd-chip sku"><FiHash size={12} /> {product.sku}</span>
@@ -700,14 +703,12 @@ const ProductDetails: React.FC = () => {
                 )}
               </div>
 
-              {/* ✅ TOTAL DISPLAY WHEN ITEM ADDED */}
               {itemCount > 0 && (
                 <div style={{ marginTop: "10px", fontSize: "16px", fontWeight: 700, color: "#0f172a" }}>
                   Total Price: <span style={{ color: "#059669" }}>₹{(itemCount * unitPrice).toLocaleString()}</span>
                 </div>
               )}
 
-              {/* ✅ MOQ UPDATED */}
               <div className="pd-moq-notice" style={{ marginTop: itemCount > 0 ? "8px" : "15px" }}>
                 <FiInfo size={13} />
                 <span>
@@ -817,38 +818,41 @@ const ProductDetails: React.FC = () => {
         </div>
       )}
 
-      {/* Mobile Bottom Bar */}
-      <div className="pd-mobile-bar">
-        <div className="pd-mobile-price-col">
-          <span className="pd-mobile-price">₹{unitPrice.toFixed(0)}</span>
-          {product.mrp && product.mrp > unitPrice && (
-            <span className="pd-mobile-mrp">₹{product.mrp.toFixed(0)}</span>
+      {/* ✅ MOBILE BOTTOM BAR (Hidden when Zoom is active) */}
+      {!showZoom && (
+        <div className="pd-mobile-bar">
+          <div className="pd-mobile-price-col">
+            <span className="pd-mobile-price">₹{unitPrice.toFixed(0)}</span>
+            {product.mrp && product.mrp > unitPrice && (
+              <span className="pd-mobile-mrp">₹{product.mrp.toFixed(0)}</span>
+            )}
+          </div>
+          {itemCount === 0 ? (
+            <button className="pd-mobile-cart-btn" onClick={handleAdd} disabled={isOutOfStock}>
+              <FiShoppingCart size={16} />
+              {isOutOfStock ? "Notify Me" : "Add to Cart"}
+            </button>
+          ) : (
+            <div className="pd-mobile-qty">
+              <button onClick={handleDec} className="pd-mq-btn dec">
+                {itemCount === minQty ? "✕" : <FiMinus size={16} />}
+              </button>
+              <span className="pd-mq-val">{itemCount}</span>
+              <button
+                onClick={handleInc}
+                className="pd-mq-btn inc"
+                disabled={product.stock !== undefined && itemCount + stepQty > product.stock}
+              >
+                <FiPlus size={16} />
+              </button>
+            </div>
           )}
         </div>
-        {itemCount === 0 ? (
-          <button className="pd-mobile-cart-btn" onClick={handleAdd} disabled={isOutOfStock}>
-            <FiShoppingCart size={16} />
-            {isOutOfStock ? "Notify Me" : "Add to Cart"}
-          </button>
-        ) : (
-          <div className="pd-mobile-qty">
-            <button onClick={handleDec} className="pd-mq-btn dec">
-              {itemCount === minQty ? "✕" : <FiMinus size={16} />}
-            </button>
-            <span className="pd-mq-val">{itemCount}</span>
-            <button
-              onClick={handleInc}
-              className="pd-mq-btn inc"
-              disabled={product.stock !== undefined && itemCount + stepQty > product.stock}
-            >
-              <FiPlus size={16} />
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       <Suspense fallback={null}>
-        <FloatingCheckoutButton />
+        {/* Do not show Floating Checkout if Zoom is open */}
+        {!showZoom && <FloatingCheckoutButton />}
       </Suspense>
     </>
   );

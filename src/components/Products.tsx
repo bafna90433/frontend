@@ -9,6 +9,7 @@ import React, {
   lazy,
 } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
+import { Helmet } from "react-helmet-async"; // ✅ SEO Helmet Imported
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
@@ -205,46 +206,19 @@ const ProductSkeleton: React.FC = () => (
 );
 
 // ════════════════════════════════════════════════════════════
-// RAZORPAY SVG ICON
+// RAZORPAY & DELHIVERY ICONS
 // ════════════════════════════════════════════════════════════
 const RazorpayIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M7.076 21.337H2L14.47 2.663h5.024L7.076 21.337z"
-      fill="#3395FF"
-    />
-    <path
-      d="M13.228 15.262L10.916 21.337H16.94L22 6.876h-5.012l-3.76 8.386z"
-      fill="#072654"
-    />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M7.076 21.337H2L14.47 2.663h5.024L7.076 21.337z" fill="#3395FF" />
+    <path d="M13.228 15.262L10.916 21.337H16.94L22 6.876h-5.012l-3.76 8.386z" fill="#072654" />
   </svg>
 );
 
-// ════════════════════════════════════════════════════════════
-// DELHIVERY SVG ICON
-// ════════════════════════════════════════════════════════════
 const DelhiveryIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg
-    width={size}
-    height={size}
-    viewBox="0 0 24 24"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-  >
-    <path
-      d="M2 17h2v-4h2l3 4h2.5l-3.4-4.5C9.8 12 11 10.8 11 9c0-2.2-1.8-4-4-4H2v12zm2-6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2H4z"
-      fill="#E42529"
-    />
-    <path
-      d="M13 5v12h2v-4h3c2.2 0 4-1.8 4-4s-1.8-4-4-4h-5zm2 6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2h-3z"
-      fill="#E42529"
-    />
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M2 17h2v-4h2l3 4h2.5l-3.4-4.5C9.8 12 11 10.8 11 9c0-2.2-1.8-4-4-4H2v12zm2-6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2H4z" fill="#E42529" />
+    <path d="M13 5v12h2v-4h3c2.2 0 4-1.8 4-4s-1.8-4-4-4h-5zm2 6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2h-3z" fill="#E42529" />
   </svg>
 );
 
@@ -283,6 +257,26 @@ const Products: React.FC = () => {
   const params = new URLSearchParams(location.search);
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
+
+  // ✅ SEO: Check if this is the absolute Root URL (The "Homepage")
+  const isHomePage = !categoryId && !searchTerm && location.pathname === "/";
+
+  // ✅ SEO: Root Schema optimized for 'Toy Manufacturers in India'
+  const rootSchema = useMemo(() => ({
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Bafna Toys",
+    "url": "https://bafnatoys.com/",
+    "description": "Leading toy manufacturer and wholesale supplier in India. BIS certified plastic toys at factory prices.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Bafna Toys",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://bafnatoys.com/logo.webp"
+      }
+    }
+  }), []);
 
   const marqueeItems = useMemo(
     () => [
@@ -565,13 +559,34 @@ const Products: React.FC = () => {
         } as React.CSSProperties
       }
     >
-      <CategorySEO
-        title={seoTitle}
-        description="Buy bulk toys at wholesale prices from India's leading B2B toy supplier."
-        keywords="wholesale toys, bulk toys, B2B toys India"
-        url={`https://bafnatoys.com${location.pathname}${location.search}`}
-        jsonLd={{}}
-      />
+      {/* ✅ SEO LOGIC: IF HOME PAGE, RENDER BRAND SEO. ELSE RENDER CATEGORY SEO */}
+      {isHomePage ? (
+        <Helmet>
+          <title>Top Toy Manufacturers in India | Wholesale Toys Supplier - Bafna Toys</title>
+          <meta name="description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys, pullback cars, dolls, and more at factory prices." />
+          <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+          <link rel="canonical" href="https://bafnatoys.com/" />
+          
+          {/* Open Graph */}
+          <meta property="og:type" content="website" />
+          <meta property="og:site_name" content="Bafna Toys" />
+          <meta property="og:title" content="Top Toy Manufacturers in India | Wholesale Toys - Bafna Toys" />
+          <meta property="og:description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys at factory prices." />
+          <meta property="og:url" content="https://bafnatoys.com/" />
+          <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+
+          {/* Root JSON-LD Schema */}
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }} />
+        </Helmet>
+      ) : (
+        <CategorySEO
+          title={seoTitle}
+          description={`Buy bulk toys at wholesale prices from India's leading B2B toy supplier. ${catName ? `Explore our ${catName} collection.` : ''}`}
+          keywords={`wholesale toys, bulk toys, B2B toys India${catName ? `, wholesale ${catName}` : ''}`}
+          url={`https://bafnatoys.com${location.pathname}${location.search}`}
+          jsonLd={{}}
+        />
+      )}
 
       {/* ═══ MARQUEE TICKER WITH FAQ STICKY BUTTON ═══ */}
       <div className="sp-marquee">
@@ -604,6 +619,7 @@ const Products: React.FC = () => {
               <Factory size={13} />
               Direct from Manufacturer
             </div>
+            {/* ✅ SEO: Changed to H1 and optimized the main text for crawlers */}
             <h1 className="sp-hero-title">
               India's Trusted
               <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
@@ -889,7 +905,7 @@ const Products: React.FC = () => {
         <ExternalLink size={13} />
       </a>
 
-      {/* ═══ TRUST PARTNERS STRIP (Delhivery, Razorpay, PhonePe, GPay, Cards, NetBanking) ═══ */}
+      {/* ═══ TRUST PARTNERS STRIP ═══ */}
       <div className="sp-trust-partners-strip">
         <div className="sp-trust-partners-inner">
           <div className="sp-trust-partner sp-partner-delhivery">
