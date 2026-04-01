@@ -181,7 +181,11 @@ const ProductDetails: React.FC = () => {
 
     if (!isHorizontalSwipe.current) return;
 
-    e.preventDefault();
+    // Only prevent default if it's safe to do so to stop vertical scrolling during pan
+    if (e.cancelable) {
+      e.preventDefault();
+    }
+    
     touchCurrentX.current = currentX;
 
     let offset = diffX;
@@ -206,12 +210,12 @@ const ProductDetails: React.FC = () => {
 
     const containerWidth = window.innerWidth > 768 ? 400 : window.innerWidth;
     const threshold = containerWidth * 0.2;
-    const velocity = touchCurrentX.current - touchStartX.current;
+    const distance = touchCurrentX.current - touchStartX.current;
     const offset = swipeOffsetRef.current;
 
     let nextImage = selectedImage;
 
-    if (Math.abs(offset) > threshold || Math.abs(velocity) > 80) {
+    if (Math.abs(offset) > threshold || Math.abs(distance) > 80) {
       if (offset < 0 && selectedImage < images.length - 1) {
         nextImage = selectedImage + 1;
       } else if (offset > 0 && selectedImage > 0) {
@@ -562,10 +566,7 @@ const ProductDetails: React.FC = () => {
                 <div
                   className="pd-carousel-track"
                   ref={carouselTrackRef}
-                  style={{
-                    transform: `translateX(calc(-${selectedImage * 100}%))`,
-                    transition: "transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
-                  }}
+                  /* 🔥 Removed inline transform and transition to prevent React from resetting swipe position on timer re-render */
                 >
                   {images.map((img, i) => (
                     <div
