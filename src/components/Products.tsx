@@ -9,7 +9,7 @@ import React, {
   lazy,
 } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async"; // ✅ SEO Helmet Imported
+import { Helmet } from "react-helmet-async";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
@@ -259,6 +259,7 @@ const Products: React.FC = () => {
   const searchTerm = params.get("search") || params.get("q") || "";
 
   // ✅ SEO: Check if this is the absolute Root URL (The "Homepage")
+  // Ye flag determine karega ki Hero Banner dikhana hai ya nahi
   const isHomePage = !categoryId && !searchTerm && location.pathname === "/";
 
   // ✅ SEO: Root Schema optimized for 'Toy Manufacturers in India'
@@ -559,7 +560,7 @@ const Products: React.FC = () => {
         } as React.CSSProperties
       }
     >
-      {/* ✅ SEO LOGIC: IF HOME PAGE, RENDER BRAND SEO. ELSE RENDER CATEGORY SEO */}
+      {/* ✅ SEO LOGIC */}
       {isHomePage ? (
         <Helmet>
           <title>Top Toy Manufacturers in India | Wholesale Toys Supplier - Bafna Toys</title>
@@ -567,7 +568,6 @@ const Products: React.FC = () => {
           <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
           <link rel="canonical" href="https://bafnatoys.com/" />
           
-          {/* Open Graph */}
           <meta property="og:type" content="website" />
           <meta property="og:site_name" content="Bafna Toys" />
           <meta property="og:title" content="Top Toy Manufacturers in India | Wholesale Toys - Bafna Toys" />
@@ -575,7 +575,6 @@ const Products: React.FC = () => {
           <meta property="og:url" content="https://bafnatoys.com/" />
           <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
 
-          {/* Root JSON-LD Schema */}
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }} />
         </Helmet>
       ) : (
@@ -588,403 +587,407 @@ const Products: React.FC = () => {
         />
       )}
 
-      {/* ═══ MARQUEE TICKER WITH FAQ STICKY BUTTON ═══ */}
-      <div className="sp-marquee">
-        <Link to="/faq" className="sp-marquee-faq-btn">
-          <span className="sp-faq-pulse"></span>
-          <Info size={14} />
-          Retailer FAQ & Help
-        </Link>
+      {/* ✅ CONDITIONALLY RENDER SECTIONS BASED ON 'isHomePage' */}
+      {isHomePage && (
+        <>
+          {/* ═══ MARQUEE TICKER WITH FAQ STICKY BUTTON ═══ */}
+          <div className="sp-marquee">
+            <Link to="/faq" className="sp-marquee-faq-btn">
+              <span className="sp-faq-pulse"></span>
+              <Info size={14} />
+              Retailer FAQ & Help
+            </Link>
 
-        <div className="sp-marquee-track">
-          {[...marqueeItems, ...marqueeItems].map((item, i) => (
-            <span className="sp-marquee-chip" key={i}>
-              <span className="sp-marquee-emoji">{item.icon}</span>
-              {item.text}
-            </span>
-          ))}
-        </div>
-      </div>
-
-      {/* ═══ HERO BANNER ═══ */}
-      <section className="sp-hero">
-        <div className="sp-hero-glow sp-hero-glow-1" />
-        <div className="sp-hero-glow sp-hero-glow-2" />
-        <div className="sp-hero-glow sp-hero-glow-3" />
-
-        {/* DESKTOP HERO */}
-        <div className="sp-hero-grid sp-hero-desktop">
-          <div className="sp-hero-content">
-            <div className="sp-hero-badge">
-              <Factory size={13} />
-              Direct from Manufacturer
+            <div className="sp-marquee-track">
+              {[...marqueeItems, ...marqueeItems].map((item, i) => (
+                <span className="sp-marquee-chip" key={i}>
+                  <span className="sp-marquee-emoji">{item.icon}</span>
+                  {item.text}
+                </span>
+              ))}
             </div>
-            {/* ✅ SEO: Changed to H1 and optimized the main text for crawlers */}
-            <h1 className="sp-hero-title">
-              India's Trusted
-              <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
-            </h1>
-            <p className="sp-hero-sub">
-              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
-              and Resellers
-            </p>
-            <div className="sp-hero-features">
-              <div className="sp-hero-feature">
-                <div className="sp-hero-feature-icon">
+          </div>
+
+          {/* ═══ HERO BANNER ═══ */}
+          <section className="sp-hero">
+            <div className="sp-hero-glow sp-hero-glow-1" />
+            <div className="sp-hero-glow sp-hero-glow-2" />
+            <div className="sp-hero-glow sp-hero-glow-3" />
+
+            {/* DESKTOP HERO */}
+            <div className="sp-hero-grid sp-hero-desktop">
+              <div className="sp-hero-content">
+                <div className="sp-hero-badge">
+                  <Factory size={13} />
+                  Direct from Manufacturer
+                </div>
+                <h1 className="sp-hero-title">
+                  India's Trusted
+                  <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
+                </h1>
+                <p className="sp-hero-sub">
+                  Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
+                  and Resellers
+                </p>
+                <div className="sp-hero-features">
+                  <div className="sp-hero-feature">
+                    <div className="sp-hero-feature-icon">
+                      <Truck size={16} />
+                    </div>
+                    <div>
+                      <strong>Free Delivery</strong>
+                      <span>Orders ₹3000+</span>
+                    </div>
+                  </div>
+                  <div className="sp-hero-feature">
+                    <div className="sp-hero-feature-icon">
+                      <Shield size={16} />
+                    </div>
+                    <div>
+                      <strong>BIS Certified</strong>
+                      <span>All Products</span>
+                    </div>
+                  </div>
+                  <div className="sp-hero-feature">
+                    <div className="sp-hero-feature-icon">
+                      <Package size={16} />
+                    </div>
+                    <div>
+                      <strong>400+ Products</strong>
+                      <span>Wide Range</span>
+                    </div>
+                  </div>
+                  <div className="sp-hero-feature">
+                    <div className="sp-hero-feature-icon">
+                      <Banknote size={16} />
+                    </div>
+                    <div>
+                      <strong>COD Available</strong>
+                      <span>Cash on Delivery</span>
+                    </div>
+                  </div>
+                  <div className="sp-hero-feature">
+                    <div className="sp-hero-feature-icon">
+                      <MapPin size={16} />
+                    </div>
+                    <div>
+                      <strong>Factory & Dispatch</strong>
+                      <span>Coimbatore, Tamil Nadu</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="sp-hero-visual">
+                <div className="sp-hero-offer-ring">
+                  <div className="sp-hero-offer-inner">
+                    <span className="sp-offer-up">UP TO</span>
+                    <span className="sp-offer-num">50%</span>
+                    <span className="sp-offer-label">& MORE OFF MRP</span>
+                  </div>
+                </div>
+                <div className="sp-hero-float sp-hero-float-1">
+                  <Zap size={14} />
+                  Fast Moving
+                </div>
+                <div className="sp-hero-float sp-hero-float-2">
+                  <TrendingUp size={14} />
+                  High Margins
+                </div>
+                <div className="sp-hero-float sp-hero-float-3">
+                  <Banknote size={14} />
+                  COD Available
+                </div>
+              </div>
+            </div>
+
+            {/* COD + GST INFO BAR INSIDE HERO (Desktop) */}
+            <div className="sp-hero-info-bar">
+              <div className="sp-hero-info-inner">
+                <div className="sp-hero-info-item sp-hero-info-cod">
+                  <div className="sp-hero-info-icon sp-hero-info-icon-cod">
+                    <Banknote size={16} />
+                  </div>
+                  <div className="sp-hero-info-text">
+                    <strong>Cash on Delivery (COD) Available</strong>
+                    <span>
+                      Pay when you receive your order — No advance payment needed!
+                    </span>
+                  </div>
+                  <div className="sp-hero-info-pill">
+                    <span className="sp-hero-info-dot" />
+                    COD Active
+                  </div>
+                </div>
+                <div className="sp-hero-info-divider" />
+                <div className="sp-hero-info-item sp-hero-info-gst">
+                  <div className="sp-hero-info-icon sp-hero-info-icon-gst">
+                    <Receipt size={16} />
+                  </div>
+                  <div className="sp-hero-info-text">
+                    <strong>All prices are inclusive of GST</strong>
+                    <span>
+                      E.g. if price is <strong>₹60</strong> → Base ₹57.14 + 5% GST
+                      = <strong>₹60</strong> (No extra tax!)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* MOBILE HERO */}
+            <div className="sp-hero-mobile">
+              <div className="sp-mh-top">
+                <div className="sp-mh-badge">
+                  <div className="sp-mh-badge-dot" />
+                  <Factory size={11} />
+                  <span>Direct from Manufacturer</span>
+                </div>
+                <h1 className="sp-mh-title">
+                  India's Trusted
+                  <br />
+                  <span className="sp-mh-gradient">B2B Toy Manufacturer</span>
+                </h1>
+                <p className="sp-mh-sub">
+                  Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
+                  and Resellers
+                </p>
+              </div>
+
+              <div className="sp-mh-offer-section">
+                <div className="sp-mh-offer-card">
+                  <div className="sp-mh-offer-visual">
+                    <div className="sp-mh-offer-ring">
+                      <div className="sp-mh-offer-inner">
+                        <span className="sp-mh-offer-up">UP TO</span>
+                        <span className="sp-mh-offer-num">
+                          50<small>%</small>
+                        </span>
+                        <span className="sp-mh-offer-tag">OFF MRP</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="sp-mh-offer-perks">
+                    <div className="sp-mh-perk">
+                      <div className="sp-mh-perk-icon sp-mh-perk-green">
+                        <Shield size={13} />
+                      </div>
+                      <div className="sp-mh-perk-text">
+                        <strong>BIS Certified</strong>
+                        <span>All products tested</span>
+                      </div>
+                    </div>
+                    <div className="sp-mh-perk">
+                      <div className="sp-mh-perk-icon sp-mh-perk-blue">
+                        <Package size={13} />
+                      </div>
+                      <div className="sp-mh-perk-text">
+                        <strong>400+ Products</strong>
+                        <span>Huge catalogue</span>
+                      </div>
+                    </div>
+                    <div className="sp-mh-perk">
+                      <div className="sp-mh-perk-icon sp-mh-perk-purple">
+                        <Truck size={13} />
+                      </div>
+                      <div className="sp-mh-perk-text">
+                        <strong>Free Delivery</strong>
+                        <span>Orders above ₹5K</span>
+                      </div>
+                    </div>
+                    <div className="sp-mh-perk">
+                      <div className="sp-mh-perk-icon sp-mh-perk-amber">
+                        <Banknote size={13} />
+                      </div>
+                      <div className="sp-mh-perk-text">
+                        <strong>COD Available</strong>
+                        <span>Cash on Delivery</span>
+                      </div>
+                    </div>
+                    <div className="sp-mh-perk">
+                      <div
+                        className="sp-mh-perk-icon"
+                        style={{
+                          backgroundColor: "rgba(239, 68, 68, 0.1)",
+                          color: "#ef4444",
+                        }}
+                      >
+                        <MapPin size={13} />
+                      </div>
+                      <div className="sp-mh-perk-text">
+                        <strong>FACTORY & DISPATCH</strong>
+                        <span>Coimbatore, Tamil Nadu</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Mobile COD + GST Cards */}
+              <div className="sp-mh-info-cards">
+                <div className="sp-mh-info-card sp-mh-info-cod">
+                  <div className="sp-mh-info-card-icon sp-mh-ic-amber">
+                    <Banknote size={14} />
+                  </div>
+                  <div className="sp-mh-info-card-body">
+                    <strong>COD Available</strong>
+                    <span>Pay when you receive your order</span>
+                  </div>
+                  <div className="sp-mh-info-card-pill">
+                    <span className="sp-mh-ic-dot" />
+                    Active
+                  </div>
+                </div>
+                <div className="sp-mh-info-card sp-mh-info-gst">
+                  <div className="sp-mh-info-card-icon sp-mh-ic-green">
+                    <Receipt size={14} />
+                  </div>
+                  <div className="sp-mh-info-card-body">
+                    <strong>GST Inclusive Prices</strong>
+                    <span>₹60 = ₹57.14 + 5% GST (No extra tax)</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="sp-mh-stats">
+                <div className="sp-mh-stat">
+                  <div className="sp-mh-stat-icon">
+                    <Star size={12} fill="#fbbf24" color="#fbbf24" />
+                  </div>
+                  <div className="sp-mh-stat-info">
+                    <strong>4.8/5</strong>
+                    <span>Rating</span>
+                  </div>
+                </div>
+                <div className="sp-mh-stat-divider" />
+                <div className="sp-mh-stat">
+                  <div className="sp-mh-stat-icon">
+                    <Users size={12} />
+                  </div>
+                  <div className="sp-mh-stat-info">
+                    <strong>4,900+</strong>
+                    <span>Retailers</span>
+                  </div>
+                </div>
+                <div className="sp-mh-stat-divider" />
+                <div className="sp-mh-stat">
+                  <div className="sp-mh-stat-icon">
+                    <Banknote size={12} />
+                  </div>
+                  <div className="sp-mh-stat-info">
+                    <strong>COD</strong>
+                    <span>Available</span>
+                  </div>
+                </div>
+                <div className="sp-mh-stat-divider" />
+                <div className="sp-mh-stat">
+                  <div className="sp-mh-stat-icon">
+                    <IndianRupee size={12} />
+                  </div>
+                  <div className="sp-mh-stat-info">
+                    <strong>GST</strong>
+                    <span>Inclusive</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          {/* ═══ INSTAGRAM STRIP ═══ */}
+          <a
+            href="https://www.instagram.com/bafna_toys"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="sp-insta-strip"
+          >
+            <Instagram size={15} />
+            <span>
+              Check out our toy videos on Instagram <strong>@bafna_toys</strong>
+            </span>
+            <ExternalLink size={13} />
+          </a>
+
+          {/* ═══ TRUST PARTNERS STRIP ═══ */}
+          <div className="sp-trust-partners-strip">
+            <div className="sp-trust-partners-inner">
+              <div className="sp-trust-partner sp-partner-delhivery">
+                <div className="sp-partner-icon-wrap sp-partner-icon-delhivery">
                   <Truck size={16} />
                 </div>
-                <div>
-                  <strong>Free Delivery</strong>
-                  <span>Orders ₹3000+</span>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Shipped via</span>
+                  <strong className="sp-partner-name">Delhivery</strong>
+                </div>
+                <div className="sp-partner-verified">
+                  <ShieldCheck size={13} />
                 </div>
               </div>
-              <div className="sp-hero-feature">
-                <div className="sp-hero-feature-icon">
-                  <Shield size={16} />
-                </div>
-                <div>
-                  <strong>BIS Certified</strong>
-                  <span>All Products</span>
-                </div>
-              </div>
-              <div className="sp-hero-feature">
-                <div className="sp-hero-feature-icon">
-                  <Package size={16} />
-                </div>
-                <div>
-                  <strong>400+ Products</strong>
-                  <span>Wide Range</span>
-                </div>
-              </div>
-              <div className="sp-hero-feature">
-                <div className="sp-hero-feature-icon">
-                  <Banknote size={16} />
-                </div>
-                <div>
-                  <strong>COD Available</strong>
-                  <span>Cash on Delivery</span>
-                </div>
-              </div>
-              <div className="sp-hero-feature">
-                <div className="sp-hero-feature-icon">
-                  <MapPin size={16} />
-                </div>
-                <div>
-                  <strong>Factory & Dispatch</strong>
-                  <span>Coimbatore, Tamil Nadu</span>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div className="sp-hero-visual">
-            <div className="sp-hero-offer-ring">
-              <div className="sp-hero-offer-inner">
-                <span className="sp-offer-up">UP TO</span>
-                <span className="sp-offer-num">50%</span>
-                <span className="sp-offer-label">& MORE OFF MRP</span>
-              </div>
-            </div>
-            <div className="sp-hero-float sp-hero-float-1">
-              <Zap size={14} />
-              Fast Moving
-            </div>
-            <div className="sp-hero-float sp-hero-float-2">
-              <TrendingUp size={14} />
-              High Margins
-            </div>
-            <div className="sp-hero-float sp-hero-float-3">
-              <Banknote size={14} />
-              COD Available
-            </div>
-          </div>
-        </div>
 
-        {/* COD + GST INFO BAR INSIDE HERO (Desktop) */}
-        <div className="sp-hero-info-bar">
-          <div className="sp-hero-info-inner">
-            <div className="sp-hero-info-item sp-hero-info-cod">
-              <div className="sp-hero-info-icon sp-hero-info-icon-cod">
-                <Banknote size={16} />
-              </div>
-              <div className="sp-hero-info-text">
-                <strong>Cash on Delivery (COD) Available</strong>
-                <span>
-                  Pay when you receive your order — No advance payment needed!
-                </span>
-              </div>
-              <div className="sp-hero-info-pill">
-                <span className="sp-hero-info-dot" />
-                COD Active
-              </div>
-            </div>
-            <div className="sp-hero-info-divider" />
-            <div className="sp-hero-info-item sp-hero-info-gst">
-              <div className="sp-hero-info-icon sp-hero-info-icon-gst">
-                <Receipt size={16} />
-              </div>
-              <div className="sp-hero-info-text">
-                <strong>All prices are inclusive of GST</strong>
-                <span>
-                  E.g. if price is <strong>₹60</strong> → Base ₹57.14 + 5% GST
-                  = <strong>₹60</strong> (No extra tax!)
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+              <div className="sp-trust-partners-divider sp-hide-mobile" />
 
-        {/* MOBILE HERO */}
-        <div className="sp-hero-mobile">
-          <div className="sp-mh-top">
-            <div className="sp-mh-badge">
-              <div className="sp-mh-badge-dot" />
-              <Factory size={11} />
-              <span>Direct from Manufacturer</span>
-            </div>
-            <h1 className="sp-mh-title">
-              India's Trusted
-              <br />
-              <span className="sp-mh-gradient">B2B Toy Manufacturer</span>
-            </h1>
-            <p className="sp-mh-sub">
-              Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
-              and Resellers
-            </p>
-          </div>
-
-          <div className="sp-mh-offer-section">
-            <div className="sp-mh-offer-card">
-              <div className="sp-mh-offer-visual">
-                <div className="sp-mh-offer-ring">
-                  <div className="sp-mh-offer-inner">
-                    <span className="sp-mh-offer-up">UP TO</span>
-                    <span className="sp-mh-offer-num">
-                      50<small>%</small>
-                    </span>
-                    <span className="sp-mh-offer-tag">OFF MRP</span>
-                  </div>
+              <div className="sp-trust-partner sp-partner-razorpay">
+                <div className="sp-partner-icon-wrap sp-partner-icon-razorpay">
+                  <RazorpayIcon size={18} />
+                </div>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Powered by</span>
+                  <strong className="sp-partner-name">Razorpay</strong>
+                </div>
+                <div className="sp-partner-verified">
+                  <ShieldCheck size={13} />
                 </div>
               </div>
-              <div className="sp-mh-offer-perks">
-                <div className="sp-mh-perk">
-                  <div className="sp-mh-perk-icon sp-mh-perk-green">
-                    <Shield size={13} />
-                  </div>
-                  <div className="sp-mh-perk-text">
-                    <strong>BIS Certified</strong>
-                    <span>All products tested</span>
-                  </div>
+
+              <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+              <div className="sp-trust-partner">
+                <div className="sp-partner-icon-wrap sp-partner-icon-phonepe">
+                  <SmartphoneNfc size={16} />
                 </div>
-                <div className="sp-mh-perk">
-                  <div className="sp-mh-perk-icon sp-mh-perk-blue">
-                    <Package size={13} />
-                  </div>
-                  <div className="sp-mh-perk-text">
-                    <strong>400+ Products</strong>
-                    <span>Huge catalogue</span>
-                  </div>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Accepted</span>
+                  <strong className="sp-partner-name">PhonePe</strong>
                 </div>
-                <div className="sp-mh-perk">
-                  <div className="sp-mh-perk-icon sp-mh-perk-purple">
-                    <Truck size={13} />
-                  </div>
-                  <div className="sp-mh-perk-text">
-                    <strong>Free Delivery</strong>
-                    <span>Orders above ₹5K</span>
-                  </div>
+              </div>
+
+              <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+              <div className="sp-trust-partner">
+                <div className="sp-partner-icon-wrap sp-partner-icon-gpay">
+                  <Wallet size={16} />
                 </div>
-                <div className="sp-mh-perk">
-                  <div className="sp-mh-perk-icon sp-mh-perk-amber">
-                    <Banknote size={13} />
-                  </div>
-                  <div className="sp-mh-perk-text">
-                    <strong>COD Available</strong>
-                    <span>Cash on Delivery</span>
-                  </div>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Accepted</span>
+                  <strong className="sp-partner-name">GPay</strong>
                 </div>
-                <div className="sp-mh-perk">
-                  <div
-                    className="sp-mh-perk-icon"
-                    style={{
-                      backgroundColor: "rgba(239, 68, 68, 0.1)",
-                      color: "#ef4444",
-                    }}
-                  >
-                    <MapPin size={13} />
-                  </div>
-                  <div className="sp-mh-perk-text">
-                    <strong>FACTORY & DISPATCH</strong>
-                    <span>Coimbatore, Tamil Nadu</span>
-                  </div>
+              </div>
+
+              <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+              <div className="sp-trust-partner">
+                <div className="sp-partner-icon-wrap sp-partner-icon-cards">
+                  <CreditCard size={16} />
+                </div>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Accepted</span>
+                  <strong className="sp-partner-name">Debit/Credit</strong>
+                </div>
+              </div>
+
+              <div className="sp-trust-partners-divider sp-hide-mobile" />
+
+              <div className="sp-trust-partner">
+                <div className="sp-partner-icon-wrap sp-partner-icon-netbanking">
+                  <Landmark size={16} />
+                </div>
+                <div className="sp-partner-info">
+                  <span className="sp-partner-label">Accepted</span>
+                  <strong className="sp-partner-name">Net Banking</strong>
                 </div>
               </div>
             </div>
           </div>
-
-          {/* Mobile COD + GST Cards */}
-          <div className="sp-mh-info-cards">
-            <div className="sp-mh-info-card sp-mh-info-cod">
-              <div className="sp-mh-info-card-icon sp-mh-ic-amber">
-                <Banknote size={14} />
-              </div>
-              <div className="sp-mh-info-card-body">
-                <strong>COD Available</strong>
-                <span>Pay when you receive your order</span>
-              </div>
-              <div className="sp-mh-info-card-pill">
-                <span className="sp-mh-ic-dot" />
-                Active
-              </div>
-            </div>
-            <div className="sp-mh-info-card sp-mh-info-gst">
-              <div className="sp-mh-info-card-icon sp-mh-ic-green">
-                <Receipt size={14} />
-              </div>
-              <div className="sp-mh-info-card-body">
-                <strong>GST Inclusive Prices</strong>
-                <span>₹60 = ₹57.14 + 5% GST (No extra tax)</span>
-              </div>
-            </div>
-          </div>
-
-          <div className="sp-mh-stats">
-            <div className="sp-mh-stat">
-              <div className="sp-mh-stat-icon">
-                <Star size={12} fill="#fbbf24" color="#fbbf24" />
-              </div>
-              <div className="sp-mh-stat-info">
-                <strong>4.8/5</strong>
-                <span>Rating</span>
-              </div>
-            </div>
-            <div className="sp-mh-stat-divider" />
-            <div className="sp-mh-stat">
-              <div className="sp-mh-stat-icon">
-                <Users size={12} />
-              </div>
-              <div className="sp-mh-stat-info">
-                <strong>4,900+</strong>
-                <span>Retailers</span>
-              </div>
-            </div>
-            <div className="sp-mh-stat-divider" />
-            <div className="sp-mh-stat">
-              <div className="sp-mh-stat-icon">
-                <Banknote size={12} />
-              </div>
-              <div className="sp-mh-stat-info">
-                <strong>COD</strong>
-                <span>Available</span>
-              </div>
-            </div>
-            <div className="sp-mh-stat-divider" />
-            <div className="sp-mh-stat">
-              <div className="sp-mh-stat-icon">
-                <IndianRupee size={12} />
-              </div>
-              <div className="sp-mh-stat-info">
-                <strong>GST</strong>
-                <span>Inclusive</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ INSTAGRAM STRIP ═══ */}
-      <a
-        href="https://www.instagram.com/bafna_toys"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="sp-insta-strip"
-      >
-        <Instagram size={15} />
-        <span>
-          Check out our toy videos on Instagram <strong>@bafna_toys</strong>
-        </span>
-        <ExternalLink size={13} />
-      </a>
-
-      {/* ═══ TRUST PARTNERS STRIP ═══ */}
-      <div className="sp-trust-partners-strip">
-        <div className="sp-trust-partners-inner">
-          <div className="sp-trust-partner sp-partner-delhivery">
-            <div className="sp-partner-icon-wrap sp-partner-icon-delhivery">
-              <Truck size={16} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Shipped via</span>
-              <strong className="sp-partner-name">Delhivery</strong>
-            </div>
-            <div className="sp-partner-verified">
-              <ShieldCheck size={13} />
-            </div>
-          </div>
-
-          <div className="sp-trust-partners-divider sp-hide-mobile" />
-
-          <div className="sp-trust-partner sp-partner-razorpay">
-            <div className="sp-partner-icon-wrap sp-partner-icon-razorpay">
-              <RazorpayIcon size={18} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Powered by</span>
-              <strong className="sp-partner-name">Razorpay</strong>
-            </div>
-            <div className="sp-partner-verified">
-              <ShieldCheck size={13} />
-            </div>
-          </div>
-
-          <div className="sp-trust-partners-divider sp-hide-mobile" />
-
-          <div className="sp-trust-partner">
-            <div className="sp-partner-icon-wrap sp-partner-icon-phonepe">
-              <SmartphoneNfc size={16} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Accepted</span>
-              <strong className="sp-partner-name">PhonePe</strong>
-            </div>
-          </div>
-
-          <div className="sp-trust-partners-divider sp-hide-mobile" />
-
-          <div className="sp-trust-partner">
-            <div className="sp-partner-icon-wrap sp-partner-icon-gpay">
-              <Wallet size={16} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Accepted</span>
-              <strong className="sp-partner-name">GPay</strong>
-            </div>
-          </div>
-
-          <div className="sp-trust-partners-divider sp-hide-mobile" />
-
-          <div className="sp-trust-partner">
-            <div className="sp-partner-icon-wrap sp-partner-icon-cards">
-              <CreditCard size={16} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Accepted</span>
-              <strong className="sp-partner-name">Debit/Credit</strong>
-            </div>
-          </div>
-
-          <div className="sp-trust-partners-divider sp-hide-mobile" />
-
-          <div className="sp-trust-partner">
-            <div className="sp-partner-icon-wrap sp-partner-icon-netbanking">
-              <Landmark size={16} />
-            </div>
-            <div className="sp-partner-info">
-              <span className="sp-partner-label">Accepted</span>
-              <strong className="sp-partner-name">Net Banking</strong>
-            </div>
-          </div>
-        </div>
-      </div>
+        </>
+      )}
 
       {/* ═══ BANNERS ═══ */}
       {!categoryId &&
@@ -1336,243 +1339,248 @@ const Products: React.FC = () => {
         </main>
       </div>
 
-      {/* ═══ BENTO TRUST STATS ═══ */}
-      <section className="sp-trust-section">
-        <div className="sp-trust-grid">
-          {[
-            {
-              icon: <Star size={28} />,
-              gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
-              color: "#b45309",
-              title: "4.8/5",
-              sub: "Average Rating",
-            },
-            {
-              icon: <Users size={24} />,
-              gradient: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
-              color: "#1d4ed8",
-              title: "4,900+",
-              sub: "Active Retailers",
-            },
-            {
-              icon: <Truck size={24} />,
-              gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
-              color: "#047857",
-              title: "All India",
-              sub: "Door Delivery",
-            },
-            {
-              icon: <Banknote size={24} />,
-              gradient: "linear-gradient(135deg, #fef9c3, #fde047)",
-              color: "#a16207",
-              title: "COD",
-              sub: "Cash on Delivery",
-            },
-            {
-              icon: <Award size={24} />,
-              gradient: "linear-gradient(135deg, #fce7f3, #fbcfe8)",
-              color: "#9d174d",
-              title: "BIS Certified",
-              sub: "All Products",
-            },
-          ].map((s, i) => (
-            <div className="sp-trust-card" key={i}>
-              <div
-                className="sp-trust-icon"
-                style={{ background: s.gradient, color: s.color }}
-              >
-                {s.icon}
-              </div>
-              <div className="sp-trust-info">
-                <strong>{s.title}</strong>
-                <span>{s.sub}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ═══ FACTORY SECTION ═══ */}
-      {!loading && trustData && (
-        <section className="sp-factory">
-          <div className="sp-factory-inner">
-            <div className="sp-section-header">
-              <span className="sp-section-badge">
-                <Factory size={14} />
-                Our Facility
-              </span>
-              <h2 className="sp-section-title">Inside Our Factory</h2>
-              <p className="sp-section-desc">
-                State-of-the-art manufacturing with quality at every step
-              </p>
-            </div>
-
-            <div className="sp-factory-counter">
-              <div className="sp-counter-card">
-                <div className="sp-counter-number">
-                  <AnimatedCounter
-                    target={trustData.retailerCount || "4901+"}
-                  />
+      {/* ✅ CONDITIONALLY RENDER BOTTOM SECTIONS ON HOMEPAGE ONLY */}
+      {isHomePage && (
+        <>
+          {/* ═══ BENTO TRUST STATS ═══ */}
+          <section className="sp-trust-section">
+            <div className="sp-trust-grid">
+              {[
+                {
+                  icon: <Star size={28} />,
+                  gradient: "linear-gradient(135deg, #fef3c7, #fde68a)",
+                  color: "#b45309",
+                  title: "4.8/5",
+                  sub: "Average Rating",
+                },
+                {
+                  icon: <Users size={24} />,
+                  gradient: "linear-gradient(135deg, #dbeafe, #bfdbfe)",
+                  color: "#1d4ed8",
+                  title: "4,900+",
+                  sub: "Active Retailers",
+                },
+                {
+                  icon: <Truck size={24} />,
+                  gradient: "linear-gradient(135deg, #d1fae5, #a7f3d0)",
+                  color: "#047857",
+                  title: "All India",
+                  sub: "Door Delivery",
+                },
+                {
+                  icon: <Banknote size={24} />,
+                  gradient: "linear-gradient(135deg, #fef9c3, #fde047)",
+                  color: "#a16207",
+                  title: "COD",
+                  sub: "Cash on Delivery",
+                },
+                {
+                  icon: <Award size={24} />,
+                  gradient: "linear-gradient(135deg, #fce7f3, #fbcfe8)",
+                  color: "#9d174d",
+                  title: "BIS Certified",
+                  sub: "All Products",
+                },
+              ].map((s, i) => (
+                <div className="sp-trust-card" key={i}>
+                  <div
+                    className="sp-trust-icon"
+                    style={{ background: s.gradient, color: s.color }}
+                  >
+                    {s.icon}
+                  </div>
+                  <div className="sp-trust-info">
+                    <strong>{s.title}</strong>
+                    <span>{s.sub}</span>
+                  </div>
                 </div>
-                <p>Happy Retailers Across India</p>
-              </div>
+              ))}
             </div>
+          </section>
 
-            <div className="sp-factory-grid">
-              {trustData.factoryVisuals &&
-              trustData.factoryVisuals.length > 0
-                ? trustData.factoryVisuals.map(
-                    (item: any, i: number) =>
-                      item.image && (
-                        <div className="sp-factory-card" key={i}>
-                          <div className="sp-factory-card-img">
-                            <img
-                              src={optimizeCloudinary(
-                                item.image,
-                                400,
-                                280
-                              )}
-                              alt={item.label || `Process ${i + 1}`}
-                              width={400}
-                              height={280}
-                              loading="lazy"
-                            />
-                          </div>
-                          {item.label && (
-                            <div className="sp-factory-card-label">
-                              {item.label}
-                            </div>
-                          )}
-                        </div>
-                      )
-                  )
-                : [
-                    {
-                      img: trustData.manufacturingUnit,
-                      label: "Manufacturing",
-                    },
-                    {
-                      img: trustData.packingDispatch,
-                      label: "Packing & Dispatch",
-                    },
-                    {
-                      img: trustData.warehouseStorage,
-                      label: "Warehouse Storage",
-                    },
-                  ].map(
-                    (item, i) =>
-                      item.img && (
-                        <div className="sp-factory-card" key={i}>
-                          <div className="sp-factory-card-img">
-                            <img
-                              src={optimizeCloudinary(
-                                item.img,
-                                400,
-                                280
-                              )}
-                              alt={item.label}
-                              width={400}
-                              height={280}
-                              loading="lazy"
-                            />
-                          </div>
-                          <div className="sp-factory-card-label">
-                            {item.label}
-                          </div>
-                        </div>
-                      )
-                  )}
-            </div>
-          </div>
-        </section>
-      )}
+          {/* ═══ FACTORY SECTION ═══ */}
+          {!loading && trustData && (
+            <section className="sp-factory">
+              <div className="sp-factory-inner">
+                <div className="sp-section-header">
+                  <span className="sp-section-badge">
+                    <Factory size={14} />
+                    Our Facility
+                  </span>
+                  <h2 className="sp-section-title">Inside Our Factory</h2>
+                  <p className="sp-section-desc">
+                    State-of-the-art manufacturing with quality at every step
+                  </p>
+                </div>
 
-      {/* ═══ BIS SECTION ═══ */}
-      {!loading && trustData?.factoryImage && (
-        <section className="sp-bis">
-          <div className="sp-bis-inner">
-            <div className="sp-bis-content">
-              <div className="sp-bis-badge">
-                <Shield size={16} />
-                Quality Assured
-              </div>
-              <h3>All Toys Are BIS Certified</h3>
-              <p>
-                Every product meets Indian safety standards for complete peace
-                of mind
-              </p>
-              <div className="sp-bis-gst">GSTIN: 33ANCPH3967L1ZT</div>
-            </div>
-            <img
-              src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
-              alt="Factory"
-              width={1200}
-              height={400}
-              className="sp-bis-img"
-              loading="lazy"
-            />
-          </div>
-        </section>
-      )}
-
-      {/* ═══ REVIEWS ═══ */}
-      {!loading && trustData?.customerReviews?.length > 0 && (
-        <section className="sp-reviews">
-          <div className="sp-reviews-inner">
-            <div className="sp-section-header">
-              <span className="sp-section-badge">
-                <Heart size={14} />
-                Testimonials
-              </span>
-              <h2 className="sp-section-title">Retailers Love Us</h2>
-              <p className="sp-section-desc">
-                Trusted by thousands of verified businesses across India
-              </p>
-            </div>
-
-            <div className="sp-reviews-grid">
-              {trustData.customerReviews
-                .slice(0, 4)
-                .map((r: any, i: number) => (
-                  <div className="sp-review-card" key={i}>
-                    <div className="sp-review-img">
-                      <img
-                        src={optimizeCloudinary(r.image, 400, 400)}
-                        alt={r.reviewerName}
-                        width={400}
-                        height={400}
-                        loading="lazy"
+                <div className="sp-factory-counter">
+                  <div className="sp-counter-card">
+                    <div className="sp-counter-number">
+                      <AnimatedCounter
+                        target={trustData.retailerCount || "4901+"}
                       />
                     </div>
-                    <div className="sp-review-body">
-                      <div className="sp-review-stars">
-                        {Array.from({ length: 5 }).map((_, si) => (
-                          <Star
-                            key={si}
-                            size={14}
-                            fill={
-                              si < (r.rating || 5) ? "#f59e0b" : "none"
-                            }
-                            color={
-                              si < (r.rating || 5) ? "#f59e0b" : "#e2e8f0"
-                            }
-                          />
-                        ))}
-                      </div>
-                      <p className="sp-review-text">"{r.reviewText}"</p>
-                      <div className="sp-review-author">
-                        <strong>{r.reviewerName}</strong>
-                        <span className="sp-verified-badge">
-                          <BadgeCheck size={12} />
-                          Verified Buyer
-                        </span>
-                      </div>
-                    </div>
+                    <p>Happy Retailers Across India</p>
                   </div>
-                ))}
-            </div>
-          </div>
-        </section>
+                </div>
+
+                <div className="sp-factory-grid">
+                  {trustData.factoryVisuals &&
+                  trustData.factoryVisuals.length > 0
+                    ? trustData.factoryVisuals.map(
+                        (item: any, i: number) =>
+                          item.image && (
+                            <div className="sp-factory-card" key={i}>
+                              <div className="sp-factory-card-img">
+                                <img
+                                  src={optimizeCloudinary(
+                                    item.image,
+                                    400,
+                                    280
+                                  )}
+                                  alt={item.label || `Process ${i + 1}`}
+                                  width={400}
+                                  height={280}
+                                  loading="lazy"
+                                />
+                              </div>
+                              {item.label && (
+                                <div className="sp-factory-card-label">
+                                  {item.label}
+                                </div>
+                              )}
+                            </div>
+                          )
+                      )
+                    : [
+                        {
+                          img: trustData.manufacturingUnit,
+                          label: "Manufacturing",
+                        },
+                        {
+                          img: trustData.packingDispatch,
+                          label: "Packing & Dispatch",
+                        },
+                        {
+                          img: trustData.warehouseStorage,
+                          label: "Warehouse Storage",
+                        },
+                      ].map(
+                        (item, i) =>
+                          item.img && (
+                            <div className="sp-factory-card" key={i}>
+                              <div className="sp-factory-card-img">
+                                <img
+                                  src={optimizeCloudinary(
+                                    item.img,
+                                    400,
+                                    280
+                                  )}
+                                  alt={item.label}
+                                  width={400}
+                                  height={280}
+                                  loading="lazy"
+                                />
+                              </div>
+                              <div className="sp-factory-card-label">
+                                {item.label}
+                              </div>
+                            </div>
+                          )
+                      )}
+                </div>
+              </div>
+            </section>
+          )}
+
+          {/* ═══ BIS SECTION ═══ */}
+          {!loading && trustData?.factoryImage && (
+            <section className="sp-bis">
+              <div className="sp-bis-inner">
+                <div className="sp-bis-content">
+                  <div className="sp-bis-badge">
+                    <Shield size={16} />
+                    Quality Assured
+                  </div>
+                  <h3>All Toys Are BIS Certified</h3>
+                  <p>
+                    Every product meets Indian safety standards for complete peace
+                    of mind
+                  </p>
+                  <div className="sp-bis-gst">GSTIN: 33ANCPH3967L1ZT</div>
+                </div>
+                <img
+                  src={optimizeCloudinary(trustData.factoryImage, 1200, 400)}
+                  alt="Factory"
+                  width={1200}
+                  height={400}
+                  className="sp-bis-img"
+                  loading="lazy"
+                />
+              </div>
+            </section>
+          )}
+
+          {/* ═══ REVIEWS ═══ */}
+          {!loading && trustData?.customerReviews?.length > 0 && (
+            <section className="sp-reviews">
+              <div className="sp-reviews-inner">
+                <div className="sp-section-header">
+                  <span className="sp-section-badge">
+                    <Heart size={14} />
+                    Testimonials
+                  </span>
+                  <h2 className="sp-section-title">Retailers Love Us</h2>
+                  <p className="sp-section-desc">
+                    Trusted by thousands of verified businesses across India
+                  </p>
+                </div>
+
+                <div className="sp-reviews-grid">
+                  {trustData.customerReviews
+                    .slice(0, 4)
+                    .map((r: any, i: number) => (
+                      <div className="sp-review-card" key={i}>
+                        <div className="sp-review-img">
+                          <img
+                            src={optimizeCloudinary(r.image, 400, 400)}
+                            alt={r.reviewerName}
+                            width={400}
+                            height={400}
+                            loading="lazy"
+                          />
+                        </div>
+                        <div className="sp-review-body">
+                          <div className="sp-review-stars">
+                            {Array.from({ length: 5 }).map((_, si) => (
+                              <Star
+                                key={si}
+                                size={14}
+                                fill={
+                                  si < (r.rating || 5) ? "#f59e0b" : "none"
+                                }
+                                color={
+                                  si < (r.rating || 5) ? "#f59e0b" : "#e2e8f0"
+                                }
+                              />
+                            ))}
+                          </div>
+                          <p className="sp-review-text">"{r.reviewText}"</p>
+                          <div className="sp-review-author">
+                            <strong>{r.reviewerName}</strong>
+                            <span className="sp-verified-badge">
+                              <BadgeCheck size={12} />
+                              Verified Buyer
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {/* ═══ FOOTER ═══ */}

@@ -61,7 +61,6 @@ const SuggestionSkeleton = () => (
   </div>
 );
 
-// Custom hook for performance optimization
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
   useEffect(() => {
@@ -233,18 +232,67 @@ const Header: React.FC = () => {
   const deskRef = useRef<HTMLFormElement | null>(null);
   const mobRef = useRef<HTMLFormElement | null>(null);
 
-  const [placeholderText, setPlaceholderText] = useState("Search for toys...");
+  const [placeholderText] = useState("Search for toys...");
 
-  // Removed Typewriter effect completely to free up the main thread
+  // Optimized Typewriter Effect (Zero Re-renders)
   useEffect(() => {
-     if(popularSearches.length > 0) {
-        setPlaceholderText(`Search for "${popularSearches[0].name}"...`);
-     }
+    if (popularSearches.length === 0) return;
+
+    let currentIndex = 0;
+    let currentText = "";
+    let isDeleting = false;
+    let typingSpeed = 100;
+    let timeoutId: ReturnType<typeof setTimeout>;
+    let isMounted = true;
+
+    const updatePlaceholder = (text: string) => {
+      const fullStr = `Search for "${text}"...`;
+      if (deskRef.current) {
+        const input = deskRef.current.querySelector(".bafna-search__input") as HTMLInputElement;
+        if (input) input.placeholder = fullStr;
+      }
+      if (mobRef.current) {
+        const input = mobRef.current.querySelector(".bafna-search__input") as HTMLInputElement;
+        if (input) input.placeholder = fullStr;
+      }
+    };
+
+    const type = () => {
+      if (!isMounted) return;
+      const fullText = popularSearches[currentIndex]?.name || "";
+
+      if (isDeleting) {
+        currentText = fullText.substring(0, currentText.length - 1);
+        typingSpeed = 40;
+      } else {
+        currentText = fullText.substring(0, currentText.length + 1);
+        typingSpeed = 80;
+      }
+
+      updatePlaceholder(currentText);
+
+      if (!isDeleting && currentText === fullText) {
+        typingSpeed = 2000;
+        isDeleting = true;
+      } else if (isDeleting && currentText === "") {
+        isDeleting = false;
+        currentIndex = (currentIndex + 1) % popularSearches.length;
+        typingSpeed = 500;
+      }
+
+      timeoutId = setTimeout(type, typingSpeed);
+    };
+
+    timeoutId = setTimeout(type, typingSpeed);
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeoutId);
+    };
   }, [popularSearches]);
 
 
   useEffect(() => {
-    // Delay localStorage read
     const timer = setTimeout(() => {
         try {
           const saved = localStorage.getItem("bafna_recent_searches");
@@ -269,7 +317,6 @@ const Header: React.FC = () => {
         }
       } catch (error) { console.error(error); }
     };
-    // Defer API call
     setTimeout(fetchPopularData, 1000);
   }, []);
 
@@ -398,7 +445,6 @@ const Header: React.FC = () => {
       try { return JSON.parse(localStorage.getItem("user") || "null"); }
       catch { return null; }
     };
-    // Deferred User parsing to not block render
     const timer = setTimeout(() => setUser(parseUser()), 200);
     
     const handleStorageChange = () => { setUser(parseUser()); };
@@ -411,12 +457,8 @@ const Header: React.FC = () => {
 
   return (
     <header className={`bafna-site-header ${scrolled ? "is-scrolled" : ""}`}>
-
-      {/* ══ MAIN HEADER ══ */}
       <div className="bafna-header-main">
         <div className="bafna-header-container">
-
-          {/* Logo + B2B Tagline + MASCOT */}
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
             <img 
               src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1774086370/Super_Car___05_vrkphh.webp" 
@@ -432,7 +474,6 @@ const Header: React.FC = () => {
             </div>
           </Link>
 
-          {/* ═══ CENTER: Search + Trust Badges ═══ */}
           <div className="bafna-center-block">
             <div className="bafna-search-wrap-desktop">
               <SearchForm
@@ -444,7 +485,6 @@ const Header: React.FC = () => {
               />
             </div>
 
-            {/* Inline Trust Badges — next to search */}
             <div className="bafna-inline-badges">
               <div className="bafna-inline-badge bafna-inline-badge--bis">
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -465,7 +505,6 @@ const Header: React.FC = () => {
             </div>
           </div>
 
-          {/* Actions */}
           <nav className="bafna-user-actions">
             <button className="bafna-action-icon bafna-theme-toggle" onClick={toggleTheme} aria-label="Toggle Theme">
               {theme === "light" ? (
@@ -513,7 +552,6 @@ const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Search - BADGES REMOVED HERE */}
       <div className="bafna-search-wrap-mobile">
         <SearchForm
           ref={mobRef} mobile q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
