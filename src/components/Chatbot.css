@@ -1,0 +1,206 @@
+/* ==================================================
+   CHATBOT CONTAINER WALA CSS
+   ================================================== */
+.chatbot-container {
+  position: fixed;
+  /* 👇 Standard desktop view */
+  bottom: 20px; 
+  right: 20px;
+  z-index: 1000;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* 👇 MOBILE VIEW KE LIYE ADJUSTMENT (Taaki Bottom Nav Hide Na Ho) 👇 */
+@media (max-width: 900px) {
+  .chatbot-container {
+    /* Bottom Nav ki height lagbhag 60px hoti hai, toh hum use 75px upar kar dete hain */
+    bottom: 75px !important; 
+    right: 15px; /* Thoda side se adjust */
+  }
+}
+
+.chatbot-fab {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+
+.chatbot-fab:hover {
+  transform: scale(1.05);
+}
+
+.chatbot-window {
+  width: 350px;
+  height: 500px;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 👇 MOBILE CHAT WINDOW ADJUSTMENT 👇 */
+@media (max-width: 480px) {
+  .chatbot-window {
+    width: calc(100vw - 30px); /* Mobile me chat window puri screen le */
+    max-height: 65vh; /* Taaki upar ka content hide na ho jaye */
+  }
+}
+
+.chatbot-header {
+  background-color: #007bff;
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.chatbot-header h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 24px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.chatbot-messages {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.message-wrapper {
+  display: flex;
+  width: 100%;
+}
+
+.message-wrapper.user {
+  justify-content: flex-end;
+}
+
+.message-wrapper.bot {
+  justify-content: flex-start;
+}
+
+.message-bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  border-radius: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.message-bubble.user {
+  background-color: #007bff;
+  color: white;
+  border-bottom-right-radius: 4px;
+}
+
+.message-bubble.bot {
+  background-color: #e9ecef;
+  color: #333;
+  border-bottom-left-radius: 4px;
+}
+
+.chatbot-input-area {
+  display: flex;
+  padding: 10px;
+  background-color: white;
+  border-top: 1px solid #dee2e6;
+}
+
+.chatbot-input-area input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ced4da;
+  border-radius: 20px;
+  outline: none;
+  font-size: 14px;
+}
+
+.chatbot-input-area input:focus {
+  border-color: #007bff;
+}
+
+.chatbot-input-area button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 0 15px;
+  margin-left: 10px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.chatbot-input-area button:disabled {
+  background-color: #a0cbf7;
+  cursor: not-allowed;
+}
+
+/* Typing Indicator Animation */
+.typing-indicator span {
+  animation: blink 1.4s infinite both;
+  height: 6px;
+  width: 6px;
+  background: #555;
+  border-radius: 50%;
+  display: inline-block;
+  margin: 0 1px;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0% { opacity: 0.2; transform: translateY(0); }
+  20% { opacity: 1; transform: translateY(-2px); }
+  100% { opacity: 0.2; transform: translateY(0); }
+}
+
+/* =========================================
+   FAQ SUGGESTIONS WALA CSS
+   ========================================= */
+
+.faq-suggestions-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background-color: #f9f9f9;
+  border-top: 1px solid #ddd;
+}
+
+.faq-chip {
+  background-color: #e3f2fd;
+  color: #007bff;
+  border: 1px solid #b6d4fe;
+  border-radius: 16px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.faq-chip:hover {
+  background-color: #007bff;
+  color: #fff;
+}
