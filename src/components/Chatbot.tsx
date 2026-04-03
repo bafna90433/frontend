@@ -35,6 +35,16 @@ const Chatbot: React.FC = () => {
     { label: "Mix Hinglish", short: "Hi" }
   ];
 
+  // Dynamic UI Translations based on selected language
+  const uiTranslations: Record<string, { quickHelp: string; typing: string; online: string; poweredBy: string; reset: string }> = {
+    "English": { quickHelp: "Quick Help", typing: "Typing...", online: "Online", poweredBy: "Powered by", reset: "Reset Chat" },
+    "हिंदी (Hindi)": { quickHelp: "त्वरित सहायता", typing: "टाइप कर रहा है...", online: "ऑनलाइन", poweredBy: "द्वारा संचालित", reset: "रीसेट करें" },
+    "தமிழ் (Tamil)": { quickHelp: "விரைவான உதவி", typing: "தட்டச்சு செய்கிறது...", online: "ஆன்லைனில்", poweredBy: "வழங்கியவர்", reset: "மீட்டமை" },
+    "ಕನ್ನಡ (Kannada)": { quickHelp: "ತ್ವರಿತ ಸಹಾಯ", typing: "ಟೈಪ್ ಮಾಡಲಾಗುತ್ತಿದೆ...", online: "ಆನ್‌ಲೈನ್", poweredBy: "ಒದಗಿಸಿದವರು", reset: "ಮರುಹೊಂದಿಸಿ" },
+    "తెలుగు (Telugu)": { quickHelp: "త్వరిత సహాయం", typing: "టైప్ చేస్తున్నారు...", online: "ఆన్‌లైన్", poweredBy: "అందించినవారు", reset: "రీసెట్" },
+    "Mix Hinglish": { quickHelp: "Quick Help", typing: "Type kar raha hai...", online: "Online", poweredBy: "Powered by", reset: "Chat Reset karein" }
+  };
+
   const faqTranslations: Record<string, string[]> = {
     "English": ["📦 What is MOQ?", "💳 Payment options?", "🚚 Shipping details?", "📍 Order Details?"],
     "हिंदी (Hindi)": ["📦 MOQ क्या है?", "💳 पेमेंट के तरीके?", "🚚 डिलीवरी की जानकारी?", "📍 ऑर्डर की जानकारी?"],
@@ -167,13 +177,19 @@ const Chatbot: React.FC = () => {
                 <div className="cb-header-info">
                   <span className="cb-header-title">Bafna Toys Support</span>
                   <span className="cb-header-status">
-                    {isLoading ? 'Typing...' : 'Online'}
+                    {isLoading 
+                      ? (selectedLanguage ? uiTranslations[selectedLanguage].typing : 'Typing...') 
+                      : (selectedLanguage ? uiTranslations[selectedLanguage].online : 'Online')}
                   </span>
                 </div>
               </div>
               <div className="cb-header-right">
                 {selectedLanguage && (
-                  <button className="cb-header-btn" onClick={resetChat} title="Reset">
+                  <button 
+                    className="cb-header-btn" 
+                    onClick={resetChat} 
+                    title={uiTranslations[selectedLanguage].reset}
+                  >
                     ↻
                   </button>
                 )}
@@ -240,7 +256,9 @@ const Chatbot: React.FC = () => {
 
             {selectedLanguage && !isLoading && faqTranslations[selectedLanguage] && (
               <div className="cb-suggestions">
-                <div className="cb-suggest-label">Quick Help</div>
+                <div className="cb-suggest-label">
+                  {uiTranslations[selectedLanguage].quickHelp}
+                </div>
                 <div className="cb-faq-list">
                   {faqTranslations[selectedLanguage].map((faq, i) => (
                     <button
@@ -282,7 +300,7 @@ const Chatbot: React.FC = () => {
             </div>
 
             <div className="cb-footer">
-              Powered by <strong>Bafna Toys</strong> 🧸
+              {selectedLanguage ? uiTranslations[selectedLanguage].poweredBy : "Powered by"} <strong>Bafna Toys</strong> 🧸
             </div>
           </div>
         </div>
