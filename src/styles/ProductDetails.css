@@ -77,9 +77,6 @@ body.dark {
 }
 @keyframes pd-spin { to { transform: rotate(360deg); } }
 
-/* ══════════════════════
-   PAGE
-   ══════════════════════ */
 .pd-page {
   width: 100%;
   max-width: 100%;
@@ -91,9 +88,6 @@ body.dark {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ══════════════════════
-   MAIN GRID — PC
-   ══════════════════════ */
 .pd-container {
   width: 100%;
   max-width: 1360px;
@@ -106,7 +100,7 @@ body.dark {
 }
 
 /* ══════════════════════════════════════════
-   GALLERY — 🔥 IPHONE FIX APPLIED
+   GALLERY — 🔥 NATIVE SCROLL SNAP APPLIED
    ══════════════════════════════════════════ */
 .pd-gallery {
   position: sticky;
@@ -123,9 +117,9 @@ body.dark {
   border: 1px solid var(--pd-blight);
   box-shadow: var(--pd-shadow);
   overflow: hidden;
-  aspect-ratio: 1;
-  max-height: 80vh;            /* 🔥 IPHONE SAFETY */
-  max-width: 100%;             /* 🔥 IPHONE SAFETY */
+  aspect-ratio: 1; 
+  max-height: 80vh;
+  width: 100%; /* 🔥 FIXED WIDTH */
   user-select: none;
   -webkit-user-select: none;
 }
@@ -173,7 +167,6 @@ body.dark {
 .pd-wishlist-btn:active { transform: scale(.88); }
 .pd-wishlist-btn.active { color: var(--pd-accent); background: var(--pd-accent-light); }
 
-/* ── MRP Badge ── */
 .pd-mrp-badge {
   position: absolute;
   bottom: 56px; left: 14px; z-index: 25;
@@ -189,33 +182,39 @@ body.dark {
 .pd-mrp-label { font-size: 8px; font-weight: 700; opacity: .7; text-transform: uppercase; letter-spacing: .5px; }
 .pd-mrp-val { font-size: 13px; font-weight: 900; line-height: 1; }
 
-/* ── Carousel ── 🔥 HEIGHT FIXES ── */
+/* ── Native CSS Scroll Carousel ── */
 .pd-carousel {
   width: 100%;
-  height: auto;               /* 🔥 FIX */
-  overflow: hidden;
-  touch-action: pan-y pinch-zoom;
+  height: 100%; 
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; 
   cursor: zoom-in;
 }
+.pd-carousel::-webkit-scrollbar { display: none; }
 
 .pd-carousel-track {
   display: flex;
   width: 100%;
-  height: auto;               /* 🔥 FIX */
-  will-change: transform;
+  height: 100%;
 }
 
 .pd-carousel-slide {
   flex: 0 0 100%;
-  width: 100%;
-  height: auto;               /* 🔥 FIX (was 100%) */
+  width: 100%; /* 🔥 STRICT WIDTH */
+  height: 100%; 
+  scroll-snap-align: start; 
+  scroll-snap-stop: always;
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  min-width: 0;               /* 🔥 IPHONE FLEX FIX */
-  min-height: 0;              /* 🔥 IPHONE FLEX FIX */
+  min-width: 100%; /* 🔥 FIX FOR IPHONE SNAPPING BUG */
+  min-height: 100%;
 }
 
 .pd-skeleton-loader {
@@ -225,15 +224,13 @@ body.dark {
   animation: pd-shimmer 1.5s linear infinite;
   will-change: background-position;
 }
-@keyframes pd-shimmer { to { background-position: -200% 0; } }
 
-/* 🔥 MAIN IMAGE FIX — ULTRA STABLE */
 .pd-carousel-img {
   width: 100%;
-  height: auto;               /* 🔥 MAIN FIX (was 100%) */
-  max-width: 100%;            /* 🔥 FINAL SAFETY */
+  height: 100%;
+  max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
+  object-fit: contain; 
   padding: 24px;
   opacity: 0;
   transition: opacity .3s ease;
@@ -316,7 +313,6 @@ body.dark {
 .pd-thumb.active { border-color: var(--pd-primary); box-shadow: 0 4px 12px rgba(79,70,229,.2); }
 .pd-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
-
 /* ══════════════════════════════════════════
    INFO SECTION
    ══════════════════════════════════════════ */
@@ -369,7 +365,6 @@ body.dark {
 }
 .pd-icon-btn:hover { background: var(--pd-white); border-color: var(--pd-primary); color: var(--pd-primary); }
 
-/* ── Timer ── */
 .pd-timer {
   display: inline-flex;
   align-items: center;
@@ -387,7 +382,6 @@ body.dark {
 .pd-timer span { color: var(--pd-text2); font-weight: 600; }
 .pd-timer strong { color: var(--pd-text); font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; letter-spacing: .5px; }
 
-/* ── Chips ── */
 .pd-chips {
   display: flex;
   flex-wrap: wrap;
@@ -414,7 +408,6 @@ body.dark {
 .pd-chip strong { font-weight: 800; color: var(--pd-text); }
 .pd-chip-sub { color: var(--pd-muted); font-weight: 600; }
 
-/* ── Stock ── */
 .pd-stock-row { margin-top: 2px; }
 .pd-stock {
   display: inline-flex;
@@ -534,7 +527,6 @@ body.dark {
 .pd-add-btn:disabled { background: var(--pd-border); box-shadow: none; cursor: not-allowed; color: var(--pd-muted); }
 .pd-add-btn:disabled::after { display: none; }
 
-/* ── Qty Controls ── */
 .pd-qty-controls {
   display: flex;
   align-items: center;
@@ -700,7 +692,6 @@ body.dark {
    ══════════════════════ */
 .pd-mobile-bar { display: none; }
 
-
 /* ══════════════════════════════════════════
    LARGE SCREEN (1400px+)
    ══════════════════════════════════════════ */
@@ -737,7 +728,6 @@ body.dark {
   .pd-trust-grid { grid-template-columns: repeat(2, 1fr); }
   .pd-section-wrap { padding: 0 16px; }
 }
-
 
 /* ══════════════════════════════════════════
    ██  MOBILE (≤768px) — EDGE TO EDGE
@@ -922,7 +912,6 @@ body.dark {
   .pd-mq-val { flex: 1; text-align: center; font-size: 17px; font-weight: 900; color: var(--pd-text); }
 }
 
-
 /* ══════════════════════
    SMALL PHONE (≤480px)
    ══════════════════════ */
@@ -956,7 +945,6 @@ body.dark {
   .pd-mq-val { font-size: 15px; }
 }
 
-
 /* ══════════════════════
    VERY SMALL (≤360px)
    ══════════════════════ */
@@ -974,7 +962,6 @@ body.dark {
   .pd-mobile-cart-btn { padding: 10px 12px; font-size: 12px; }
 }
 
-
 /* ══════════════════════
    ACCESSIBILITY
    ══════════════════════ */
@@ -988,7 +975,6 @@ body.dark {
   .pd-info-card { border: 2px solid var(--pd-text); }
   .pd-mobile-cart-btn { border: 2px solid #fff; }
 }
-
 
 /* ══════════════════════
    DARK MODE EXTRAS

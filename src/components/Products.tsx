@@ -259,7 +259,6 @@ const Products: React.FC = () => {
   const searchTerm = params.get("search") || params.get("q") || "";
 
   // ✅ SEO: Check if this is the absolute Root URL (The "Homepage")
-  // Ye flag determine karega ki Hero Banner dikhana hai ya nahi
   const isHomePage = !categoryId && !searchTerm && location.pathname === "/";
 
   // ✅ SEO: Root Schema optimized for 'Toy Manufacturers in India'
@@ -358,21 +357,37 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
+  // ⭐ API FETCH LOGIC (UPDATED FOR SMART FILTER)
   useEffect(() => {
+    // Agar categoryId hai URL me, but categories load nahi hui, toh wait karo
+    if (categoryId && categories.length === 0) return;
+
     let alive = true;
     const ctrl = new AbortController();
+
     const fetchProducts = async (retryCount = 0) => {
       setLoading(true);
       setError(null);
       try {
+        // Check if selected category is a Smart Filter (like "99")
+        let isSmartFilter = false;
+        if (categoryId) {
+          const selectedCat = categories.find((c) => c._id === categoryId);
+          const catNameLower = selectedCat?.name?.toLowerCase().trim() || "";
+          isSmartFilter = catNameLower.includes("under") || /^\d+$/.test(catNameLower);
+        }
+
+        // Agar smart filter hai, toh categoryId API ko mat bhejo (saare products aane do)
         const r = await api.get("/products", {
           signal: ctrl.signal,
           params: {
-            ...(categoryId ? { category: categoryId } : {}),
+            ...(categoryId && !isSmartFilter ? { category: categoryId } : {}),
             ...(searchTerm ? { search: searchTerm } : {}),
           },
         });
+        
         if (!alive) return;
+        
         const arr = Array.isArray(r.data)
           ? r.data
           : r.data?.products || r.data?.docs || [];
@@ -391,12 +406,14 @@ const Products: React.FC = () => {
         if (alive) setLoading(false);
       }
     };
+    
     fetchProducts();
+    
     return () => {
       alive = false;
       ctrl.abort();
     };
-  }, [location.search, categoryId, searchTerm]);
+  }, [location.search, categoryId, searchTerm, categories]); // Categories dependency added
 
   useEffect(() => {
     setCurrentPage(1);
@@ -440,13 +457,24 @@ const Products: React.FC = () => {
   }, []);
 
   // ══════════════════════════════════════════════════
-  // COMPUTED
+  // COMPUTED (UPDATED FOR SMART FILTER)
   // ══════════════════════════════════════════════════
 
   const displayed = useMemo(() => {
     let f = [...allProducts];
 
-    if (categoryId) {
+    const selectedCat = categories.find((c) => c._id === categoryId);
+    const catNameLower = selectedCat?.name?.toLowerCase().trim() || "";
+
+    // ⭐ SMART FILTER LOGIC
+    const isSmartFilter = catNameLower.includes("under") || /^\d+$/.test(catNameLower);
+
+    if (isSmartFilter) {
+      const priceLimit = parseInt(catNameLower.replace(/[^0-9]/g, ""), 10);
+      if (!isNaN(priceLimit)) {
+        f = f.filter((p) => (p.price || 0) <= priceLimit);
+      }
+    } else if (categoryId) {
       f = f.filter((p) =>
         typeof p.category === "string"
           ? p.category === categoryId
@@ -496,6 +524,7 @@ const Products: React.FC = () => {
   }, [
     allProducts,
     categoryId,
+    categories, // Important dependency
     searchTerm,
     sortBy,
     activeDeals,
