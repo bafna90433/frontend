@@ -25,6 +25,7 @@ import Products from "./components/Products";
 const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
 const FreeDeliveryModal = React.lazy(() => import("./components/FreeDeliveryModal"));
 const NoInternet = React.lazy(() => import("./components/NoInternet"));
+const Chatbot = React.lazy(() => import("./components/Chatbot")); // ✅ Added Chatbot
 
 // --- LAZY LOADED PAGES ---
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
@@ -37,7 +38,7 @@ const LoginOTP = React.lazy(() => import("./components/LoginOTP"));
 const MyAccount = React.lazy(() => import("./components/MyAccount"));
 const EditProfile = React.lazy(() => import("./components/EditProfile"));
 const Orders = React.lazy(() => import("./components/Orders"));
-const OrderDetails = React.lazy(() => import("./components/OrderDetails")); // ✅ Added OrderDetails
+const OrderDetails = React.lazy(() => import("./components/OrderDetails"));
 const ManageAddresses = React.lazy(() => import("./components/ManageAddresses"));
 const PrivacyPolicy = React.lazy(() => import("./components/PrivacyPolicy"));
 const TermsConditions = React.lazy(() => import("./components/TermsConditions"));
@@ -161,6 +162,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
       <Suspense fallback={null}>
         <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
         <WhatsAppButton />
+        <Chatbot /> {/* ✅ Added Chatbot here */}
         <BottomNav />
       </Suspense>
     </>
@@ -289,7 +291,6 @@ const AppInner: React.FC = () => {
                     </ProtectedRoute>
                 }
               />
-              {/* ✅ Added OrderDetails Protected Route */}
               <Route
                 path="/orders/:orderId"
                 element={

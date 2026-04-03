@@ -341,3 +341,18 @@ body.dark {
   outline: 2px solid var(--bn-active);
   outline-offset: -2px;
 }
+
+/* ══════════════════════════════════════════
+   👇 HIDE BOTTOM NAV WHEN CHATBOT IS OPEN 👇
+   ══════════════════════════════════════════ */
+body.chatbot-open .bn {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  body.chatbot-open .chatbot-window {
+    bottom: 0 !important;
+    height: 100dvh !important; 
+    border-radius: 0 !important;
+  }
+}
