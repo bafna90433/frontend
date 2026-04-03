@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Chatbot.css';
 import api from '../utils/api';
 
@@ -23,6 +24,7 @@ const Chatbot: React.FC = () => {
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   const languageOptions = [
     { label: "English", short: "EN" },
@@ -34,12 +36,12 @@ const Chatbot: React.FC = () => {
   ];
 
   const faqTranslations: Record<string, string[]> = {
-    "English": ["📦 What is MOQ?", "💳 Payment options?", "🚚 Shipping details?", "🧸 Bulk discount?"],
-    "हिंदी (Hindi)": ["📦 MOQ क्या है?", "💳 पेमेंट के तरीके?", "🚚 डिलीवरी की जानकारी?", "🧸 थोक डिस्काउंट?"],
-    "தமிழ் (Tamil)": ["📦 MOQ என்ன?", "💳 கட்டண விருப்பங்கள்?", "🚚 ஷிப்பிங் விவரங்கள்?", "🧸 மொத்த தள்ளுபடி?"],
-    "ಕನ್ನಡ (Kannada)": ["📦 MOQ ಏನು?", "💳 ಪಾವತಿ ಆಯ್ಕೆಗಳು?", "🚚 ಶಿಪ್ಪಿಂಗ್ ವಿವರಗಳು?", "🧸 ಬೃಹತ್ ರಿಯಾಯಿತಿ?"],
-    "తెలుగు (Telugu)": ["📦 MOQ ఎంత?", "💳 చెల్లింపు ఎంపికలు?", "🚚 షిప్పింగ్ వివరాలు?", "🧸 బల్క్ డిస్కౌంట్?"],
-    "Mix Hinglish": ["📦 MOQ kya hai?", "💳 Payment options?", "🚚 Shipping details?", "🧸 Bulk discount?"]
+    "English": ["📦 What is MOQ?", "💳 Payment options?", "🚚 Shipping details?", "📍 Order Details?"],
+    "हिंदी (Hindi)": ["📦 MOQ क्या है?", "💳 पेमेंट के तरीके?", "🚚 डिलीवरी की जानकारी?", "📍 ऑर्डर की जानकारी?"],
+    "தமிழ் (Tamil)": ["📦 MOQ என்ன?", "💳 கட்டண விருப்பங்கள்?", "🚚 ஷிப்பிங் விவரங்கள்?", "📍 ஆர்டர் விவரங்கள்?"],
+    "ಕನ್ನಡ (Kannada)": ["📦 MOQ ಏನು?", "💳 ಪಾವತಿ ಆಯ್ಕೆಗಳು?", "🚚 ಶಿಪ್ಪಿಂಗ್ ವಿವರಗಳು?", "📍 ಆರ್ಡರ್ ವಿವರಗಳು?"],
+    "తెలుగు (Telugu)": ["📦 MOQ ఎంత?", "💳 చెల్లింపు ఎంపికలు?", "🚚 షిప్పింగ్ వివరాలు?", "📍 ఆర్డర్ వివరాలు?"],
+    "Mix Hinglish": ["📦 MOQ kya hai?", "💳 Payment options?", "🚚 Shipping details?", "📍 Order status/details?"]
   };
 
   const placeholderTranslations: Record<string, string> = {
@@ -51,7 +53,6 @@ const Chatbot: React.FC = () => {
     "Mix Hinglish": "Apna message type karein..."
   };
 
-  // Body scroll lock on mobile when chat is open
   useEffect(() => {
     if (isOpen) {
       document.body.classList.add('chatbot-open');
@@ -112,7 +113,7 @@ const Chatbot: React.FC = () => {
   const handleLanguageSelect = (lang: string) => {
     setSelectedLanguage(lang);
     setMessages(prev => [...prev, { text: lang, sender: 'user', timestamp: getTimestamp() }]);
-    const prompt = `I have selected ${lang}. Please say a short greeting in this language and tell me how you can help me with wholesale orders, MOQ, and payments today.`;
+    const prompt = `I have selected ${lang}. Please say a short greeting in this language and tell me how you can help me with wholesale orders, MOQ, and payments today. Mention that for more details they can also visit our FAQ page.`;
     sendMessageToBot(prompt, true);
   };
 
@@ -129,7 +130,6 @@ const Chatbot: React.FC = () => {
     }]);
   };
 
-  // Custom event trigger
   useEffect(() => {
     const handleCustomTrigger = (e: any) => {
       setIsOpen(true);
@@ -140,14 +140,24 @@ const Chatbot: React.FC = () => {
     return () => window.removeEventListener('trigger-chatbot', handleCustomTrigger);
   }, [messages, selectedLanguage]);
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const targetLink = (e.target as HTMLElement).closest('a');
+    if (targetLink) {
+      const href = targetLink.getAttribute('href');
+      if (href && href.startsWith('/')) {
+        e.preventDefault();
+        setIsOpen(false);
+        navigate(href);
+      }
+    }
+  };
+
   return (
     <div className="cb-container">
-      {/* ===== CHAT WINDOW ===== */}
       {isOpen && (
         <div className="cb-overlay" onClick={toggleChat}>
           <div className="cb-window" onClick={(e) => e.stopPropagation()}>
             
-            {/* HEADER */}
             <div className="cb-header">
               <div className="cb-header-left">
                 <div className="cb-avatar">
@@ -173,12 +183,12 @@ const Chatbot: React.FC = () => {
               </div>
             </div>
 
-            {/* MESSAGES */}
-            <div className="cb-messages">
+            <div className="cb-messages" onClick={handleLinkClick}>
               {messages.map((msg, index) => {
                 const formatted = msg.text
-                  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener">$1</a>')
+                  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" style="color: #2e7d32; font-weight: bold; text-decoration: underline;" target="_blank" rel="noopener noreferrer">$1</a>')
                   .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                  .replace(/\*([^*]+)\*/g, '<em>$1</em>')
                   .replace(/\n/g, '<br/>');
 
                 return (
@@ -210,7 +220,6 @@ const Chatbot: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* LANGUAGE SELECTION */}
             {!selectedLanguage && !isLoading && (
               <div className="cb-suggestions">
                 <div className="cb-suggest-label">Choose Language</div>
@@ -229,10 +238,9 @@ const Chatbot: React.FC = () => {
               </div>
             )}
 
-            {/* FAQ CHIPS */}
-            {selectedLanguage && messages.length < 6 && !isLoading && faqTranslations[selectedLanguage] && (
+            {selectedLanguage && !isLoading && faqTranslations[selectedLanguage] && (
               <div className="cb-suggestions">
-                <div className="cb-suggest-label">Quick Questions</div>
+                <div className="cb-suggest-label">Quick Help</div>
                 <div className="cb-faq-list">
                   {faqTranslations[selectedLanguage].map((faq, i) => (
                     <button
@@ -247,7 +255,6 @@ const Chatbot: React.FC = () => {
               </div>
             )}
 
-            {/* INPUT */}
             <div className="cb-input-area">
               <input
                 ref={inputRef}
@@ -274,7 +281,6 @@ const Chatbot: React.FC = () => {
               </button>
             </div>
 
-            {/* FOOTER */}
             <div className="cb-footer">
               Powered by <strong>Bafna Toys</strong> 🧸
             </div>
@@ -282,7 +288,6 @@ const Chatbot: React.FC = () => {
         </div>
       )}
 
-      {/* ===== FAB BUTTON ===== */}
       {!isOpen && (
         <button className="cb-fab" onClick={toggleChat}>
           <svg viewBox="0 0 24 24" width="26" height="26" fill="white">
