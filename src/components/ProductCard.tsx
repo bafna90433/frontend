@@ -77,6 +77,7 @@ const toAbsUrl = (raw: string): string => {
   return `${IMAGE_BASE_URL}/${finalPath}`;
 };
 
+// 🔥 YAHAN CHANGE HUA HAI: ImageKit Support Add Kiya Gaya Hai
 const getOptimizedImageUrl = (
   rawUrl: string | undefined,
   width = IMG_W,
@@ -85,6 +86,13 @@ const getOptimizedImageUrl = (
   if (!rawUrl) return FALLBACK_IMAGE;
 
   try {
+    // 1. Agar ImageKit ka URL hai (Jo naya set kiya hai)
+    if (rawUrl.includes("ik.imagekit.io")) {
+      const separator = rawUrl.includes('?') ? '&' : '?';
+      return `${rawUrl}${separator}tr=w-${width},h-${height},cm-pad_resize,f-auto,q-80`;
+    }
+
+    // 2. Agar Cloudinary ka Relative URL hai
     if (!rawUrl.startsWith("http") && CLOUD_NAME) {
       const publicId = rawUrl.replace(/^\/+/, "");
       return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/${publicId}`;
@@ -92,14 +100,15 @@ const getOptimizedImageUrl = (
 
     const abs = toAbsUrl(rawUrl);
 
+    // 3. Agar Cloudinary ka Absolute URL hai (Purane Banners wagaira ke liye)
     if (abs.includes("res.cloudinary.com") && abs.includes("/image/upload/")) {
       if (
         abs.includes("/image/upload/f_auto") ||
         abs.includes("/image/upload/q_") ||
         abs.includes("/image/upload/w_")
-      )
+      ) {
         return abs;
-
+      }
       return abs.replace(
         "/image/upload/",
         `/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/`
@@ -107,7 +116,8 @@ const getOptimizedImageUrl = (
     }
 
     return abs || FALLBACK_IMAGE;
-  } catch {
+  } catch (error) {
+    console.error("Image Optimization Error:", error);
     return FALLBACK_IMAGE;
   }
 };

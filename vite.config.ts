@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import viteCompression from "vite-plugin-compression";
 import { VitePWA } from "vite-plugin-pwa";
 import sitemap from "vite-plugin-sitemap";
-import axios from "axios"; // ✅ Backend se data laane ke liye
+import axios from "axios"; 
 
 export default defineConfig(async ({ mode }) => {
   const isProd = mode === "production";
@@ -26,17 +26,14 @@ export default defineConfig(async ({ mode }) => {
   if (isProd) {
     try {
       console.log("🚀 Fetching all products from backend for Sitemap...");
-      // Tumhara live backend URL
       const res = await axios.get("https://bafnatoys-backend-production.up.railway.app/api/products");
       
       const products = res.data.products || res.data || [];
       
-      // Har product ka ek naya URL banao (Slug hai toh slug, warna ID)
       const productRoutes = products.map((p: any) => {
         return p.slug ? `/product/${p.slug}` : `/product/${p._id}`;
       });
 
-      // Purane aur naye URLs ko mila do
       dynamicRoutes = [...dynamicRoutes, ...productRoutes];
       console.log(`✅ Successfully added ${productRoutes.length} products to Sitemap!`);
     } catch (error) {
@@ -52,10 +49,10 @@ export default defineConfig(async ({ mode }) => {
       // ✅ Automated Dynamic Sitemap Generator
       sitemap({
         hostname: "https://bafnatoys.com",
-        dynamicRoutes: dynamicRoutes, // Yahan ab 180+ links jayengi
+        dynamicRoutes: dynamicRoutes,
       }),
 
-      // ✅ PWA (Optimized with Cloudinary caching)
+      // ✅ PWA (Optimized with ImageKit caching)
       VitePWA({
         registerType: "autoUpdate",
         devOptions: { enabled: !isProd },
@@ -82,24 +79,31 @@ export default defineConfig(async ({ mode }) => {
         },
         workbox: {
           navigateFallback: "/index.html",
-          // ✅ Cloudinary images caching
+          // 🔥 Cloudinary se ImageKit par shift kiya gaya caching system
           runtimeCaching: [
             {
-              urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+              urlPattern: /^https:\/\/ik\.imagekit\.io\/.*/i,
               handler: "CacheFirst",
               options: {
-                cacheName: "cloudinary-images",
+                cacheName: "imagekit-images",
                 expiration: {
-                  maxEntries: 150, // E-commerce ke hisaab se badhaya
+                  maxEntries: 200, 
                   maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
                 },
+              },
+            },
+            // Backup ke liye Cloudinary (jab tak purani cache expire na ho jaye)
+            {
+              urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+              handler: "StaleWhileRevalidate",
+              options: {
+                cacheName: "cloudinary-images-old",
               },
             },
           ],
         },
       }),
 
-      // ✅ Gzip + Brotli (production only)
       ...(isProd
         ? [
             viteCompression({ algorithm: "gzip", ext: ".gz" }),
@@ -116,7 +120,6 @@ export default defineConfig(async ({ mode }) => {
       sourcemap: false,
       chunkSizeWarningLimit: 1500,
       
-      // ✅ Code Splitting to optimize load speeds
       rollupOptions: {
         output: {
           manualChunks: {
@@ -127,7 +130,6 @@ export default defineConfig(async ({ mode }) => {
       }
     },
 
-    // ✅ Production mein console/debugger remove
     esbuild: {
       drop: isProd ? ["console", "debugger"] : [],
     },
