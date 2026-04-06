@@ -67,7 +67,7 @@ if (!self.define) {
     });
   };
 }
-define(['./workbox-2ae722a1'], (function (workbox) { 'use strict';
+define(['./workbox-0d7dea0d'], (function (workbox) { 'use strict';
 
   self.skipWaiting();
   workbox.clientsClaim();
@@ -82,18 +82,22 @@ define(['./workbox-2ae722a1'], (function (workbox) { 'use strict';
     "revision": "3ca0b8505b4bec776b69afdba2768812"
   }, {
     "url": "/index.html",
-    "revision": "0.14kqlld7olc"
+    "revision": "0.0bohguqu0p8"
   }], {});
   workbox.cleanupOutdatedCaches();
   workbox.registerRoute(new workbox.NavigationRoute(workbox.createHandlerBoundToURL("/index.html"), {
     allowlist: [/^\/$/]
   }));
-  workbox.registerRoute(/^https:\/\/res\.cloudinary\.com\/.*/i, new workbox.CacheFirst({
-    "cacheName": "cloudinary-images",
+  workbox.registerRoute(/^https:\/\/ik\.imagekit\.io\/.*/i, new workbox.CacheFirst({
+    "cacheName": "imagekit-images",
     plugins: [new workbox.ExpirationPlugin({
-      maxEntries: 150,
+      maxEntries: 200,
       maxAgeSeconds: 2592000
     })]
+  }), 'GET');
+  workbox.registerRoute(/^https:\/\/res\.cloudinary\.com\/.*/i, new workbox.StaleWhileRevalidate({
+    "cacheName": "cloudinary-images-old",
+    plugins: []
   }), 'GET');
 
 }));

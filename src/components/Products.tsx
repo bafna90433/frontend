@@ -96,7 +96,7 @@ type HotDeal = {
 };
 
 // ════════════════════════════════════════════════════════════
-// UTILITIES
+// UTILITIES (UPDATED FOR IMAGEKIT & CLOUDINARY)
 // ════════════════════════════════════════════════════════════
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -108,16 +108,27 @@ const optimizeCloudinary = (
   crop = "c_fill"
 ): string => {
   if (!url) return "/placeholder.png";
+
+  // 1. ImageKit Support (Naye migrated images ke liye)
+  if (url.includes("ik.imagekit.io")) {
+    const separator = url.includes("?") ? "&" : "?";
+    // ImageKit transformations (smart resize and format auto)
+    return `${url}${separator}tr=w-${w},h-${h},cm-at_max,f-auto,q-80`;
+  }
+
+  // 2. Cloudinary Support (Purane banners ya logos ke liye)
   if (!url.startsWith("http") && CLOUD_NAME) {
     return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
   }
   if (url.includes("res.cloudinary.com")) {
-    if (url.includes("/image/upload/f_auto")) return url;
+    if (url.includes("/image/upload/f_auto") || url.includes("/w_")) return url;
     return url.replace(
       "/image/upload/",
       `/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/`
     );
   }
+
+  // 3. Fallback for direct uploads or absolute URLs
   return url.startsWith("http")
     ? url
     : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
@@ -1907,9 +1918,7 @@ const Products: React.FC = () => {
                         value={minPriceInput}
                         onChange={(e) =>
                           setMinPriceInput(
-                            e.target.value
-                              ? Number(e.target.value)
-                              : ""
+                            e.target.value ? Number(e.target.value) : ""
                           )
                         }
                       />
@@ -1926,9 +1935,7 @@ const Products: React.FC = () => {
                         value={maxPriceInput}
                         onChange={(e) =>
                           setMaxPriceInput(
-                            e.target.value
-                              ? Number(e.target.value)
-                              : ""
+                            e.target.value ? Number(e.target.value) : ""
                           )
                         }
                       />

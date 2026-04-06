@@ -34,6 +34,30 @@ const getCartItemConfig = (item: any) => {
   return { qty, min: minQty, step: stepQty, unit: unitPrice, total, parsedUnit: dbUnit, isBulk };
 };
 
+// ✅ ADDED: ImageKit Optimizer for Cart Thumbnails
+const getThumbUrl = (url: string | undefined) => {
+  if (!url) return "/images/placeholder.webp";
+  
+  // ImageKit optimization (fast loading for cart thumbnails)
+  if (url.includes("ik.imagekit.io")) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}tr=w-150,h-150,cm-at_max,f-auto,q-80`;
+  }
+  
+  // Cloudinary fallback
+  if (url.includes("res.cloudinary.com")) {
+    if (url.includes("/image/upload/f_auto") || url.includes("/w_")) return url;
+    return url.replace("/image/upload/", `/image/upload/f_auto,q_auto,w_150,h_150,c_fill/`);
+  }
+
+  if (url.startsWith("http")) return url;
+  
+  // Local fallback
+  const baseUrl = (import.meta as any).env?.VITE_IMAGE_BASE_URL || "http://localhost:5000";
+  const cleanPath = url.startsWith("/uploads/") ? url : `/uploads/${url}`;
+  return `${baseUrl}${cleanPath}`;
+};
+
 /* ═══════════════════════════════════
    PROFESSIONAL CONFIRM POPUP
    ═══════════════════════════════════ */
@@ -188,7 +212,6 @@ const Cart: React.FC = () => {
             <h1>Cart</h1>
             <span>{cartItems.length} {cartItems.length === 1 ? "item" : "items"} · {totalQty} pcs</span>
           </div>
-          {/* ✅ Changed: opens popup instead of window.confirm */}
           <button className="ct-clear-top" onClick={handleClearClick}>
             <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="3 6 5 6 21 6"/>
@@ -226,11 +249,8 @@ const Cart: React.FC = () => {
               // 🔥 USING THE NEW BULK CONFIG LOGIC
               const { qty, min, step, unit, total, parsedUnit, isBulk } = getCartItemConfig(item);
               
-              const imgSrc = item.image?.startsWith("http")
-                ? item.image
-                : item.image?.includes("/uploads/")
-                ? `http://localhost:5000${item.image}`
-                : `http://localhost:5000/uploads/${encodeURIComponent(item.image)}`;
+              // ✅ Updated ImageKit helper logic here
+              const imgSrc = getThumbUrl(item.image);
 
               return (
                 <div className="ct-card" key={item._id}>
@@ -245,7 +265,6 @@ const Cart: React.FC = () => {
                   <div className="ct-card-info">
                     <div className="ct-card-row1">
                       <h3 onClick={() => navigate(`/product/${item._id}`)}>{item.name}</h3>
-                      {/* ✅ Changed: opens popup instead of direct remove */}
                       <button className="ct-card-del" onClick={() => handleRemoveClick(item)}>
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2">
                           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

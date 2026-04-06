@@ -460,8 +460,9 @@ const Header: React.FC = () => {
       <div className="bafna-header-main">
         <div className="bafna-header-container">
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
+            {/* ✅ Updated ImageKit Link Here */}
             <img 
-              src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1774086370/Super_Car___05_vrkphh.webp" 
+              src="https://ik.imagekit.io/rishii/bafnatoys/Copy%20of%20Super_Car___05_vrkphh.webp?updatedAt=1775309336739" 
               alt="Mascot" 
               className="bafna-brand__mascot"
               width={60}

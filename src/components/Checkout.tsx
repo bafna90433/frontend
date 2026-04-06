@@ -101,6 +101,17 @@ const normalizeWhatsApp91 = (raw?: string) => {
   return `91${last10}`;
 };
 
+// ✅ Updated: ImageKit Helper for Checkout Thumbnails
+const getThumbUrl = (url: string | undefined, baseUrl: string) => {
+  if (!url) return "/images/placeholder.webp";
+  if (url.includes("ik.imagekit.io")) {
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}tr=w-150,h-150,cm-at_max,f-auto,q-80`;
+  }
+  if (url.startsWith("http")) return url;
+  return `${baseUrl}${encodeURIComponent(url)}`;
+};
+
 const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   const printWindow = window.open("", "_blank");
   if (!printWindow) { alert("Popup blocked!"); return false; }
@@ -128,7 +139,8 @@ const generateInvoicePDF = (orderData: OrderData, user: any): boolean => {
   
   const paymentText = orderData.paymentMode === "ONLINE" ? "Paid (Online)" : "Cash on Delivery";
 
-  const content = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://res.cloudinary.com/dpdecxqb9/image/upload/v1758783697/bafnatoys/lwccljc9kkosfv9wnnrq.png" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${shippingAddr?.shopName || user?.shopName || "-"}</strong><br>Mobile: ${shippingAddr?.phone || user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${orderData.orderNumber}<br>Date: ${currentDate}<br>Payment: ${paymentText}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${orderData.items.map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${orderData.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys! - https://bafnatoys.com</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
+  // ✅ Updated: Cloudinary Logo replaced with ImageKit Logo in Invoice
+  const content = `<!DOCTYPE html><html><head><title>Invoice - ${orderData.orderNumber}</title><style>body{font-family:'Segoe UI',Arial,sans-serif;padding:20px;background:#fff;color:#333}.invoice-container{max-width:850px;margin:0 auto;border:1px solid #ddd;padding:30px}.header{text-align:center;margin-bottom:25px;border-bottom:3px solid #2c5aa0;padding-bottom:15px}.header img{max-height:70px}.invoice-details{display:flex;justify-content:space-between;gap:14px;margin-bottom:25px}.detail-section{width:32%}.detail-section h3{font-size:15px;color:#2c5aa0;border-bottom:1px solid #ddd;margin-bottom:5px}table{width:100%;border-collapse:collapse;margin:20px 0;font-size:14px}th{background:#2c5aa0;color:#fff;padding:10px;text-align:left}td{padding:10px;border-bottom:1px solid #eee}.footer{margin-top:40px;text-align:center;font-size:12px;color:#777}@media print{.btn-hide{display:none}}</style></head><body><div class="invoice-container"><div class="header"><img src="https://ik.imagekit.io/rishii/bafnatoys/Copy%20of%20Super_Car___05_vrkphh.webp?updatedAt=1775309336739" alt="BafnaToys"/><p>1-12, Thondamuthur Road, Coimbatore - 641007<br>+91 9043347300 | bafnatoysphotos@gmail.com</p><h2>PRO FORMA INVOICE</h2></div><div class="invoice-details"><div class="detail-section"><h3>Bill To</h3><p><strong>${shippingAddr?.shopName || user?.shopName || "-"}</strong><br>Mobile: ${shippingAddr?.phone || user?.otpMobile || "-"}<br>WhatsApp: ${wa || "-"}</p></div><div class="detail-section"><h3>Ship To</h3><p>${shippingHtml}</p></div><div class="detail-section"><h3>Order Details</h3><p>Invoice: ${orderData.orderNumber}<br>Date: ${currentDate}<br>Payment: ${paymentText}</p></div></div><table><thead><tr><th>Product</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead><tbody>${orderData.items.map((it) => `<tr><td>${it.name}</td><td>${it.qty}</td><td>₹${it.price}</td><td>₹${it.qty * it.price}</td></tr>`).join("")}</tbody><tfoot><tr><td colspan="3" align="right"><strong>Total</strong></td><td><strong>₹${orderData.total}</strong></td></tr></tfoot></table><div class="footer"><p>Thank you for choosing BafnaToys! - https://bafnatoys.com</p></div></div><div style="text-align:center;margin-top:20px" class="btn-hide"><button onclick="window.print()" style="padding:10px 20px;background:#2c5aa0;color:white;border:none;cursor:pointer;margin-right:10px;">Print Invoice</button><button onclick="window.close()" style="padding:10px 20px;background:#64748b;color:white;border:none;cursor:pointer">Close</button></div></body></html>`;
 
   printWindow.document.write(content);
   printWindow.document.close();
@@ -162,7 +174,6 @@ const Checkout: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [minimumQtyError, setMinimumQtyError] = useState<string | null>(null);
   
-  // CHANGED: Set to true so Price Details is expanded by default on mobile
   const [mobSummaryOpen, setMobSummaryOpen] = useState(true); 
   
   const [activeStep, setActiveStep] = useState(1);
@@ -302,7 +313,6 @@ const Checkout: React.FC = () => {
     }
   };
 
-  // ── CALCULATIONS ──
   const discountAmt = appliedDiscount?.amount || 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
 
@@ -320,7 +330,6 @@ const Checkout: React.FC = () => {
     return innerCount >= minQty;
   });
 
-  // ── Determine what to show on the button ──
   const getButtonText = () => {
     if (paymentMode === "COD" && applicableAdvance > 0) {
       return `Pay ₹${applicableAdvance.toLocaleString()} Advance`;
@@ -665,7 +674,7 @@ const Checkout: React.FC = () => {
                     )}
                     <p className="co-addr-line">{selectedAddress.street}{selectedAddress.area ? `, ${selectedAddress.area}` : ""}</p>
                     <p className="co-addr-line">{selectedAddress.city}, {selectedAddress.state} — {selectedAddress.pincode}</p>
-                    <p className="co-addr-phone">📞 {selectedAddress.phone}</p>
+                    <p className="co-addr-line">📞 {selectedAddress.phone}</p>
                     {selectedAddress.isDifferentShipping && (
                       <div style={{ marginTop: '15px', paddingTop: '15px', borderTop: '1px dashed #cbd5e1' }}>
                         <strong style={{ fontSize: '13px', color: '#16a34a' }}>Deliver To (Shipping Address):</strong>
@@ -754,7 +763,7 @@ const Checkout: React.FC = () => {
                 {cartItems.map((item: Item) => {
                   const { minQty, innerCount } = getItemValues(item);
                   const itemTotal = (item.quantity || 0) * (item.price || 0) * (item.piecesPerInner || item.innerQty || 1);
-                  const imgSrc = item.image?.startsWith("http") ? item.image : `${IMAGE_BASE_URL}${encodeURIComponent(item.image || "")}`;
+                  const imgSrc = getThumbUrl(item.image, IMAGE_BASE_URL);
                   const belowMin = innerCount < minQty;
 
                   return (
@@ -894,7 +903,6 @@ const Checkout: React.FC = () => {
                 </div>
               )}
               
-              {/* CHANGED: Missing address warning dynamically injected at bottom of the mobile summary card */}
               {(!selectedAddress || isAddingAddress) && (
                 <div style={{ padding: '12px 14px', background: '#fff7ed', borderTop: '1px solid #ffedd5', color: '#ea580c', fontSize: '13px', textAlign: 'center', fontWeight: 600 }}>
                   ⚠ Please add your address to continue

@@ -25,7 +25,8 @@ import {
 } from "react-icons/fi";
 import { FaTag, FaRegHeart, FaHeart } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
-import { getImageUrl } from "../utils/image";
+// getImageUrl abhi rakhte hain, par safetey ke liye ek internal optimizer bhi use karenge
+import { getImageUrl } from "../utils/image"; 
 import ProductSEO from "./ProductSEO";
 
 // --- LAZY LOADED COMPONENTS (Below the fold) ---
@@ -64,6 +65,40 @@ interface Product {
   piecesPerUnit?: number;
   isBulkOnly?: boolean;
 }
+
+// ════════════════════════════════════════════════════════════
+// IMAGE OPTIMIZATION LOGIC (Added here for safety)
+// ════════════════════════════════════════════════════════════
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
+
+const getOptimizedImage = (url: string | undefined, width = 800): string => {
+  if (!url) return "/images/placeholder.webp";
+
+  try {
+    // 1. ImageKit Support
+    if (url.includes("ik.imagekit.io")) {
+      const separator = url.includes("?") ? "&" : "?";
+      return `${url}${separator}tr=w-${width},cm-at_max,f-auto,q-80`;
+    }
+
+    // 2. Cloudinary Support
+    if (url.includes("res.cloudinary.com") && url.includes("/image/upload/")) {
+      if (url.includes("/f_auto") || url.includes("/w_")) return url;
+      return url.replace(
+        "/image/upload/",
+        `/image/upload/f_auto,q_auto,w_${width},c_fill/`
+      );
+    }
+    
+    if (!url.startsWith("http") && CLOUD_NAME) {
+        return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width},c_fill/${url}`;
+    }
+
+    return url;
+  } catch {
+    return "/images/placeholder.webp";
+  }
+};
 
 const ProductDetails: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -181,7 +216,6 @@ const ProductDetails: React.FC = () => {
 
     if (!isHorizontalSwipe.current) return;
 
-    // Only prevent default if it's safe to do so to stop vertical scrolling during pan
     if (e.cancelable) {
       e.preventDefault();
     }
@@ -189,7 +223,6 @@ const ProductDetails: React.FC = () => {
     touchCurrentX.current = currentX;
 
     let offset = diffX;
-    // Edge resistance
     if (
       (selectedImage === 0 && offset > 0) ||
       (selectedImage === images.length - 1 && offset < 0)
@@ -345,7 +378,6 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
 
-        // Track initial view content
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'ViewContent', {
             content_name: fetchedProduct.name,
@@ -510,7 +542,8 @@ const ProductDetails: React.FC = () => {
   if (!product) return <div className="pd-error">Product not found</div>;
 
   const isOutOfStock = product.stock === 0;
-  const currentImageUrl = getImageUrl(images[selectedImage] || "", 800);
+  // Use our new local getOptimizedImage to avoid calling external logic if not updated
+  const currentImageUrl = getOptimizedImage(images[selectedImage] || "", 800);
 
   return (
     <>
@@ -566,7 +599,6 @@ const ProductDetails: React.FC = () => {
                 <div
                   className="pd-carousel-track"
                   ref={carouselTrackRef}
-                  /* 🔥 Removed inline transform and transition to prevent React from resetting swipe position on timer re-render */
                 >
                   {images.map((img, i) => (
                     <div
@@ -576,7 +608,7 @@ const ProductDetails: React.FC = () => {
                     >
                       {!imgLoaded[i] && <div className="pd-skeleton-loader" />}
                       <img
-                        src={getImageUrl(img, 800)}
+                        src={getOptimizedImage(img, 800)}
                         alt={`${product.name} - ${i + 1}`}
                         className={`pd-carousel-img ${imgLoaded[i] ? "loaded" : ""}`}
                         draggable={false}
@@ -621,7 +653,7 @@ const ProductDetails: React.FC = () => {
                     className={`pd-thumb ${selectedImage === i ? "active" : ""}`}
                     onClick={() => handleSelectImage(i)}
                   >
-                    <img src={getImageUrl(img, 150)} alt={`Thumbnail ${i + 1}`} loading="lazy" draggable={false} />
+                    <img src={getOptimizedImage(img, 150)} alt={`Thumbnail ${i + 1}`} loading="lazy" draggable={false} />
                   </button>
                 ))}
               </div>

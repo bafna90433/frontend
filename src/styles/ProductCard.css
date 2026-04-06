@@ -1,5 +1,5 @@
 /* ============================================
-   PRODUCT CARD - FINAL PRODUCTION STYLES
+   PRODUCT CARD - FINAL PRODUCTION STYLES (Fixed Dark Mode Issue)
    ============================================ */
 
 /* -------------------- ROOT VARIABLES -------------------- */
@@ -718,27 +718,6 @@
   .pc-add-to-cart,
   .pc-inline-qty-btn {
     border: 2px solid currentColor;
-  }
-}
-
-/* Dark Mode Support (Optional) */
-@media (prefers-color-scheme: dark) {
-  :root {
-    --pc-white: #111827;
-    --pc-black: #f9fafb;
-    --pc-gray-50: #1f2937;
-    --pc-gray-100: #374151;
-    --pc-gray-200: #4b5563;
-    --pc-gray-900: #f9fafb;
-  }
-  
-  .pc-card {
-    background: #1f2937;
-    border-color: #374151;
-  }
-  
-  .pc-image-container {
-    background: #111827;
   }
 }
 

@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback } from "react";
 import Slider from "react-slick";
 import { useNavigate } from "react-router-dom";
-// Slick CSS is moved to lazy loading pattern or deferred to avoid render blocking
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import "../styles/BannerSlider.css";
@@ -31,10 +30,18 @@ const toInternalPath = (url: string) => {
   }
 };
 
-// Moved outside to prevent recreation on every render
+// ✅ UPDATED: Added ImageKit support and kept Cloudinary fallback
 const getBannerUrl = (url: string): string => {
   if (!url) return "https://via.placeholder.com/500x300?text=No+Banner";
 
+  // 1. ImageKit Support (Naye uploaded banners)
+  if (url.includes("ik.imagekit.io")) {
+    const separator = url.includes("?") ? "&" : "?";
+    // ImageKit optimization: width 800, format auto, quality 80
+    return `${url}${separator}tr=w-800,f-auto,q-80`;
+  }
+
+  // 2. Cloudinary Support (Purane banners ke liye fallback)
   const transformations = "f_auto,q_auto:eco,w_800,c_fill,g_auto,ar_5:3";
 
   if (!url.startsWith("http") && cloudName) {
@@ -63,7 +70,7 @@ const sliderSettings = {
   arrows: false,
   pauseOnHover: true,
   cssEase: "ease-in-out",
-  lazyLoad: "ondemand" as const, // Added lazyLoad setting for slick natively
+  lazyLoad: "ondemand" as const,
   responsive: [
     { breakpoint: 1024, settings: { slidesToShow: 2 } },
     { breakpoint: 768, settings: { slidesToShow: 1 } },
@@ -83,7 +90,6 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
   const sliderBanners = hideFirstBanner ? banners.slice(1) : banners;
 
   useEffect(() => {
-    // Only query if necessary, though ideally this should be handled higher up in App.tsx
     const root = document.getElementById("root");
     if (root && !root.classList.contains("app-loaded")) {
         root.classList.add("app-loaded");
@@ -106,8 +112,6 @@ const BannerSlider: React.FC<Props> = ({ banners, hideFirstBanner = false }) => 
       <Slider {...sliderSettings} infinite={sliderBanners.length > 1}>
         {sliderBanners.map((b, index) => {
           const bannerUrl = getBannerUrl(b.imageUrl);
-          // If first banner is hidden, then none of these are LCP (LCP is handled by HTML)
-          // If not hidden, only the very first one is eager
           const isLcp = !hideFirstBanner && index === 0;
 
           const ImageTag = (

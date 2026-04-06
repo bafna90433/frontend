@@ -34,7 +34,6 @@ const FloatingCheckoutButton: React.FC = () => {
   if (cartCount === 0) return null;
 
   const handleClick = () => {
-    // Navigate immediately for better mobile UX
     isLoggedIn ? navigate("/checkout") : navigate("/login");
   };
 
