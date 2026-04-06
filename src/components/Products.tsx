@@ -1,4 +1,3 @@
-// Products.tsx
 import React, {
   useEffect,
   useState,
@@ -109,14 +108,11 @@ const optimizeCloudinary = (
 ): string => {
   if (!url) return "/placeholder.png";
 
-  // 1. ImageKit Support (Naye migrated images ke liye)
   if (url.includes("ik.imagekit.io")) {
     const separator = url.includes("?") ? "&" : "?";
-    // ImageKit transformations (smart resize and format auto)
     return `${url}${separator}tr=w-${w},h-${h},cm-at_max,f-auto,q-80`;
   }
 
-  // 2. Cloudinary Support (Purane banners ya logos ke liye)
   if (!url.startsWith("http") && CLOUD_NAME) {
     return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
   }
@@ -128,7 +124,6 @@ const optimizeCloudinary = (
     );
   }
 
-  // 3. Fallback for direct uploads or absolute URLs
   return url.startsWith("http")
     ? url
     : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
@@ -269,10 +264,8 @@ const Products: React.FC = () => {
   const categoryId = params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
 
-  // ✅ SEO: Check if this is the absolute Root URL (The "Homepage")
   const isHomePage = !categoryId && !searchTerm && location.pathname === "/";
 
-  // ✅ SEO: Root Schema optimized for 'Toy Manufacturers in India'
   const rootSchema = useMemo(() => ({
     "@context": "https://schema.org",
     "@type": "WebSite",
@@ -306,6 +299,11 @@ const Products: React.FC = () => {
     ],
     []
   );
+
+  // ✅ OPTIMIZATION: Memoize skeletons to avoid creating 15 new elements every render during loading
+  const skeletonCards = useMemo(() => {
+    return Array.from({ length: 15 }).map((_, i) => <ProductSkeleton key={i} />);
+  }, []);
 
   // ══════════════════════════════════════════════════
   // EFFECTS
@@ -368,9 +366,7 @@ const Products: React.FC = () => {
       .catch(console.error);
   }, []);
 
-  // ⭐ API FETCH LOGIC (UPDATED FOR SMART FILTER)
   useEffect(() => {
-    // Agar categoryId hai URL me, but categories load nahi hui, toh wait karo
     if (categoryId && categories.length === 0) return;
 
     let alive = true;
@@ -380,7 +376,6 @@ const Products: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        // Check if selected category is a Smart Filter (like "99")
         let isSmartFilter = false;
         if (categoryId) {
           const selectedCat = categories.find((c) => c._id === categoryId);
@@ -388,7 +383,6 @@ const Products: React.FC = () => {
           isSmartFilter = catNameLower.includes("under") || /^\d+$/.test(catNameLower);
         }
 
-        // Agar smart filter hai, toh categoryId API ko mat bhejo (saare products aane do)
         const r = await api.get("/products", {
           signal: ctrl.signal,
           params: {
@@ -424,7 +418,7 @@ const Products: React.FC = () => {
       alive = false;
       ctrl.abort();
     };
-  }, [location.search, categoryId, searchTerm, categories]); // Categories dependency added
+  }, [location.search, categoryId, searchTerm, categories]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -468,16 +462,14 @@ const Products: React.FC = () => {
   }, []);
 
   // ══════════════════════════════════════════════════
-  // COMPUTED (UPDATED FOR SMART FILTER)
+  // COMPUTED (OPTIMIZED FILTER LOGIC)
   // ══════════════════════════════════════════════════
 
   const displayed = useMemo(() => {
-    let f = [...allProducts];
+    let f = allProducts; // Direct reference initially to save memory
 
     const selectedCat = categories.find((c) => c._id === categoryId);
     const catNameLower = selectedCat?.name?.toLowerCase().trim() || "";
-
-    // ⭐ SMART FILTER LOGIC
     const isSmartFilter = catNameLower.includes("under") || /^\d+$/.test(catNameLower);
 
     if (isSmartFilter) {
@@ -502,9 +494,19 @@ const Products: React.FC = () => {
       );
     }
 
-    if (activeDeals.length) {
+    if (activePriceFilter) {
+      f = f.filter(
+        (p) =>
+          (p.price || 0) >= activePriceFilter.min &&
+          (p.price || 0) <= activePriceFilter.max
+      );
+    }
+
+    // Optimization: Map lookups instead of .find() in a loop
+    if (activeDeals.length > 0) {
+      const dealsMap = new Map(activeDeals.map((d) => [d.productId, d]));
       f = f.map((p) => {
-        const d = activeDeals.find((x) => x.productId === p._id);
+        const d = dealsMap.get(p._id);
         return d
           ? {
               ...p,
@@ -516,14 +518,8 @@ const Products: React.FC = () => {
       });
     }
 
-    if (activePriceFilter) {
-      f = f.filter(
-        (p) =>
-          (p.price || 0) >= activePriceFilter.min &&
-          (p.price || 0) <= activePriceFilter.max
-      );
-    }
-
+    // Final sorting
+    f = [...f]; // Clone before sort
     if (sortBy === "price-low")
       f.sort((a, b) => (a.price || 0) - (b.price || 0));
     else if (sortBy === "price-high")
@@ -535,7 +531,7 @@ const Products: React.FC = () => {
   }, [
     allProducts,
     categoryId,
-    categories, // Important dependency
+    categories,
     searchTerm,
     sortBy,
     activeDeals,
@@ -1290,9 +1286,7 @@ const Products: React.FC = () => {
           {/* Content States */}
           {loading ? (
             <div className="sp-grid">
-              {Array.from({ length: 15 }).map((_, i) => (
-                <ProductSkeleton key={i} />
-              ))}
+              {skeletonCards}
             </div>
           ) : error ? (
             <div className="sp-error-state">

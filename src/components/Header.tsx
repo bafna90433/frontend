@@ -21,6 +21,13 @@ const IMAGE_BASE = (import.meta as any).env?.VITE_IMAGE_BASE_URL || (import.meta
 const getThumb = (p: Suggestion): string | null => {
   const f = p.images?.[0];
   if (!f) return null;
+
+  // ✅ OPTIMIZATION: Added ImageKit resize for search thumbnails (48x48 display -> 100x100 load)
+  if (f.includes("ik.imagekit.io")) {
+    const sep = f.includes("?") ? "&" : "?";
+    return `${f}${sep}tr=w-100,h-100,cm-pad_resize,f-auto,q-70`;
+  }
+
   if (/^https?:\/\//i.test(f)) return f;
   if (IMAGE_BASE) {
     const base = IMAGE_BASE.replace(/\/+$/, "");
@@ -460,17 +467,18 @@ const Header: React.FC = () => {
       <div className="bafna-header-main">
         <div className="bafna-header-container">
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
-            {/* ✅ Updated ImageKit Link Here */}
+            {/* ✅ OPTIMIZATION: Applied ImageKit width & quality parameters for Mascot */}
             <img 
-              src="https://ik.imagekit.io/rishii/bafnatoys/Copy%20of%20Super_Car___05_vrkphh.webp?updatedAt=1775309336739" 
+              src="https://ik.imagekit.io/rishii/bafnatoys/Copy%20of%20Super_Car___05_vrkphh.webp?updatedAt=1775309336739&tr=w-120,h-120,f-auto,q-80" 
               alt="Mascot" 
               className="bafna-brand__mascot"
               width={60}
               height={60}
               fetchPriority="high"
+              decoding="sync"
             />
             <div className="bafna-brand__wrap">
-              <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} fetchPriority="high" />
+              <img src={LOGO_IMG} alt="BAFNA TOYS" className="bafna-brand__img" width={188} height={45} fetchPriority="high" decoding="sync" />
               <span className="bafna-brand__tagline">B2B Toys Manufacturer</span>
             </div>
           </Link>

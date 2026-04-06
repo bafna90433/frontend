@@ -29,7 +29,6 @@
     linear-gradient(180deg, #f8fafc 0%, #f6f8fc 100%);
   padding: 24px 20px;
   box-sizing: border-box;
-  will-change: background;
 }
 
 .hd-pageInner {
@@ -106,6 +105,8 @@
   min-width: 0;
   transition: transform 0.25s ease, box-shadow 0.25s ease;
   will-change: transform;
+  content-visibility: auto; /* ✅ OPTIMIZATION: Hardware acceleration for off-screen cards */
+  contain-intrinsic-size: 400px;
 }
 
 /* Avoid hover effect causing layout shifts on touch devices */
@@ -122,6 +123,8 @@
   border-radius: 20px;
   padding: 14px;
   box-shadow: var(--hd-shadow);
+  content-visibility: auto; /* ✅ OPTIMIZATION */
+  contain-intrinsic-size: 400px;
 }
 
 .hd-skeleton-image {
@@ -155,13 +158,15 @@
 .shimmer {
   position: relative;
   overflow: hidden;
+  /* Safari fix for border-radius hidden */
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
 }
 
 .shimmer::after {
   content: "";
   position: absolute;
   inset: 0;
-  transform: translateX(-100%);
+  transform: translate3d(-100%, 0, 0); /* ✅ OPTIMIZATION: 3D Transform for GPU */
   background: linear-gradient(
     90deg,
     transparent,
@@ -174,7 +179,7 @@
 
 @keyframes hdShimmer {
   100% {
-    transform: translateX(100%);
+    transform: translate3d(100%, 0, 0); /* ✅ OPTIMIZATION */
   }
 }
 
@@ -230,9 +235,9 @@
 }
 
 @keyframes hdPulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.04); }
-  100% { transform: scale(1); }
+  0% { transform: scale3d(1, 1, 1); } /* ✅ OPTIMIZATION */
+  50% { transform: scale3d(1.04, 1.04, 1.04); }
+  100% { transform: scale3d(1, 1, 1); }
 }
 
 /* Responsive */

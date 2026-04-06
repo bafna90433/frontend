@@ -30,19 +30,18 @@ const toInternalPath = (url: string) => {
   }
 };
 
-// ✅ UPDATED: Added ImageKit support and kept Cloudinary fallback
 const getBannerUrl = (url: string): string => {
   if (!url) return "https://via.placeholder.com/500x300?text=No+Banner";
 
   // 1. ImageKit Support (Naye uploaded banners)
   if (url.includes("ik.imagekit.io")) {
     const separator = url.includes("?") ? "&" : "?";
-    // ImageKit optimization: width 800, format auto, quality 80
-    return `${url}${separator}tr=w-800,f-auto,q-80`;
+    // ImageKit optimization: width 500, format auto, quality 80 for faster mobile load
+    return `${url}${separator}tr=w-500,f-auto,q-80`;
   }
 
   // 2. Cloudinary Support (Purane banners ke liye fallback)
-  const transformations = "f_auto,q_auto:eco,w_800,c_fill,g_auto,ar_5:3";
+  const transformations = "f_auto,q_auto:eco,w_500,c_fill,g_auto,ar_5:3";
 
   if (!url.startsWith("http") && cloudName) {
     return `https://res.cloudinary.com/${cloudName}/image/upload/${transformations}/${url}`;
@@ -70,7 +69,6 @@ const sliderSettings = {
   arrows: false,
   pauseOnHover: true,
   cssEase: "ease-in-out",
-  lazyLoad: "ondemand" as const,
   responsive: [
     { breakpoint: 1024, settings: { slidesToShow: 2 } },
     { breakpoint: 768, settings: { slidesToShow: 1 } },

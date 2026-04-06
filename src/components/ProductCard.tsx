@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom"; // ✅ Added Link for SEO
+import { Link } from "react-router-dom"; 
 import { useShop } from "../context/ShopContext";
 import {
   ShoppingCart,
@@ -56,13 +56,14 @@ const IMAGE_BASE_URL =
   import.meta.env.VITE_IMAGE_BASE_URL || "http://localhost:5000";
 
 const FALLBACK_IMAGE = "/images/placeholder.webp";
-const IMG_W = 300;
-const IMG_H = 300;
+// ✅ CHANGED: Increased dimensions to 400x400 to fix blur issue
+const IMG_W = 400; 
+const IMG_H = 400;
 
 const safeNum = (v: unknown, fallback: number): number => {
   const n = Number(v);
   return Number.isFinite(n) ? n : fallback;
-};
+}
 
 const toAbsUrl = (raw: string): string => {
   if (!raw) return "";
@@ -77,7 +78,6 @@ const toAbsUrl = (raw: string): string => {
   return `${IMAGE_BASE_URL}/${finalPath}`;
 };
 
-// 🔥 YAHAN CHANGE HUA HAI: ImageKit Support Add Kiya Gaya Hai
 const getOptimizedImageUrl = (
   rawUrl: string | undefined,
   width = IMG_W,
@@ -86,21 +86,20 @@ const getOptimizedImageUrl = (
   if (!rawUrl) return FALLBACK_IMAGE;
 
   try {
-    // 1. Agar ImageKit ka URL hai (Jo naya set kiya hai)
     if (rawUrl.includes("ik.imagekit.io")) {
       const separator = rawUrl.includes('?') ? '&' : '?';
+      // ✅ CHANGED: Increased quality to 80 (q-80) for sharpness
       return `${rawUrl}${separator}tr=w-${width},h-${height},cm-pad_resize,f-auto,q-80`;
     }
 
-    // 2. Agar Cloudinary ka Relative URL hai
     if (!rawUrl.startsWith("http") && CLOUD_NAME) {
       const publicId = rawUrl.replace(/^\/+/, "");
+      // ✅ CHANGED: Reverted to standard q_auto for better clarity
       return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${width},h_${height},c_fill/${publicId}`;
     }
 
     const abs = toAbsUrl(rawUrl);
 
-    // 3. Agar Cloudinary ka Absolute URL hai (Purane Banners wagaira ke liye)
     if (abs.includes("res.cloudinary.com") && abs.includes("/image/upload/")) {
       if (
         abs.includes("/image/upload/f_auto") ||
@@ -131,7 +130,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
-    // ✅ Generate SEO friendly URL
     const productUrl = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
 
     const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
@@ -187,7 +185,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
         e.stopPropagation();
         setCartItemQuantity(product, minQty);
 
-        // --- META PIXEL ---
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'AddToCart', {
             content_name: product.name,
@@ -278,10 +275,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
     return (
       <div className="pc-wrapper">
-        {/* ✅ SEO Fix: Changed onClick to standard <article> containing Links */}
         <article className="pc-card">
           
-          {/* ✅ SEO Fix: Wrapped Image with <Link> for crawlers */}
           <Link to={productUrl} className="pc-image-container" style={{ display: 'block', textDecoration: 'none' }}>
             <div className="pc-image-wrapper">
               {timeLeft ? (
@@ -340,7 +335,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
             )}
           </Link>
 
-          {/* Card Body */}
           <div className="pc-body">
             <div className="pc-toprow">
               <div className="pc-topleft">
@@ -361,7 +355,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             </div>
 
-            {/* ✅ SEO Fix: Title linked properly */}
             <Link to={productUrl} style={{ textDecoration: 'none', color: 'inherit' }}>
               <h3 className="pc-title">
                 {product.name.length > 50
@@ -410,7 +403,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               )}
             </div>
 
-            {/* PRICE SECTION */}
             <div className="pc-price-section">
               <div className="pc-current-price">
                 <span className="pc-currency">₹</span>
@@ -427,7 +419,6 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
               </div>
             </div>
 
-            {/* ACTION BUTTONS (Kept separate so they don't trigger the link) */}
             <div className="pc-actions">
               {itemCount === 0 ? (
                 <button
