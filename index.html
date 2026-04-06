@@ -233,5 +233,17 @@
     src="https://www.facebook.com/tr?id=1238757191757343&ev=PageView&noscript=1"
     /></noscript>
     <script type="module" src="/src/index.tsx"></script>
+
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister().then(function(boolean) {
+                console.log('Service worker unregistered by Bafna Toys updates');
+            });
+          }
+        });
+      }
+    </script>
   </body>
 </html>
