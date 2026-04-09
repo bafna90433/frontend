@@ -9,7 +9,6 @@ import {
 import api from "./utils/api";
 import { io } from "socket.io-client";
 import axios from "axios";
-import { StatusBar } from "@capacitor/status-bar";
 
 import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -172,18 +171,6 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
 const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
-
-  // Status Bar
-  useEffect(() => {
-    const hideStatusBar = async () => {
-      try {
-        await StatusBar.hide();
-      } catch (error) {
-        // Ignore silently in production web
-      }
-    };
-    hideStatusBar();
-  }, []);
 
   // Maintenance Check
   useEffect(() => {
