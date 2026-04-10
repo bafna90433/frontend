@@ -466,15 +466,19 @@ const ProductDetails: React.FC = () => {
     const dbPieces = Number(product.piecesPerUnit) || 1;
     const dbUnit = product.unit || "Piece";
     const strictBulk = product.isBulkOnly || false;
-    const dbMQ = Number(product.minOrderQty) || 1; // ✅ Added MQ field
+    const dbMQ = Number(product.minOrderQty) || 0; // ✅ Manual MQ field
 
     if (strictBulk && dbPieces > 1) {
       return { stepQty: dbPieces, minQty: Math.max(dbMQ, dbPieces), parsedUnit: dbUnit, isBulk: true };
-    } else if (dbPieces > 1) {
-      return { stepQty: 1, minQty: Math.max(dbMQ, dbPieces), parsedUnit: dbUnit, isBulk: true };
     } else {
-      const fallbackMin = Number(product.price) < 60 ? 3 : 2;
-      return { stepQty: 1, minQty: Math.max(dbMQ, fallbackMin), parsedUnit: dbUnit, isBulk: false };
+      let finalMinQty = 1;
+      if (dbMQ > 0) {
+        finalMinQty = dbMQ;
+      } else {
+        const fallbackMin = (Number(product.price) || 0) < 60 ? 3 : 2;
+        finalMinQty = dbPieces > 1 ? dbPieces : fallbackMin;
+      }
+      return { stepQty: 1, minQty: finalMinQty, parsedUnit: dbUnit, isBulk: dbPieces > 1 };
     }
   }, [product]);
 
