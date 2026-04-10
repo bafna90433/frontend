@@ -64,6 +64,7 @@ interface Product {
   unit?: string;
   piecesPerUnit?: number;
   isBulkOnly?: boolean;
+  minOrderQty?: number; // ✅
 }
 
 // ════════════════════════════════════════════════════════════
@@ -465,14 +466,15 @@ const ProductDetails: React.FC = () => {
     const dbPieces = Number(product.piecesPerUnit) || 1;
     const dbUnit = product.unit || "Piece";
     const strictBulk = product.isBulkOnly || false;
+    const dbMQ = Number(product.minOrderQty) || 1; // ✅ Added MQ field
 
     if (strictBulk && dbPieces > 1) {
-      return { stepQty: dbPieces, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+      return { stepQty: dbPieces, minQty: Math.max(dbMQ, dbPieces), parsedUnit: dbUnit, isBulk: true };
     } else if (dbPieces > 1) {
-      return { stepQty: 1, minQty: dbPieces, parsedUnit: dbUnit, isBulk: true };
+      return { stepQty: 1, minQty: Math.max(dbMQ, dbPieces), parsedUnit: dbUnit, isBulk: true };
     } else {
       const fallbackMin = Number(product.price) < 60 ? 3 : 2;
-      return { stepQty: 1, minQty: fallbackMin, parsedUnit: dbUnit, isBulk: false };
+      return { stepQty: 1, minQty: Math.max(dbMQ, fallbackMin), parsedUnit: dbUnit, isBulk: false };
     }
   }, [product]);
 

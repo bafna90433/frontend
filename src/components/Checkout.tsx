@@ -371,7 +371,7 @@ const Checkout: React.FC = () => {
       if (!res) { alert("Payment gateway failed."); setPlacing(false); return; }
       const { data: razorOrder } = await api.post("/payments/create-order", { amount: payAmount });
       const options = {
-        key: (import.meta as any).env.VITE_RAZORPAY_KEY || "rzp_test_YOUR_KEY_HERE",
+        key: (import.meta as any).env?.VITE_RAZORPAY_KEY || "rzp_test_YOUR_KEY_HERE",
         amount: razorOrder.amount, currency: "INR", name: "Bafna Toys",
         description: paymentMode === "COD" ? "Advance Payment" : "Order Payment",
         order_id: razorOrder.id,
