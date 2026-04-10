@@ -60,7 +60,7 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const fetchShippingRules = async () => {
       try {
-        const res = await axios.get(`${API_BASE}/shipping-rules`);
+        const res = await axios.get(`${API_BASE}/settings/shipping`);
         if (res.data) {
           setShippingCharge(res.data.shippingCharge || 0);
           setFreeThreshold(res.data.freeShippingThreshold || 0);
