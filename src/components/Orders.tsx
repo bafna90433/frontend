@@ -1,6 +1,6 @@
 // src/components/Orders.tsx
 import React, { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api, { MEDIA_URL } from "../utils/api";
 import MainLayout from "./MainLayout";
 import "../styles/Orders.css";
 import {
@@ -67,20 +67,6 @@ type Order = {
   returnRequest?: ReturnRequest;
 };
 
-const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
-
-const useBases = () =>
-  useMemo(() => {
-    const rawApi = import.meta.env.VITE_API_URL as string | undefined;
-    const rawImage =
-      (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) ||
-      (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) ||
-      (import.meta.env.VITE_MEDIA_URL as string | undefined);
-    return {
-      apiBase: trimTrailingSlash(rawApi || "http://localhost:5000/api"),
-      imageBase: trimTrailingSlash(rawImage || "http://localhost:5000"),
-    };
-  }, []);
 
 const formatDate = (iso?: string) => {
   if (!iso) return "-";
@@ -182,12 +168,10 @@ const generateInvoice = (order: Order) => {
 };
 
 const Orders: React.FC = () => {
-  const { apiBase, imageBase } = useBases();
-
   const resolveImage = (img?: string) => {
     if (!img) return "/placeholder-product.png";
     if (/^https?:\/\//i.test(img)) return img;
-    return `${imageBase}/${img.replace(/^\//, "")}`;
+    return `${MEDIA_URL}/${img.replace(/^\//, "")}`;
   };
 
   const [orders, setOrders] = useState<Order[]>([]);
@@ -210,9 +194,8 @@ const Orders: React.FC = () => {
     const formData = new FormData();
     formData.append("images", file);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(`${apiBase}/upload`, formData, {
-        headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` },
+      const response = await api.post(`/upload`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data?.urls?.[0] || null;
     } catch { return null; }
@@ -226,11 +209,9 @@ const Orders: React.FC = () => {
         const userStr = localStorage.getItem("user");
         if (!userStr) { setError("Please login to view orders."); setLoading(false); return; }
         const user = JSON.parse(userStr);
-        const token = localStorage.getItem("token");
         if (!user?._id) { setError("Invalid session. Please login again."); setLoading(false); return; }
-        const response = await axios.get(`${apiBase}/orders`, {
+        const response = await api.get(`/orders`, {
           params: { customerId: user._id },
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
         if (response.data && Array.isArray(response.data)) {
           setOrders(response.data.sort((a: Order, b: Order) =>
@@ -244,7 +225,7 @@ const Orders: React.FC = () => {
       } finally { setLoading(false); }
     };
     fetchOrders();
-  }, [apiBase]);
+  }, []);
 
   useEffect(() => {
     if (orders.length > 0) {
@@ -330,13 +311,12 @@ const Orders: React.FC = () => {
       if (returnVideo) { const v = await uploadFileToBackend(returnVideo); if (v) vidUrl = v; }
       if (returnImages && returnImages.length > 0 && imgUrls.length === 0) { alert("Upload failed."); setUploadingReturn(false); return; }
 
-      const token = localStorage.getItem("token");
-      await axios.put(`${apiBase}/orders/return/${selectedOrderId}`, {
+      await api.put(`/orders/return/${selectedOrderId}`, {
         reason: returnReason,
         description: `[RETURN ITEMS: ${returnSelectedItems.join(", ")}]\n\n${returnDescription}`,
         images: imgUrls,
         video: vidUrl,
-      }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      });
 
       alert("Return request submitted!");
       setShowReturnModal(false);

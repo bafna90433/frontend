@@ -1,7 +1,7 @@
 // src/components/OrderDetails.tsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api, { MEDIA_URL } from "../utils/api";
 import MainLayout from "./MainLayout";
 import "../styles/Orders.css";
 import {
@@ -15,13 +15,6 @@ type ReturnRequest = { isRequested: boolean; status: "Pending" | "Approved" | "R
 type ShippingAddress = { shopName?: string; gstNumber?: string; fullName?: string; phone?: string; street?: string; area?: string; city?: string; state?: string; pincode?: string; isDifferentShipping?: boolean; shippingStreet?: string; shippingArea?: string; shippingCity?: string; shippingState?: string; shippingPincode?: string; };
 type Order = { _id: string; orderNumber?: string; createdAt?: string; status: "pending" | "processing" | "shipped" | "delivered" | "cancelled" | "returned"; items?: OrderItem[]; total: number; paymentMode?: string; estimatedDelivery?: string; trackingId?: string; courierName?: string; isShipped?: boolean; shippingAddress?: string | ShippingAddress; returnRequest?: ReturnRequest; };
 
-const trimTrailingSlash = (s: string) => s.replace(/\/+$/, "");
-const useBases = () =>
-  useMemo(() => {
-    const rawApi = import.meta.env.VITE_API_URL as string | undefined;
-    const rawImage = (import.meta.env.VITE_IMAGE_BASE_URL as string | undefined) || (rawApi ? rawApi.replace(/\/api\/?$/, "") : undefined) || (import.meta.env.VITE_MEDIA_URL as string | undefined);
-    return { apiBase: trimTrailingSlash(rawApi || "http://localhost:5000/api"), imageBase: trimTrailingSlash(rawImage || "http://localhost:5000") };
-  }, []);
 
 const formatDate = (iso?: string) => {
   if (!iso) return "-";
@@ -85,7 +78,6 @@ const generateInvoice = (order: Order) => {
 };
 
 const OrderDetails: React.FC = () => {
-  const { apiBase, imageBase } = useBases();
   const { orderId } = useParams<{ orderId: string }>(); 
   const navigate = useNavigate();
 
@@ -116,7 +108,7 @@ const OrderDetails: React.FC = () => {
     }
 
     if (/^https?:\/\//i.test(img)) return img;
-    return `${imageBase}/${img.replace(/^\//, "")}`;
+    return `${MEDIA_URL}/${img.replace(/^\//, "")}`;
   };
 
   useEffect(() => {
@@ -129,9 +121,8 @@ const OrderDetails: React.FC = () => {
         if (!userStr) { setError("Please login to view this order."); setLoading(false); return; }
         
         const user = JSON.parse(userStr);
-        const response = await axios.get(`${apiBase}/orders`, {
+        const response = await api.get(`/orders`, {
           params: { customerId: user._id },
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
         });
 
         if (response.data && Array.isArray(response.data)) {
@@ -150,7 +141,7 @@ const OrderDetails: React.FC = () => {
     };
 
     if (orderId) fetchSingleOrder();
-  }, [apiBase, orderId]);
+  }, [orderId]);
 
   const getTrackingUrl = (trackingId: string, courierName?: string) => {
     if (!trackingId) return "#";
@@ -163,9 +154,7 @@ const OrderDetails: React.FC = () => {
   const handleCancelOrder = async () => {
     if (!order || !window.confirm("Cancel this order?")) return;
     try {
-      const token = localStorage.getItem("token");
-      await axios.put(`${apiBase}/orders/${order._id}/status`, { status: "cancelled", cancelledBy: "Customer" },
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      await api.put(`/orders/${order._id}/status`, { status: "cancelled", cancelledBy: "Customer" });
       setOrder({ ...order, status: "cancelled" });
     } catch { alert("Failed to cancel."); }
   };
@@ -175,8 +164,7 @@ const OrderDetails: React.FC = () => {
   const uploadFileToBackend = async (file: File) => {
     const formData = new FormData(); formData.append("images", file);
     try {
-      const token = localStorage.getItem("token");
-      const response = await axios.post(`${apiBase}/upload`, formData, { headers: { "Content-Type": "multipart/form-data", Authorization: `Bearer ${token}` } });
+      const response = await api.post(`/upload`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       return response.data?.urls?.[0] || null;
     } catch { return null; }
   };
@@ -192,10 +180,9 @@ const OrderDetails: React.FC = () => {
       if (returnVideo) { const v = await uploadFileToBackend(returnVideo); if (v) vidUrl = v; }
       if (returnImages && returnImages.length > 0 && imgUrls.length === 0) { alert("Upload failed."); setUploadingReturn(false); return; }
 
-      const token = localStorage.getItem("token");
-      await axios.put(`${apiBase}/orders/return/${order._id}`, {
+      await api.put(`/orders/return/${order._id}`, {
         reason: returnReason, description: `[RETURN ITEMS: ${returnSelectedItems.join(", ")}]\n\n${returnDescription}`, images: imgUrls, video: vidUrl,
-      }, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+      });
 
       alert("Return request submitted!");
       setShowReturnModal(false);
