@@ -382,6 +382,7 @@ const Products: React.FC = () => {
       setLoading(true);
       setError(null);
       setRetryAttempt(retryCount);
+      let willRetry = false;
       try {
         let isSmartFilter = false;
         if (categoryId) {
@@ -408,6 +409,7 @@ const Products: React.FC = () => {
       } catch (e: any) {
         if (!ctrl.signal.aborted) {
           if (retryCount < RETRY_DELAYS.length) {
+            willRetry = true;
             setTimeout(() => {
               if (alive) fetchProducts(retryCount + 1);
             }, RETRY_DELAYS[retryCount]);
@@ -416,7 +418,8 @@ const Products: React.FC = () => {
           setError(e?.response?.data?.message || e.message || "Failed to load");
         }
       } finally {
-        if (alive) setLoading(false);
+        // Don't stop loading spinner while waiting to retry
+        if (alive && !willRetry) setLoading(false);
       }
     };
     
