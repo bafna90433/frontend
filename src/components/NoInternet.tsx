@@ -1,34 +1,71 @@
 // src/components/NoInternet.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { WifiOff, RefreshCw } from 'lucide-react';
+
+// navigator.onLine only checks local network, not actual internet.
+// We do a real connectivity check by pinging the backend health endpoint.
+const checkRealConnectivity = async (): Promise<boolean> => {
+  try {
+    // First fast check: browser's own signal
+    if (!navigator.onLine) return false;
+    // Real check: try to reach backend
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+    await fetch(
+      `${(import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api'}/test`,
+      { method: 'GET', signal: controller.signal, cache: 'no-store' }
+    );
+    clearTimeout(timeout);
+    return true;
+  } catch {
+    return false;
+  }
+};
 
 const NoInternet: React.FC = () => {
   const [isChecking, setIsChecking] = useState(false);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  // Start as online — only show overlay after confirmed offline
+  const [isOnline, setIsOnline] = useState(true);
+  const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const runCheck = async () => {
+    const online = await checkRealConnectivity();
+    setIsOnline(online);
+  };
 
   useEffect(() => {
-    const handleOnline = () => setIsOnline(true);
-    const handleOffline = () => setIsOnline(false);
+    // On mount, check after a short delay (don't block initial render)
+    checkRef.current = setTimeout(runCheck, 3000);
+
+    const handleOffline = () => {
+      // Browser went offline → verify with real check
+      setTimeout(runCheck, 500);
+    };
+    const handleOnline = () => {
+      // Browser came back online → verify and dismiss overlay
+      runCheck();
+    };
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      if (checkRef.current) clearTimeout(checkRef.current);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const handleRetry = () => {
+  const handleRetry = async () => {
     setIsChecking(true);
-    setTimeout(() => {
-      setIsChecking(false);
-      if (navigator.onLine) {
-        window.location.reload();
-      } else {
-        alert("Still offline. Please check your connection.");
-      }
-    }, 1000);
+    const online = await checkRealConnectivity();
+    setIsChecking(false);
+    if (online) {
+      setIsOnline(true);
+      window.location.reload();
+    } else {
+      alert("Still offline. Please check your internet connection.");
+    }
   };
 
   if (isOnline) return null;

@@ -11,7 +11,7 @@ export const MEDIA_URL: string =
 const api = axios.create({
   baseURL: API_URL,
   withCredentials: true,
-  timeout: 15000, // 15 seconds timeout added
+  timeout: 35000, // 35 seconds — Railway cold start can take 15-30s
   headers: { Accept: "application/json" },
 });
 

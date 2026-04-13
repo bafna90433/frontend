@@ -247,6 +247,7 @@ const Products: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
 
   const [sortBy, setSortBy] = useState("default");
   const [minPriceInput, setMinPriceInput] = useState<number | "">(0);
@@ -372,9 +373,15 @@ const Products: React.FC = () => {
     let alive = true;
     const ctrl = new AbortController();
 
+    // Retry delays: 5s, 12s, 25s (for Railway cold start which can take 15-40s)
+    const RETRY_DELAYS = [5000, 12000, 25000];
+
+    setRetryAttempt(0);
+
     const fetchProducts = async (retryCount = 0) => {
       setLoading(true);
       setError(null);
+      setRetryAttempt(retryCount);
       try {
         let isSmartFilter = false;
         if (categoryId) {
@@ -390,19 +397,20 @@ const Products: React.FC = () => {
             ...(searchTerm ? { search: searchTerm } : {}),
           },
         });
-        
+
         if (!alive) return;
-        
+
         const arr = Array.isArray(r.data)
           ? r.data
           : r.data?.products || r.data?.docs || [];
         setAllProducts(arr.map(cleanProduct));
+        setRetryAttempt(0);
       } catch (e: any) {
         if (!ctrl.signal.aborted) {
-          if (retryCount < 1) {
+          if (retryCount < RETRY_DELAYS.length) {
             setTimeout(() => {
               if (alive) fetchProducts(retryCount + 1);
-            }, 3000);
+            }, RETRY_DELAYS[retryCount]);
             return;
           }
           setError(e?.response?.data?.message || e.message || "Failed to load");
@@ -1285,18 +1293,45 @@ const Products: React.FC = () => {
 
           {/* Content States */}
           {loading ? (
-            <div className="sp-grid">
-              {skeletonCards}
-            </div>
+            <>
+              {retryAttempt > 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  padding: '12px 20px',
+                  marginBottom: '16px',
+                  background: '#fff7ed',
+                  border: '1px solid #fed7aa',
+                  borderRadius: '10px',
+                  color: '#c2410c',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '8px',
+                }}>
+                  <RefreshCw size={15} style={{ animation: 'spin 1.2s linear infinite' }} />
+                  Server is starting up... please wait ({retryAttempt}/{3})
+                  <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
+                </div>
+              )}
+              <div className="sp-grid">
+                {skeletonCards}
+              </div>
+            </>
           ) : error ? (
             <div className="sp-error-state">
               <div className="sp-error-icon">
                 <WifiOff size={44} />
               </div>
-              <h2>Connection Failed</h2>
+              <h2>
+                {error === "Network Error" || error?.toLowerCase().includes("timeout")
+                  ? "Server Unreachable"
+                  : "Something Went Wrong"}
+              </h2>
               <p>
-                {error === "Network Error"
-                  ? "It looks like you're offline or the server is unreachable."
+                {error === "Network Error" || error?.toLowerCase().includes("timeout")
+                  ? "The server took too long to respond. Please try again in a moment."
                   : error}
               </p>
               <button
