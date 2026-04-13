@@ -99,18 +99,17 @@ const LoginOTP: React.FC = () => {
         showMsg("Invalid OTP", "error");
         return;
       }
-      const { data: user } = await axios.get(
-        `${API_BASE}/registrations/phone/${mobile}`
-      );
-      if (!user) {
+      // Backend now returns real JWT token + user directly — no extra API call needed
+      const { token, user } = res.data;
+      if (!user || !token) {
         showMsg("User not found", "error");
         return;
       }
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem("token", "otp-session-token");
+      localStorage.setItem("token", token);
       window.dispatchEvent(new Event("storage"));
       showMsg("Login Successful!", "success");
-      setTimeout(() => navigate("/"), 1500);
+      setTimeout(() => navigate("/"), 1000);
     } catch {
       showMsg("Verification failed", "error");
     } finally {
