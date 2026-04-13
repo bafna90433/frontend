@@ -248,6 +248,9 @@ const Products: React.FC = () => {
   const [bannersLoading, setBannersLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [retryAttempt, setRetryAttempt] = useState(0);
+  // True once categories have been fetched (or failed) — prevents products from
+  // canceling + re-fetching every time categories state changes.
+  const [categoryReady, setCategoryReady] = useState(false);
 
   const [sortBy, setSortBy] = useState("default");
   const [minPriceInput, setMinPriceInput] = useState<number | "">(0);
@@ -318,7 +321,8 @@ const Products: React.FC = () => {
     api
       .get("/categories")
       .then((r) => setCategories(r.data?.categories || r.data || []))
-      .catch(console.error);
+      .catch(console.error)
+      .finally(() => setCategoryReady(true)); // Signal that categories are resolved
 
     api
       .get("/banners")
@@ -368,7 +372,10 @@ const Products: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (categoryId && categories.length === 0) return;
+    // Wait for categories to resolve before fetching products for a category page.
+    // Using categoryReady instead of categories array prevents the request from
+    // being canceled and re-issued every time categories state updates.
+    if (categoryId && !categoryReady) return;
 
     let alive = true;
     const ctrl = new AbortController();
@@ -429,7 +436,7 @@ const Products: React.FC = () => {
       alive = false;
       ctrl.abort();
     };
-  }, [location.search, categoryId, searchTerm, categories]);
+  }, [location.search, categoryId, searchTerm, categoryReady]);
 
   useEffect(() => {
     setCurrentPage(1);
