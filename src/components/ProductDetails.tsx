@@ -839,7 +839,19 @@ const ProductDetails: React.FC = () => {
 
         {product.relatedProducts && product.relatedProducts.length > 0 && (
           <div className="pd-section-wrap">
-            <h3 className="pd-section-heading">You May Also Like</h3>
+            <div className="pd-related-header">
+              <div className="pd-related-title-block">
+                <div className="pd-related-icon">
+                  <FiTag size={18} />
+                </div>
+                <div>
+                  <h3 className="pd-section-heading">You May Also Like</h3>
+                  <p className="pd-related-sub">
+                    Handpicked products from {product.category?.name || "similar range"}
+                  </p>
+                </div>
+              </div>
+            </div>
             <div className="pd-related-grid">
               {product.relatedProducts.map((rel, i) => (
                 <div key={rel._id} className="pd-related-cell">
