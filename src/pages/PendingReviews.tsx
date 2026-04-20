@@ -8,7 +8,7 @@ import '../styles/PendingReviews.css';
 
 const MEDIA_BASE =
   (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_MEDIA_URL) ||
-  "https://bafnatoys-backend-production.up.railway.app";
+  "https://api.bafnatoys.com";
 
 const getImageUrl = (url: string) =>
   url?.startsWith("http") ? url : url ? `${MEDIA_BASE}${url}` : "";

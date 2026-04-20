@@ -50,11 +50,11 @@ const FAQ = React.lazy(() => import("./components/FAQ"));
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
   (import.meta as any).env?.VITE_SOCKET_URL ||
-  "https://bafnatoys-backend-production.up.railway.app";
+  "https://api.bafnatoys.com";
 
 const API_BASE_URL: string =
   (import.meta as any).env?.VITE_API_BASE_URL ||
-  "https://bafnatoys-backend-production.up.railway.app/api";
+  "https://api.bafnatoys.com/api";
 
 // --- LOADER COMPONENT ---
 const PageLoader = () => (

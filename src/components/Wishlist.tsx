@@ -12,7 +12,7 @@ import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import BulkPricingTable from './BulkPricingTable';
 import type { Tier } from './BulkPricingTable';
 
-const IMAGE_BASE_URL = `${import.meta.env.VITE_IMAGE_BASE_URL || "https://bafnatoys-backend-production.up.railway.app"}/uploads/`;
+const IMAGE_BASE_URL = `${import.meta.env.VITE_IMAGE_BASE_URL || "https://api.bafnatoys.com"}/uploads/`;
 
 const Wishlist: React.FC = () => {
   const { wishlistItems, removeFromWishlist, cartItems, setCartItemQuantity } = useShop();
@@ -71,7 +71,7 @@ const Wishlist: React.FC = () => {
                 ? imageFile.startsWith('http')
                   ? imageFile
                   : imageFile.includes('/uploads/')
-                    ? `${import.meta.env.VITE_IMAGE_BASE_URL || "https://bafnatoys-backend-production.up.railway.app"}${imageFile}`
+                    ? `${import.meta.env.VITE_IMAGE_BASE_URL || "https://api.bafnatoys.com"}${imageFile}`
                     : `${IMAGE_BASE_URL}${encodeURIComponent(imageFile)}`
                 : null;
 

@@ -37,7 +37,7 @@ interface Product {
 const MEDIA_BASE_URL =
   (import.meta.env.VITE_MEDIA_URL as string)?.replace(/\/+$/, "") ||
   (import.meta.env.VITE_IMAGE_BASE_URL as string)?.replace(/\/+$/, "") ||
-  "https://bafnatoys-backend-production.up.railway.app";
+  "https://api.bafnatoys.com";
 
 const getOptimizedImageUrl = (url: string, width = 260) => {
   if (!url) return "";

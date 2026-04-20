@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 
 // Media base for images
-const MEDIA_BASE = "https://bafnatoys-backend-production.up.railway.app";
+const MEDIA_BASE = "https://api.bafnatoys.com";
 const getImageUrl = (url: string) => url?.startsWith("http") ? url : url ? `${MEDIA_BASE}${url}` : "";
 
 type UserType = {
