@@ -1,71 +1,36 @@
-// src/components/NoInternet.tsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { WifiOff, RefreshCw } from 'lucide-react';
 
-// navigator.onLine only checks local network, not actual internet.
-// We do a real connectivity check by pinging the backend health endpoint.
-const checkRealConnectivity = async (): Promise<boolean> => {
-  try {
-    // First fast check: browser's own signal
-    if (!navigator.onLine) return false;
-    // Real check: try to reach backend
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 5000);
-    await fetch(
-      `${(import.meta as any).env?.VITE_API_URL || 'http://localhost:5000/api'}/test`,
-      { method: 'GET', signal: controller.signal, cache: 'no-store' }
-    );
-    clearTimeout(timeout);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
 const NoInternet: React.FC = () => {
-  const [isChecking, setIsChecking] = useState(false);
-  // Start as online — only show overlay after confirmed offline
   const [isOnline, setIsOnline] = useState(true);
-  const checkRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const runCheck = async () => {
-    const online = await checkRealConnectivity();
-    setIsOnline(online);
-  };
+  const [isChecking, setIsChecking] = useState(false);
 
   useEffect(() => {
-    // On mount, check after a short delay (don't block initial render)
-    checkRef.current = setTimeout(runCheck, 3000);
+    setIsOnline(navigator.onLine);
 
-    const handleOffline = () => {
-      // Browser went offline → verify with real check
-      setTimeout(runCheck, 500);
-    };
-    const handleOnline = () => {
-      // Browser came back online → verify and dismiss overlay
-      runCheck();
-    };
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
     return () => {
-      if (checkRef.current) clearTimeout(checkRef.current);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
   }, []);
 
-  const handleRetry = async () => {
+  const handleRetry = () => {
     setIsChecking(true);
-    const online = await checkRealConnectivity();
-    setIsChecking(false);
-    if (online) {
-      setIsOnline(true);
-      window.location.reload();
-    } else {
-      alert("Still offline. Please check your internet connection.");
-    }
+    setTimeout(() => {
+      setIsChecking(false);
+      if (navigator.onLine) {
+        setIsOnline(true);
+        window.location.reload();
+      } else {
+        alert("Still offline. Please check your internet connection.");
+      }
+    }, 1000);
   };
 
   if (isOnline) return null;
@@ -92,16 +57,16 @@ const NoInternet: React.FC = () => {
       }}>
         <WifiOff size={48} color="#ef4444" />
       </div>
-      
+
       <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>
         No Internet Connection
       </h2>
-      
+
       <p style={{ fontSize: '15px', color: '#64748b', maxWidth: '300px', marginBottom: '32px', lineHeight: 1.5 }}>
         It looks like you're offline. Please check your Wi-Fi or mobile data and try again.
       </p>
-      
-      <button 
+
+      <button
         onClick={handleRetry}
         disabled={isChecking}
         style={{
@@ -125,7 +90,6 @@ const NoInternet: React.FC = () => {
         {isChecking ? 'Checking...' : 'Try Again'}
       </button>
 
-      {/* Animation for the spinning icon */}
       <style>{`
         @keyframes spin { 100% { transform: rotate(360deg); } }
         .spin { animation: spin 1s linear infinite; }
