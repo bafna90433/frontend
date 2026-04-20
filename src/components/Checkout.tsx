@@ -177,6 +177,20 @@ const Checkout: React.FC = () => {
   const [mobSummaryOpen, setMobSummaryOpen] = useState(true); 
   
   const [activeStep, setActiveStep] = useState(1);
+
+  // ✅ Meta Pixel: fire InitiateCheckout when checkout opens with items
+  useEffect(() => {
+    if (cartItems && cartItems.length > 0 && typeof window !== "undefined" && (window as any).fbq) {
+      (window as any).fbq("track", "InitiateCheckout", {
+        value: cartTotal,
+        num_items: cartItems.length,
+        currency: "INR",
+        content_ids: cartItems.map((i: any) => i._id),
+        content_type: "product",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [openPolicy, setOpenPolicy] = useState<"shipping" | "return" | null>(null);
   const addressRef = useRef<HTMLDivElement>(null);
   const paymentRef = useRef<HTMLDivElement>(null);

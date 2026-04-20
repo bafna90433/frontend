@@ -25,7 +25,7 @@ export default defineConfig(async ({ mode }) => {
   if (isProd) {
     try {
       console.log("🚀 Fetching all products from backend for Sitemap...");
-      const res = await axios.get("https://bafnatoys-backend-production.up.railway.app/api/products");
+      const res = await axios.get("https://api.bafnatoys.com/api/products");
       
       const products = res.data.products || res.data || [];
       

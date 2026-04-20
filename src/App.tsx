@@ -25,6 +25,7 @@ const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
 const FreeDeliveryModal = React.lazy(() => import("./components/FreeDeliveryModal"));
 const NoInternet = React.lazy(() => import("./components/NoInternet"));
 const Chatbot = React.lazy(() => import("./components/Chatbot")); // ✅ Added Chatbot
+const MetaPixelLoader = React.lazy(() => import("./components/MetaPixelLoader"));
 
 // --- LAZY LOADED PAGES ---
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
@@ -218,6 +219,7 @@ const AppInner: React.FC = () => {
     <Router>
       <Suspense fallback={null}>
          <NoInternet />
+         <MetaPixelLoader />
       </Suspense>
       <PageTracker />
 
