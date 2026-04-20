@@ -513,13 +513,18 @@ const ProductDetails: React.FC = () => {
       setCartItemQuantity(product, minQty);
       
       if (typeof window !== "undefined" && (window as any).fbq) {
-        (window as any).fbq('track', 'AddToCart', {
-          content_name: product.name,
-          content_ids: [product._id],
-          content_type: 'product',
-          value: unitPrice * minQty, 
-          currency: 'INR'
-        });
+        const safePrice = Number(unitPrice) || Number(product.price) || 0;
+        const safeQty = Math.max(1, Number(minQty) || 1);
+        const value = Number((safePrice * safeQty).toFixed(2));
+        if (value > 0) {
+          (window as any).fbq('track', 'AddToCart', {
+            content_name: product.name,
+            content_ids: [product._id],
+            content_type: 'product',
+            value,
+            currency: 'INR'
+          });
+        }
       }
     }
   }, [product, minQty, setCartItemQuantity, unitPrice]);
