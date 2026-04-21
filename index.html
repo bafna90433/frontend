@@ -26,10 +26,13 @@
     <link rel="icon" href="/favicon.png" type="image/png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     
+    <link rel="preconnect" href="https://ik.imagekit.io" crossorigin />
+    <link rel="dns-prefetch" href="https://ik.imagekit.io" />
     <link rel="preconnect" href="https://res.cloudinary.com" crossorigin />
     <link rel="dns-prefetch" href="https://res.cloudinary.com" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://connect.facebook.net" />
     
     <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;500;600;700;800&display=swap" media="print" onload="this.media='all'" />
@@ -218,16 +221,36 @@
     </script>
 
     <script>
-    !function(f,b,e,v,n,t,s)
-    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-    n.queue=[];t=b.createElement(e);t.async=!0;
-    t.src=v;s=b.getElementsByTagName(e)[0];
-    s.parentNode.insertBefore(t,s)}(window, document,'script',
-    'https://connect.facebook.net/en_US/fbevents.js');
-    fbq('init', '1238757191757343');
-    fbq('track', 'PageView');
+    // ✅ Defer Facebook Pixel until browser is idle OR first user interaction
+    // This frees up main thread during LCP — saves ~150 KiB + cache-lifetime hit
+    (function () {
+      var fbLoaded = false;
+      function loadFbPixel() {
+        if (fbLoaded) return;
+        fbLoaded = true;
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '1238757191757343');
+        fbq('track', 'PageView');
+      }
+      // Load on first interaction (click / scroll / keydown / touch)
+      var events = ['click', 'scroll', 'keydown', 'touchstart', 'mousemove'];
+      events.forEach(function (ev) {
+        window.addEventListener(ev, loadFbPixel, { once: true, passive: true });
+      });
+      // Fallback: load after 4s if no interaction
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(loadFbPixel, { timeout: 4000 });
+      } else {
+        setTimeout(loadFbPixel, 4000);
+      }
+    })();
     </script>
     <noscript><img height="1" width="1" style="display:none"
     src="https://www.facebook.com/tr?id=1238757191757343&ev=PageView&noscript=1"

@@ -159,6 +159,50 @@
   100% { background-position: -200% 0; }
 }
 
+/* -------------------- IN-CARD IMAGE CAROUSEL -------------------- */
+.pc-img-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 25;
+  opacity: 0;
+  padding: 0;
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.2s ease;
+}
+
+.pc-img-arrow:hover {
+  background: #fff;
+  transform: translateY(-50%) scale(1.08);
+}
+
+.pc-img-arrow:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.pc-img-arrow--prev { left: 6px; }
+.pc-img-arrow--next { right: 6px; }
+
+.pc-card:hover .pc-img-arrow { opacity: 1; }
+
+@media (hover: none) {
+  .pc-img-arrow {
+    opacity: 1;
+    width: 26px;
+    height: 26px;
+  }
+}
+
 /* -------------------- TOP BADGES -------------------- */
 .pc-top-badges {
   position: absolute;

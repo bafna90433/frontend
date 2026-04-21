@@ -13,6 +13,8 @@ import {
   Sparkles,
   Tag,
   Clock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import "../styles/ProductCard.css";
 
@@ -122,11 +124,23 @@ const getOptimizedImageUrl = (
   }
 };
 
+// ✅ Build a srcset (200w / 300w / 400w) so mobile downloads smaller images.
+// PageSpeed flagged 245 KiB savings because cards display ~310px but we serve 400px.
+const getSrcSet = (rawUrl: string | undefined): string => {
+  if (!rawUrl) return "";
+  const w1 = getOptimizedImageUrl(rawUrl, 200, 200);
+  const w2 = getOptimizedImageUrl(rawUrl, 300, 300);
+  const w3 = getOptimizedImageUrl(rawUrl, 400, 400);
+  if (!w1 || !w2 || !w3) return "";
+  return `${w1} 200w, ${w2} 300w, ${w3} 400w`;
+};
+
 const ProductCard: React.FC<ProductCardProps> = React.memo(
   ({ product, deal, index = 0 }) => {
     const { cartItems, setCartItemQuantity } = useShop();
     const [imgLoaded, setImgLoaded] = useState(false);
     const [timeLeft, setTimeLeft] = useState<string | null>(null);
+    const [currentImgIdx, setCurrentImgIdx] = useState(0);
 
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
@@ -247,9 +261,44 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
       [product.reviews]
     );
 
-    const imgSrc = useMemo(
-      () => getOptimizedImageUrl(product.images?.[0], IMG_W, IMG_H),
+    const images = useMemo(
+      () => (product.images?.length ? product.images : []),
       [product.images]
+    );
+    const hasMultiple = images.length > 1;
+
+    const imgSrc = useMemo(
+      () => getOptimizedImageUrl(images[currentImgIdx], IMG_W, IMG_H),
+      [images, currentImgIdx]
+    );
+
+    const imgSrcSet = useMemo(
+      () => getSrcSet(images[currentImgIdx]),
+      [images, currentImgIdx]
+    );
+
+    useEffect(() => {
+      setCurrentImgIdx(0);
+    }, [product._id]);
+
+    const goPrev = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImgIdx((i) => (i === 0 ? images.length - 1 : i - 1));
+        setImgLoaded(false);
+      },
+      [images.length]
+    );
+
+    const goNext = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        setCurrentImgIdx((i) => (i === images.length - 1 ? 0 : i + 1));
+        setImgLoaded(false);
+      },
+      [images.length]
     );
 
     const endsAt = deal?.endsAt || product.sale_end_time || null;
@@ -310,6 +359,8 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
 
               <img
                 src={imgSrc}
+                srcSet={imgSrcSet || undefined}
+                sizes="(max-width: 480px) 45vw, (max-width: 768px) 30vw, (max-width: 1200px) 22vw, 200px"
                 alt={product.name}
                 className={`pc-img ${imgLoaded ? "pc-img--loaded" : ""}`}
                 loading={eager ? "eager" : "lazy"}
@@ -324,6 +375,27 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                 }}
                 onContextMenu={(e) => e.preventDefault()}
               />
+
+              {hasMultiple && (
+                <>
+                  <button
+                    className="pc-img-arrow pc-img-arrow--prev"
+                    onClick={goPrev}
+                    aria-label="Previous image"
+                    type="button"
+                  >
+                    <ChevronLeft size={16} strokeWidth={2.5} />
+                  </button>
+                  <button
+                    className="pc-img-arrow pc-img-arrow--next"
+                    onClick={goNext}
+                    aria-label="Next image"
+                    type="button"
+                  >
+                    <ChevronRight size={16} strokeWidth={2.5} />
+                  </button>
+                </>
+              )}
             </div>
 
             {product.mrp && product.mrp > finalPrice && (
