@@ -237,6 +237,8 @@ const Products: React.FC = () => {
   const navigate = useNavigate();
 
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  // ✅ Ref for mobile categories auto-slide
+  const catsScrollRef = useRef<HTMLDivElement | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
@@ -441,6 +443,84 @@ const Products: React.FC = () => {
   useEffect(() => {
     setCurrentPage(1);
   }, [categoryId, searchTerm, sortBy, activePriceFilter]);
+
+  // ══════════════════════════════════════════════════
+  // ✅ AUTO-SLIDE MOBILE CATEGORY STRIP (marquee style)
+  // Pauses on user touch/scroll, resumes after 2.5s idle
+  // ══════════════════════════════════════════════════
+  useEffect(() => {
+    const el = catsScrollRef.current;
+    if (!el) return;
+    // Only run on mobile / touch-capable viewports
+    if (typeof window !== "undefined" && window.matchMedia("(min-width: 1025px)").matches) return;
+    if (categories.length < 4) return; // nothing to slide
+
+    let rafId: number | null = null;
+    let paused = false;
+    let resumeTimer: number | null = null;
+    let lastInteraction = 0;
+    let direction = 1; // 1 = right, -1 = left
+    const SPEED = 0.9; // px per frame ~ 54 px/sec — visible continuous slide
+    const RESUME_AFTER = 5000; // resume 5s after user stops interacting
+
+    const tick = () => {
+      if (!paused && el) {
+        const max = el.scrollWidth - el.clientWidth;
+        if (max <= 0) { rafId = requestAnimationFrame(tick); return; }
+        let next = el.scrollLeft + SPEED * direction;
+        if (next >= max) { next = max; direction = -1; }
+        else if (next <= 0) { next = 0; direction = 1; }
+        el.scrollLeft = next;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    // ✅ Stop instantly on touch/interaction
+    const pause = () => {
+      paused = true;
+      lastInteraction = Date.now();
+      if (resumeTimer) window.clearTimeout(resumeTimer);
+    };
+    // ✅ Schedule resume only after user is idle for RESUME_AFTER ms
+    const scheduleResume = () => {
+      lastInteraction = Date.now();
+      if (resumeTimer) window.clearTimeout(resumeTimer);
+      resumeTimer = window.setTimeout(() => {
+        // Double-check user is still idle
+        if (Date.now() - lastInteraction >= RESUME_AFTER - 50) paused = false;
+      }, RESUME_AFTER);
+    };
+
+    // Touch lifecycle: pause on start, keep paused while moving,
+    // resume only after finger lifts AND 5s of idle
+    el.addEventListener("touchstart", pause, { passive: true });
+    el.addEventListener("touchmove", pause, { passive: true });
+    el.addEventListener("touchend", scheduleResume, { passive: true });
+    el.addEventListener("touchcancel", scheduleResume, { passive: true });
+    // Mouse / wheel interaction
+    el.addEventListener("mousedown", pause, { passive: true });
+    el.addEventListener("mouseup", scheduleResume, { passive: true });
+    el.addEventListener("mouseleave", scheduleResume, { passive: true });
+    el.addEventListener("wheel", pause, { passive: true });
+    // Any manual scroll (keyboard arrow, programmatic) also counts
+    el.addEventListener("scroll", scheduleResume, { passive: true });
+
+    rafId = requestAnimationFrame(tick);
+
+    return () => {
+      if (rafId) cancelAnimationFrame(rafId);
+      if (resumeTimer) window.clearTimeout(resumeTimer);
+      el.removeEventListener("touchstart", pause);
+      el.removeEventListener("touchmove", pause);
+      el.removeEventListener("touchend", scheduleResume);
+      el.removeEventListener("touchcancel", scheduleResume);
+      el.removeEventListener("mousedown", pause);
+      el.removeEventListener("mouseup", scheduleResume);
+      el.removeEventListener("mouseleave", scheduleResume);
+      el.removeEventListener("wheel", pause);
+      el.removeEventListener("scroll", scheduleResume);
+    };
+  }, [categories.length]);
 
   // ══════════════════════════════════════════════════
   // HANDLERS
@@ -1196,7 +1276,7 @@ const Products: React.FC = () => {
         {/* MAIN CONTENT */}
         <main className="sp-main">
           {/* Mobile Horizontal Categories */}
-          <div className="sp-mob-cats">
+          <div className="sp-mob-cats" ref={catsScrollRef}>
             <div className="sp-mob-cats-track">
               {categories.map((cat) => {
                 const isActive =

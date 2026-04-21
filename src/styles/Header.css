@@ -612,7 +612,44 @@ body.dark {
   .bafna-brand__mascot { width: 40px; }
 
   .bafna-center-block { display: none; }
-  .bafna-search-wrap-mobile { display: block; }
+  .bafna-search-wrap-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .bafna-search-wrap-mobile > form { flex: 1; min-width: 0; }
+
+  /* ✅ Back button — shows on every non-home page (mobile) */
+  .bafna-mobile-back {
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 1.5px solid var(--hd-border, #e2e8f0);
+    background: var(--hd-surface, #fff);
+    color: var(--hd-text, #0f172a);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: background .15s ease, transform .15s ease;
+  }
+  .bafna-mobile-back:hover,
+  .bafna-mobile-back:active {
+    background: var(--hd-blight, #f1f5f9);
+    transform: scale(0.95);
+  }
+
+  /* ✅ On compact pages (NOT product details): hide the full header, keep only search row */
+  .bafna-site-header.is-compact-page .bafna-header-main {
+    display: none;
+  }
+  .bafna-site-header.is-compact-page .bafna-search-wrap-mobile {
+    padding: 8px 12px;
+    background: var(--hd-surface, #fff);
+    border-bottom: 1px solid var(--hd-border, #e2e8f0);
+  }
 
   .bafna-user-actions { gap: 4px; }
   .bafna-theme-toggle { width: 34px; height: 34px; }
@@ -665,10 +702,15 @@ body.dark {
   .bafna-cart-link svg { width: 20px; height: 20px; }
   .cart-badge { min-width: 14px; height: 14px; font-size: 8px; top: -5px; right: -6px; }
 
-  .bafna-search-wrap-mobile { padding: 0 8px 6px; }
+  .bafna-search-wrap-mobile { padding: 0 8px 6px; gap: 6px; }
   .bafna-search-wrap-mobile .bafna-search__wrapper { height: 36px; }
   .bafna-search-wrap-mobile .bafna-search__input { font-size: 12px; padding: 0 8px; }
   .bafna-search-wrap-mobile .bafna-search__submit { width: 38px; }
+
+  .bafna-mobile-back { width: 34px; height: 34px; }
+  .bafna-mobile-back svg { width: 18px; height: 18px; }
+
+  .bafna-site-header.is-compact-page .bafna-search-wrap-mobile { padding: 6px 8px; }
 
   .bafna-suggest__item { padding: 6px 10px; gap: 8px; }
   .bafna-suggest__thumb { width: 34px; height: 34px; font-size: 14px; }
@@ -687,10 +729,15 @@ body.dark {
   
   .bafna-theme-toggle { width: 26px; height: 26px; }
 
-  .bafna-search-wrap-mobile { padding: 0 6px 5px; }
+  .bafna-search-wrap-mobile { padding: 0 6px 5px; gap: 5px; }
   .bafna-search-wrap-mobile .bafna-search__wrapper { height: 32px; border-radius: 6px; }
   .bafna-search-wrap-mobile .bafna-search__input { font-size: 11px; }
   .bafna-search-wrap-mobile .bafna-search__submit { width: 32px; }
+
+  .bafna-mobile-back { width: 30px; height: 30px; }
+  .bafna-mobile-back svg { width: 16px; height: 16px; }
+
+  .bafna-site-header.is-compact-page .bafna-search-wrap-mobile { padding: 5px 6px; }
 
   .bafna-suggest__thumb { width: 30px; height: 30px; }
   .bafna-suggest__name { font-size: 10px; }

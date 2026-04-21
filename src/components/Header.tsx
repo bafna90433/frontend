@@ -462,8 +462,23 @@ const Header: React.FC = () => {
     };
   }, []);
 
+  // ✅ Detect current route context (for mobile layout only — desktop untouched)
+  const isHomePage = location.pathname === "/"; // Products.tsx renders here
+  // Full header ONLY on home page; all other pages (including product details) = compact
+  const showFullHeader = isHomePage;
+
+  const handleBack = useCallback(() => {
+    // If there's a history stack, go back; else home
+    if (window.history.length > 1) navigate(-1);
+    else navigate("/");
+  }, [navigate]);
+
   return (
-    <header className={`bafna-site-header ${scrolled ? "is-scrolled" : ""}`}>
+    <header
+      className={`bafna-site-header ${scrolled ? "is-scrolled" : ""} ${
+        showFullHeader ? "is-product-page" : "is-compact-page"
+      }`}
+    >
       <div className="bafna-header-main">
         <div className="bafna-header-container">
           <Link to="/" className="bafna-brand" aria-label="Bafna Toys Home">
@@ -562,6 +577,17 @@ const Header: React.FC = () => {
       </div>
 
       <div className="bafna-search-wrap-mobile">
+        <button
+          type="button"
+          className="bafna-mobile-back"
+          onClick={handleBack}
+          aria-label="Go back"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12" />
+            <polyline points="12 19 5 12 12 5" />
+          </svg>
+        </button>
         <SearchForm
           ref={mobRef} mobile q={q} setQ={setQ} onSubmit={onSubmit} onKeyDown={onKeyDown}
           openSug={openSug} setOpenSug={setOpenSug} loadingSug={loadingSug} sug={sug}

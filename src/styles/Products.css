@@ -540,10 +540,20 @@
 /* ══════════════════════════════════════════
    TABLET (≤1024px)
    ══════════════════════════════════════════ */
-/* GLOW ANIMATION FOR MOBILE CATEGORIES */
-@keyframes mob-cat-glow {
-  0%, 100% { box-shadow: 0 0 4px rgba(249, 115, 22, 0.3); border-color: rgba(249, 115, 22, 0.4); }
-  50% { box-shadow: 0 0 16px rgba(249, 115, 22, 0.85); border-color: var(--sp-accent); }
+/* ✅ PROFESSIONAL PULSE-RING ANIMATION (ripple effect) */
+@keyframes mob-cat-ripple {
+  0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55), 0 2px 8px rgba(0,0,0,0.06); }
+  70%  { box-shadow: 0 0 0 10px rgba(249, 115, 22, 0),    0 2px 8px rgba(0,0,0,0.06); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0),       0 2px 8px rgba(0,0,0,0.06); }
+}
+@keyframes mob-cat-breathe {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.04); }
+}
+@keyframes mob-cat-border-shift {
+  0%   { border-color: rgba(249, 115, 22, 0.35); }
+  50%  { border-color: rgba(5, 150, 105, 0.65); }
+  100% { border-color: rgba(249, 115, 22, 0.35); }
 }
 
 @media (max-width: 1024px) {
@@ -554,16 +564,50 @@
   .sp-mob-only { display: flex !important; }
   .sp-back-btn { display: flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: var(--sp-r-sm); background: var(--sp-surface); border: 1.5px solid var(--sp-border); cursor: pointer; color: var(--sp-text); flex-shrink: 0; }
   .sp-filter-toggle { display: flex !important; align-items: center; gap: 6px; padding: 9px 16px; border: 1.5px solid var(--sp-border); border-radius: var(--sp-r-sm); background: var(--sp-surface); font-size: 13px; font-weight: 700; cursor: pointer; color: var(--sp-text); font-family: inherit; }
-  .sp-mob-cats { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+  .sp-mob-cats { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; scroll-behavior: smooth; }
   .sp-mob-cats::-webkit-scrollbar { display: none; }
-  .sp-mob-cats-track { display: flex; gap: 12px; padding: 16px 0; }
-  .sp-mob-cat { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 0; border: none; background: transparent; font-size: 11px; font-weight: 600; color: var(--sp-text-2); cursor: pointer; flex-shrink: 0; width: 76px; box-shadow: none; font-family: inherit; }
-  .sp-mob-cat-circle { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; display: flex; align-items: center; justify-content: center; border: 2px solid var(--sp-border); background: var(--sp-surface); box-shadow: var(--sp-sh-1); transition: border-color 0.2s var(--sp-ease), box-shadow 0.2s; animation: mob-cat-glow 2s infinite ease-in-out; }
+  .sp-mob-cats-track { display: flex; gap: 14px; padding: 16px 2px; }
+  .sp-mob-cat { display: flex; flex-direction: column; align-items: center; gap: 7px; padding: 0; border: none; background: transparent; font-size: 11px; font-weight: 600; color: var(--sp-text-2); cursor: pointer; flex-shrink: 0; width: 76px; box-shadow: none; font-family: inherit; transition: transform 0.25s var(--sp-ease); }
+  .sp-mob-cat-circle {
+    width: 64px; height: 64px;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(249, 115, 22, 0.35);
+    background: var(--sp-surface);
+    position: relative;
+    transition: border-color 0.25s var(--sp-ease), box-shadow 0.25s, transform 0.25s var(--sp-ease);
+    animation:
+      mob-cat-ripple 2.4s ease-out infinite,
+      mob-cat-breathe 3.2s ease-in-out infinite,
+      mob-cat-border-shift 4s ease-in-out infinite;
+    will-change: transform, box-shadow, border-color;
+  }
+  /* ✅ Staggered pulse — creates a wave of blinks across items (professional) */
+  .sp-mob-cat:nth-child(3n+1) .sp-mob-cat-circle { animation-delay: 0s, 0s, 0s; }
+  .sp-mob-cat:nth-child(3n+2) .sp-mob-cat-circle { animation-delay: 0.4s, 0.6s, 0.8s; }
+  .sp-mob-cat:nth-child(3n+3) .sp-mob-cat-circle { animation-delay: 0.8s, 1.2s, 1.6s; }
   .sp-mob-cat-circle img { width: 100%; height: 100%; object-fit: cover; }
   .sp-mob-cat > span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; text-align: center; line-height: 1.2; width: 100%; transition: color 0.2s var(--sp-ease); }
+  .sp-mob-cat:active { transform: scale(0.94); }
   .sp-mob-cat.active { background: transparent; box-shadow: none; border: none; }
-  .sp-mob-cat.active .sp-mob-cat-circle { border-color: var(--sp-primary); box-shadow: 0 4px 12px rgba(5, 150, 105, 0.2); animation: none; }
+  .sp-mob-cat.active .sp-mob-cat-circle {
+    border-color: var(--sp-primary);
+    box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28);
+    animation: none;
+    transform: scale(1.05);
+  }
   .sp-mob-cat.active > span { color: var(--sp-primary); font-weight: 700; }
+
+  /* Pause all animations when user is interacting with the strip */
+  .sp-mob-cats:hover .sp-mob-cat-circle,
+  .sp-mob-cats:focus-within .sp-mob-cat-circle { animation-play-state: paused; }
+
+  /* Respect reduced-motion preference */
+  @media (prefers-reduced-motion: reduce) {
+    .sp-mob-cat-circle { animation: none !important; }
+    .sp-mob-cats { scroll-behavior: auto; }
+  }
   .sp-toolbar { padding: 12px 20px; gap: 16px; border-radius: var(--sp-r-md); }
   .sp-toolbar-title { font-size: 16px; }
   .sp-toolbar-count { font-size: 12px; }
