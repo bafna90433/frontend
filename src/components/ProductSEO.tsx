@@ -9,6 +9,7 @@ type ProductSEOProps = {
   url: string;
   sku?: string;
   category?: string;
+  categoryId?: string; // ✅ NEW — enables BreadcrumbList schema
   stock?: number;
   rating?: number;
   reviews?: number;
@@ -24,16 +25,21 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
   url,
   sku,
   category,
+  categoryId,
   stock,
   rating,
   reviews,
 }) => {
   // 1. Strings ko define kiya
-  const seoTitle = `${name} | Wholesale Toy Supplier - Bafna Toys`;
+  // ✅ Enhanced title template — captures long-tail "wholesale price" queries
+  const seoTitle =
+    typeof price === "number" && price > 0
+      ? `${name} — Wholesale Price ₹${price} | Bafna Toys`
+      : `${name} | Wholesale Toy Supplier - Bafna Toys`;
   const seoDescription =
     description ||
     `Buy ${name} wholesale from Bafna Toys, Coimbatore. Available in bulk at the best wholesale prices for shops and distributors in India.`;
-  const seoKeywords = `wholesale ${name}, bulk ${name}, ${name} supplier India, Bafna Toys wholesale`;
+  const seoKeywords = `wholesale ${name}, bulk ${name}, ${name} supplier India, ${name} wholesale price, Bafna Toys wholesale`;
 
   let seoImage = "https://bafnatoys.com/logo.webp";
   if (image) {
@@ -125,6 +131,39 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
     return schema;
   }, [name, seoDescription, seoImage, url, sku, category, price, stock, rating, reviews]); // Dependencies
 
+  // ✅ NEW: BreadcrumbList schema — Google SERP shows breadcrumb trail above product link,
+  // boosting click-through-rate. Gracefully falls back to Home > Product if no category.
+  const breadcrumbSchema = useMemo(() => {
+    const items: Array<Record<string, any>> = [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: "https://bafnatoys.com/",
+      },
+    ];
+    if (category && categoryId) {
+      items.push({
+        "@type": "ListItem",
+        position: 2,
+        name: category,
+        item: `https://bafnatoys.com/?category=${encodeURIComponent(categoryId)}`,
+      });
+    }
+    items.push({
+      "@type": "ListItem",
+      position: items.length + 1,
+      name,
+      item: url,
+    });
+
+    return {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: items,
+    };
+  }, [name, url, category, categoryId]);
+
   return (
     <Helmet>
       {/* Primary Meta */}
@@ -159,9 +198,15 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
       <meta name="twitter:image" content={seoImage} />
 
       {/* 4. BUG FIX: Safe injection using dangerouslySetInnerHTML */}
-      <script 
-        type="application/ld+json" 
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }} 
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+
+      {/* ✅ SEO: BreadcrumbList schema — Google renders breadcrumb trail in SERP */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
     </Helmet>
   );

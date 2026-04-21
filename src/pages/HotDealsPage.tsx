@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Helmet } from "react-helmet-async";
 import api from "../utils/api";
 import ProductCard from "../components/ProductCard";
 import "../styles/HotDealsPage.css";
 // 👇 Floating Button Import yahan add kiya hai
-import FloatingCheckoutButton from "../components/FloatingCheckoutButton"; 
+import FloatingCheckoutButton from "../components/FloatingCheckoutButton";
 
 type DealType = "PERCENT" | "FLAT" | "NONE";
 
@@ -144,6 +145,31 @@ const HotDealsPage: React.FC = () => {
 
   return (
     <div className="hd-page">
+      {/* ✅ SEO: Per-page meta tags for Hot Deals — captures high-intent queries
+          like "toy wholesale discount", "bafna toys offer" */}
+      <Helmet>
+        <title>Hot Deals on Wholesale Toys — Bafna Toys</title>
+        <meta
+          name="description"
+          content="Limited-time wholesale discounts on PVC dolls, pullback cars, windup toys, educational toys and more. Factory-direct prices from Bafna Toys, Coimbatore."
+        />
+        <meta name="keywords" content="wholesale toy deals, bulk toy discount, toy offers India, Bafna Toys hot deals, cheap wholesale toys" />
+        <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+        <link rel="canonical" href="https://bafnatoys.com/hot-deals" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Bafna Toys" />
+        <meta property="og:title" content="Hot Deals on Wholesale Toys — Bafna Toys" />
+        <meta property="og:description" content="Limited-time factory-direct wholesale discounts on toys. Grab the best deals before they are gone." />
+        <meta property="og:url" content="https://bafnatoys.com/hot-deals" />
+        <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="Hot Deals on Wholesale Toys — Bafna Toys" />
+        <meta name="twitter:description" content="Limited-time factory-direct wholesale discounts on toys." />
+        <meta name="twitter:image" content="https://bafnatoys.com/logo.webp" />
+      </Helmet>
+
       <div className="hd-pageInner">
         <section className="hd-hero">
           <div className="hd-heroBadge">Limited Time Offers</div>

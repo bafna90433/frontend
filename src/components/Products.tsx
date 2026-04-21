@@ -647,6 +647,33 @@ const Products: React.FC = () => {
     [displayed, currentPage]
   );
 
+  // ✅ SEO: ItemList schema — signals to Google this page lists multiple products,
+  // helps collection pages appear as "site links" in brand searches & boosts indexing
+  const itemListSchema = useMemo(() => {
+    const top = paginated.slice(0, 10);
+    if (!top.length) return null;
+    return {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      itemListElement: top.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `https://bafnatoys.com/product/${p.slug || p._id}`,
+        name: p.name,
+      })),
+    };
+  }, [paginated]);
+
+  // Items for CategorySEO prop (mainEntity ItemList)
+  const categoryItems = useMemo(
+    () =>
+      paginated.slice(0, 10).map((p) => ({
+        name: p.name,
+        url: `https://bafnatoys.com/product/${p.slug || p._id}`,
+      })),
+    [paginated]
+  );
+
   const getPages = useCallback(() => {
     const p: (number | string)[] = [];
     for (let i = 1; i <= totalPages; i++) {
@@ -710,6 +737,13 @@ const Products: React.FC = () => {
           <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
 
           <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }} />
+          {/* ✅ SEO: ItemList schema — helps Google understand this page lists multiple products */}
+          {itemListSchema && (
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
+            />
+          )}
         </Helmet>
       ) : (
         <CategorySEO
@@ -717,7 +751,7 @@ const Products: React.FC = () => {
           description={`Buy bulk toys at wholesale prices from India's leading B2B toy supplier. ${catName ? `Explore our ${catName} collection.` : ''}`}
           keywords={`wholesale toys, bulk toys, B2B toys India${catName ? `, wholesale ${catName}` : ''}`}
           url={`https://bafnatoys.com${location.pathname}${location.search}`}
-          jsonLd={{}}
+          items={categoryItems}
         />
       )}
 

@@ -566,6 +566,7 @@ const ProductDetails: React.FC = () => {
         url={window.location.href}
         sku={product.sku}
         category={product.category?.name}
+        categoryId={product.category?._id}
         stock={product.stock}
         rating={product.rating}
         reviews={product.reviews}

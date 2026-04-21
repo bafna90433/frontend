@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { Helmet } from 'react-helmet-async';
 
 interface FAQItem {
   question: string;
@@ -361,6 +362,23 @@ const FAQ: React.FC = () => {
     setOpenIndex(openIndex === index ? null : index);
   };
 
+  // ✅ SEO: FAQPage JSON-LD schema — Google renders expandable Q&A rich snippet in SERP
+  const faqSchema = useMemo(
+    () => ({
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: faqData.map((f) => ({
+        '@type': 'Question',
+        name: f.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: f.answers.join(' ') + (f.note ? ' ' + f.note : ''),
+        },
+      })),
+    }),
+    []
+  );
+
   const filteredData = faqData
     .map((item, originalIndex) => ({ ...item, originalIndex }))
     .filter(
@@ -372,6 +390,43 @@ const FAQ: React.FC = () => {
 
   return (
     <>
+      {/* ✅ SEO: Per-page meta + FAQPage schema for Google rich snippets */}
+      <Helmet>
+        <title>FAQ — Wholesale Toy Orders | Bafna Toys</title>
+        <meta
+          name="description"
+          content="Answers about wholesale toy orders from Bafna Toys: GST invoice, shipping across India, COD, minimum order quantity, returns, pricing & more."
+        />
+        <meta
+          name="keywords"
+          content="wholesale toy FAQ, bulk toy order India, GST invoice toys, toy shipping India, Bafna Toys MOQ"
+        />
+        <meta name="robots" content="index, follow, max-snippet:-1" />
+        <link rel="canonical" href="https://bafnatoys.com/faq" />
+
+        <meta property="og:type" content="website" />
+        <meta property="og:site_name" content="Bafna Toys" />
+        <meta property="og:title" content="FAQ — Wholesale Toy Orders | Bafna Toys" />
+        <meta
+          property="og:description"
+          content="Common questions about wholesale toy ordering, shipping, COD, GST invoice and MOQ."
+        />
+        <meta property="og:url" content="https://bafnatoys.com/faq" />
+        <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content="FAQ — Wholesale Toy Orders | Bafna Toys" />
+        <meta
+          name="twitter:description"
+          content="Common questions about wholesale toy ordering, shipping, COD, GST invoice and MOQ."
+        />
+
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
+        />
+      </Helmet>
+
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
