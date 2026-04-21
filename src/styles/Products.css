@@ -313,6 +313,113 @@
 .sp-banner-skeleton, .sp-banner-wrap { width: 100%; padding: 24px 32px; }
 
 /* ══════════════════════════════════════════
+   BAFNA DAILY STICKY FLOATING BANNER
+   ══════════════════════════════════════════ */
+
+/* Fixed container — always visible, bottom-right corner */
+.sp-bd-sticky-wrap {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 9990;
+  width: 240px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12);
+  animation: bd-sticky-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  border: 2px solid rgba(255,255,255,0.8);
+}
+@keyframes bd-sticky-in {
+  from { opacity: 0; transform: translateY(30px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);   }
+}
+
+/* Close button */
+.sp-bd-sticky-close {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  z-index: 2;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.55);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.2s;
+  backdrop-filter: blur(4px);
+}
+.sp-bd-sticky-close:hover { background: rgba(0,0,0,0.8); transform: scale(1.15); }
+
+/* Anchor wraps the image */
+.sp-bd-sticky-link {
+  display: block;
+  text-decoration: none;
+  position: relative;
+}
+.sp-bd-sticky-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 653 / 391;
+  object-fit: cover;
+  transition: transform 0.35s ease;
+}
+.sp-bd-sticky-wrap:hover .sp-bd-sticky-img { transform: scale(1.04); }
+
+/* Label bar at bottom of image */
+.sp-bd-sticky-label {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.72) 0%, transparent 100%);
+  padding: 18px 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.sp-bd-sticky-title {
+  font-size: 14px;
+  font-weight: 900;
+  color: white;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  font-family: var(--sp-font);
+}
+.sp-bd-sticky-sub {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: rgba(255,255,255,0.75);
+  font-family: var(--sp-font);
+}
+
+/* Mobile — smaller, bottom-center */
+@media (max-width: 768px) {
+  .sp-bd-sticky-wrap {
+    width: 180px;
+    bottom: 80px; /* above mobile nav bar */
+    right: 12px;
+    border-radius: 12px;
+  }
+  .sp-bd-sticky-title { font-size: 12px; }
+  .sp-bd-sticky-sub   { font-size: 9px; }
+}
+@media (max-width: 480px) {
+  .sp-bd-sticky-wrap {
+    width: 150px;
+    bottom: 76px;
+    right: 8px;
+  }
+}
+
+/* ══════════════════════════════════════════
    LAYOUT & SIDEBAR
    ══════════════════════════════════════════ */
 .sp-layout { display: flex; gap: 28px; width: 100%; padding: 0 32px; align-items: flex-start; position: relative; }
