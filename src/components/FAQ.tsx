@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Helmet } from 'react-helmet-async';
+import JsonLd from './JsonLd';
 
 interface FAQItem {
   question: string;
@@ -420,12 +421,10 @@ const FAQ: React.FC = () => {
           name="twitter:description"
           content="Common questions about wholesale toy ordering, shipping, COD, GST invoice and MOQ."
         />
-
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }}
-        />
       </Helmet>
+
+      {/* ✅ JSON-LD via direct DOM injection (bypasses react-helmet-async bug) */}
+      <JsonLd id="faq" data={faqSchema} />
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');

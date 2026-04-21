@@ -14,6 +14,7 @@ import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
 import "../styles/Products.css";
 import CategorySEO from "./CategorySEO";
+import JsonLd from "./JsonLd";
 import {
   X,
   ChevronRight,
@@ -723,28 +724,25 @@ const Products: React.FC = () => {
     >
       {/* ✅ SEO LOGIC */}
       {isHomePage ? (
-        <Helmet>
-          <title>Top Toy Manufacturers in India | Wholesale Toys Supplier - Bafna Toys</title>
-          <meta name="description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys, pullback cars, dolls, and more at factory prices." />
-          <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
-          <link rel="canonical" href="https://bafnatoys.com/" />
-          
-          <meta property="og:type" content="website" />
-          <meta property="og:site_name" content="Bafna Toys" />
-          <meta property="og:title" content="Top Toy Manufacturers in India | Wholesale Toys - Bafna Toys" />
-          <meta property="og:description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys at factory prices." />
-          <meta property="og:url" content="https://bafnatoys.com/" />
-          <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+        <>
+          <Helmet>
+            <title>Top Toy Manufacturers in India | Wholesale Toys Supplier - Bafna Toys</title>
+            <meta name="description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys, pullback cars, dolls, and more at factory prices." />
+            <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
+            <link rel="canonical" href="https://bafnatoys.com/" />
 
-          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(rootSchema) }} />
-          {/* ✅ SEO: ItemList schema — helps Google understand this page lists multiple products */}
-          {itemListSchema && (
-            <script
-              type="application/ld+json"
-              dangerouslySetInnerHTML={{ __html: JSON.stringify(itemListSchema) }}
-            />
-          )}
-        </Helmet>
+            <meta property="og:type" content="website" />
+            <meta property="og:site_name" content="Bafna Toys" />
+            <meta property="og:title" content="Top Toy Manufacturers in India | Wholesale Toys - Bafna Toys" />
+            <meta property="og:description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys at factory prices." />
+            <meta property="og:url" content="https://bafnatoys.com/" />
+            <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+          </Helmet>
+
+          {/* ✅ JSON-LD via direct DOM injection (bypasses react-helmet-async bug) */}
+          <JsonLd id="home-website" data={rootSchema} />
+          <JsonLd id="home-itemlist" data={itemListSchema} />
+        </>
       ) : (
         <CategorySEO
           title={seoTitle}

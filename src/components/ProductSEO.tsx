@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 import { Helmet } from "react-helmet-async";
+import JsonLd from "./JsonLd";
 
 type ProductSEOProps = {
   name: string;
@@ -165,50 +166,44 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
   }, [name, url, category, categoryId]);
 
   return (
-    <Helmet>
-      {/* Primary Meta */}
-      <title>{seoTitle}</title>
-      <meta name="description" content={seoDescription} />
-      <meta name="keywords" content={seoKeywords} />
-      
-      {/* 3. SEO Fix: Image Preview directive for Google Discover/Images */}
-      <meta name="robots" content="index, follow, max-image-preview:large" />
-      <link rel="canonical" href={url} />
+    <>
+      <Helmet>
+        {/* Primary Meta */}
+        <title>{seoTitle}</title>
+        <meta name="description" content={seoDescription} />
+        <meta name="keywords" content={seoKeywords} />
 
-      {/* Open Graph */}
-      <meta property="og:type" content="product" />
-      <meta property="og:site_name" content="Bafna Toys" />
-      <meta property="og:title" content={seoTitle} />
-      <meta property="og:description" content={seoDescription} />
-      <meta property="og:url" content={url} />
-      <meta property="og:image" content={seoImage} />
-      <meta property="og:image:secure_url" content={seoImage} />
+        {/* 3. SEO Fix: Image Preview directive for Google Discover/Images */}
+        <meta name="robots" content="index, follow, max-image-preview:large" />
+        <link rel="canonical" href={url} />
 
-      {typeof price === "number" && price > 0 && (
-        <meta property="product:price:amount" content={price.toString()} />
-      )}
-      {typeof price === "number" && price > 0 && (
-        <meta property="product:price:currency" content="INR" />
-      )}
+        {/* Open Graph */}
+        <meta property="og:type" content="product" />
+        <meta property="og:site_name" content="Bafna Toys" />
+        <meta property="og:title" content={seoTitle} />
+        <meta property="og:description" content={seoDescription} />
+        <meta property="og:url" content={url} />
+        <meta property="og:image" content={seoImage} />
+        <meta property="og:image:secure_url" content={seoImage} />
 
-      {/* Twitter */}
-      <meta name="twitter:card" content="summary_large_image" />
-      <meta name="twitter:title" content={seoTitle} />
-      <meta name="twitter:description" content={seoDescription} />
-      <meta name="twitter:image" content={seoImage} />
+        {typeof price === "number" && price > 0 && (
+          <meta property="product:price:amount" content={price.toString()} />
+        )}
+        {typeof price === "number" && price > 0 && (
+          <meta property="product:price:currency" content="INR" />
+        )}
 
-      {/* 4. BUG FIX: Safe injection using dangerouslySetInnerHTML */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
-      />
+        {/* Twitter */}
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoTitle} />
+        <meta name="twitter:description" content={seoDescription} />
+        <meta name="twitter:image" content={seoImage} />
+      </Helmet>
 
-      {/* ✅ SEO: BreadcrumbList schema — Google renders breadcrumb trail in SERP */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
-      />
-    </Helmet>
+      {/* ✅ JSON-LD injected via direct DOM (bypasses react-helmet-async script bug) */}
+      <JsonLd id="product" data={productSchema} />
+      <JsonLd id="product-breadcrumb" data={breadcrumbSchema} />
+    </>
   );
 };
 
