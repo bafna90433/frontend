@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useRef } from "react";
 import axios from "axios";
 
 // ✅ API Base URL
@@ -75,6 +75,50 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
   // Sync Cart to LocalStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cartItems));
+  }, [cartItems]);
+
+  // ✅ ABANDONED CART SYNC: push snapshot to backend (debounced 2s)
+  // Only runs for logged-in users (token present). Fails silently on error
+  // so cart UX never breaks.
+  const abandonSyncTimer = useRef<number | null>(null);
+  const abandonFirstRun = useRef(true);
+  useEffect(() => {
+    // Skip the very first render — avoids double-sync on page load
+    if (abandonFirstRun.current) {
+      abandonFirstRun.current = false;
+      return;
+    }
+    const token = localStorage.getItem("token");
+    if (!token) return; // guest — nothing to sync
+
+    if (abandonSyncTimer.current) {
+      window.clearTimeout(abandonSyncTimer.current);
+    }
+    abandonSyncTimer.current = window.setTimeout(() => {
+      const payload = {
+        items: cartItems.map((it) => ({
+          productId: it._id,
+          name: it.name,
+          price: it.price,
+          quantity: it.quantity,
+          image: it.image || it.images?.[0] || "",
+          slug: (it as any).slug || "",
+        })),
+      };
+      axios
+        .post(`${API_BASE}/abandoned-cart/sync`, payload, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .catch(() => {
+          /* silent — never break UX */
+        });
+    }, 2000);
+
+    return () => {
+      if (abandonSyncTimer.current) {
+        window.clearTimeout(abandonSyncTimer.current);
+      }
+    };
   }, [cartItems]);
 
   // Sync Wishlist to LocalStorage

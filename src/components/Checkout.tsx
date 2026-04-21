@@ -374,6 +374,8 @@ const Checkout: React.FC = () => {
         }
         
         setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
+        // ✅ Mark abandoned cart as recovered (silent — never break UX)
+        api.post("/abandoned-cart/recovered", { orderId: data.order?._id }).catch(() => {});
       } catch { alert("Failed to place order."); } finally { setPlacing(false); }
       return;
     }
@@ -405,6 +407,8 @@ const Checkout: React.FC = () => {
             }
 
             setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
+            // ✅ Mark abandoned cart as recovered (silent — never break UX)
+            api.post("/abandoned-cart/recovered", { orderId: data.order?._id }).catch(() => {});
           } catch { alert("Order creation failed."); } finally { setPlacing(false); }
         },
         prefill: { name: selectedAddress.fullName, contact: selectedAddress.phone, email: user.email || "" },
