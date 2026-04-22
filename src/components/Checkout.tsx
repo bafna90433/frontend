@@ -372,6 +372,14 @@ const Checkout: React.FC = () => {
         if (typeof window !== "undefined" && (window as any).fbq) {
           (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
         }
+
+        // ✅ Google Ads Purchase Conversion
+        if (typeof window !== "undefined" && (window as any).gtag) {
+          (window as any).gtag('event', 'conversion', {
+            'send_to': 'AW-18035825878/KvU7CL6Ky6AcENa5k5hD',
+            'transaction_id': orderNum || ''
+          });
+        }
         
         setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
         // ✅ Mark abandoned cart as recovered (silent — never break UX)
@@ -404,6 +412,14 @@ const Checkout: React.FC = () => {
             
             if (typeof window !== "undefined" && (window as any).fbq) {
               (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
+            }
+
+            // ✅ Google Ads Purchase Conversion
+            if (typeof window !== "undefined" && (window as any).gtag) {
+              (window as any).gtag('event', 'conversion', {
+                'send_to': 'AW-18035825878/KvU7CL6Ky6AcENa5k5hD',
+                'transaction_id': orderNum || ''
+              });
             }
 
             setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
