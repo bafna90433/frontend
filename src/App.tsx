@@ -114,14 +114,17 @@ const PageTracker = () => {
 };
 
 // --- LAYOUT WRAPPER ---
-const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
+const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }> = ({
   children,
+  forceLogin,
 }) => {
   const location = useLocation();
   const user = localStorage.getItem("user");
   const { cartTotal, freeShippingThreshold } = useShop();
 
-  const publicPaths = [
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+
+  let publicPaths = [
     "/",
     "/products",
     "/hot-deals",
@@ -134,17 +137,22 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
     "/faq",
   ];
 
+  // If forceLogin is true, remove homepage and products from public paths
+  if (forceLogin) {
+    publicPaths = publicPaths.filter(p => !["/", "/products", "/hot-deals"].includes(p));
+  }
+
   const isPublicPage =
     publicPaths.includes(location.pathname) ||
-    location.pathname.startsWith("/product/");
+    (!forceLogin && location.pathname.startsWith("/product/"));
 
   if (!user && !isPublicPage) {
-    return <Navigate to="/register" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return (
     <>
-      <Header />
+      {!isAuthPage && <Header />}
       <main 
         style={{ 
           paddingBottom: "60px", 
@@ -159,39 +167,50 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode }> = ({
       </main>
 
       {/* Non-critical elements lazy loaded */}
-      <Suspense fallback={null}>
-        <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
-        <WhatsAppButton />
-        <Chatbot /> {/* ✅ Added Chatbot here */}
-        <BottomNav />
-      </Suspense>
+      {!isAuthPage && (
+        <Suspense fallback={null}>
+          <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
+          <WhatsAppButton />
+          <Chatbot />
+          <BottomNav />
+        </Suspense>
+      )}
     </>
   );
 };
 
 const AppInner: React.FC = () => {
   const [isMaintenance, setIsMaintenance] = useState(false);
+  const [forceLogin, setForceLogin] = useState(false);
   const [loadingCheck, setLoadingCheck] = useState(true);
 
-  // Maintenance Check
+  // Maintenance & Settings Check
   useEffect(() => {
-    const checkMaintenance = async () => {
+    const fetchSettings = async () => {
       try {
-        const res = await axios.get(`${API_BASE_URL}/settings/maintenance`);
         const isLocal =
           window.location.hostname === "localhost" ||
           window.location.hostname === "127.0.0.1";
 
-        if (res.data && res.data.enabled && !isLocal) {
+        const [maintRes, forceRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/settings/maintenance`).catch(() => null),
+          axios.get(`${API_BASE_URL}/settings/force-login`).catch(() => null)
+        ]);
+
+        if (maintRes?.data?.enabled && !isLocal) {
           setIsMaintenance(true);
         }
+        
+        if (forceRes?.data?.enabled) {
+          setForceLogin(true);
+        }
       } catch (error) {
-        console.error("Maintenance check failed", error);
+        console.error("Settings check failed", error);
       } finally {
         setLoadingCheck(false);
       }
     };
-    checkMaintenance();
+    fetchSettings();
   }, []);
 
   // Socket Connection (Deferred)
@@ -225,7 +244,7 @@ const AppInner: React.FC = () => {
 
       <Routes>
         <Route path="/*" element={
-          <LayoutWrapper>
+          <LayoutWrapper forceLogin={forceLogin}>
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Products />} />

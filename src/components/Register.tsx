@@ -4,8 +4,8 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import {
   MapPin, Store, Smartphone, MessageCircle, ArrowRight,
-  ShieldCheck, Lock, CheckCircle, Package, Truck, Award,
-  Zap, Star, Users, UploadCloud
+  ShieldCheck, Lock, Package, Truck, Award,
+  Zap, Star, Users
 } from "lucide-react";
 import "../styles/AuthStyles.css";
 
@@ -97,12 +97,6 @@ const Register: React.FC = () => {
     if (errors[name]) deleteError(name);
   };
 
-  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setGstDocument(e.target.files[0]);
-    }
-  };
-
   const handleOtpChange = (index: number, e: ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value.replace(/\D/g, "");
     if (!val && e.target.value !== "") return;
@@ -152,16 +146,10 @@ const Register: React.FC = () => {
       formData.append("whatsapp", wa91);
       formData.append("address", fullAddress);
       
-      // Send GST Number to backend if provided
       if (form.gstNumber) {
           formData.append("gstNumber", form.gstNumber);
       }
       
-      // Send document only if exists
-      if (gstDocument) {
-        formData.append("gstDocument", gstDocument);
-      }
-
       const res = await axios.post(`${API_BASE}/registrations/register`, formData, { headers: { "Content-Type": "multipart/form-data" } });
       setLoading(false);
       
@@ -170,11 +158,9 @@ const Register: React.FC = () => {
       const newUser = res.data?.user || { name: form.shopName, phone, role: "customer", isApproved: true, _id: res.data?._id || "" };
       newUser.isApproved = true;
       localStorage.setItem("user", JSON.stringify(newUser));
-
       window.dispatchEvent(new Event("storage"));
 
       Swal.fire({ title: "Success!", text: "Registration Complete", icon: "success", timer: 2000, showConfirmButton: false });
-      
       setTimeout(() => { navigate("/"); }, 1500);
       
     } catch (err: any) { setLoading(false); Swal.fire("Error", err.response?.data?.message || "Failed", "error"); }
@@ -182,56 +168,130 @@ const Register: React.FC = () => {
 
   return (
     <div className="au-page">
-      {/* ── Left ── */}
-      <div className="au-left au-left--reg">
-        <div className="au-left-inner">
-          <div className="au-logo">🧸 Bafna Toys</div>
-          <h1 className="au-left-title">Start Your<br />Toy Business</h1>
-          <p className="au-left-sub">Join 4,900+ retailers who trust Bafna Toys for quality wholesale toys at best prices.</p>
+      {/* ── Left Panel (Hero) ── */}
+      <div className="au-left">
+        <div className="au-logo-wrap">
+          <div className="au-logo-icon">🧸</div>
+          <div className="au-logo-text">Bafna Toys</div>
+        </div>
 
-          <div className="au-features">
-            <div className="au-feature"><div className="au-feature-icon"><Zap size={18} /></div><div><strong>Quick Setup</strong><span>Register in 2 minutes</span></div></div>
-            <div className="au-feature"><div className="au-feature-icon"><Package size={18} /></div><div><strong>400+ Products</strong><span>Huge toy catalog</span></div></div>
-            <div className="au-feature"><div className="au-feature-icon"><Truck size={18} /></div><div><strong>All India Delivery</strong><span>Free above ₹5000</span></div></div>
-            <div className="au-feature"><div className="au-feature-icon"><Award size={18} /></div><div><strong>50%+ Off MRP</strong><span>Best wholesale prices</span></div></div>
+        <div className="au-left-content">
+          <div className="au-badge">B2B Registration</div>
+          <h1 className="au-left-title">
+            <span>India's Leading</span>
+            <span>Toys Manufacturers</span>
+          </h1>
+          <p className="au-left-sub">
+            Join 4,900+ retailers who trust Bafna Toys for quality wholesale toys at best prices.
+          </p>
+
+          <div className="au-features-grid">
+             <div className="au-feature-card">
+              <div className="au-f-icon"><Zap size={20} /></div>
+              <div className="au-f-text">
+                <strong>Quick Setup</strong>
+                <span>Register in 2 minutes</span>
+              </div>
+            </div>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Truck size={20} /></div>
+              <div className="au-f-text">
+                <strong>Free Delivery</strong>
+                <span>Orders ₹3000+</span>
+              </div>
+            </div>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><ShieldCheck size={20} /></div>
+              <div className="au-f-text">
+                <strong>BIS Certified</strong>
+                <span>All Products Tested</span>
+              </div>
+            </div>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Package size={20} /></div>
+              <div className="au-f-text">
+                <strong>400+ Products</strong>
+                <span>Wide Range of Toys</span>
+              </div>
+            </div>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Award size={20} /></div>
+              <div className="au-f-text">
+                <strong>Best Wholesale Prices</strong>
+                <span>Direct from Factory</span>
+              </div>
+            </div>
           </div>
 
-          <div className="au-left-trust"><Users size={14} /> 4,900+ Verified Retailers</div>
+          <div className="au-trust-pill">
+            <Users size={14} />
+            4,900+ Verified Retailers
+          </div>
         </div>
-        <div className="au-left-deco au-left-deco--1" />
-        <div className="au-left-deco au-left-deco--2" />
       </div>
 
-      {/* ── Right ── */}
+      {/* ── Right Panel (Form) ── */}
       <div className="au-right">
-        <div className="au-card">
-          <div className="au-card-head">
+        <div className="au-form-card">
+          {loading && (
+            <div className="au-loading-overlay">
+              <div className="au-spinner" />
+            </div>
+          )}
+
+          <div className="au-card-header">
             <h2>Create Account</h2>
             <p>Set up your wholesale business profile</p>
           </div>
 
-          {/* Steps indicator */}
-          <div className="au-steps">
-            {["Business Info", "Address", "Verify"].map((label, i) => (
-              <div key={i} className={`au-step ${step > i + 1 ? "au-step--done" : step === i + 1 ? "au-step--active" : ""}`}>
-                <div className="au-step-dot">{step > i + 1 ? <CheckCircle size={14} /> : i + 1}</div>
-                <span>{label}</span>
-              </div>
-            ))}
+          <div className="au-steps-nav">
+            <div className={`au-step-item ${step >= 1 ? "au-step-item--active" : ""} ${step > 1 ? "au-step-item--done" : ""}`} />
+            <div className={`au-step-item ${step >= 2 ? "au-step-item--active" : ""} ${step > 2 ? "au-step-item--done" : ""}`} />
+            <div className={`au-step-item ${step >= 3 ? "au-step-item--active" : ""} ${step > 3 ? "au-step-item--done" : ""}`} />
           </div>
 
-          {/* Step 1: Business Info */}
           {step === 1 && (
             <div className="au-step-body">
-              
               <div className="au-field">
-                <label>GST Number (Optional)</label>
-                <div className="au-input-wrap">
-                  <ShieldCheck size={18} className="au-input-icon" />
+                <label className="au-label">Shop / Business Name</label>
+                <div className="au-input-container">
+                  <Store size={18} className="au-i-icon" />
+                  <input className={`au-input ${errors.shopName ? "au-input--err" : ""}`} name="shopName" placeholder="e.g. Rahul General Store" value={form.shopName} onChange={handleChange} />
+                </div>
+                {errors.shopName && <span className="au-err">{errors.shopName}</span>}
+              </div>
+
+              <div className="au-field">
+                <label className="au-label">Mobile Number</label>
+                <div className="au-input-container">
+                  <Smartphone size={18} className="au-i-icon" />
+                  <input className={`au-input ${errors.otpMobile ? "au-input--err" : ""}`} name="otpMobile" placeholder="10-digit mobile" value={form.otpMobile} onChange={handleChange} type="tel" maxLength={10} />
+                </div>
+                {errors.otpMobile && <span className="au-err">{errors.otpMobile}</span>}
+              </div>
+
+              <div className="au-field">
+                <label className="au-label">WhatsApp Number</label>
+                <div className="au-input-container">
+                  <MessageCircle size={18} className="au-i-icon" />
+                  <input
+                    className={`au-input ${errors.whatsapp ? "au-input--err" : ""}`}
+                    name="whatsapp" placeholder="91XXXXXXXXXX" value={form.whatsapp} onChange={handleChange}
+                    onFocus={() => { if (!form.whatsapp) setForm(p => ({ ...p, whatsapp: "91" })); }}
+                    type="tel" maxLength={12}
+                  />
+                </div>
+                {errors.whatsapp && <span className="au-err">{errors.whatsapp}</span>}
+              </div>
+
+              <div className="au-field">
+                <label className="au-label">GST Number (Optional)</label>
+                <div className="au-input-container">
+                  <ShieldCheck size={18} className="au-i-icon" />
                   <input 
                     className={`au-input ${errors.gstNumber ? "au-input--err" : ""}`} 
                     name="gstNumber" 
-                    placeholder="Enter 15-digit GSTIN" 
+                    placeholder="15-digit GSTIN" 
                     value={form.gstNumber?.toUpperCase() || ""} 
                     onChange={handleChange} 
                     maxLength={15}
@@ -241,124 +301,66 @@ const Register: React.FC = () => {
                 {errors.gstNumber && <span className="au-err">{errors.gstNumber}</span>}
               </div>
 
-              <div className="au-field">
-                <label>Shop / Business Name</label>
-                <div className="au-input-wrap">
-                  <Store size={18} className="au-input-icon" />
-                  <input className={`au-input ${errors.shopName ? "au-input--err" : ""}`} name="shopName" placeholder="e.g. Rahul General Store" value={form.shopName} onChange={handleChange} />
-                </div>
-                {errors.shopName && <span className="au-err">{errors.shopName}</span>}
-              </div>
-
-              <div className="au-field">
-                <label>Mobile Number</label>
-                <div className="au-input-wrap">
-                  <Smartphone size={18} className="au-input-icon" />
-                  <input className={`au-input ${errors.otpMobile ? "au-input--err" : ""}`} name="otpMobile" placeholder="10-digit mobile" value={form.otpMobile} onChange={handleChange} type="tel" maxLength={10} />
-                </div>
-                {errors.otpMobile && <span className="au-err">{errors.otpMobile}</span>}
-              </div>
-
-              <div className="au-field">
-                <label>WhatsApp Number</label>
-                <div className="au-input-wrap">
-                  <MessageCircle size={18} className="au-input-icon" />
-                  <input
-                    className={`au-input ${errors.whatsapp ? "au-input--err" : ""}`}
-                    name="whatsapp" placeholder="91XXXXXXXXXX" value={form.whatsapp} onChange={handleChange}
-                    onFocus={() => { if (!form.whatsapp) setForm(p => ({ ...p, whatsapp: "91" })); }}
-                    onKeyDown={e => { const s = e.currentTarget.selectionStart ?? 0; if (e.key === "Backspace" && s <= 2) e.preventDefault(); }}
-                    type="tel" maxLength={12}
-                  />
-                </div>
-                {errors.whatsapp && <span className="au-err">{errors.whatsapp}</span>}
-              </div>
-
-              <div className="au-field">
-                <label>Upload GST Document (Optional)</label>
-                <div className="au-input-wrap" style={{ display: 'flex', alignItems: 'center', padding: '0 12px' }}>
-                  <UploadCloud size={18} className="au-input-icon" style={{ position: 'static', marginRight: '10px' }} />
-                  <input 
-                    type="file" 
-                    name="gstDocument" 
-                    accept=".pdf, image/*" 
-                    onChange={handleFileChange} 
-                    style={{ border: 'none', background: 'transparent', padding: '12px 0', width: '100%', cursor: 'pointer' }}
-                  />
-                </div>
-                <p style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
-                  Please upload your GST certificate if available.
-                </p>
-              </div>
-
-              <button className="au-btn au-btn--primary" onClick={goStep2}>
-                Continue <ArrowRight size={16} />
+              <button className="au-submit-btn" onClick={goStep2}>
+                Next: Address <ArrowRight size={18} />
               </button>
             </div>
           )}
 
-          {/* Step 2: Address */}
           {step === 2 && (
             <div className="au-step-body">
               <div className="au-field">
-                <label>Street / Shop Address</label>
-                <div className="au-input-wrap">
-                  <MapPin size={18} className="au-input-icon" />
+                <label className="au-label">Street / Shop Address</label>
+                <div className="au-input-container">
+                  <MapPin size={18} className="au-i-icon" />
                   <input className={`au-input ${errors.street ? "au-input--err" : ""}`} name="street" placeholder="Shop No, Street, Building" value={addr.street} onChange={handleAddrChange} />
                 </div>
                 {errors.street && <span className="au-err">{errors.street}</span>}
               </div>
 
-              <div className="au-row">
-                <div className="au-field au-field--half">
-                  <label>Area / Colony</label>
-                  <input className="au-input au-input--plain" name="area" placeholder="Area" value={addr.area} onChange={handleAddrChange} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+                <div className="au-field" style={{ marginBottom: 0 }}>
+                  <label className="au-label">City</label>
+                  <input className={`au-input ${errors.city ? "au-input--err" : ""}`} style={{ paddingLeft: '16px' }} name="city" placeholder="City" value={addr.city} onChange={handleAddrChange} />
                 </div>
-                <div className="au-field au-field--half">
-                  <label>City</label>
-                  <input className={`au-input au-input--plain ${errors.city ? "au-input--err" : ""}`} name="city" placeholder="City" value={addr.city} onChange={handleAddrChange} />
-                </div>
-              </div>
-
-              <div className="au-row">
-                <div className="au-field" style={{ flex: 2 }}>
-                  <label>State</label>
-                  <select className={`au-input au-input--plain ${errors.state ? "au-input--err" : ""}`} name="state" value={addr.state} onChange={handleAddrChange}>
-                    <option value="">Select State</option>
-                    {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
-                  </select>
-                </div>
-                <div className="au-field">
-                  <label>Pincode</label>
-                  <input className={`au-input au-input--plain ${errors.pincode ? "au-input--err" : ""}`} name="pincode" placeholder="6 digits" value={addr.pincode} onChange={handleAddrChange} maxLength={6} />
+                <div className="au-field" style={{ marginBottom: 0 }}>
+                  <label className="au-label">Pincode</label>
+                  <input className={`au-input ${errors.pincode ? "au-input--err" : ""}`} style={{ paddingLeft: '16px' }} name="pincode" placeholder="6 digits" value={addr.pincode} onChange={handleAddrChange} maxLength={6} />
                 </div>
               </div>
 
-              <div className="au-step-btns">
-                <button className="au-btn au-btn--ghost" onClick={() => setStep(1)}>← Back</button>
-                <button className="au-btn au-btn--primary" onClick={sendOtp} disabled={loading}>
-                  {loading ? <><span className="au-spin" /> Sending...</> : <>Get OTP <ArrowRight size={16} /></>}
+              <div className="au-field">
+                <label className="au-label">State</label>
+                <select className={`au-input ${errors.state ? "au-input--err" : ""}`} style={{ paddingLeft: '16px' }} name="state" value={addr.state} onChange={handleAddrChange}>
+                  <option value="">Select State</option>
+                  {INDIAN_STATES.map(st => <option key={st} value={st}>{st}</option>)}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '120px 1fr', gap: '12px', marginTop: '24px' }}>
+                <button className="au-secondary-btn" style={{ marginTop: 0 }} onClick={() => setStep(1)}>Back</button>
+                <button className="au-submit-btn" style={{ marginTop: 0 }} onClick={sendOtp} disabled={loading}>
+                  Get OTP <ArrowRight size={18} />
                 </button>
               </div>
             </div>
           )}
 
-          {/* Step 3: OTP */}
           {step === 3 && (
             <div className="au-step-body">
-              <div className="au-otp-section">
+               <div className="au-otp-wrap">
                 <div className="au-otp-label">
                   <Lock size={14} />
                   <span>Enter OTP sent to <strong>+91 {normalizeTo10(form.otpMobile)}</strong></span>
                 </div>
 
-                <div className="au-otp-boxes">
+                <div className="au-otp-grid">
                   {Array.from({ length: 6 }).map((_, i) => (
                     <input
                       key={i}
                       ref={el => (otpRefs.current[i] = el)}
                       type="tel" maxLength={1}
-                      className={`au-otp-digit ${otp[i] ? "au-otp-digit--filled" : ""}`}
+                      className="au-otp-box"
                       value={otp[i] || ""}
                       onChange={e => handleOtpChange(i, e)}
                       onKeyDown={e => handleOtpKeyDown(i, e)}
@@ -366,32 +368,34 @@ const Register: React.FC = () => {
                   ))}
                 </div>
 
-                <button className="au-btn au-btn--success" onClick={verifyAndRegister} disabled={otp.length !== 6 || loading}>
-                  {loading ? <><span className="au-spin" /> Registering...</> : <>Verify & Register <ArrowRight size={16} /></>}
+                <button className="au-submit-btn" onClick={verifyAndRegister} disabled={otp.length !== 6 || loading}>
+                  Verify & Register <ArrowRight size={18} />
                 </button>
 
-                <button className="au-change-num" onClick={() => { setStep(2); setOtp(""); setOtpSent(false); }}>
+                <button className="au-change-num" style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }} onClick={() => { setStep(2); setOtp(""); setOtpSent(false); }}>
                   ← Change Details
                 </button>
               </div>
             </div>
           )}
 
-          <div className="au-divider"><span>Already registered?</span></div>
+          <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', gap: '12px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--au-border)' }} />
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>Already registered?</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--au-border)' }} />
+          </div>
 
-          <Link to="/login" className="au-btn au-btn--outline">
-            Sign In to Account <ArrowRight size={16} />
+          <Link to="/login" className="au-secondary-btn" style={{ textAlign: 'center', textDecoration: 'none', display: 'block' }}>
+            Sign In to Account
           </Link>
 
-          <div className="au-footer-trust">
-            <span><ShieldCheck size={12} /> 256-bit Secure</span>
-            <span><Lock size={12} /> OTP Verified</span>
-            <span><Star size={12} /> BIS Certified</span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px', opacity: 0.6 }}>
+             <ShieldCheck size={14} />
+             <Lock size={14} />
+             <Star size={14} />
           </div>
         </div>
       </div>
-
-      {loading && <div className="au-loader"><div className="au-spin-lg" /></div>}
     </div>
   );
 };

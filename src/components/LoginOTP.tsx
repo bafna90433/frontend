@@ -3,8 +3,8 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import {
-  Smartphone, ArrowRight, ShieldCheck, Lock, CheckCircle,
-  Zap, Truck, Award, Star, Package,
+  Smartphone, ArrowRight, ShieldCheck, Lock, Truck, 
+  Package, Zap, MapPin, Star
 } from "lucide-react";
 import "../styles/AuthStyles.css";
 
@@ -99,7 +99,6 @@ const LoginOTP: React.FC = () => {
         showMsg("Invalid OTP", "error");
         return;
       }
-      // Backend now returns real JWT token + user directly — no extra API call needed
       const { token, user } = res.data;
       if (!user || !token) {
         showMsg("User not found", "error");
@@ -135,130 +134,121 @@ const LoginOTP: React.FC = () => {
 
   return (
     <div className="au-page">
-      {/* ── Left Panel (Sticky) ── */}
+      {/* ── Left Panel (Hero) ── */}
       <div className="au-left">
-        <div className="au-left-inner">
-          <div className="au-logo">🧸 Bafna Toys</div>
+        <div className="au-logo-wrap">
+          <div className="au-logo-icon">🧸</div>
+          <div className="au-logo-text">Bafna Toys</div>
+        </div>
+
+        <div className="au-left-content">
+          <div className="au-badge">Direct from Manufacturer</div>
           <h1 className="au-left-title">
-            Welcome <span>Back!</span>
+            <span>India's Leading</span>
+            <span>Toys Manufacturers</span>
           </h1>
           <p className="au-left-sub">
-            Login to access your wholesale dashboard, manage orders, and track
-            shipments in real-time.
+            Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores and Resellers.
           </p>
 
-          <div className="au-features">
-            <div className="au-feature">
-              <div className="au-feature-icon">
-                <Zap size={18} />
-              </div>
-              <div>
-                <strong>Instant Access</strong>
-                <span>OTP-based secure login</span>
+          <div className="au-features-grid">
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Truck size={20} /></div>
+              <div className="au-f-text">
+                <strong>Free Delivery</strong>
+                <span>Orders ₹3000+</span>
               </div>
             </div>
-            <div className="au-feature">
-              <div className="au-feature-icon">
-                <Package size={18} />
+            <div className="au-feature-card">
+              <div className="au-f-icon"><ShieldCheck size={20} /></div>
+              <div className="au-f-text">
+                <strong>BIS Certified</strong>
+                <span>All Products Tested</span>
               </div>
-              <div>
+            </div>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Package size={20} /></div>
+              <div className="au-f-text">
                 <strong>400+ Products</strong>
-                <span>Huge toy catalog</span>
+                <span>Wide Range of Toys</span>
               </div>
             </div>
-            <div className="au-feature">
-              <div className="au-feature-icon">
-                <Truck size={18} />
-              </div>
-              <div>
-                <strong>All India Delivery</strong>
-                <span>Fast & reliable shipping</span>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><Zap size={20} /></div>
+              <div className="au-f-text">
+                <strong>COD Available</strong>
+                <span>Cash on Delivery</span>
               </div>
             </div>
-            <div className="au-feature">
-              <div className="au-feature-icon">
-                <Award size={18} />
-              </div>
-              <div>
-                <strong>Best Prices</strong>
-                <span>Direct from manufacturer</span>
+            <div className="au-feature-card">
+              <div className="au-f-icon"><MapPin size={20} /></div>
+              <div className="au-f-text">
+                <strong>Factory & Dispatch</strong>
+                <span>Coimbatore, Tamil Nadu</span>
               </div>
             </div>
           </div>
 
-          <div className="au-left-trust">
-            <ShieldCheck size={14} /> Trusted by 4,900+ Retailers
+          <div className="au-trust-pill">
+            <Star size={14} fill="currentColor" />
+            Trusted by 4,900+ Verified Retailers
           </div>
         </div>
-        <div className="au-left-deco au-left-deco--1" />
-        <div className="au-left-deco au-left-deco--2" />
       </div>
 
-      {/* ── Right Panel ── */}
+      {/* ── Right Panel (Form) ── */}
       <div className="au-right">
-        <div className="au-card">
-          <div className="au-card-head">
+        <div className="au-form-card">
+          {isLoading && (
+            <div className="au-loading-overlay">
+              <div className="au-spinner" />
+            </div>
+          )}
+
+          <div className="au-card-header">
             <h2>Sign In</h2>
-            <p>Enter your registered mobile number to continue</p>
+            <p>Access your wholesale business dashboard</p>
           </div>
 
-          {/* Mobile Input */}
           <div className="au-field">
-            <label>Mobile Number</label>
-            <div className="au-input-wrap">
-              <Smartphone size={18} className="au-input-icon" />
+            <label className="au-label">Mobile Number</label>
+            <div className="au-input-container">
+              <Smartphone size={18} className="au-i-icon" />
               <input
                 className="au-input"
                 type="tel"
-                placeholder="Enter 10-digit mobile"
+                placeholder="10-digit mobile"
                 value={mobile}
-                onChange={(e) =>
-                  setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))
-                }
+                onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))}
                 disabled={otpSent || isLoading}
                 maxLength={10}
               />
-              {mobile.length === 10 && !otpSent && (
-                <CheckCircle size={16} className="au-input-check" />
-              )}
             </div>
           </div>
 
           {!otpSent ? (
             <button
-              className="au-btn au-btn--primary"
+              className="au-submit-btn"
               onClick={sendOTP}
               disabled={mobile.length !== 10 || isLoading}
             >
-              {isLoading ? (
-                <>
-                  <span className="au-spin" /> Sending...
-                </>
-              ) : (
-                <>
-                  Get OTP <ArrowRight size={16} />
-                </>
-              )}
+              Get OTP <ArrowRight size={18} />
             </button>
           ) : (
-            <div className="au-otp-section">
+            <div className="au-otp-wrap">
               <div className="au-otp-label">
                 <Lock size={14} />
-                <span>
-                  Enter 6-digit OTP sent to <strong>+91 {mobile}</strong>
-                </span>
+                <span>OTP sent to <strong>+91 {mobile}</strong></span>
               </div>
 
-              <div className="au-otp-boxes">
+              <div className="au-otp-grid">
                 {Array.from({ length: 6 }).map((_, i) => (
                   <input
                     key={i}
                     ref={(el) => (otpRefs.current[i] = el)}
                     type="tel"
                     maxLength={1}
-                    className={`au-otp-digit ${
-                      otp[i] ? "au-otp-digit--filled" : ""
-                    }`}
+                    className="au-otp-box"
                     value={otp[i] || ""}
                     onChange={(e) => handleOtpBoxChange(i, e)}
                     onKeyDown={(e) => handleOtpKeyDown(i, e)}
@@ -268,29 +258,22 @@ const LoginOTP: React.FC = () => {
               </div>
 
               <button
-                className="au-btn au-btn--success"
+                className="au-submit-btn"
                 onClick={verifyOTP}
                 disabled={otp.length !== 6 || isLoading}
               >
-                {isLoading ? (
-                  <>
-                    <span className="au-spin" /> Verifying...
-                  </>
-                ) : (
-                  <>
-                    Verify & Login <ArrowRight size={16} />
-                  </>
-                )}
+                Verify & Login <ArrowRight size={18} />
               </button>
 
-              <div className="au-resend">
+              <div className="au-resend" style={{ textAlign: 'center', marginTop: '16px' }}>
                 {countdown > 0 ? (
-                  <span className="au-resend-timer">
+                  <span style={{ fontSize: '13px', color: '#64748b' }}>
                     Resend OTP in <strong>{countdown}s</strong>
                   </span>
                 ) : (
                   <button
-                    className="au-resend-btn"
+                    className="au-secondary-btn"
+                    style={{ marginTop: 0, padding: '8px' }}
                     onClick={resendOTP}
                     disabled={isLoading}
                   >
@@ -301,43 +284,31 @@ const LoginOTP: React.FC = () => {
 
               <button
                 className="au-change-num"
-                onClick={() => {
-                  setOtpSent(false);
-                  setOtp("");
-                }}
+                style={{ display: 'block', margin: '16px auto 0', background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '13px', fontWeight: '600' }}
+                onClick={() => { setOtpSent(false); setOtp(""); }}
               >
                 ← Change Number
               </button>
             </div>
           )}
 
-          <div className="au-divider">
-            <span>New to Bafna Toys?</span>
+          <div style={{ display: 'flex', alignItems: 'center', margin: '24px 0', gap: '12px' }}>
+            <div style={{ flex: 1, height: '1px', background: 'var(--au-border)' }} />
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: '600' }}>New User?</span>
+            <div style={{ flex: 1, height: '1px', background: 'var(--au-border)' }} />
           </div>
 
-          <Link to="/register" className="au-btn au-btn--outline">
-            Create Business Account <ArrowRight size={16} />
+          <Link to="/register" className="au-secondary-btn" style={{ textAlign: 'center', textDecoration: 'none', display: 'block' }}>
+            Create Business Account
           </Link>
 
-          <div className="au-footer-trust">
-            <span>
-              <ShieldCheck size={12} /> 256-bit Secure
-            </span>
-            <span>
-              <Lock size={12} /> OTP Verified
-            </span>
-            <span>
-              <Star size={12} /> 4.8★ Rated
-            </span>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '12px', marginTop: '24px', opacity: 0.6 }}>
+             <ShieldCheck size={14} />
+             <Lock size={14} />
+             <Star size={14} />
           </div>
         </div>
       </div>
-
-      {isLoading && (
-        <div className="au-loader">
-          <div className="au-spin-lg" />
-        </div>
-      )}
     </div>
   );
 };
