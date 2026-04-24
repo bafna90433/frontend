@@ -206,27 +206,33 @@ const WhatsAppButton: React.FC = () => {
     [settings?.defaultMessage]
   );
 
-  // Don't render if disabled, settings not loaded, or not on allowed pages
+  const isMobile = window.innerWidth < 768;
+
+  // Listen for custom event to open panel from BottomNav
+  useEffect(() => {
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener("open-whatsapp-panel", handleOpen);
+    return () => window.removeEventListener("open-whatsapp-panel", handleOpen);
+  }, []);
+
   if (!settings || !settings.enabled || (!isProductPage && !isHomePage)) return null;
 
-  // Check path and device from settings
   const pathOk = isPathAllowed(
     currentPath,
     settings.showOnPaths,
     settings.hideOnPaths
   );
   
-  const isMobile = window.innerWidth < 768;
   const deviceOk =
     (settings.showOnDesktop && !isMobile) ||
     (settings.showOnMobile && isMobile);
 
   if (!pathOk || !deviceOk || !withinSchedule(settings)) return null;
 
-  // Dynamic positioning
   const launcherStyle: React.CSSProperties = {
     [settings.position === "right" ? "right" : "left"]: `${settings.offsetX}px`,
     bottom: `${settings.offsetY}px`,
+    display: isMobile ? 'none' : 'flex' // Hide FAB on mobile
   };
 
   return (
