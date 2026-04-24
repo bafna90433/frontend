@@ -157,8 +157,7 @@
         text-decoration: none;
       }
 
-      #root.app-loaded .app-loading,
-      #root.app-loaded .lcp-banner-container {
+      #root.app-loaded .app-loading {
         display: none;
       }
     </style>
@@ -172,22 +171,7 @@
         </p>
       </noscript>
 
-      <div class="lcp-banner-container">
-        <a href="https://bafnatoys.com/hot-deals" class="banner-link">
-          <img
-            src="/logo.webp"
-            alt="Bafna Toys - Shop Now"
-            width="600"
-            height="360"
-            fetchpriority="high"
-            loading="eager"
-            decoding="sync"
-            class="banner-row-img blur-up"
-            onload="this.classList.add('is-loaded')"
-            style="object-fit: contain; padding: 40px;"
-          />
-        </a>
-      </div>
+
 
       <div class="app-loading">
         <img
