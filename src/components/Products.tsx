@@ -55,6 +55,9 @@ import {
   Landmark,
 } from "lucide-react";
 import { Skeleton } from "@mui/material";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+import Swal from "sweetalert2";
 
 const FloatingCheckoutButton = lazy(() => import("./FloatingCheckoutButton"));
 
@@ -140,6 +143,7 @@ const cleanProduct = (raw: any): Product => ({
     ? [raw.images]
     : [],
   price: typeof raw.price === "number" ? raw.price : Number(raw.price) || 0,
+  mrp: Number(raw.mrp || raw.MRP || 0),
   innerQty: raw.innerQty,
   bulkPricing: Array.isArray(raw.bulkPricing) ? raw.bulkPricing : [],
   category: raw.category ?? raw.categoryName ?? "",
@@ -192,6 +196,27 @@ const AnimatedCounter: React.FC<{
       {String(target).replace(/[0-9.,]/g, "")}
     </span>
   );
+};
+
+// ════════════════════════════════════════════════════════════
+// PDF UTILS
+// ════════════════════════════════════════════════════════════
+
+const getBase64ImageFromUrl = async (url: string): Promise<string> => {
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+const cleanTextForPDF = (str: string) => {
+  if (!str) return "";
+  // Remove non-standard characters that break PDF fonts
+  return str.replace(/[^\x00-\x7F]/g, "").trim();
 };
 
 // ════════════════════════════════════════════════════════════
@@ -315,6 +340,7 @@ const Products: React.FC = () => {
     max: number;
   } | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const ITEMS_PER_PAGE = 25;
@@ -578,6 +604,160 @@ const Products: React.FC = () => {
   // ══════════════════════════════════════════════════
   // HANDLERS
   // ══════════════════════════════════════════════════
+
+  const handleGeneratePDF = async () => {
+    if (displayed.length === 0) return;
+    setIsGeneratingPDF(true);
+
+    try {
+      const doc = new jsPDF("p", "mm", "a4");
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const margin = 10;
+      const cardW = (pageWidth - margin * 2) / 3;
+      const cardH = 85; // Height for each product block
+      const imgSize = 55; // Larger images
+
+      // Pre-fetch images (limit to 150 for performance)
+      const itemsToExport = displayed.slice(0, 150);
+      
+      Swal.fire({
+        title: "Preparing Catalog...",
+        text: "Fetching high-quality images. Please wait.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+        toast: true,
+        position: "top-end"
+      });
+
+      const processedData = await Promise.all(
+        itemsToExport.map(async (p) => {
+          let base64 = "";
+          if (p.images && p.images.length > 0) {
+            try {
+              // Fetching 500x500 for high quality as requested
+              const url = optimizeCloudinary(Array.isArray(p.images) ? p.images[0] : p.images, 500, 500);
+              base64 = await getBase64ImageFromUrl(url);
+            } catch (e) {}
+          }
+          return { ...p, imgBase64: base64 };
+        })
+      );
+
+      Swal.close();
+
+      let currentItem = 0;
+      while (currentItem < processedData.length) {
+        if (currentItem > 0) doc.addPage();
+
+        // Branding Header (only on every page to look professional)
+        doc.setFontSize(22);
+        doc.setTextColor(79, 70, 229);
+        doc.setFont("helvetica", "bold");
+        doc.text("BAFNA TOYS", margin, 18);
+        
+        doc.setFontSize(9);
+        doc.setTextColor(107, 114, 128);
+        doc.setFont("helvetica", "normal");
+        doc.text(`Wholesale Catalog — ${catName || "All Toys"}`, margin, 24);
+        doc.textAlign = "right";
+        doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - margin, 24);
+        doc.textAlign = "left";
+
+        doc.setDrawColor(229, 231, 235);
+        doc.line(margin, 28, pageWidth - margin, 28);
+
+        // 3x3 Grid
+        const startY = 32;
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            if (currentItem >= processedData.length) break;
+
+            const p = processedData[currentItem];
+            const x = margin + col * cardW;
+            const y = startY + row * cardH;
+
+            // Image placeholder/box
+            doc.setDrawColor(243, 244, 246);
+            doc.rect(x + 2, y + 2, cardW - 4, cardH - 4);
+
+            if (p.imgBase64) {
+              try {
+                // Center image in the card
+                const imgX = x + (cardW - imgSize) / 2;
+                doc.addImage(p.imgBase64, 'JPEG', imgX, y + 5, imgSize, imgSize);
+              } catch (e) {}
+            } else {
+               doc.setFontSize(8);
+               doc.setTextColor(209, 213, 219);
+               doc.text("No Image", x + cardW/2, y + cardH/2, { align: "center" });
+            }
+
+            // Text info
+            doc.setTextColor(31, 41, 55);
+            doc.setFontSize(8.5);
+            doc.setFont("helvetica", "bold");
+            
+            const cleanName = cleanTextForPDF(p.name);
+            const name = cleanName.length > 28 ? cleanName.substring(0, 25) + "..." : cleanName;
+            doc.text(name, x + cardW / 2, y + imgSize + 11, { align: "center" });
+
+            doc.setFontSize(8);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(107, 114, 128);
+            doc.text(`SKU: ${p.sku || "—"}`, x + cardW / 2, y + imgSize + 16, { align: "center" });
+
+            // Display MRP and Wholesale Price
+            const mrp = p.mrp || 0;
+            const price = p.price || 0;
+
+            if (mrp > 0) {
+              doc.setFontSize(8);
+              doc.setTextColor(156, 163, 175);
+              doc.setFont("helvetica", "normal");
+              doc.text(`MRP: Rs.${mrp}`, x + cardW / 2, y + imgSize + 21, { align: "center" });
+              // Strike through for MRP (optional)
+              const mrpWidth = doc.getTextWidth(`MRP: Rs.${mrp}`);
+              doc.setDrawColor(156, 163, 175);
+              doc.line(x + cardW/2 - mrpWidth/2 + 8, y + imgSize + 20, x + cardW/2 + mrpWidth/2, y + imgSize + 20);
+            }
+
+            doc.setFontSize(11);
+            doc.setTextColor(79, 70, 229);
+            doc.setFont("helvetica", "bold");
+            doc.text(`Price: Rs.${price}`, x + cardW / 2, y + imgSize + (mrp > 0 ? 27 : 24), { align: "center" });
+
+            currentItem++;
+          }
+        }
+
+        // Footer
+        doc.setFontSize(7);
+        doc.setTextColor(156, 163, 175);
+        doc.text("Bafna Toys Wholesale — Quality Toys at Best Prices", pageWidth / 2, pageHeight - 8, { align: "center" });
+      }
+
+      doc.save(`Bafna_Toys_Gallery_${(catName || "All").replace(/\s+/g, "_")}.pdf`);
+      
+      Swal.fire({
+        icon: "success",
+        title: "Gallery Downloaded",
+        text: "Professional 3x3 Grid Catalog is ready!",
+        timer: 2500,
+        showConfirmButton: false
+      });
+
+    } catch (error) {
+      console.error("PDF Error", error);
+      Swal.fire({
+        icon: "error",
+        title: "Download Failed",
+        text: "Something went wrong while generating the PDF."
+      });
+    } finally {
+      setIsGeneratingPDF(false);
+    }
+  };
 
   const handleApplyPrice = useCallback(() => {
     setActivePriceFilter({
@@ -1395,6 +1575,22 @@ const Products: React.FC = () => {
             </div>
           </div>
 
+          {/* Mobile Prominent Catalog Download Link */}
+          <div className="sp-mob-catalog-bar sp-mob-only">
+            <button 
+              className="sp-mob-pdf-link" 
+              onClick={handleGeneratePDF}
+              disabled={isGeneratingPDF || displayed.length === 0}
+            >
+              {isGeneratingPDF ? (
+                <RefreshCw size={16} className="sp-spin" />
+              ) : (
+                <ExternalLink size={16} />
+              )}
+              <span>Download Wholesale Catalog PDF</span>
+            </button>
+          </div>
+
           {/* Floating Glass Toolbar */}
           <div className="sp-toolbar">
             <div className="sp-toolbar-left">
@@ -1425,6 +1621,20 @@ const Products: React.FC = () => {
                 <Filter size={15} />
                 <span>Filters</span>
               </button>
+              <button
+                className="sp-pdf-btn"
+                onClick={handleGeneratePDF}
+                disabled={isGeneratingPDF || displayed.length === 0}
+                title="Download Catalog PDF"
+              >
+                {isGeneratingPDF ? (
+                  <RefreshCw size={15} className="sp-spin" />
+                ) : (
+                  <ExternalLink size={15} />
+                )}
+                <span className="sp-pdf-text">Catalog</span>
+              </button>
+
               <div className="sp-sort-wrap">
                 <ArrowUpDown size={14} className="sp-sort-icon" />
                 <select

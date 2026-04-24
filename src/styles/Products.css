@@ -1087,3 +1087,90 @@ body.dark .sp-manufacturer-info {
   .sp-manufacturer-content h2 { font-size: 24px; }
   .sp-manufacturer-content p { font-size: 14px; }
 }
+
+/* ══════════════════════════════════════════
+   PDF CATALOG BUTTON
+   ══════════════════════════════════════════ */
+.sp-pdf-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: white;
+  border: 1px solid var(--sp-border);
+  padding: 10px 18px;
+  border-radius: var(--sp-r-full);
+  color: var(--sp-text-2);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s var(--sp-ease);
+  box-shadow: var(--sp-sh-1);
+}
+.sp-pdf-btn:hover:not(:disabled) {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+  transform: translateY(-1px);
+}
+.sp-pdf-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: var(--sp-border-2);
+}
+.sp-pdf-btn svg {
+  color: #4f46e5;
+}
+.sp-spin {
+  animation: sp-spin 1s linear infinite;
+}
+@keyframes sp-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 600px) {
+  .sp-pdf-btn {
+    padding: 8px 12px;
+    gap: 6px;
+  }
+  .sp-pdf-text { font-size: 11px; }
+  .sp-desk-only { display: none; }
+}
+
+/* ══════════════════════════════════════════
+   MOBILE CATALOG BAR
+   ══════════════════════════════════════════ */
+.sp-mob-catalog-bar {
+  padding: 0 16px 12px;
+  width: 100%;
+}
+.sp-mob-pdf-link {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
+  color: white;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 14px;
+  font-weight: 800;
+  box-shadow: 0 4px 15px rgba(79, 70, 229, 0.25);
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+.sp-mob-pdf-link:active {
+  transform: scale(0.98);
+}
+.sp-mob-pdf-link:disabled {
+  opacity: 0.7;
+  background: #9ca3af;
+}
+
+body.dark .sp-pdf-btn {
+  background: var(--sp-surface);
+  border-color: var(--sp-border);
+  color: var(--sp-text);
+}
