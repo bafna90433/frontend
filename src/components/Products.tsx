@@ -778,7 +778,7 @@ const Products: React.FC = () => {
       {isHomePage ? (
         <>
           <Helmet>
-            <title>Top Toy Manufacturers in India | Wholesale Toys Supplier - Bafna Toys</title>
+            <title>Bafna Toys - Leading Toys Manufacturers in India | Wholesale Toy Supplier</title>
             <meta name="description" content="Bafna Toys is a leading toy manufacturer and wholesale supplier in India. Buy premium quality, BIS certified plastic toys, pullback cars, dolls, and more at factory prices." />
             <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large, max-video-preview:-1" />
             <link rel="canonical" href="https://bafnatoys.com/" />
@@ -840,8 +840,8 @@ const Products: React.FC = () => {
                   Direct from Manufacturer
                 </div>
                 <h1 className="sp-hero-title">
-                  India's Trusted
-                  <span className="sp-hero-highlight"> B2B Toy Manufacturer</span>
+                  India's Leading
+                  <span className="sp-hero-highlight"> Toys Manufacturers</span>
                 </h1>
                 <p className="sp-hero-sub">
                   Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
@@ -961,9 +961,9 @@ const Products: React.FC = () => {
                   <span>Direct from Manufacturer</span>
                 </div>
                 <h1 className="sp-mh-title">
-                  India's Trusted
+                  Leading Toys
                   <br />
-                  <span className="sp-mh-gradient">B2B Toy Manufacturer</span>
+                  <span className="sp-mh-gradient">Manufacturers in India</span>
                 </h1>
                 <p className="sp-mh-sub">
                   Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
@@ -2069,6 +2069,23 @@ const Products: React.FC = () => {
           </div>
         </footer>
       )}
+
+      <section className="sp-manufacturer-info">
+        <div className="sp-manufacturer-content">
+          <h2>Leading Toys Manufacturers in India</h2>
+          <p>
+            Bafna Toys is recognized as one of the most reliable <strong>toys manufacturers in India</strong>, 
+            specializing in high-quality plastic toys, PVC dolls, and windup key toys. 
+            Based in Coimbatore, Tamil Nadu, we operate a state-of-the-art manufacturing facility 
+            producing BIS certified toys that meet international safety standards.
+          </p>
+          <p>
+            As a direct <strong>factory wholesale supplier</strong>, we cater to retailers and 
+            distributors across India, offering genuine wholesale prices and a diverse catalog of 
+            over 400 products including pullback cars, educational toys, and rattles.
+          </p>
+        </div>
+      </section>
 
       {/* ═══ MOBILE FILTER DRAWER ═══ */}
       {mobileFilterOpen && (

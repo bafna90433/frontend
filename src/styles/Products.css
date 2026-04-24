@@ -1043,3 +1043,47 @@ body.dark .sp-shimmer { background: linear-gradient(90deg, var(--sp-border-2) 25
 body.dark .sp-error-icon { background: rgba(239,68,68,0.08); }
 body.dark .sp-empty-icon { background: var(--sp-border-2); }
 body.dark .MuiSkeleton-root { background-color: var(--sp-border) !important; }
+
+/* ══════════════════════════════════════════
+   MANUFACTURER INFO SECTION (SEO)
+   ══════════════════════════════════════════ */
+.sp-manufacturer-info {
+  width: 100%;
+  background: white;
+  padding: 60px 32px;
+  border-top: 1px solid var(--sp-border);
+  margin-top: 40px;
+}
+.sp-manufacturer-content {
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+.sp-manufacturer-content h2 {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--sp-text);
+  margin-bottom: 24px;
+  letter-spacing: -0.02em;
+}
+.sp-manufacturer-content p {
+  font-size: 16px;
+  line-height: 1.8;
+  color: var(--sp-text-2);
+  margin-bottom: 20px;
+}
+.sp-manufacturer-content strong {
+  color: var(--sp-primary);
+  font-weight: 700;
+}
+
+body.dark .sp-manufacturer-info {
+  background: var(--sp-surface);
+  border-color: var(--sp-border);
+}
+
+@media (max-width: 768px) {
+  .sp-manufacturer-info { padding: 40px 20px; }
+  .sp-manufacturer-content h2 { font-size: 24px; }
+  .sp-manufacturer-content p { font-size: 14px; }
+}
