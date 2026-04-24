@@ -5,9 +5,10 @@ import "../styles/Cart.css";
 
 // 🔥 STRICT BULK BUY LOGIC FOR CART ITEMS
 const getCartItemConfig = (item: any) => {
-  const dbPieces = Number(item.piecesPerUnit) || 1;
+  const dbPieces = Number(item.piecesPerUnit || item.piecesPerInner || item.innerQty) || 1;
   const dbUnit = item.unit || "Piece";
   const strictBulk = item.isBulkOnly || false;
+  const dbMQ = Number(item.minOrderQty) || 0; // ✅ Manual MQ field
 
   let stepQty = 1;
   let minQty = 1;
@@ -15,16 +16,19 @@ const getCartItemConfig = (item: any) => {
 
   if (strictBulk && dbPieces > 1) {
     stepQty = dbPieces;
-    minQty = dbPieces;
-    isBulk = true;
-  } else if (dbPieces > 1) {
-    stepQty = 1;
-    minQty = dbPieces;
+    minQty = Math.max(dbMQ, dbPieces);
     isBulk = true;
   } else {
-    minQty = Number(item.price) < 60 ? 3 : 2;
+    // If MQ is set manually, it takes priority
+    if (dbMQ > 0) {
+      minQty = dbMQ;
+    } else {
+      // Fallback logic
+      const fallbackMin = Number(item.price) < 60 ? 3 : 2;
+      minQty = dbPieces > 1 ? dbPieces : fallbackMin;
+    }
     stepQty = 1;
-    isBulk = false;
+    isBulk = dbPieces > 1;
   }
 
   const qty = item.quantity || 0;

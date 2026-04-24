@@ -17,6 +17,10 @@ interface Item {
   quantity?: number;
   innerQty?: number;
   piecesPerInner?: number;
+  piecesPerUnit?: number; // ✅ Matches product model
+  minOrderQty?: number;   // ✅ Manual MQ field
+  isBulkOnly?: boolean;   // ✅ Bulk restriction
+  unit?: string;          // ✅ Piece/Set/Box
   image?: string;
   images?: string[];
   price?: number;
@@ -72,13 +76,28 @@ const INDIAN_STATES = [
   "Uttarakhand","West Bengal","Delhi","Jammu and Kashmir","Ladakh","Puducherry",
 ];
 
-const getMinimumQuantity = (price: number): number => (price < 60 ? 3 : 2);
+const getMinimumQuantity = (item: Item): number => {
+  const price = item.price || 0;
+  const dbMQ = Number(item.minOrderQty) || 0;
+  const dbPieces = Number(item.piecesPerUnit || item.piecesPerInner || item.innerQty) || 1;
+  const strictBulk = item.isBulkOnly || false;
+
+  if (strictBulk && dbPieces > 1) {
+    return Math.max(dbMQ, dbPieces);
+  } else {
+    if (dbMQ > 0) return dbMQ;
+    
+    // Fallback logic
+    const fallbackMin = price < 60 ? 3 : 2;
+    return dbPieces > 1 ? dbPieces : fallbackMin;
+  }
+};
 
 const getItemValues = (item: Item) => {
   const innerCount = item.quantity || 0;
   const unitPrice = item.price || 0;
-  const minQty = getMinimumQuantity(unitPrice);
-  const totalPrice = innerCount * unitPrice * (item.piecesPerInner || item.innerQty || 1);
+  const minQty = getMinimumQuantity(item);
+  const totalPrice = innerCount * unitPrice * (item.piecesPerUnit || item.piecesPerInner || item.innerQty || 1);
   return { innerCount, unitPrice, totalPrice, minQty };
 };
 
