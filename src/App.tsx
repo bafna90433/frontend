@@ -12,6 +12,7 @@ import axios from "axios";
 
 import { ShopProvider, useShop } from "./context/ShopContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import GlobalErrorBoundary from "./components/GlobalErrorBoundary";
 
 // --- STATIC COMPONENTS (Important for First Paint) ---
 import Header from "./components/Header";
@@ -335,11 +336,13 @@ const AppInner: React.FC = () => {
 
 const App: React.FC = () => {
   return (
-    <ShopProvider>
-      <ThemeProvider>
-        <AppInner />
-      </ThemeProvider>
-    </ShopProvider>
+    <GlobalErrorBoundary>
+      <ShopProvider>
+        <ThemeProvider>
+          <AppInner />
+        </ThemeProvider>
+      </ShopProvider>
+    </GlobalErrorBoundary>
   );
 };
 
