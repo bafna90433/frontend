@@ -1028,8 +1028,8 @@ const Products: React.FC = () => {
                   Direct from Manufacturer
                 </div>
                 <h1 className="sp-hero-title">
-                  India's Leading
-                  <span className="sp-hero-highlight"> Toys Manufacturers</span>
+                  Leading
+                  <span className="sp-hero-highlight"> Toys Manufacturers in India</span>
                 </h1>
                 <p className="sp-hero-sub">
                   Premium Wholesale Toys for Toy Stores, Supermarket, Retail Stores
