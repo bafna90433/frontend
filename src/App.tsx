@@ -48,6 +48,7 @@ const CancellationRefund = React.lazy(() => import("./components/CancellationRef
 const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const PendingReviews = React.lazy(() => import("./pages/PendingReviews"));
 const FAQ = React.lazy(() => import("./components/FAQ"));
+const ToysManufacturersIndia = React.lazy(() => import("./pages/ToysManufacturersIndia"));
 
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
@@ -136,6 +137,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
     "/shipping-delivery",
     "/cancellation-refund",
     "/faq",
+    "/toys-manufacturers-in-india",
   ];
 
   // If forceLogin is true, remove homepage and products from public paths
@@ -267,6 +269,7 @@ const AppInner: React.FC = () => {
               <Route path="/shipping-delivery" element={<ShippingDelivery />} />
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
               <Route path="/faq" element={<FAQ />} />
+              <Route path="/toys-manufacturers-in-india" element={<ToysManufacturersIndia />} />
 
               {/* Protected Routes */}
               <Route

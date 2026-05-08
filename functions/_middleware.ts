@@ -163,7 +163,139 @@ export async function onRequest(context: any) {
     }
   }
 
-  // 3. Intercept category pages for bots
+  // 3. Intercept dedicated landing page for bots (Toys Manufacturers in India)
+  if (isBot && url.pathname === "/toys-manufacturers-in-india") {
+    const baseUrl = "https://bafnatoys.com";
+    const title = "Toys Manufacturers in India | Wholesale Toy Supplier - Bafna Toys";
+    const description = "Looking for top toys manufacturers in India? Bafna Toys is a leading wholesale toy manufacturer and supplier. Buy premium pullback cars, PVC dolls, rattles & board games at factory-direct rates.";
+
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  <link rel="canonical" href="${baseUrl}/toys-manufacturers-in-india" />
+  
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bafna Toys" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:url" content="${baseUrl}/toys-manufacturers-in-india" />
+  <meta property="og:image" content="${baseUrl}/logo.webp" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${baseUrl}/logo.webp" />
+</head>
+<body style="font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; line-height: 1.6; color: #333;">
+  
+  <header style="text-align: center; border-bottom: 2px solid #eaeaea; padding-bottom: 20px; margin-bottom: 30px;">
+    <img src="${baseUrl}/logo.webp" alt="Bafna Toys Logo" style="max-width: 150px; height: auto;" />
+    <h1 style="color: #059669; font-size: 2.2rem; margin: 15px 0 5px 0;">Toys Manufacturers in India</h1>
+    <p style="font-size: 1.2rem; color: #666; margin: 0;">Bafna Toys Wholesale - Direct Factory Supplier in India</p>
+  </header>
+
+  <main>
+    <section style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 30px; border-left: 5px solid #059669;">
+      <h2 style="margin-top: 0; color: #0f172a;">India's Fast-Growing B2B Wholesale Toy Supply Chain</h2>
+      <p>
+        In recent years, the Indian toy industry has witnessed a paradigm shift, transitioning from cheap, unchecked imported items to high-quality, indigenous, and strictly certified domestic manufacturing. Bafna Toys stands at the forefront of this revolution as one of the leading <strong>toys manufacturers in India</strong>. By integrating cutting-edge manufacturing automation with high-grade materials, we deliver premium products that retailers can trust blindly.
+      </p>
+      <p>
+        Our specialized production plants utilize premium injection molding, advanced rotomolding, and rigorous tension and drop testing to ensure every single toy is indestructible and completely safe for children. From vibrant mechanical wind-up key toys to dynamic pullback friction vehicles, we build happiness that lasts.
+      </p>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+      <h3 style="color: #0f172a;">Why Partner Directly With Bafna Toys?</h3>
+      <p>
+        Finding a reliable <strong>toy manufacturer direct supplier India</strong> can be difficult. Many suppliers act as wholesale intermediaries, adding significant markup percentages to each unit. When you partner with Bafna Toys, you work directly with the creators. This direct relationship guarantees you access to <strong>toys factory price wholesale India</strong>, enabling retail businesses to enjoy high-yield margins and pass on amazing retail discounts to end customers.
+      </p>
+      <p>
+        We cater to a vast customer profile, functioning as a dedicated <strong>bulk toys supplier for retailers India</strong>, supermarkets, multi-brand department stores, and independent toyshops. With our structured logistics team, we guarantee swift shipments with robust tracking from our dispatch dock.
+      </p>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+      <h3 style="color: #0f172a;">Our Toy Manufacturing Specializations</h3>
+      
+      <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+        <h4 style="margin: 0; color: #059669;">PVC Dolls Manufacturer in India</h4>
+        <p style="margin: 5px 0 0 0;">
+          We are an industry-leading <strong>PVC dolls manufacturer in India</strong>. Our state-of-the-art rotomolding machinery produces non-toxic, safe, and skin-friendly vinyl dolls with soft-touch finishes and high structural durability for infants and toddlers.
+        </p>
+      </div>
+
+      <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+        <h4 style="margin: 0; color: #059669;">Windup Key Toys Manufacturer</h4>
+        <p style="margin: 5px 0 0 0;">
+          As a seasoned <strong>windup key toys manufacturer</strong>, we specialize in high-precision mechanical clockwork keys. Our gears and spring systems are engineered for prolonged movement cycles, ensuring repetitive hopping, jumping, and walking animations without breaking.
+        </p>
+      </div>
+
+      <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+        <h4 style="margin: 0; color: #059669;">Pullback Toy Cars Wholesale</h4>
+        <p style="margin: 5px 0 0 0;">
+          Get <strong>pullback toy cars wholesale</strong> from our friction-powered manufacturing division. We produce aerodynamic pullback cars, racing buggies, heavy-duty dumper trucks, and utility vehicles equipped with high-friction rubberized wheels and powerful double-geared motors.
+        </p>
+      </div>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+      <h3 style="color: #0f172a;">The Coimbatore Manufacturing Excellence</h3>
+      <p>
+        Located in the industrial city of Coimbatore, Tamil Nadu, Bafna Toys is proudly established as a high-performance <strong>toys manufacturer in Coimbatore</strong>. Coimbatore's engineering heritage allows us to source high-grade steel molds, maintain precision machinery, and operate with maximum power efficiency. Our facility is run by highly skilled assembly line professionals who ensure rigorous checking of every PVC doll, friction gearbox, and rattles set before they are packed for transport.
+      </p>
+    </section>
+
+    <section style="margin-bottom: 30px; background-color: #f0fdf4; padding: 20px; border-radius: 8px;">
+      <h3 style="color: #065f46; margin-top: 0;">Partner Highlights &amp; Retailer Benefits:</h3>
+      <ul>
+        <li>BIS Certified Safe Products (Bureau of Indian Standards approval for 100% security)</li>
+        <li>Direct Factory Wholesale Prices (No distributors or middle-men markups)</li>
+        <li>Ultra-Low MOQ requirements tailored specifically for retail stores and startup toy outlets</li>
+        <li>Coimbatore manufacturing hub offering super-fast transit times across South India and pan-India</li>
+        <li>High-grade virgin food-safe plastics and non-toxic lead-free pigments</li>
+        <li>Dedicated premium packing boxes optimized to withstand harsh shipping conditions</li>
+      </ul>
+    </section>
+
+    <section style="margin-bottom: 30px;">
+      <h3 style="color: #0f172a;">Frequently Asked Questions (FAQ)</h3>
+      <div style="margin-top: 15px;">
+        <p><strong>Q: What makes Bafna Toys a reliable toys manufacturers in India?</strong><br/>
+        A: Unlike trading entities, we own our full injection and rotomolding manufacturing unit. This ensures absolute oversight over chemical and structural safety, BIS standard certifications, and constant inventory availability, making us a top <strong>wholesale toys supplier in India</strong>.</p>
+        
+        <p><strong>Q: Do you supply pullback toy cars wholesale in customizable batches?</strong><br/>
+        A: Yes! We offer bulk configurations of <strong>pullback toy cars wholesale</strong> with customizable colors, box packaging types, and bundle quantities. All our friction gearboxes are made of heavy-duty nylon for durable performance.</p>
+        
+        <p><strong>Q: What is your manufacturing safety rating for PVC dolls?</strong><br/>
+        A: As a primary <strong>PVC dolls manufacturer in India</strong>, we use 100% medical-grade phthalate-free PVC materials. Every doll passes through thermal disinfection and high quality color-fast coatings to ensure safety for children.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer style="text-align: center; border-top: 2px solid #eaeaea; margin-top: 40px; padding-top: 20px; font-size: 0.85rem; color: #666;">
+    <p>&copy; ${new Date().getFullYear()} Bafna Toys. All rights reserved. Kalikkanaicken Palayam, Coimbatore, Tamil Nadu, India.</p>
+    <p>Contact No: +91-9043347300 | Email: bafnatoys@gmail.com</p>
+  </footer>
+
+</body>
+</html>`;
+
+    return new Response(html, {
+      headers: {
+        "Content-Type": "text/html;charset=UTF-8",
+        "Cache-Control": "public, max-age=3600"
+      }
+    });
+  }
+
+  // 4. Intercept category pages for bots
   if (isBot && url.pathname.startsWith("/category/")) {
     const parts = url.pathname.split("/").filter(Boolean);
     const slug = parts[1];
