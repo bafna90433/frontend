@@ -1,14 +1,23 @@
 export async function onRequestGet(context: any) {
   try {
-    // Backend API se products fetch karo
-    const res = await fetch("https://api.bafnatoys.com/api/products");
+    // Backend API se products aur categories fetch karo
+    const [productsRes, categoriesRes] = await Promise.all([
+      fetch("https://api.bafnatoys.com/api/products"),
+      fetch("https://api.bafnatoys.com/api/categories")
+    ]);
     
-    if (!res.ok) {
-      throw new Error(`Failed to fetch products: ${res.status}`);
+    if (!productsRes.ok) {
+      throw new Error(`Failed to fetch products: ${productsRes.status}`);
     }
 
-    const data = await res.json();
-    const products = data.products || data || [];
+    const productsData = await productsRes.json();
+    const products = productsData.products || productsData || [];
+
+    let categories = [];
+    if (categoriesRes.ok) {
+      const categoriesData = await categoriesRes.json();
+      categories = categoriesData.categories || categoriesData || [];
+    }
 
     const baseUrl = "https://bafnatoys.com";
     
@@ -86,6 +95,29 @@ export async function onRequestGet(context: any) {
     <loc>${escapeXml(productUrl)}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>${imageXml}
+  </url>`;
+    });
+
+    // Dynamic Category Routes
+    categories.forEach((cat: any) => {
+      const categoryUrl = cat.slug ? `${baseUrl}/category/${cat.slug}` : `${baseUrl}/?category=${cat._id}`;
+      let imageXml = "";
+      
+      const rawImg = cat.image || cat.imageUrl;
+      if (rawImg) {
+         const imageUrl = rawImg.startsWith("http") ? rawImg : `https://api.bafnatoys.com/api/uploads/${rawImg.replace(/^\/+/, "")}`;
+         imageXml = `
+    <image:image>
+      <image:loc>${escapeXml(imageUrl)}</image:loc>
+      <image:title>${escapeXml(cat.name)}</image:title>
+    </image:image>`;
+      }
+
+      xml += `
+  <url>
+    <loc>${escapeXml(categoryUrl)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>${imageXml}
   </url>`;
     });
 

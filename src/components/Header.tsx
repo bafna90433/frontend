@@ -159,8 +159,8 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                 <div className="bafna-suggest__section">
                   <div className="bafna-suggest__section-title">Trending Now</div>
                   <div className="bafna-suggest__popular-tags">
-                    {popularSearches.map((cat) => (
-                      <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(`/?category=${cat._id}`); }}>{cat.name}</button>
+                    {popularSearches.map((cat: any) => (
+                      <button type="button" key={cat._id} className="bafna-suggest__popular-pill" onClick={() => { setOpenSug(false); setQ(""); navigate(cat.slug ? `/category/${cat.slug}` : `/?category=${cat._id}`); }}>{cat.name}</button>
                     ))}
                   </div>
                 </div>
@@ -184,7 +184,7 @@ const SearchForm = React.memo(React.forwardRef(function SearchForm(
                             onMouseDown={(e) => {
                               e.preventDefault();
                               setOpenSug(false);
-                              if (p.type === "category") navigate(`/category/${p._id}`);
+                              if (p.type === "category") navigate((p as any).slug ? `/category/${(p as any).slug}` : `/?category=${p._id}`);
                               else if (p.type === "brand") navigate(`/brand/${p._id}`);
                               else navigate(`/product/${p._id}`);
                             }}>
@@ -319,7 +319,7 @@ const Header: React.FC = () => {
       try {
         const res = await api.get("/categories");
         if (Array.isArray(res.data)) {
-          const catData = res.data.slice(0, 8).map((c: any) => ({ _id: c._id, name: c.name }));
+          const catData = res.data.slice(0, 8).map((c: any) => ({ _id: c._id, name: c.name, slug: c.slug }));
           setPopularSearches(catData);
         }
       } catch (error) { console.error(error); }
@@ -411,7 +411,7 @@ const Header: React.FC = () => {
         e.preventDefault();
         setOpenSug(false);
         const p = sug[activeIdx];
-        if (p.type === "category") navigate(`/category/${p._id}`);
+        if (p.type === "category") navigate((p as any).slug ? `/category/${(p as any).slug}` : `/?category=${p._id}`);
         else if (p.type === "brand") navigate(`/brand/${p._id}`);
         else navigate(`/product/${p._id}`);
       } else {

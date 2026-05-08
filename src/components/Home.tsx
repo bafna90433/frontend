@@ -29,6 +29,7 @@ interface Category {
   name: string;
   image?: string;
   imageUrl?: string;
+  slug?: string;
 }
 
 interface Product {
@@ -207,7 +208,7 @@ const Home: React.FC = () => {
                   const img = optimizeCloudinary(raw, 300, 300);
 
                   return (
-                    <Link key={cat._id} to={`/products?category=${cat._id}`} className="cat-circle-item">
+                    <Link key={cat._id} to={cat.slug ? `/category/${cat.slug}` : `/products?category=${cat._id}`} className="cat-circle-item">
                       <div className="cat-circle-img-wrapper">
                         {raw ? (
                           <img src={img} alt={cat.name} className="cat-circle-img" loading="lazy" decoding="async" />
@@ -270,7 +271,7 @@ const Home: React.FC = () => {
                 <p className="hor-subtitle">Shake, Play & Smile! Discover our most adorable collection.</p>
               </div>
               <div className="hor-action">
-                <Link to={`/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn bubbly-hover">
+                <Link to={rattlesCategory?.slug ? `/category/${rattlesCategory.slug}` : `/products?category=${rattlesCategory?._id}`} className="hor-view-all-btn bubbly-hover">
                   Explore All <span className="btn-icon-animate">✨</span>
                 </Link>
               </div>
@@ -333,7 +334,7 @@ const Home: React.FC = () => {
             <div key={cat._id} className="category-block">
               <div className="category-header">
                 <h2 className="category-title">{cat.name}</h2>
-                <Link to={`/products?category=${cat._id}`} className="view-all-btn bubbly-hover">
+                 <Link to={cat.slug ? `/category/${cat.slug}` : `/products?category=${cat._id}`} className="view-all-btn bubbly-hover">
                   View All <FiArrowRight />
                 </Link>
               </div>

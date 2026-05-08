@@ -19,7 +19,81 @@ export async function onRequest(context: any) {
   // 1. Check if the requester is a known social bot
   const isBot = BOT_AGENTS.some(bot => userAgent.toLowerCase().includes(bot.toLowerCase()));
 
-  // 2. We only want to intercept specific product pages for bots
+  // 2. Intercept category pages for bots
+  if (isBot && url.pathname.startsWith("/category/")) {
+    const parts = url.pathname.split("/").filter(Boolean);
+    const slug = parts[1];
+
+    if (slug) {
+      try {
+        const res = await fetch(`https://api.bafnatoys.com/api/categories/${slug}`);
+        if (!res.ok) {
+          return next();
+        }
+
+        const data = await res.json();
+        const category = data.category;
+        if (!category) {
+          return next();
+        }
+
+        const baseUrl = "https://bafnatoys.com";
+        const title = `Wholesale ${category.name} | Buy Bulk Toys at Factory Price - Bafna Toys`;
+        const description = `Buy ${category.name} wholesale from India's leading B2B toy supplier. High-quality, BIS-certified plastic toys, pullback cars, rattles, dolls & more at factory prices.`;
+        
+        let imageUrl = `${baseUrl}/logo.webp`;
+        const rawImg = category.image || category.imageUrl;
+        if (rawImg) {
+          imageUrl = rawImg.startsWith("http") 
+            ? rawImg 
+            : `https://api.bafnatoys.com/api/uploads/${rawImg.replace(/^\/+/, "")}`;
+        }
+
+        const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${title}</title>
+  <meta name="description" content="${description}">
+  
+  <!-- Open Graph / Facebook / WhatsApp -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bafna Toys" />
+  <meta property="og:title" content="${title}" />
+  <meta property="og:description" content="${description}" />
+  <meta property="og:url" content="${baseUrl}${url.pathname}" />
+  <meta property="og:image" content="${imageUrl}" />
+  <meta property="og:image:secure_url" content="${imageUrl}" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${title}" />
+  <meta name="twitter:description" content="${description}" />
+  <meta name="twitter:image" content="${imageUrl}" />
+</head>
+<body>
+  <h1>${title}</h1>
+  <p>${description}</p>
+  <img src="${imageUrl}" alt="${title}" />
+  <p>Please use a regular browser to view our website.</p>
+</body>
+</html>`;
+
+        return new Response(html, {
+          headers: {
+            "Content-Type": "text/html;charset=UTF-8",
+            "Cache-Control": "public, max-age=3600"
+          }
+        });
+
+      } catch (err) {
+        console.error("Bot category middleware error:", err);
+        return next();
+      }
+    }
+  }
+
+  // 3. We only want to intercept specific product pages for bots
   if (isBot && url.pathname.startsWith("/product/")) {
     const parts = url.pathname.split("/").filter(Boolean);
     const slug = parts[1]; // e.g., ["product", "my-slug"] -> "my-slug"

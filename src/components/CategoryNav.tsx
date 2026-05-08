@@ -10,6 +10,7 @@ interface Category {
   name: string;
   imageUrl?: string; // ✅ if backend sends category image
   image?: string;    // ✅ optional fallback key
+  slug?: string;
 }
 
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
@@ -126,7 +127,7 @@ const CategoryNav: React.FC = () => {
             return (
               <Link
                 key={cat._id}
-                to={`/products?category=${cat._id}`}
+                to={cat.slug ? `/category/${cat.slug}` : `/products?category=${cat._id}`}
                 className={`category-item ${activeCategory === cat._id ? "active" : ""}`}
               >
                 {/* ✅ Use image if available else emoji */}

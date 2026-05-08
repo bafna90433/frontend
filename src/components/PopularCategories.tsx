@@ -9,6 +9,7 @@ type Category = {
   name: string;
   image?: string;
   imageUrl?: string;
+  slug?: string;
 };
 
 interface Props {
@@ -99,7 +100,7 @@ const PopularCategories: React.FC<Props> = ({ categories, title, subtitle }) => 
               return (
                 <Link
                   key={cat._id}
-                  to={`/products?category=${cat._id}`}
+                  to={cat.slug ? `/category/${cat.slug}` : `/products?category=${cat._id}`}
                   className="pc-item"
                 >
                   <div className="pc-circle">

@@ -145,7 +145,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
 
   const isPublicPage =
     publicPaths.includes(location.pathname) ||
-    (!forceLogin && location.pathname.startsWith("/product/"));
+    (!forceLogin && (location.pathname.startsWith("/product/") || location.pathname.startsWith("/category/")));
 
   if (!user && !isPublicPage) {
     return <Navigate to="/login" replace />;
@@ -249,6 +249,7 @@ const AppInner: React.FC = () => {
             <Routes>
               {/* Public Routes */}
               <Route path="/" element={<Products />} />
+              <Route path="/category/:slug" element={<Products />} />
               <Route path="/products" element={<Navigate to="/" replace />} />
               
               <Route path="/hot-deals" element={<HotDealsPage />} />

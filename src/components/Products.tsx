@@ -7,7 +7,7 @@ import React, {
   Suspense,
   lazy,
 } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate, Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import api, { MEDIA_URL } from "../utils/api";
 import ProductCard from "./ProductCard";
@@ -87,6 +87,7 @@ type Category = {
   name: string;
   image?: string;
   link?: string;
+  slug?: string;
 };
 
 type Banner = { _id: string; imageUrl: string; link?: string };
@@ -345,11 +346,18 @@ const Products: React.FC = () => {
 
   const ITEMS_PER_PAGE = 25;
 
+  const { slug } = useParams<{ slug: string }>();
+
   const params = new URLSearchParams(location.search);
-  const categoryId = params.get("category");
+  const selectedCatBySlug = useMemo(() => {
+    if (!slug) return null;
+    return categories.find((c) => c.slug === slug);
+  }, [categories, slug]);
+
+  const categoryId = selectedCatBySlug?._id || params.get("category");
   const searchTerm = params.get("search") || params.get("q") || "";
 
-  const isHomePage = !categoryId && !searchTerm && location.pathname === "/";
+  const isHomePage = !categoryId && !searchTerm && (location.pathname === "/" || location.pathname === "/products");
 
   const rootSchema = useMemo(() => ({
     "@context": "https://schema.org",
@@ -781,7 +789,7 @@ const Products: React.FC = () => {
           ? (window.location.href = cat.link)
           : navigate(cat.link);
       } else {
-        navigate(`/?category=${cat._id}`);
+        navigate(cat.slug ? `/category/${cat.slug}` : `/?category=${cat._id}`);
       }
     },
     [navigate]
