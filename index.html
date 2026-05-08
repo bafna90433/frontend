@@ -215,41 +215,7 @@
       });
     </script>
 
-    <script>
-    // ✅ Defer Facebook Pixel until browser is idle OR first user interaction
-    // This frees up main thread during LCP — saves ~150 KiB + cache-lifetime hit
-    (function () {
-      var fbLoaded = false;
-      function loadFbPixel() {
-        if (fbLoaded) return;
-        fbLoaded = true;
-        !function(f,b,e,v,n,t,s)
-        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-        n.queue=[];t=b.createElement(e);t.async=!0;
-        t.src=v;s=b.getElementsByTagName(e)[0];
-        s.parentNode.insertBefore(t,s)}(window, document,'script',
-        'https://connect.facebook.net/en_US/fbevents.js');
-        fbq('init', '1238757191757343');
-        fbq('track', 'PageView');
-      }
-      // Load on first interaction (click / scroll / keydown / touch)
-      var events = ['click', 'scroll', 'keydown', 'touchstart', 'mousemove'];
-      events.forEach(function (ev) {
-        window.addEventListener(ev, loadFbPixel, { once: true, passive: true });
-      });
-      // Fallback: load after 4s if no interaction
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(loadFbPixel, { timeout: 4000 });
-      } else {
-        setTimeout(loadFbPixel, 4000);
-      }
-    })();
-    </script>
-    <noscript><img height="1" width="1" style="display:none"
-    src="https://www.facebook.com/tr?id=1238757191757343&ev=PageView&noscript=1"
-    /></noscript>
+
     <script type="module" src="/src/index.tsx"></script>
 
     <script>
