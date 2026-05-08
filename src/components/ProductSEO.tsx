@@ -31,16 +31,18 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
   rating,
   reviews,
 }) => {
-  // 1. Strings ko define kiya
-  // ✅ Enhanced title template — captures long-tail "wholesale price" queries
-  const seoTitle =
-    typeof price === "number" && price > 0
-      ? `${name} — Wholesale Price ₹${price} | Bafna Toys`
-      : `${name} | Wholesale Toy Supplier - Bafna Toys`;
+  // ✅ SEO title updated for Google ranking
+  // Example: PVC Doll Toy B66 - Wholesale Toy Supplier in India | Bafna Toys
+  const seoTitle = `${name} - Wholesale Toy Supplier in India | Bafna Toys`;
+
+  // ✅ Clean URL to avoid query parameters in canonical tags
+  const cleanUrl = url.split("?")[0].split("#")[0];
+
   const seoDescription =
     description ||
-    `Buy ${name} wholesale from Bafna Toys, Coimbatore. Available in bulk at the best wholesale prices for shops and distributors in India.`;
-  const seoKeywords = `wholesale ${name}, bulk ${name}, ${name} supplier India, ${name} wholesale price, Bafna Toys wholesale`;
+    `Buy ${name} wholesale from Bafna Toys. Best wholesale toy supplier in India for retailers, toy shops and distributors. Available for bulk order at wholesale price.`;
+
+  const seoKeywords = `wholesale ${name}, bulk ${name}, ${name} supplier India, ${name} wholesale price, toys manufacturer India, wholesale toys India, toy supplier India, Bafna Toys`;
 
   let seoImage = "https://bafnatoys.com/logo.webp";
   if (image) {
@@ -63,7 +65,7 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
         "@type": "Brand",
         name: "Bafna Toys",
       },
-      url,
+      url: cleanUrl,
     };
 
     if (sku) {
@@ -81,7 +83,7 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
 
       schema.offers = {
         "@type": "Offer",
-        url,
+        url: cleanUrl,
         priceCurrency: "INR",
         price: price.toString(),
         priceValidUntil: validUntil.toISOString().split("T")[0], // YYYY-MM-DD
@@ -130,10 +132,20 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
     }
 
     return schema;
-  }, [name, seoDescription, seoImage, url, sku, category, price, stock, rating, reviews]); // Dependencies
+  }, [
+    name,
+    seoDescription,
+    seoImage,
+    cleanUrl,
+    sku,
+    category,
+    price,
+    stock,
+    rating,
+    reviews,
+  ]);
 
-  // ✅ NEW: BreadcrumbList schema — Google SERP shows breadcrumb trail above product link,
-  // boosting click-through-rate. Gracefully falls back to Home > Product if no category.
+  // ✅ BreadcrumbList schema
   const breadcrumbSchema = useMemo(() => {
     const items: Array<Record<string, any>> = [
       {
@@ -143,19 +155,23 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
         item: "https://bafnatoys.com/",
       },
     ];
+
     if (category && categoryId) {
       items.push({
         "@type": "ListItem",
         position: 2,
         name: category,
-        item: `https://bafnatoys.com/?category=${encodeURIComponent(categoryId)}`,
+        item: `https://bafnatoys.com/?category=${encodeURIComponent(
+          categoryId
+        )}`,
       });
     }
+
     items.push({
       "@type": "ListItem",
       position: items.length + 1,
       name,
-      item: url,
+      item: cleanUrl,
     });
 
     return {
@@ -163,7 +179,7 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
       "@type": "BreadcrumbList",
       itemListElement: items,
     };
-  }, [name, url, category, categoryId]);
+  }, [name, cleanUrl, category, categoryId]);
 
   return (
     <>
@@ -173,16 +189,16 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
         <meta name="description" content={seoDescription} />
         <meta name="keywords" content={seoKeywords} />
 
-        {/* 3. SEO Fix: Image Preview directive for Google Discover/Images */}
+        {/* SEO Fix: Image Preview directive for Google Discover/Images */}
         <meta name="robots" content="index, follow, max-image-preview:large" />
-        <link rel="canonical" href={url} />
+        <link rel="canonical" href={cleanUrl} />
 
         {/* Open Graph */}
         <meta property="og:type" content="product" />
         <meta property="og:site_name" content="Bafna Toys" />
         <meta property="og:title" content={seoTitle} />
         <meta property="og:description" content={seoDescription} />
-        <meta property="og:url" content={url} />
+        <meta property="og:url" content={cleanUrl} />
         <meta property="og:image" content={seoImage} />
         <meta property="og:image:secure_url" content={seoImage} />
 
@@ -200,7 +216,7 @@ const ProductSEO: React.FC<ProductSEOProps> = ({
         <meta name="twitter:image" content={seoImage} />
       </Helmet>
 
-      {/* ✅ JSON-LD injected via direct DOM (bypasses react-helmet-async script bug) */}
+      {/* ✅ JSON-LD injected via direct DOM */}
       <JsonLd id="product" data={productSchema} />
       <JsonLd id="product-breadcrumb" data={breadcrumbSchema} />
     </>
