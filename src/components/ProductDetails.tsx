@@ -23,7 +23,7 @@ import {
   FiTruck,
   FiRefreshCw,
 } from "react-icons/fi";
-import { FaTag, FaRegHeart, FaHeart } from "react-icons/fa";
+import { FaTag } from "react-icons/fa";
 import { useShop } from "../context/ShopContext";
 // getImageUrl abhi rakhte hain, par safetey ke liye ek internal optimizer bhi use karenge
 import { getImageUrl } from "../utils/image"; 
@@ -110,7 +110,6 @@ const ProductDetails: React.FC = () => {
   const [selectedImage, setSelectedImage] = useState(0);
   const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(true);
   const [timeLeft, setTimeLeft] = useState<string | null>(null);
-  const [isWishlisted, setIsWishlisted] = useState(false);
   const [showZoom, setShowZoom] = useState(false);
   const [imgLoaded, setImgLoaded] = useState<boolean[]>([]);
   
@@ -128,6 +127,7 @@ const ProductDetails: React.FC = () => {
 
   const { cartItems, setCartItemQuantity } = useShop();
   const navigate = useNavigate();
+
 
   const toggleDescription = useCallback(() => {
     setIsDescriptionExpanded((prev) => !prev);
@@ -577,13 +577,6 @@ const ProductDetails: React.FC = () => {
                       : `${discountPercent}% OFF`}
                   </div>
                 )}
-                <button
-                  className={`pd-wishlist-btn ${isWishlisted ? "active" : ""}`}
-                  onClick={() => setIsWishlisted(!isWishlisted)}
-                  aria-label={isWishlisted ? "Remove from wishlist" : "Add to wishlist"}
-                >
-                  {isWishlisted ? <FaHeart size={18} /> : <FaRegHeart size={18} />}
-                </button>
               </div>
 
               {product.mrp && product.mrp > unitPrice && (

@@ -146,6 +146,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
     const cartItem = cartItems.find((item) => item._id === product._id);
     const itemCount = cartItem?.quantity ?? 0;
 
+
     const productUrl = product.slug ? `/product/${product.slug}` : `/product/${product._id}`;
 
     const { stepQty, minQty, parsedUnit, isBulk } = useMemo(() => {
@@ -295,6 +296,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
       [images.length]
     );
 
+
     const endsAt = deal?.endsAt || product.sale_end_time || null;
 
     useEffect(() => {
@@ -338,7 +340,10 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
                   <Clock size={12} strokeWidth={2.5} />
                   <span>{timeLeft}</span>
                 </div>
-              ) : (
+              ) : null}
+
+
+              {timeLeft ? null : (
                 product.featured && (
                   <div className="pc-top-badges">
                     <span className="pc-badge pc-badge--featured">

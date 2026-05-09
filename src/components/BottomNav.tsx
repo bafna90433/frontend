@@ -9,7 +9,7 @@ const BottomNav: React.FC = () => {
 
   const cartCount = cartItems.reduce((sum, item) => sum + (item.quantity || 0), 0);
 
-  // Added "/faq" to the allowed paths
+  // Added "/faq" and "/wishlist" to the allowed paths
   const allowedPaths = ["/", "/products", "/cart", "/my-account", "/orders", "/faq"];
 
   if (!allowedPaths.includes(location.pathname)) {

@@ -203,6 +203,7 @@
   }
 }
 
+
 /* -------------------- TOP BADGES -------------------- */
 .pc-top-badges {
   position: absolute;
@@ -263,7 +264,7 @@
 .pc-mrp-circle {
   position: absolute;
   top: var(--pc-space-2);
-  right: var(--pc-space-2);
+  left: var(--pc-space-2);
   z-index: var(--pc-z-badge);
   width: 3.5rem;
   height: 3.5rem;

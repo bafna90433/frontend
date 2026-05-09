@@ -31,7 +31,6 @@ const MetaPixelLoader = React.lazy(() => import("./components/MetaPixelLoader"))
 // --- LAZY LOADED PAGES ---
 const ProductDetails = React.lazy(() => import("./components/ProductDetails"));
 const Cart = React.lazy(() => import("./components/Cart"));
-const Wishlist = React.lazy(() => import("./components/Wishlist"));
 const Checkout = React.lazy(() => import("./components/Checkout"));
 const HotDealsPage = React.lazy(() => import("./pages/HotDealsPage"));
 const Register = React.lazy(() => import("./components/Register"));
@@ -257,7 +256,6 @@ const AppInner: React.FC = () => {
               <Route path="/hot-deals" element={<HotDealsPage />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
-              <Route path="/wishlist" element={<Wishlist />} />
 
               {/* Auth Routes */}
               <Route path="/register" element={<Register />} />

@@ -24,6 +24,7 @@ const DEFAULT_EVENTS: PixelEvents = {
 
 let _inited = false;
 
+
 /**
  * Initialize Meta Pixel with Advanced Matching support
  * @param pixelId Facebook Pixel ID
@@ -152,4 +153,6 @@ export function trackPurchase(data: {
     order_id: data.orderId,
   });
 }
+
+
 

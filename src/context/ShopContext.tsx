@@ -16,19 +16,14 @@ type Product = {
 };
 
 type CartItem = Product & { quantity: number; image?: string };
-type WishlistItem = Product;
 
 interface ShopContextType {
   cartItems: CartItem[];
-  wishlistItems: WishlistItem[];
   addToCart: (product: Product, quantity?: number) => void;
   setCartItemQuantity: (product: Product, quantity: number) => void;
   removeFromCart: (id: string) => void;
   clearCart: () => void;
-  addToWishlist: (product: Product) => void;
-  removeFromWishlist: (id: string) => void;
   cartCount: number;
-  wishlistCount: number;
 
   // ✅ New Shipping & Total Fields
   shippingFee: number;
@@ -46,11 +41,6 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     return stored ? JSON.parse(stored) : [];
   });
 
-  // --- Wishlist State ---
-  const [wishlistItems, setWishlistItems] = useState<WishlistItem[]>(() => {
-    const stored = localStorage.getItem("wishlist");
-    return stored ? JSON.parse(stored) : [];
-  });
 
   // --- Shipping Rules State ---
   const [shippingCharge, setShippingCharge] = useState(0);
@@ -121,10 +111,6 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     };
   }, [cartItems]);
 
-  // Sync Wishlist to LocalStorage
-  useEffect(() => {
-    localStorage.setItem("wishlist", JSON.stringify(wishlistItems));
-  }, [wishlistItems]);
 
   // --- Cart Actions ---
   const addToCart = (product: Product, quantity: number = 1) => {
@@ -178,21 +164,9 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     setCartItems([]);
   };
 
-  // --- Wishlist Actions ---
-  const addToWishlist = (product: Product) => {
-    setWishlistItems((prev) => {
-      if (prev.some((item) => item._id === product._id)) return prev;
-      return [...prev, product];
-    });
-  };
-
-  const removeFromWishlist = (id: string) => {
-    setWishlistItems((prev) => prev.filter((item) => item._id !== id));
-  };
 
   // --- Calculations ---
   const cartCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-  const wishlistCount = wishlistItems.length;
 
   // ✅ Calculate Totals
   const cartTotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -206,15 +180,11 @@ export const ShopProvider = ({ children }: { children: ReactNode }) => {
     <ShopContext.Provider
       value={{
         cartItems,
-        wishlistItems,
         addToCart,
         setCartItemQuantity,
         removeFromCart,
         clearCart,
-        addToWishlist,
-        removeFromWishlist,
         cartCount,
-        wishlistCount,
         
         // ✅ Exposed Values
         shippingFee,
