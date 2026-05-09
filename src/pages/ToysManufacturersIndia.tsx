@@ -1,237 +1,352 @@
-import React, { useMemo } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  Factory, 
-  ShieldCheck, 
-  Award, 
-  Truck, 
-  ChevronRight, 
-  CheckCircle2, 
-  Sparkles, 
-  Star,
-  Users,
-  Compass,
-  Zap,
-  DollarSign
-} from "lucide-react";
-import ProductSEO from "../components/ProductSEO";
+import { Helmet } from "react-helmet-async";
+
+const FAQ_DATA = [
+  {
+    q: "Is Bafna Toys a manufacturer or a trader?",
+    a: "Bafna Toys is a direct toy manufacturer based in Coimbatore, Tamil Nadu. We own our manufacturing unit and do not source from third-party traders. This lets us offer factory-direct wholesale prices to retailers across India."
+  },
+  {
+    q: "What types of toys does Bafna Toys manufacture?",
+    a: "We manufacture PVC dolls, pullback friction cars, windup key toys, rattle sets, soft toys, and kids' educational toys. All products are BIS certified and made from non-toxic, food-grade materials."
+  },
+  {
+    q: "What is the minimum order quantity (MOQ)?",
+    a: "We have a very low MOQ designed for small retailers and toy shops. You can order as low as 1 inner box (typically 6–12 pieces). Bulk orders get additional factory-price discounts."
+  },
+  {
+    q: "Do you deliver across India?",
+    a: "Yes. We ship PAN India via Delhivery, DTDC, and other logistics partners. Orders are dispatched within 24–48 hours. Most cities in South India receive delivery within 2–3 days."
+  },
+  {
+    q: "Are Bafna Toys products BIS certified?",
+    a: "Yes. All our toys comply with Bureau of Indian Standards (BIS) IS 9873 safety regulations. We use non-toxic pigments, phthalate-free PVC, and pass rigorous drop and tension tests before shipment."
+  },
+  {
+    q: "How can I register as a wholesale buyer?",
+    a: "Click on 'Register as Retailer' on our website. Fill in your shop name, GST number, and contact details. Once approved, you get instant access to our wholesale catalog and factory pricing."
+  },
+  {
+    q: "Do you offer custom packaging or private label?",
+    a: "Yes, for bulk orders we can provide custom box packaging with your brand name or retailer label. Contact us via WhatsApp or the website for custom branding inquiries."
+  },
+  {
+    q: "What payment methods are accepted?",
+    a: "We accept UPI, NEFT/RTGS, debit/credit cards via Razorpay, and Cash on Delivery (COD) for eligible orders. GST invoice is provided for every order."
+  }
+];
+
+const SCHEMA_ORGANIZATION = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Bafna Toys",
+  "url": "https://bafnatoys.com",
+  "logo": "https://bafnatoys.com/logo.webp",
+  "description": "Bafna Toys is a leading toy manufacturer and wholesale supplier in Coimbatore, Tamil Nadu, India. We manufacture BIS-certified PVC dolls, pullback cars, windup toys and kids toys.",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Kalikkanaicken Palayam",
+    "addressLocality": "Coimbatore",
+    "addressRegion": "Tamil Nadu",
+    "postalCode": "641019",
+    "addressCountry": "IN"
+  },
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "customer service",
+    "availableLanguage": ["English", "Hindi", "Tamil"]
+  },
+  "sameAs": [
+    "https://www.facebook.com/bafnatoys",
+    "https://www.instagram.com/bafnatoys"
+  ]
+};
+
+const SCHEMA_LOCAL_BUSINESS = {
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Bafna Toys",
+  "image": "https://bafnatoys.com/logo.webp",
+  "url": "https://bafnatoys.com",
+  "telephone": "+91-9999999999",
+  "priceRange": "₹₹",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Kalikkanaicken Palayam",
+    "addressLocality": "Coimbatore",
+    "addressRegion": "Tamil Nadu",
+    "postalCode": "641019",
+    "addressCountry": "IN"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 11.0168,
+    "longitude": 76.9558
+  },
+  "openingHours": "Mo-Sa 09:00-18:00",
+  "description": "Bafna Toys – Toy manufacturer and wholesale supplier in Coimbatore. Buy PVC dolls, pullback cars, windup toys, and kids toys in bulk at factory prices with PAN India delivery."
+};
+
+const SCHEMA_FAQ = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": FAQ_DATA.map(item => ({
+    "@type": "Question",
+    "name": item.q,
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": item.a
+    }
+  }))
+};
 
 const ToysManufacturersIndia: React.FC = () => {
-  // Memoized lists for rendering
-  const coreSpecialties = useMemo(() => [
-    {
-      title: "PVC Dolls Manufacturer in India",
-      description: "We are an industry-leading PVC dolls manufacturer in India. Our state-of-the-art rotomolding machinery produces non-toxic, safe, and skin-friendly vinyl dolls with soft-touch finishes and high structural durability for infants and toddlers.",
-      icon: <Star className="text-emerald-500" size={24} />
-    },
-    {
-      title: "Windup Key Toys Manufacturer",
-      description: "As a seasoned windup key toys manufacturer, we specialize in high-precision mechanical clockwork keys. Our gears and spring systems are engineered for prolonged movement cycles, ensuring repetitive hopping, jumping, and walking animations without breaking.",
-      icon: <Zap className="text-amber-500" size={24} />
-    },
-    {
-      title: "Pullback Toy Cars Wholesale",
-      description: "Get pullback toy cars wholesale from our friction-powered manufacturing division. We produce aerodynamic pullback cars, racing buggies, heavy-duty dumper trucks, and utility vehicles equipped with high-friction rubberized wheels and powerful double-geared motors.",
-      icon: <Compass className="text-blue-500" size={24} />
-    },
-  ], []);
-
-  const retailBenefits = useMemo(() => [
-    "BIS Certified Safe Products (Bureau of Indian Standards approval for 100% security)",
-    "Direct Factory Wholesale Prices (No distributors or middle-men markups)",
-    "Ultra-Low MOQ requirements tailored specifically for retail stores and startup toy outlets",
-    "Coimbatore manufacturing hub offering super-fast transit times across South India and pan-India",
-    "High-grade virgin food-safe plastics and non-toxic lead-free pigments",
-    "Dedicated premium packing boxes optimized to withstand harsh shipping conditions"
-  ], []);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
     <>
-      {/* Dynamic SEO Tag overrides */}
-      <ProductSEO 
-        name="Toys Manufacturers in India | Wholesale Toy Supplier"
-        description="Looking for top toys manufacturers in India? Bafna Toys is a leading wholesale toy manufacturer and supplier. Buy premium pullback cars, PVC dolls, rattles & board games at factory-direct rates."
-      />
+      <Helmet>
+        <title>Toys Manufacturers in India | Bafna Toys Wholesale Supplier – Coimbatore</title>
+        <meta
+          name="description"
+          content="Bafna Toys is a trusted toy manufacturer and wholesale supplier in Coimbatore, Tamil Nadu. Buy PVC dolls, pullback cars, windup toys and kids toys in bulk with PAN India delivery."
+        />
+        <meta name="keywords" content="toys manufacturers in India, toy manufacturer in India, wholesale toys India, bulk toys supplier India, toys for retail shops, PVC dolls manufacturer, pullback cars wholesale, windup toys supplier, factory price toys wholesale, toy supplier for retailers" />
+        <link rel="canonical" href="https://bafnatoys.com/toys-manufacturers-in-india" />
+        <meta property="og:title" content="Toys Manufacturers in India | Bafna Toys Wholesale Supplier" />
+        <meta property="og:description" content="Bafna Toys – Direct toy manufacturer in Coimbatore. BIS certified PVC dolls, pullback cars, windup toys at factory wholesale prices. PAN India delivery." />
+        <meta property="og:url" content="https://bafnatoys.com/toys-manufacturers-in-india" />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://bafnatoys.com/logo.webp" />
+        <script type="application/ld+json">{JSON.stringify(SCHEMA_ORGANIZATION)}</script>
+        <script type="application/ld+json">{JSON.stringify(SCHEMA_LOCAL_BUSINESS)}</script>
+        <script type="application/ld+json">{JSON.stringify(SCHEMA_FAQ)}</script>
+      </Helmet>
 
-      <div className="seo-landing-container" style={styles.container}>
-        
-        {/* HERO SECTION */}
-        <section style={styles.heroSection}>
-          <div style={styles.overlay} />
-          <div style={styles.heroContent}>
-            <div style={styles.badge}>
-              <Award size={14} style={{ marginRight: 6 }} />
-              BIS-Certified B2B Toy Hub
-            </div>
-            <h1 style={styles.heroTitle}>
-              Toys Manufacturers <br />
-              <span style={styles.highlightText}>in India</span>
+      <div style={{ background: "#f8fafc", color: "#1e293b", fontFamily: "'Baloo 2', sans-serif" }}>
+
+        {/* ── HERO ── */}
+        <section style={{
+          background: "linear-gradient(135deg, #065f46 0%, #059669 60%, #10b981 100%)",
+          padding: "72px 20px 100px",
+          textAlign: "center",
+          color: "#fff",
+          position: "relative",
+          overflow: "hidden"
+        }}>
+          <div style={{ position: "absolute", inset: 0, background: "radial-gradient(circle at 20% 50%, rgba(255,255,255,0.08) 0%, transparent 60%)", pointerEvents: "none" }} />
+          <div style={{ maxWidth: 820, margin: "0 auto", position: "relative" }}>
+            <span style={{ display: "inline-block", background: "rgba(255,255,255,0.15)", border: "1px solid rgba(255,255,255,0.3)", borderRadius: 20, padding: "5px 16px", fontSize: "0.82rem", fontWeight: 600, marginBottom: 18, backdropFilter: "blur(4px)" }}>
+              🏭 BIS Certified · Factory Direct · PAN India
+            </span>
+            <h1 style={{ fontSize: "clamp(2rem, 5vw, 3.4rem)", fontWeight: 800, lineHeight: 1.15, margin: "0 0 18px", letterSpacing: "-0.5px" }}>
+              Toys Manufacturers in India<br />
+              <span style={{ color: "#fef08a" }}>– Bafna Toys, Coimbatore</span>
             </h1>
-            <p style={styles.heroSub}>
-              Bafna Toys is the premier <strong>toy manufacturer direct supplier India</strong>. 
-              We engineer, mold, and package high-quality children playthings at our high-tech 
-              Coimbatore unit, offering unmatched B2B wholesale pricing directly from the source.
+            <p style={{ fontSize: "clamp(1rem, 2.5vw, 1.18rem)", lineHeight: 1.65, color: "#d1fae5", maxWidth: 700, margin: "0 auto 32px" }}>
+              Bafna Toys is a trusted <strong style={{ color: "#fff" }}>toy manufacturer and wholesale toy supplier</strong> in India. We manufacture and supply PVC dolls, pullback cars, windup toys, key toys and kids toys for retailers, toy shops, supermarkets and resellers across India — at direct factory prices.
             </p>
-            <div style={styles.heroActions}>
-              <Link to="/register" style={styles.primaryBtn}>
-                Register as Retailer <ChevronRight size={18} />
+            <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+              <Link to="/register" style={{ background: "#fff", color: "#065f46", padding: "12px 28px", borderRadius: 10, fontWeight: 700, textDecoration: "none", fontSize: "1rem", boxShadow: "0 4px 16px rgba(0,0,0,0.12)" }}>
+                Register as Retailer →
               </Link>
-              <Link to="/" style={styles.secondaryBtn}>
-                Browse Bulk Catalog
+              <Link to="/" style={{ background: "transparent", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, textDecoration: "none", fontSize: "1rem", border: "2px solid rgba(255,255,255,0.5)" }}>
+                Browse Wholesale Catalog
               </Link>
             </div>
           </div>
         </section>
 
-        {/* FACTORY TRUST BADGES */}
-        <section style={styles.badgeGrid}>
-          <div style={styles.badgeCard}>
-            <Factory className="text-emerald-600" size={32} />
-            <h3 style={styles.badgeCardTitle}>Toys Manufacturer in Coimbatore</h3>
-            <p style={styles.badgeCardText}>Direct factory outlet based in Kalikkanaicken Palayam, Coimbatore, supplying pan-India.</p>
-          </div>
-          <div style={styles.badgeCard}>
-            <ShieldCheck className="text-emerald-600" size={32} />
-            <h3 style={styles.badgeCardTitle}>100% BIS Certified</h3>
-            <p style={styles.badgeCardText}>Every single product complies strictly with the Bureau of Indian Standards IS 9873 safety regulations.</p>
-          </div>
-          <div style={styles.badgeCard}>
-            <DollarSign className="text-emerald-600" size={32} />
-            <h3 style={styles.badgeCardTitle}>Factory Price Wholesale India</h3>
-            <p style={styles.badgeCardText}>Premium quality raw material and efficient production pipelines guarantee lowest price per unit.</p>
-          </div>
-        </section>
+        {/* ── TRUST BADGES ── */}
+        <div style={{ maxWidth: 1100, margin: "-48px auto 0", padding: "0 20px", position: "relative", zIndex: 10, display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 20 }}>
+          {[
+            { emoji: "🏭", title: "Factory Direct", text: "Coimbatore manufacturing unit — no middlemen" },
+            { emoji: "✅", title: "BIS Certified", text: "IS 9873 compliant. 100% safe for children" },
+            { emoji: "📦", title: "Low MOQ", text: "Order from 1 inner box — ideal for small retailers" },
+            { emoji: "🚚", title: "PAN India Delivery", text: "Delhivery & DTDC — 24–48 hr dispatch" },
+          ].map((b, i) => (
+            <div key={i} style={{ background: "#fff", borderRadius: 14, padding: "22px 18px", boxShadow: "0 8px 24px rgba(0,0,0,0.06)", border: "1px solid #e2e8f0" }}>
+              <div style={{ fontSize: "2rem", marginBottom: 8 }}>{b.emoji}</div>
+              <div style={{ fontWeight: 700, fontSize: "1.05rem", color: "#0f172a", marginBottom: 4 }}>{b.title}</div>
+              <div style={{ fontSize: "0.88rem", color: "#64748b", lineHeight: 1.45 }}>{b.text}</div>
+            </div>
+          ))}
+        </div>
 
-        {/* EDITORIAL CONTENT SECTION (1000+ words SEO Powerhouse) */}
-        <section style={styles.contentSection}>
-          <div style={styles.editorialGrid}>
-            
-            {/* Left Main Content */}
-            <div style={styles.editorialLeft}>
-              <h2 style={styles.secTitle}>India's Fast-Growing B2B Wholesale Toy Supply Chain</h2>
-              
-              <p style={styles.paragraph}>
-                In recent years, the Indian toy industry has witnessed a paradigm shift, transitioning from cheap, unchecked imported items to high-quality, indigenous, and strictly certified domestic manufacturing. Bafna Toys stands at the forefront of this revolution as one of the leading <strong>toys manufacturers in India</strong>. By integrating cutting-edge manufacturing automation with high-grade materials, we deliver premium products that retailers can trust blindly.
-              </p>
+        {/* ── MAIN CONTENT ── */}
+        <section style={{ maxWidth: 1100, margin: "60px auto", padding: "0 20px", display: "grid", gridTemplateColumns: "2fr 1fr", gap: 40 }}>
 
-              <p style={styles.paragraph}>
-                Our specialized production plants utilize premium injection molding, advanced rotomolding, and rigorous tension and drop testing to ensure every single toy is indestructible and completely safe for children. From vibrant mechanical wind-up key toys to dynamic pullback friction vehicles, we build happiness that lasts.
-              </p>
+          {/* Left */}
+          <div>
+            <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 800, color: "#0f172a", marginBottom: 16 }}>
+              About Bafna Toys – Toy Manufacturing in India
+            </h2>
+            <p style={pStyle}>
+              Bafna Toys is one of India's leading <strong>toys manufacturers in India</strong>, headquartered in Coimbatore, Tamil Nadu. With years of hands-on manufacturing experience, we produce a wide range of children's toys including PVC dolls, pullback friction cars, windup key toys, rattle sets, and educational toys — all at <strong>factory price wholesale</strong> rates.
+            </p>
+            <p style={pStyle}>
+              Unlike distributors and traders, we own our full manufacturing plant. This means we control quality end-to-end, and can offer unbeatable <strong>wholesale toys India</strong> pricing directly to retailers without any middlemen markup.
+            </p>
 
-              <h3 style={styles.subSecTitle}>Why Partner Directly With Bafna Toys?</h3>
-              <p style={styles.paragraph}>
-                Finding a reliable <strong>toy manufacturer direct supplier India</strong> can be difficult. Many suppliers act as wholesale intermediaries, adding significant markup percentages to each unit. When you partner with Bafna Toys, you work directly with the creators. This direct relationship guarantees you access to <strong>toys factory price wholesale India</strong>, enabling retail businesses to enjoy high-yield margins and pass on amazing retail discounts to end customers.
-              </p>
-              
-              <p style={styles.paragraph}>
-                We cater to a vast customer profile, functioning as a dedicated <strong>bulk toys supplier for retailers India</strong>, supermarkets, multi-brand department stores, and independent toyshops. With our structured logistics team, we guarantee swift shipments with robust tracking from our dispatch dock.
-              </p>
+            <h3 style={h3Style}>Wholesale Toys for Retail Shops Across India</h3>
+            <p style={pStyle}>
+              We are a dedicated <strong>bulk toys supplier India</strong> for toy shops, supermarkets, kirana stores, baby shops, and online resellers. Our low MOQ policy means even small retailers can buy directly at factory rates and enjoy the same margins as large distributors. We supply to retailers in Tamil Nadu, Maharashtra, Rajasthan, UP, Gujarat, Delhi, Telangana, Karnataka and all other states.
+            </p>
 
-              {/* CORE CATEGORIES / KEYWORDS DETAILS */}
-              <h3 style={styles.subSecTitle}>Our Toy Manufacturing Specializations</h3>
-              <div style={styles.specialtyList}>
-                {coreSpecialties.map((item, idx) => (
-                  <div key={idx} style={styles.specialtyItem}>
-                    <div style={styles.specialtyIconBox}>{item.icon}</div>
-                    <div>
-                      <h4 style={styles.specialtyItemTitle}>{item.title}</h4>
-                      <p style={styles.specialtyItemDesc}>{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <h3 style={styles.subSecTitle}>The Coimbatore Manufacturing Excellence</h3>
-              <p style={styles.paragraph}>
-                Located in the industrial city of Coimbatore, Tamil Nadu, Bafna Toys is proudly established as a high-performance <strong>toys manufacturer in Coimbatore</strong>. Coimbatore's engineering heritage allows us to source high-grade steel molds, maintain precision machinery, and operate with maximum power efficiency. Our facility is run by highly skilled assembly line professionals who ensure rigorous checking of every PVC doll, friction gearbox, and rattles set before they are packed for transport.
-              </p>
+            <h3 style={h3Style}>Product Categories</h3>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 14, margin: "16px 0 24px" }}>
+              {[
+                { cat: "PVC Dolls", desc: "Non-toxic, skin-safe vinyl dolls for infants & toddlers", link: "/?search=doll" },
+                { cat: "Pullback Cars", desc: "Friction-powered cars, trucks & racing vehicles", link: "/?search=pullback" },
+                { cat: "Windup Key Toys", desc: "Mechanical clockwork animals & character toys", link: "/?search=windup" },
+                { cat: "Rattle Sets", desc: "BIS-certified rattles for babies 0–12 months", link: "/?search=rattle" },
+                { cat: "Soft Toys", desc: "Plush animals and stuffed toys for all ages", link: "/?search=soft" },
+                { cat: "Kids Toys", desc: "Educational & play toys for toddlers & kids", link: "/" },
+              ].map((c, i) => (
+                <Link key={i} to={c.link} style={{ display: "block", background: "#fff", borderRadius: 12, padding: "14px", border: "1px solid #e2e8f0", textDecoration: "none", transition: "box-shadow 0.2s", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                  <div style={{ fontWeight: 700, color: "#059669", fontSize: "0.95rem", marginBottom: 4 }}>{c.cat}</div>
+                  <div style={{ fontSize: "0.82rem", color: "#64748b", lineHeight: 1.4 }}>{c.desc}</div>
+                </Link>
+              ))}
             </div>
 
-            {/* Right Sidebar */}
-            <div style={styles.editorialRight}>
-              <div style={styles.sidebarCard}>
-                <h3 style={styles.sidebarTitle}>Partner Highlights</h3>
-                <ul style={styles.sidebarList}>
-                  {retailBenefits.map((item, idx) => (
-                    <li key={idx} style={styles.sidebarListItem}>
-                      <CheckCircle2 size={16} style={styles.listIcon} />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div style={styles.sidebarCtaBox}>
-                  <p style={styles.sidebarCtaText}>Ready to skyrocket your wholesale profits?</p>
-                  <Link to="/register" style={styles.sidebarCtaBtn}>
-                    Create Wholesale Account
-                  </Link>
+            <h3 style={h3Style}>Why Retailers Choose Bafna Toys</h3>
+            <ul style={{ paddingLeft: 0, listStyle: "none", margin: 0, display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                "Factory price wholesale toys — no distributor markup",
+                "BIS IS 9873 certified — 100% safe for children",
+                "Low MOQ — perfect for small toy shops and kirana stores",
+                "400+ SKUs across categories — one supplier, full range",
+                "Fast PAN India delivery — 24–48 hr dispatch",
+                "GST invoice provided — business-ready purchasing",
+                "COD available — zero risk for first-time buyers",
+                "Dedicated WhatsApp support for order tracking",
+              ].map((item, i) => (
+                <li key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, fontSize: "0.97rem", color: "#334155", lineHeight: 1.5 }}>
+                  <span style={{ color: "#059669", fontWeight: 700, flexShrink: 0 }}>✓</span> {item}
+                </li>
+              ))}
+            </ul>
+
+            <h3 style={h3Style}>Toys Manufacturing in Coimbatore, Tamil Nadu</h3>
+            <p style={pStyle}>
+              Our manufacturing plant is located in Kalikkanaicken Palayam, Coimbatore — one of India's leading industrial cities. Coimbatore's strong engineering ecosystem allows us to source precision steel molds, run injection molding and rotomolding lines, and maintain quality at scale. Being a Coimbatore-based <strong>toy manufacturer in India</strong>, we can dispatch orders quickly to all major cities — Mumbai, Delhi, Bangalore, Hyderabad, Ahmedabad, Chennai, Kolkata and more.
+            </p>
+
+            <h3 style={h3Style}>PAN India Delivery & Bulk Order Benefits</h3>
+            <p style={pStyle}>
+              All orders are dispatched from our Coimbatore warehouse via Delhivery, DTDC and Blue Dart for reliable nationwide coverage. Bulk orders above ₹5,000 may qualify for free shipping. We also offer custom packaging, private label options, and dedicated account managers for large retailers and chains. Contact us for <strong>bulk toys supplier India</strong> pricing and volume discounts.
+            </p>
+          </div>
+
+          {/* Right Sidebar */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <div style={{ background: "#fff", borderRadius: 16, padding: 24, border: "1px solid #e2e8f0", boxShadow: "0 4px 16px rgba(0,0,0,0.04)" }}>
+              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, color: "#0f172a", marginBottom: 16, borderBottom: "1px solid #f1f5f9", paddingBottom: 8 }}>
+                Quick Stats
+              </h3>
+              {[
+                { label: "Products", value: "400+" },
+                { label: "Retailers", value: "400+" },
+                { label: "States Served", value: "28+" },
+                { label: "Years in Business", value: "15+" },
+                { label: "BIS Certified", value: "100%" },
+              ].map((s, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "8px 0", borderBottom: i < 4 ? "1px solid #f8fafc" : "none" }}>
+                  <span style={{ fontSize: "0.9rem", color: "#64748b" }}>{s.label}</span>
+                  <span style={{ fontWeight: 700, color: "#059669" }}>{s.value}</span>
                 </div>
-              </div>
-
-              <div style={styles.sidebarMetricCard}>
-                <Users size={32} style={{ color: "#059669", marginBottom: 12 }} />
-                <h4 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "#1e293b" }}>400+ Retailers</h4>
-                <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", color: "#64748b" }}>Trusting Bafna Toys across India daily for bulk supplies.</p>
-              </div>
-
-              <div style={styles.sidebarMetricCard}>
-                <Truck size={32} style={{ color: "#059669", marginBottom: 12 }} />
-                <h4 style={{ margin: 0, fontSize: "1.5rem", fontWeight: 700, color: "#1e293b" }}>All India Dispatch</h4>
-                <p style={{ margin: "4px 0 0 0", fontSize: "0.85rem", color: "#64748b" }}>Fast door-delivery logistics connected to top shipping partners.</p>
+              ))}
+              <div style={{ marginTop: 20, background: "#f0fdf4", borderRadius: 10, padding: 14, textAlign: "center", border: "1px solid #d1fae5" }}>
+                <p style={{ margin: "0 0 10px", fontSize: "0.88rem", fontWeight: 600, color: "#065f46" }}>Start buying at factory price</p>
+                <Link to="/register" style={{ display: "block", background: "#059669", color: "#fff", padding: "9px", borderRadius: 8, textDecoration: "none", fontWeight: 700, fontSize: "0.9rem" }}>
+                  Register Free →
+                </Link>
               </div>
             </div>
 
-          </div>
-        </section>
+            <div style={{ background: "#0f172a", borderRadius: 16, padding: 24, color: "#fff" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 700, margin: "0 0 12px", color: "#10b981" }}>Keywords We Rank For</h3>
+              {[
+                "toys manufacturers in India",
+                "toy manufacturer in India",
+                "wholesale toys India",
+                "bulk toys supplier India",
+                "PVC dolls manufacturer",
+                "pullback cars wholesale",
+                "windup toys supplier",
+                "factory price toys wholesale",
+                "toy supplier for retailers",
+                "toys manufacturer Coimbatore",
+              ].map((kw, i) => (
+                <div key={i} style={{ fontSize: "0.8rem", color: "#94a3b8", padding: "4px 0", borderBottom: "1px solid #1e293b" }}>
+                  🔍 {kw}
+                </div>
+              ))}
+            </div>
 
-        {/* DETAILED FAQ BLOCK */}
-        <section style={styles.faqSection}>
-          <div style={styles.faqHeader}>
-            <Sparkles size={24} style={{ color: "#10b981", marginBottom: 8 }} />
-            <h2 style={styles.secTitleCenter}>Frequently Asked Questions (FAQ)</h2>
-            <p style={styles.secSubCenter}>Common queries from bulk buyers, retailers, and distributors looking to buy from us</p>
-          </div>
-
-          <div style={styles.faqGrid}>
-            <div style={styles.faqCard}>
-              <h4 style={styles.faqQuestion}>Q1: What makes Bafna Toys a reliable toys manufacturers in India?</h4>
-              <p style={styles.faqAnswer}>
-                Unlike trading entities, we own our full injection and rotomolding manufacturing unit. This ensures absolute oversight over chemical and structural safety, BIS standard certifications, and constant inventory availability, making us a top <strong>wholesale toys supplier in India</strong>.
-              </p>
-            </div>
-            <div style={styles.faqCard}>
-              <h4 style={styles.faqQuestion}>Q2: Do you supply pullback toy cars wholesale in customizable batches?</h4>
-              <p style={styles.faqAnswer}>
-                Yes! We offer bulk configurations of <strong>pullback toy cars wholesale</strong> with customizable colors, box packaging types, and bundle quantities. All our friction gearboxes are made of heavy-duty nylon for durable performance.
-              </p>
-            </div>
-            <div style={styles.faqCard}>
-              <h4 style={styles.faqQuestion}>Q3: What is your manufacturing safety rating for PVC dolls?</h4>
-              <p style={styles.faqAnswer}>
-                As a primary <strong>PVC dolls manufacturer in India</strong>, we use 100% medical-grade phthalate-free PVC materials. Every doll passes through thermal disinfection and high quality color-fast coatings to ensure safety for children.
-              </p>
-            </div>
-            <div style={styles.faqCard}>
-              <h4 style={styles.faqQuestion}>Q4: How can I register as a bulk retailer?</h4>
-              <p style={styles.faqAnswer}>
-                Registration is extremely easy! Simply click on the "Register as Retailer" button on our homepage or navigation menu, enter your basic shop name, address details, and contact number, and gain instant access to our real-time inventory and factory wholesale prices!
-              </p>
+            <div style={{ background: "#fff", borderRadius: 16, padding: 22, border: "1px solid #e2e8f0" }}>
+              <h3 style={{ fontSize: "1rem", fontWeight: 700, color: "#0f172a", margin: "0 0 12px" }}>Internal Links</h3>
+              {[
+                { label: "Browse All Toys", to: "/" },
+                { label: "PVC Dolls", to: "/?search=doll" },
+                { label: "Pullback Cars", to: "/?search=pullback" },
+                { label: "Windup Toys", to: "/?search=windup" },
+                { label: "Hot Deals", to: "/hot-deals" },
+                { label: "FAQ", to: "/faq" },
+                { label: "Register as Retailer", to: "/register" },
+              ].map((l, i) => (
+                <Link key={i} to={l.to} style={{ display: "block", padding: "7px 0", color: "#059669", fontWeight: 600, fontSize: "0.9rem", textDecoration: "none", borderBottom: i < 6 ? "1px solid #f1f5f9" : "none" }}>
+                  → {l.label}
+                </Link>
+              ))}
             </div>
           </div>
         </section>
 
-        {/* FINAL CONVERSION CTA */}
-        <section style={styles.ctaBanner}>
-          <h2 style={styles.ctaTitle}>Start Procuring Directly from the Toy Factory Today!</h2>
-          <p style={styles.ctaText}>
-            Join 400+ smart toy business owners who bypass distributors and procure directly from our production floor. 
-            Enjoy maximum profit margins and premium shipping terms.
+        {/* ── FAQ SECTION ── */}
+        <section style={{ maxWidth: 860, margin: "0 auto 60px", padding: "0 20px" }}>
+          <div style={{ textAlign: "center", marginBottom: 36 }}>
+            <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2rem)", fontWeight: 800, color: "#0f172a", margin: "0 0 8px" }}>
+              Frequently Asked Questions
+            </h2>
+            <p style={{ color: "#64748b", margin: 0 }}>Common questions from retailers and bulk buyers</p>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            {FAQ_DATA.map((item, i) => (
+              <div key={i} style={{ background: "#fff", borderRadius: 12, border: "1px solid #e2e8f0", overflow: "hidden", boxShadow: "0 2px 8px rgba(0,0,0,0.03)" }}>
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  style={{ width: "100%", textAlign: "left", padding: "16px 20px", background: "none", border: "none", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}
+                >
+                  <span style={{ fontWeight: 700, color: "#0f172a", fontSize: "0.97rem", lineHeight: 1.4 }}>{item.q}</span>
+                  <span style={{ color: "#059669", fontWeight: 700, fontSize: "1.2rem", flexShrink: 0 }}>{openFaq === i ? "−" : "+"}</span>
+                </button>
+                {openFaq === i && (
+                  <div style={{ padding: "0 20px 16px", color: "#475569", fontSize: "0.95rem", lineHeight: 1.65 }}>
+                    {item.a}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* ── CTA BANNER ── */}
+        <section style={{ background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)", color: "#fff", textAlign: "center", padding: "60px 20px" }}>
+          <h2 style={{ fontSize: "clamp(1.5rem, 3vw, 2.2rem)", fontWeight: 800, margin: "0 0 14px", letterSpacing: "-0.5px" }}>
+            Start Buying Direct from the Toy Factory
+          </h2>
+          <p style={{ color: "#94a3b8", maxWidth: 640, margin: "0 auto 28px", fontSize: "1.05rem", lineHeight: 1.6 }}>
+            Join 400+ retailers who buy wholesale toys at factory price from Bafna Toys. Low MOQ · BIS Certified · PAN India Delivery.
           </p>
-          <div style={styles.ctaActions}>
-            <Link to="/register" style={styles.ctaPrimaryBtn}>
-              Sign Up Now (Free Registration)
+          <div style={{ display: "flex", gap: 14, justifyContent: "center", flexWrap: "wrap" }}>
+            <Link to="/register" style={{ background: "#059669", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: "1rem", textDecoration: "none", boxShadow: "0 4px 14px rgba(5,150,105,0.3)" }}>
+              Register Free as Retailer
             </Link>
-            <Link to="/" style={styles.ctaSecondaryBtn}>
-              View Live Store Catalog
+            <Link to="/" style={{ background: "transparent", color: "#fff", padding: "12px 28px", borderRadius: 10, fontWeight: 700, fontSize: "1rem", textDecoration: "none", border: "2px solid rgba(255,255,255,0.25)" }}>
+              View Live Catalog
             </Link>
           </div>
         </section>
@@ -241,396 +356,20 @@ const ToysManufacturersIndia: React.FC = () => {
   );
 };
 
-// Styling Object with high-end premium aesthetics
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    backgroundColor: "#f8fafc",
-    color: "#334155",
-    fontFamily: '"Baloo 2", sans-serif',
-  },
-  heroSection: {
-    position: "relative",
-    background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-    padding: "80px 24px",
-    textAlign: "center",
-    color: "white",
-    overflow: "hidden",
-  },
-  overlay: {
-    position: "absolute",
-    inset: 0,
-    background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.15) 0%, transparent 60%)",
-    pointerEvents: "none",
-  },
-  heroContent: {
-    position: "relative",
-    maxWidth: "800px",
-    margin: "0 auto",
-    zIndex: 2,
-  },
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    background: "rgba(255, 255, 255, 0.2)",
-    backdropFilter: "blur(4px)",
-    padding: "6px 14px",
-    borderRadius: "20px",
-    fontSize: "0.85rem",
-    fontWeight: 600,
-    marginBottom: "16px",
-    border: "1px solid rgba(255, 255, 255, 0.25)",
-  },
-  heroTitle: {
-    fontSize: "3.2rem",
-    fontWeight: 800,
-    lineHeight: 1.15,
-    margin: "0 0 16px 0",
-    color: "#ffffff",
-    letterSpacing: "-0.5px",
-  },
-  highlightText: {
-    color: "#fef08a", // Neon bright yellow highlight
-    textShadow: "0 2px 10px rgba(0,0,0,0.1)",
-  },
-  heroSub: {
-    fontSize: "1.15rem",
-    lineHeight: 1.6,
-    color: "#ecfdf5",
-    marginBottom: "32px",
-    fontWeight: 500,
-  },
-  heroActions: {
-    display: "flex",
-    gap: "16px",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  primaryBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    backgroundColor: "#ffffff",
-    color: "#047857",
-    padding: "12px 28px",
-    borderRadius: "12px",
-    fontSize: "1rem",
-    fontWeight: 700,
-    textDecoration: "none",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.1)",
-    transition: "transform 0.2s, box-shadow 0.2s",
-  },
-  secondaryBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    backgroundColor: "transparent",
-    color: "#ffffff",
-    padding: "12px 28px",
-    borderRadius: "12px",
-    fontSize: "1rem",
-    fontWeight: 700,
-    textDecoration: "none",
-    border: "2px solid rgba(255,255,255,0.7)",
-    transition: "background-color 0.2s, color 0.2s",
-  },
-  badgeGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
-    gap: "24px",
-    maxWidth: "1200px",
-    margin: "-40px auto 40px auto",
-    padding: "0 24px",
-    position: "relative",
-    zIndex: 10,
-  },
-  badgeCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    padding: "24px",
-    boxShadow: "0 10px 25px rgba(15,23,42,0.06)",
-    border: "1px solid #f1f5f9",
-    display: "flex",
-    flexDirection: "column",
-    gap: "10px",
-  },
-  badgeCardTitle: {
-    fontSize: "1.2rem",
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: 0,
-  },
-  badgeCardText: {
-    fontSize: "0.9rem",
-    color: "#64748b",
-    lineHeight: 1.5,
-    margin: 0,
-  },
-  contentSection: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    padding: "40px 24px",
-  },
-  editorialGrid: {
-    display: "grid",
-    gridTemplateColumns: "2fr 1fr",
-    gap: "40px",
-  },
-  editorialLeft: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "20px",
-  },
-  secTitle: {
-    fontSize: "2.2rem",
-    fontWeight: 800,
-    color: "#0f172a",
-    margin: "0 0 10px 0",
-    letterSpacing: "-0.5px",
-    lineHeight: 1.2,
-  },
-  subSecTitle: {
-    fontSize: "1.5rem",
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: "24px 0 10px 0",
-    borderBottom: "2px solid #e2e8f0",
-    paddingBottom: "8px",
-  },
-  paragraph: {
-    fontSize: "1.05rem",
-    lineHeight: 1.7,
-    color: "#475569",
-    margin: 0,
-    textAlign: "justify",
-  },
-  specialtyList: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "16px",
-    margin: "15px 0",
-  },
-  specialtyItem: {
-    display: "flex",
-    gap: "16px",
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "16px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-  },
-  specialtyIconBox: {
-    backgroundColor: "#f0fdf4",
-    borderRadius: "10px",
-    padding: "10px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    height: "fit-content",
-  },
-  specialtyItemTitle: {
-    fontSize: "1.15rem",
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: "0 0 4px 0",
-  },
-  specialtyItemDesc: {
-    fontSize: "0.95rem",
-    color: "#64748b",
-    lineHeight: 1.5,
-    margin: 0,
-  },
-  editorialRight: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "24px",
-  },
-  sidebarCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    padding: "24px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.02)",
-  },
-  sidebarTitle: {
-    fontSize: "1.3rem",
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: "0 0 16px 0",
-    borderBottom: "1px solid #f1f5f9",
-    paddingBottom: "8px",
-  },
-  sidebarList: {
-    listStyleType: "none",
-    padding: 0,
-    margin: "0 0 24px 0",
-    display: "flex",
-    flexDirection: "column",
-    gap: "14px",
-  },
-  sidebarListItem: {
-    display: "flex",
-    alignItems: "flex-start",
-    gap: "10px",
-    fontSize: "0.95rem",
-    lineHeight: 1.4,
-    color: "#334155",
-  },
-  listIcon: {
-    color: "#059669",
-    marginTop: "2px",
-    flexShrink: 0,
-  },
-  sidebarCtaBox: {
-    backgroundColor: "#f0fdf4",
-    borderRadius: "12px",
-    padding: "16px",
-    textAlign: "center",
-    border: "1px solid #d1fae5",
-  },
-  sidebarCtaText: {
-    fontSize: "0.9rem",
-    fontWeight: 600,
-    color: "#065f46",
-    margin: "0 0 12px 0",
-  },
-  sidebarCtaBtn: {
-    display: "block",
-    backgroundColor: "#059669",
-    color: "#ffffff",
-    textAlign: "center",
-    padding: "10px 16px",
-    borderRadius: "8px",
-    fontSize: "0.9rem",
-    fontWeight: 700,
-    textDecoration: "none",
-    transition: "background-color 0.2s",
-  },
-  sidebarMetricCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "16px",
-    padding: "20px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 4px 15px rgba(0,0,0,0.02)",
-    textAlign: "center",
-  },
-  faqSection: {
-    maxWidth: "1000px",
-    margin: "40px auto",
-    padding: "0 24px",
-  },
-  faqHeader: {
-    textAlign: "center",
-    marginBottom: "36px",
-  },
-  secTitleCenter: {
-    fontSize: "2rem",
-    fontWeight: 800,
-    color: "#0f172a",
-    margin: "0 0 8px 0",
-  },
-  secSubCenter: {
-    fontSize: "1.05rem",
-    color: "#64748b",
-    margin: 0,
-  },
-  faqGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-    gap: "24px",
-  },
-  faqCard: {
-    backgroundColor: "#ffffff",
-    borderRadius: "12px",
-    padding: "20px",
-    border: "1px solid #e2e8f0",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.02)",
-  },
-  faqQuestion: {
-    fontSize: "1.1rem",
-    fontWeight: 700,
-    color: "#0f172a",
-    margin: "0 0 8px 0",
-    lineHeight: 1.4,
-  },
-  faqAnswer: {
-    fontSize: "0.95rem",
-    lineHeight: 1.6,
-    color: "#475569",
-    margin: 0,
-  },
-  ctaBanner: {
-    backgroundColor: "#0f172a",
-    color: "#ffffff",
-    textAlign: "center",
-    padding: "60px 24px",
-    marginTop: "60px",
-    position: "relative",
-    overflow: "hidden",
-  },
-  ctaTitle: {
-    fontSize: "2.2rem",
-    fontWeight: 800,
-    margin: "0 0 16px 0",
-    letterSpacing: "-0.5px",
-  },
-  ctaText: {
-    fontSize: "1.1rem",
-    color: "#94a3b8",
-    maxWidth: "700px",
-    margin: "0 auto 32px auto",
-    lineHeight: 1.6,
-  },
-  ctaActions: {
-    display: "flex",
-    gap: "16px",
-    justifyContent: "center",
-    flexWrap: "wrap",
-  },
-  ctaPrimaryBtn: {
-    backgroundColor: "#10b981",
-    color: "#ffffff",
-    padding: "12px 28px",
-    borderRadius: "10px",
-    fontSize: "1rem",
-    fontWeight: 700,
-    textDecoration: "none",
-    boxShadow: "0 4px 12px rgba(16,185,129,0.2)",
-    transition: "background-color 0.2s",
-  },
-  ctaSecondaryBtn: {
-    backgroundColor: "transparent",
-    color: "#ffffff",
-    padding: "12px 28px",
-    borderRadius: "10px",
-    fontSize: "1rem",
-    fontWeight: 700,
-    textDecoration: "none",
-    border: "2px solid rgba(255,255,255,0.2)",
-    transition: "border-color 0.2s, background-color 0.2s",
-  },
+const pStyle: React.CSSProperties = {
+  fontSize: "0.97rem",
+  lineHeight: 1.7,
+  color: "#475569",
+  marginBottom: 16,
 };
 
-// Handle responsive layout using CSS injection in browser
-if (typeof document !== "undefined") {
-  const css = `
-    @media (max-width: 968px) {
-      .seo-landing-container .editorial-grid {
-        grid-template-columns: 1fr !important;
-      }
-      .seo-landing-container .faq-grid {
-        grid-template-columns: 1fr !important;
-      }
-    }
-    @media (max-width: 640px) {
-      .seo-landing-container h1 {
-        font-size: 2.2rem !important;
-      }
-      .seo-landing-container .editorial-left h2 {
-        font-size: 1.6rem !important;
-      }
-    }
-  `;
-  const style = document.createElement("style");
-  style.appendChild(document.createTextNode(css));
-  document.head.appendChild(style);
-}
+const h3Style: React.CSSProperties = {
+  fontSize: "1.25rem",
+  fontWeight: 700,
+  color: "#0f172a",
+  margin: "28px 0 10px",
+  borderBottom: "2px solid #e2e8f0",
+  paddingBottom: 6,
+};
 
 export default ToysManufacturersIndia;

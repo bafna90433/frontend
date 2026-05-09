@@ -179,9 +179,14 @@ body.dark {
   width: 100%;
   min-height: 80vh;
   background: var(--ct-bg);
-  padding: 28px 32px;
+  padding: 24px 20px 100px;
   font-family: var(--ct-font);
   -webkit-font-smoothing: antialiased;
+}
+
+.ct-container {
+  max-width: 1100px;
+  margin: 0 auto;
 }
 
 /* ─── Header ─── */
@@ -229,11 +234,34 @@ body.dark {
 }
 
 .ct-header-text span {
+  display: none; /* Hidden on desktop, moved to meta */
+}
+
+.ct-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ct-header-tag {
   font-size: 13px;
   color: var(--ct-muted);
-  font-weight: 500;
-  margin-top: 2px;
-  display: block;
+  font-weight: 600;
+  background: var(--ct-blight);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.ct-header-divider {
+  color: var(--ct-border);
+  font-size: 18px;
+}
+
+.ct-header-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--ct-primary);
 }
 
 .ct-clear-top {
@@ -260,7 +288,7 @@ body.dark {
 /* ─── Body ─── */
 .ct-body {
   display: grid;
-  grid-template-columns: 1fr 400px;
+  grid-template-columns: 1fr 380px;
   gap: 32px;
   width: 100%;
   align-items: start;

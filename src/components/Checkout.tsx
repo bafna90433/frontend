@@ -536,76 +536,81 @@ const Checkout: React.FC = () => {
   return (
     <>
       <div className="co-page">
-        {/* ── Mobile Step Header ── */}
-        <div className="co-mob-header">
-          <button className="co-back-btn" onClick={() => navigate("/cart")}>
-            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <polyline points="15 18 9 12 15 6" />
-            </svg>
-          </button>
-          <div className="co-mob-header-text">
+        <div className="co-container">
+          {/* ── Mobile Step Header ── */}
+          <div className="co-mob-header">
+            <button className="co-back-btn" onClick={() => navigate("/cart")}>
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
+            </button>
+            <div className="co-mob-header-text">
+              <h1>Checkout</h1>
+              <span>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</span>
+            </div>
+            <div className="co-mob-header-price">
+              ₹{finalTotalWithDiscount.toLocaleString()}
+            </div>
+          </div>
+
+          {/* ── Desktop Header ── */}
+          <div className="co-desk-header">
             <h1>Checkout</h1>
-            <span>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</span>
-          </div>
-          <div className="co-mob-header-price">
-            ₹{finalTotalWithDiscount.toLocaleString()}
-          </div>
-        </div>
-
-        {/* ── Desktop Header ── */}
-        <div className="co-desk-header">
-          <h1>Checkout</h1>
-          <p>{cartItems.length} item{cartItems.length !== 1 ? "s" : ""} · ₹{cartTotal.toLocaleString()}</p>
-        </div>
-
-        {/* Shipping Progress Bar */}
-        {freeShippingThreshold > 0 && (
-          <div className={`co-ship-bar ${neededForFree <= 0 ? "co-ship-bar--ok" : ""}`}>
-            <div className="co-ship-text">
-              <Truck size={16} />
-              {neededForFree > 0
-                ? <span>Add <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping</strong></span>
-                : <span>🎉 You've unlocked <strong>FREE Shipping!</strong></span>
-              }
-            </div>
-            <div className="co-ship-track">
-              <div className="co-ship-fill" style={{ width: `${progressPercent}%` }} />
+            <div className="co-desk-header-meta">
+              <span className="co-header-tag">{cartItems.length} item{cartItems.length !== 1 ? "s" : ""}</span>
+              <span className="co-header-divider">•</span>
+              <span className="co-header-price">₹{cartTotal.toLocaleString()}</span>
             </div>
           </div>
-        )}
 
-        {/* Min Qty Alert */}
-        {minimumQtyError && (
-          <div className="co-alert-banner">
-            <div className="co-alert-icon"><AlertCircle size={18} /></div>
-            <div className="co-alert-body">
-              <strong>Minimum Quantity</strong>
-              <p>{minimumQtyError}</p>
+          {/* Shipping Progress Bar */}
+          {freeShippingThreshold > 0 && (
+            <div className={`co-ship-bar ${neededForFree <= 0 ? "co-ship-bar--ok" : ""}`}>
+              <div className="co-ship-text">
+                <Truck size={16} />
+                {neededForFree > 0
+                  ? <span>Add <strong>₹{neededForFree.toLocaleString()}</strong> more for <strong>FREE Shipping</strong></span>
+                  : <span>🎉 You've unlocked <strong>FREE Shipping!</strong></span>
+                }
+              </div>
+              <div className="co-ship-track">
+                <div className="co-ship-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
             </div>
-            <button className="co-alert-action" onClick={() => navigate("/cart")}>Fix Cart</button>
-          </div>
-        )}
+          )}
 
-        {/* ── Mobile Steps Indicator ── */}
-        <div className="co-steps-mob">
-          <div className={`co-step ${selectedAddress ? "co-step--done" : "co-step--active"}`}>
-            <div className="co-step-dot">{selectedAddress ? <CheckCircle2 size={14} /> : "1"}</div>
-            <span>Address</span>
-          </div>
-          <div className="co-step-line" />
-          <div className={`co-step ${selectedAddress && paymentMode ? "co-step--done" : selectedAddress ? "co-step--active" : ""}`}>
-            <div className="co-step-dot">{selectedAddress && paymentMode ? <CheckCircle2 size={14} /> : "2"}</div>
-            <span>Payment</span>
-          </div>
-          <div className="co-step-line" />
-          <div className={`co-step ${activeStep === 3 ? "co-step--active" : ""}`}>
-            <div className="co-step-dot">3</div>
-            <span>Review</span>
-          </div>
-        </div>
+          {/* Min Qty Alert */}
+          {minimumQtyError && (
+            <div className="co-alert-banner">
+              <div className="co-alert-icon"><AlertCircle size={18} /></div>
+              <div className="co-alert-body">
+                <strong>Minimum Quantity</strong>
+                <p>{minimumQtyError}</p>
+              </div>
+              <button className="co-alert-action" onClick={() => navigate("/cart")}>Fix Cart</button>
+            </div>
+          )}
 
-        <div className="co-grid">
-          <div className="co-left">
+          {/* ── Mobile Steps Indicator ── */}
+          <div className="co-steps-mob">
+            <div className={`co-step ${selectedAddress ? "co-step--done" : "co-step--active"}`}>
+              <div className="co-step-dot">{selectedAddress ? <CheckCircle2 size={14} /> : "1"}</div>
+              <span>Address</span>
+            </div>
+            <div className="co-step-line" />
+            <div className={`co-step ${selectedAddress && paymentMode ? "co-step--done" : selectedAddress ? "co-step--active" : ""}`}>
+              <div className="co-step-dot">{selectedAddress && paymentMode ? <CheckCircle2 size={14} /> : "2"}</div>
+              <span>Payment</span>
+            </div>
+            <div className="co-step-line" />
+            <div className={`co-step ${activeStep === 3 ? "co-step--active" : ""}`}>
+              <div className="co-step-dot">3</div>
+              <span>Review</span>
+            </div>
+          </div>
+
+          <div className="co-grid">
+            <div className="co-left">
 
             {/* ═══ ADDRESS SECTION ═══ */}
             <div className="co-card" ref={addressRef}>
@@ -1089,6 +1094,7 @@ const Checkout: React.FC = () => {
           </div>
         </div>
       </div>
+    </div>
 
       {/* ═══ MOBILE BOTTOM BAR ═══ */}
       {!orderPlaced && cartItems.length > 0 && (

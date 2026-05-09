@@ -54,10 +54,16 @@ body.dark {
 .co-page {
   width: 100%;
   min-height: 100vh;
-  padding: 28px 32px 60px;
+  padding: 24px 20px 80px;
   font-family: var(--co-font);
   background: var(--co-bg);
   -webkit-font-smoothing: antialiased;
+}
+
+.co-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* ── DESKTOP HEADER ── */
@@ -81,6 +87,33 @@ body.dark {
   font-weight: 500;
 }
 
+.co-desk-header-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.co-header-tag {
+  font-size: 13px;
+  color: var(--co-muted);
+  font-weight: 600;
+  background: var(--co-blight);
+  padding: 3px 10px;
+  border-radius: 99px;
+}
+
+.co-header-divider {
+  color: var(--co-border);
+  font-size: 18px;
+}
+
+.co-header-price {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--co-primary);
+}
+
 /* ── MOBILE HEADER — hidden on desktop ── */
 .co-mob-header { display: none; }
 
@@ -92,8 +125,8 @@ body.dark {
    ══════════════════════ */
 .co-grid {
   display: grid;
-  grid-template-columns: 1fr 420px;
-  gap: 24px;
+  grid-template-columns: 1fr 380px;
+  gap: 32px;
   align-items: start;
 }
 .co-left {
@@ -726,7 +759,27 @@ body.dark {
 .co-side-divider {
   height: 1px;
   background: var(--co-border);
-  margin: 6px 20px 10px;
+  margin: 12px 20px;
+}
+
+.co-side-grand {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 20px 20px;
+}
+
+.co-side-grand span:first-child {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--co-text);
+}
+
+.co-side-grand span:last-child {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--co-primary);
+  letter-spacing: -0.02em;
 }
 
 /* ── COD Advance Payment Box — PROMINENT ── */

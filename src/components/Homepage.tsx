@@ -2288,22 +2288,35 @@ const Products: React.FC = () => {
         </footer>
       )}
 
-      <section className="sp-manufacturer-info">
-        <div className="sp-manufacturer-content">
-          <h2>Leading Toys Manufacturers in India</h2>
-          <p>
-            Bafna Toys is recognized as one of the most reliable <strong>toys manufacturers in India</strong>, 
-            specializing in high-quality plastic toys, PVC dolls, and windup key toys. 
-            Based in Coimbatore, Tamil Nadu, we operate a state-of-the-art manufacturing facility 
-            producing BIS certified toys that meet international safety standards.
-          </p>
-          <p>
-            As a direct <strong>factory wholesale supplier</strong>, we cater to retailers and 
-            distributors across India, offering genuine wholesale prices and a diverse catalog of 
-            over 400 products including pullback cars, educational toys, and rattles.
-          </p>
-        </div>
-      </section>
+      {isHomePage && (
+        <section className="sp-manufacturer-info" style={{ padding: "40px 20px", background: "#fff", marginTop: "20px", borderRadius: "12px", boxShadow: "0 2px 10px rgba(0,0,0,0.05)" }}>
+          <div className="sp-manufacturer-content" style={{ maxWidth: "1200px", margin: "0 auto", textAlign: "center" }}>
+            <h1 style={{ fontSize: "2rem", color: "#0f172a", marginBottom: "16px", fontWeight: "bold" }}>Toys Manufacturers in India – Bafna Toys</h1>
+            <p style={{ fontSize: "1.05rem", color: "#475569", lineHeight: "1.6", maxWidth: "800px", margin: "0 auto 24px" }}>
+              Bafna Toys is a trusted <strong>toy manufacturer in India</strong> and wholesale toy supplier. 
+              We manufacture and supply PVC dolls, pullback cars, windup toys, key toys and kids toys for retailers, 
+              toy shops, supermarkets and resellers across India. As a leading <strong>toys for retail shops</strong> provider, 
+              we guarantee factory price toys wholesale.
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "10px", marginTop: "20px" }}>
+              {[
+                "toys manufacturers in India", 
+                "wholesale toys India", 
+                "bulk toys supplier India", 
+                "toy supplier for retailers", 
+                "PVC dolls manufacturer", 
+                "pullback cars wholesale", 
+                "windup toys supplier", 
+                "factory price toys wholesale"
+              ].map(kw => (
+                <span key={kw} style={{ background: "#f8fafc", color: "#64748b", padding: "6px 12px", borderRadius: "20px", fontSize: "0.85rem", border: "1px solid #e2e8f0" }}>
+                  {kw}
+                </span>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ═══ MOBILE FILTER DRAWER ═══ */}
       {mobileFilterOpen && (
