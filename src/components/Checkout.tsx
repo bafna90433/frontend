@@ -10,6 +10,7 @@ import {
   ChevronDown, ChevronUp, Shield, CheckCircle2, ShoppingBag,
   Info,
 } from "lucide-react";
+import { trackInitiateCheckout, trackPurchase } from "../utils/metaPixel";
 
 interface Item {
   _id: string;
@@ -199,13 +200,12 @@ const Checkout: React.FC = () => {
 
   // ✅ Meta Pixel: fire InitiateCheckout when checkout opens with items
   useEffect(() => {
-    if (cartItems && cartItems.length > 0 && typeof window !== "undefined" && (window as any).fbq) {
-      (window as any).fbq("track", "InitiateCheckout", {
+    if (cartItems && cartItems.length > 0) {
+      trackInitiateCheckout({
         value: cartTotal,
-        num_items: cartItems.length,
+        numItems: cartItems.length,
         currency: "INR",
-        content_ids: cartItems.map((i: any) => i._id),
-        content_type: "product",
+        contentIds: cartItems.map((i: any) => i._id),
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -388,9 +388,14 @@ const Checkout: React.FC = () => {
         setOrderNumber(orderNum);
         setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode: "COD", shippingAddress: selectedAddress, advancePaid: 0 });
         
-        if (typeof window !== "undefined" && (window as any).fbq) {
-          (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
-        }
+        setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
+        
+        trackPurchase({
+          value: finalTotalWithDiscount,
+          currency: 'INR',
+          orderId: orderNum,
+          contentIds: items.map(item => item.productId)
+        });
 
         // ✅ Google Ads Purchase Conversion
         if (typeof window !== "undefined" && (window as any).gtag) {
@@ -429,9 +434,14 @@ const Checkout: React.FC = () => {
             setOrderNumber(orderNum);
             setOrderDetails({ orderNumber: orderNum, items, total: finalTotalWithDiscount, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, date: new Date().toISOString(), paymentMode, paymentId: response.razorpay_payment_id, shippingAddress: selectedAddress, advancePaid });
             
-            if (typeof window !== "undefined" && (window as any).fbq) {
-              (window as any).fbq('track', 'Purchase', { value: finalTotalWithDiscount, currency: 'INR', content_type: 'product', content_ids: items.map(item => item.productId) });
-            }
+            setOrderPlaced(true); clearCart(); localStorage.removeItem("temp_checkout_address");
+
+            trackPurchase({
+              value: finalTotalWithDiscount,
+              currency: 'INR',
+              orderId: orderNum,
+              contentIds: items.map(item => item.productId)
+            });
 
             // ✅ Google Ads Purchase Conversion
             if (typeof window !== "undefined" && (window as any).gtag) {

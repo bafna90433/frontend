@@ -28,6 +28,7 @@ import { useShop } from "../context/ShopContext";
 // getImageUrl abhi rakhte hain, par safetey ke liye ek internal optimizer bhi use karenge
 import { getImageUrl } from "../utils/image"; 
 import ProductSEO from "./ProductSEO";
+import { trackAddToCart, trackViewContent } from "../utils/metaPixel";
 
 // --- LAZY LOADED COMPONENTS (Below the fold) ---
 const FloatingCheckoutButton = lazy(() => import("../components/FloatingCheckoutButton"));
@@ -379,15 +380,12 @@ const ProductDetails: React.FC = () => {
 
         setProduct(fetchedProduct);
 
-        if (typeof window !== "undefined" && (window as any).fbq) {
-          (window as any).fbq('track', 'ViewContent', {
-            content_name: fetchedProduct.name,
-            content_ids: [fetchedProduct._id],
-            content_type: 'product',
-            value: fetchedProduct.price,
-            currency: 'INR'
-          });
-        }
+        trackViewContent({
+          id: fetchedProduct._id,
+          name: fetchedProduct.name,
+          price: fetchedProduct.price,
+          currency: 'INR'
+        });
 
       } catch (err) {
         if (!isMounted) return;
@@ -509,24 +507,17 @@ const ProductDetails: React.FC = () => {
   }, [product, cartItems]);
 
   const handleAdd = useCallback(() => {
-    if (product) {
-      setCartItemQuantity(product, minQty);
-      
-      if (typeof window !== "undefined" && (window as any).fbq) {
-        const safePrice = Number(unitPrice) || Number(product.price) || 0;
-        const safeQty = Math.max(1, Number(minQty) || 1);
-        const value = Number((safePrice * safeQty).toFixed(2));
-        if (value > 0) {
-          (window as any).fbq('track', 'AddToCart', {
-            content_name: product.name,
-            content_ids: [product._id],
-            content_type: 'product',
-            value,
-            currency: 'INR'
-          });
-        }
+      if (product) {
+        setCartItemQuantity(product, minQty);
+        
+        trackAddToCart({
+          id: product._id,
+          name: product.name,
+          price: unitPrice || product.price,
+          quantity: minQty,
+          currency: 'INR'
+        });
       }
-    }
   }, [product, minQty, setCartItemQuantity, unitPrice]);
 
   const handleInc = useCallback(() => {

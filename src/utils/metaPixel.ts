@@ -24,7 +24,17 @@ const DEFAULT_EVENTS: PixelEvents = {
 
 let _inited = false;
 
-export function initMetaPixel(pixelId: string, events: Partial<PixelEvents> = {}) {
+/**
+ * Initialize Meta Pixel with Advanced Matching support
+ * @param pixelId Facebook Pixel ID
+ * @param events Enabled events configuration
+ * @param userData Advanced Matching data (em, ph, fn, ln, etc.)
+ */
+export function initMetaPixel(
+  pixelId: string, 
+  events: Partial<PixelEvents> = {}, 
+  userData: Record<string, any> = {}
+) {
   if (_inited || typeof window === "undefined") return;
   if (!pixelId) return;
 
@@ -44,7 +54,13 @@ export function initMetaPixel(pixelId: string, events: Partial<PixelEvents> = {}
     s.parentNode.insertBefore(t, s);
   })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
 
-  window.fbq!("init", pixelId);
+  // Advanced Matching support
+  if (Object.keys(userData).length > 0) {
+    window.fbq!("init", pixelId, userData);
+  } else {
+    window.fbq!("init", pixelId);
+  }
+
   if (window.__bafnaPixel.events.pageView) window.fbq!("track", "PageView");
   _inited = true;
 }
@@ -61,42 +77,79 @@ export function trackPageView() {
 
 export function trackViewContent(data: { id?: string; name?: string; price?: number; currency?: string }) {
   if (!canFire("viewContent")) return;
+  
+  const value = Number(data.price) || 0;
+  const currency = data.currency || "INR";
+
   window.fbq!("track", "ViewContent", {
     content_ids: data.id ? [data.id] : undefined,
     content_name: data.name,
     content_type: "product",
-    value: data.price,
-    currency: data.currency || "INR",
+    value: value > 0 ? value : undefined,
+    currency: currency,
   });
 }
 
-export function trackAddToCart(data: { id?: string; name?: string; price?: number; quantity?: number; currency?: string }) {
+export function trackAddToCart(data: { 
+  id?: string; 
+  name?: string; 
+  price?: number; 
+  quantity?: number; 
+  currency?: string 
+}) {
   if (!canFire("addToCart")) return;
+
+  const price = Number(data.price) || 0;
+  const qty = Number(data.quantity) || 1;
+  const value = Number((price * qty).toFixed(2));
+  const currency = data.currency || "INR";
+
   window.fbq!("track", "AddToCart", {
     content_ids: data.id ? [data.id] : undefined,
     content_name: data.name,
     content_type: "product",
-    value: (data.price || 0) * (data.quantity || 1),
-    currency: data.currency || "INR",
+    value: value > 0 ? value : 0.01, // Ensure a value is always present as per FB requirements
+    currency: currency,
   });
 }
 
-export function trackInitiateCheckout(data: { value: number; numItems?: number; currency?: string }) {
+export function trackInitiateCheckout(data: { 
+  value: number; 
+  numItems?: number; 
+  currency?: string;
+  contentIds?: string[];
+}) {
   if (!canFire("initiateCheckout")) return;
+
+  const value = Number(data.value) || 0;
+  const currency = data.currency || "INR";
+
   window.fbq!("track", "InitiateCheckout", {
-    value: data.value,
+    value: value > 0 ? value : 0.01,
     num_items: data.numItems,
-    currency: data.currency || "INR",
+    currency: currency,
+    content_ids: data.contentIds,
+    content_type: "product",
   });
 }
 
-export function trackPurchase(data: { value: number; orderId?: string; contentIds?: string[]; currency?: string }) {
+export function trackPurchase(data: { 
+  value: number; 
+  orderId?: string; 
+  contentIds?: string[]; 
+  currency?: string 
+}) {
   if (!canFire("purchase")) return;
+
+  const value = Number(data.value) || 0;
+  const currency = data.currency || "INR";
+
   window.fbq!("track", "Purchase", {
-    value: data.value,
-    currency: data.currency || "INR",
+    value: value > 0 ? value : 0.01,
+    currency: currency,
     content_ids: data.contentIds,
     content_type: "product",
     order_id: data.orderId,
   });
 }
+
