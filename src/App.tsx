@@ -19,7 +19,7 @@ import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import ComingSoon from "./components/ComingSoon";
 // We make Products static to improve LCP on the home page.
-import Products from "./components/homepage"; 
+import Products from "./components/Homepage"; 
 
 // --- LAZY LOADED COMPONENTS (Non-critical) ---
 const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
