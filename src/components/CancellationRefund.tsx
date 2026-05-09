@@ -1,8 +1,16 @@
 import React from "react";
-import "../styles/CancellationRefund.css"; // 👈 make sure file exists
+import { Helmet } from "react-helmet-async";
+import "../styles/CancellationRefund.css";
 
 const CancellationRefund = () => {
   return (
+    <>
+    <Helmet>
+      <title>Cancellation & Refund Policy | Bafna Toys</title>
+      <meta name="description" content="Read the Bafna Toys cancellation and refund policy. Learn about our return eligibility, refund process, and how to cancel your wholesale toy order." />
+      <link rel="canonical" href="https://bafnatoys.com/cancellation-refund" />
+      <meta name="robots" content="noindex, follow" />
+    </Helmet>
     <div className="policy-container">
       <h1>Return & Refund Policy</h1>
 
@@ -39,6 +47,7 @@ const CancellationRefund = () => {
         <strong>bafnatoysphotos@gmail.com</strong>
       </p>
     </div>
+    </>
   );
 };
 

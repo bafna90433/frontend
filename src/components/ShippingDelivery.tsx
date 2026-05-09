@@ -13,7 +13,8 @@ const ShippingDelivery = () => {
           name="description"
           content="Read Bafna Toys Shipping and Delivery Policy. We deliver wholesale toys across India within 3-9 days via trusted courier partners."
         />
-        <link rel="canonical" href="https://bafnatoys.com/shipping-policy" />
+        <link rel="canonical" href="https://bafnatoys.com/shipping-delivery" />
+        <meta name="robots" content="noindex, follow" />
       </Helmet>
 
       <div className="policy-wrapper">

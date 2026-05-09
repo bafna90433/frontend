@@ -295,6 +295,99 @@ export async function onRequest(context: any) {
     });
   }
 
+  // 3b. Static policy/info pages for bots
+  const staticBotPages: Record<string, { title: string; description: string; canonical: string; h1: string; body: string }> = {
+    "/privacy-policy": {
+      title: "Privacy Policy | Bafna Toys",
+      description: "Read the Bafna Toys privacy policy. We protect your personal data and explain how we collect, use, and secure your information.",
+      canonical: "https://bafnatoys.com/privacy-policy",
+      h1: "Privacy Policy",
+      body: `<p>We respect your privacy and are committed to protecting your personal data. This policy explains how we collect, use, and secure your information.</p>
+<h2>Information We Collect</h2><ul><li>Name</li><li>Email Address</li><li>Phone Number</li><li>Shipping Address</li><li>Payment Information (handled securely by Razorpay)</li></ul>
+<h2>How We Use Your Information</h2><p>We use your information to process orders, provide support, and send notifications regarding products or purchases.</p>
+<h2>Data Protection</h2><p>We do not store or share payment details. All payments are encrypted and processed securely via Razorpay.</p>
+<h2>Contact</h2><p>Questions? Email us at bafnatoysphotos@gmail.com</p>`
+    },
+    "/terms-conditions": {
+      title: "Terms & Conditions | Bafna Toys",
+      description: "Read Bafna Toys terms and conditions. By using our website or placing orders you agree to our guidelines for a smooth wholesale experience.",
+      canonical: "https://bafnatoys.com/terms-conditions",
+      h1: "Terms & Conditions",
+      body: `<p>By accessing or purchasing from our website, you agree to follow our terms, guidelines, and policies.</p>
+<h2>General Conditions</h2><p>All orders are subject to product availability. Prices may change without notice. We reserve the right to cancel orders that violate our policies.</p>
+<h2>Intellectual Property</h2><p>All content on this website is the property of Bafna Toys. Unauthorized use is prohibited.</p>
+<h2>Contact</h2><p>For queries: bafnatoysphotos@gmail.com | +91-9043347300</p>`
+    },
+    "/shipping-delivery": {
+      title: "Shipping & Delivery Policy | Bafna Toys",
+      description: "Read Bafna Toys shipping and delivery policy. We deliver wholesale toys across India within 3-9 days via trusted courier partners like Delhivery and DTDC.",
+      canonical: "https://bafnatoys.com/shipping-delivery",
+      h1: "Shipping & Delivery Policy",
+      body: `<p>We deliver wholesale toys PAN India via Delhivery, DTDC, and Blue Dart. Orders are dispatched within 24-48 hours.</p>
+<h2>Delivery Timeline</h2><ul><li>South India: 2-3 business days</li><li>Rest of India: 4-7 business days</li><li>Remote areas: up to 9 business days</li></ul>
+<h2>Free Shipping</h2><p>Orders above ₹3,000 qualify for free shipping. Smaller orders attract a nominal shipping charge.</p>
+<h2>Contact</h2><p>For shipping queries: bafnatoysphotos@gmail.com | +91-9043347300</p>`
+    },
+    "/cancellation-refund": {
+      title: "Cancellation & Refund Policy | Bafna Toys",
+      description: "Read Bafna Toys cancellation and refund policy. Learn about return eligibility, refund process, and how to cancel your wholesale toy order.",
+      canonical: "https://bafnatoys.com/cancellation-refund",
+      h1: "Cancellation & Refund Policy",
+      body: `<p>We aim to provide a seamless shopping experience. Please review our guidelines regarding returns and refunds.</p>
+<h2>Refund Eligibility</h2><ul><li>Damaged or defective products reported within 48 hours of delivery</li><li>Wrong product delivered</li><li>Missing items from order</li></ul>
+<h2>How to Raise a Request</h2><p>Contact us via WhatsApp or email with your order ID and photos of the issue. Refunds are processed within 5-7 business days.</p>
+<h2>Contact</h2><p>Email: bafnatoysphotos@gmail.com | WhatsApp: +91-9043347300</p>`
+    },
+    "/faq": {
+      title: "FAQ - Frequently Asked Questions | Bafna Toys Wholesale",
+      description: "Get answers to common questions about Bafna Toys wholesale ordering, minimum order quantity, BIS certification, delivery, payment methods, and GST invoices.",
+      canonical: "https://bafnatoys.com/faq",
+      h1: "Frequently Asked Questions",
+      body: `<h2>Is Bafna Toys a manufacturer or a trader?</h2><p>Bafna Toys is a direct toy manufacturer based in Coimbatore, Tamil Nadu. We own our manufacturing unit and offer factory-direct wholesale prices to retailers across India.</p>
+<h2>What types of toys does Bafna Toys manufacture?</h2><p>We manufacture PVC dolls, pullback friction cars, windup key toys, rattle sets, soft toys, and educational toys. All products are BIS certified.</p>
+<h2>What is the minimum order quantity (MOQ)?</h2><p>Very low MOQ — order from 1 inner box (typically 6-12 pieces). Bulk orders get additional factory-price discounts.</p>
+<h2>Do you deliver across India?</h2><p>Yes. We ship PAN India via Delhivery, DTDC, and other logistics partners. Orders dispatched within 24-48 hours.</p>
+<h2>Are Bafna Toys products BIS certified?</h2><p>Yes. All toys comply with Bureau of Indian Standards (BIS) IS 9873 safety regulations. We use non-toxic, phthalate-free PVC materials.</p>
+<h2>What payment methods are accepted?</h2><p>UPI, NEFT/RTGS, debit/credit cards via Razorpay, and Cash on Delivery (COD) for eligible orders. GST invoice provided for every order.</p>`
+    }
+  };
+
+  if (isBot && staticBotPages[url.pathname]) {
+    const page = staticBotPages[url.pathname];
+    const baseUrl = "https://bafnatoys.com";
+    const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>${page.title}</title>
+  <meta name="description" content="${page.description}">
+  <link rel="canonical" href="${page.canonical}" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Bafna Toys" />
+  <meta property="og:title" content="${page.title}" />
+  <meta property="og:description" content="${page.description}" />
+  <meta property="og:url" content="${page.canonical}" />
+  <meta property="og:image" content="${baseUrl}/logo.webp" />
+</head>
+<body style="font-family: sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; line-height: 1.6; color: #333;">
+  <header style="text-align: center; border-bottom: 2px solid #eaeaea; padding-bottom: 20px; margin-bottom: 30px;">
+    <a href="${baseUrl}"><img src="${baseUrl}/logo.webp" alt="Bafna Toys" style="max-width: 120px; height: auto;" /></a>
+  </header>
+  <main>
+    <h1 style="color: #059669;">${page.h1}</h1>
+    ${page.body}
+  </main>
+  <footer style="text-align: center; border-top: 2px solid #eaeaea; margin-top: 40px; padding-top: 20px; font-size: 0.85rem; color: #666;">
+    <p>&copy; ${new Date().getFullYear()} Bafna Toys. All rights reserved. Coimbatore, Tamil Nadu, India.</p>
+    <p><a href="${baseUrl}">Home</a> | <a href="${baseUrl}/toys-manufacturers-in-india">About Us</a> | <a href="${baseUrl}/faq">FAQ</a></p>
+  </footer>
+</body>
+</html>`;
+    return new Response(html, {
+      headers: { "Content-Type": "text/html;charset=UTF-8", "Cache-Control": "public, max-age=3600" }
+    });
+  }
+
   // 4. Intercept category pages for bots
   if (isBot && url.pathname.startsWith("/category/")) {
     const parts = url.pathname.split("/").filter(Boolean);

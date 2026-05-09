@@ -1,8 +1,16 @@
 import React from "react";
-import "../styles/TermsConditions.css"; // 👈 make sure CSS linked
+import { Helmet } from "react-helmet-async";
+import "../styles/TermsConditions.css";
 
 const TermsConditions = () => {
   return (
+    <>
+    <Helmet>
+      <title>Terms & Conditions | Bafna Toys</title>
+      <meta name="description" content="Read the Bafna Toys terms and conditions. By using our website or placing orders, you agree to our guidelines for a smooth and transparent wholesale experience." />
+      <link rel="canonical" href="https://bafnatoys.com/terms-conditions" />
+      <meta name="robots" content="noindex, follow" />
+    </Helmet>
     <div className="policy-container">
       <h1>Terms & Conditions</h1>
 
@@ -43,6 +51,7 @@ const TermsConditions = () => {
         <strong>bafnatoysphotos@gmail.com</strong>
       </p>
     </div>
+    </>
   );
 };
 

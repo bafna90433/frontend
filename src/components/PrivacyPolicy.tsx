@@ -1,8 +1,16 @@
 import React from "react";
-import "../styles/PrivacyPolicy.css"; // 👈 CSS linked
+import { Helmet } from "react-helmet-async";
+import "../styles/PrivacyPolicy.css";
 
 const PrivacyPolicy = () => {
   return (
+    <>
+    <Helmet>
+      <title>Privacy Policy | Bafna Toys</title>
+      <meta name="description" content="Read the Bafna Toys privacy policy. We are committed to protecting your personal data and explain how we collect, use, and secure your information." />
+      <link rel="canonical" href="https://bafnatoys.com/privacy-policy" />
+      <meta name="robots" content="noindex, follow" />
+    </Helmet>
     <div className="policy-container">
       <h1>Privacy Policy</h1>
 
@@ -45,6 +53,7 @@ const PrivacyPolicy = () => {
         <strong>bafnatoysphotos@gmail.com</strong>
       </p>
     </div>
+    </>
   );
 };
 

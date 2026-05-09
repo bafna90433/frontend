@@ -69,7 +69,7 @@ const SCHEMA_LOCAL_BUSINESS = {
   "name": "Bafna Toys",
   "image": "https://bafnatoys.com/logo.webp",
   "url": "https://bafnatoys.com",
-  "telephone": "+91-9999999999",
+  "telephone": "+91-9043347300",
   "priceRange": "₹₹",
   "address": {
     "@type": "PostalAddress",
