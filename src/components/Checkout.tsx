@@ -205,7 +205,7 @@ const Checkout: React.FC = () => {
         value: cartTotal,
         numItems: cartItems.length,
         currency: "INR",
-        contentIds: cartItems.map((i: any) => i._id),
+        contentIds: cartItems.map((i: any) => i.sku || i._id), // ✅ SKU for matching
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -382,7 +382,7 @@ const Checkout: React.FC = () => {
     if (isCodDirect) {
       try {
         setPlacing(true);
-        const items = cartItems.map((item: any) => ({ productId: item._id, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
+        const items = cartItems.map((item: any) => ({ productId: item._id, sku: item.sku, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
         const { data } = await api.post("/orders", { customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode: "COD", paymentId: null, codAdvancePaid: 0, codRemainingAmount: finalTotalWithDiscount });
         const orderNum = data.order?.orderNumber || data.orderNumber;
         setOrderNumber(orderNum);
@@ -394,7 +394,7 @@ const Checkout: React.FC = () => {
           value: finalTotalWithDiscount,
           currency: 'INR',
           orderId: orderNum,
-          contentIds: items.map(item => item.productId)
+          contentIds: items.map(item => item.sku || item.productId) // ✅ SKU for matching
         });
 
         // ✅ Google Ads Purchase Conversion
@@ -427,7 +427,7 @@ const Checkout: React.FC = () => {
           try {
             const verifyRes = await api.post("/payments/verify", response);
             if (verifyRes.data?.success !== true) { alert("Payment verification failed."); setPlacing(false); return; }
-            const items = cartItems.map((item: any) => ({ productId: item._id, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
+            const items = cartItems.map((item: any) => ({ productId: item._id, sku: item.sku, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
             const advancePaid = paymentMode === "COD" ? applicableAdvance : 0;
             const { data } = await api.post("/orders", { customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode, paymentId: response.razorpay_payment_id, codAdvancePaid: advancePaid, codRemainingAmount: Math.max(finalTotalWithDiscount - advancePaid, 0) });
             const orderNum = data.order?.orderNumber || data.orderNumber;
@@ -440,7 +440,7 @@ const Checkout: React.FC = () => {
               value: finalTotalWithDiscount,
               currency: 'INR',
               orderId: orderNum,
-              contentIds: items.map(item => item.productId)
+              contentIds: items.map(item => item.sku || item.productId) // ✅ SKU for matching
             });
 
             // ✅ Google Ads Purchase Conversion

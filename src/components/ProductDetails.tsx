@@ -381,7 +381,7 @@ const ProductDetails: React.FC = () => {
         setProduct(fetchedProduct);
 
         trackViewContent({
-          id: fetchedProduct._id,
+          id: fetchedProduct.sku || fetchedProduct._id, // ✅ SKU for matching
           name: fetchedProduct.name,
           price: fetchedProduct.price,
           currency: 'INR'
@@ -511,7 +511,7 @@ const ProductDetails: React.FC = () => {
         setCartItemQuantity(product, minQty);
         
         trackAddToCart({
-          id: product._id,
+          id: product.sku || product._id, // ✅ SKU for matching
           name: product.name,
           price: unitPrice || product.price,
           quantity: minQty,

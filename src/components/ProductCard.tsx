@@ -37,7 +37,8 @@ interface Product {
   unit?: string;
   piecesPerUnit?: number;
   isBulkOnly?: boolean;
-  minOrderQty?: number; // ✅
+  minOrderQty?: number;
+  sku?: string; // ✅ Added SKU for Pixel matching
 }
 
 export type Deal = {
@@ -208,7 +209,7 @@ const ProductCard: React.FC<ProductCardProps> = React.memo(
         setCartItemQuantity(product, minQty);
 
         trackAddToCart({
-          id: product._id,
+          id: product.sku || product._id, // ✅ Use SKU to match Catalog ID
           name: product.name,
           price: finalPrice || product.price,
           quantity: minQty,
