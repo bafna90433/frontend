@@ -12,6 +12,7 @@ type Suggestion = {
   name: string;
   type: "category" | "brand" | "product";
   sku?: string;
+  slug?: string; // ✅ Added slug for SEO URLs
   images?: string[];
   price?: number;
 };
@@ -302,7 +303,8 @@ const SearchForm = React.memo(
                                   } else if (p.type === "brand") {
                                     navigate(`/brand/${p._id}`);
                                   } else {
-                                    navigate(`/product/${p._id}`);
+                                    // ✅ Prioritize slug for products
+                                    navigate(p.slug ? `/product/${p.slug}` : `/product/${p._id}`);
                                   }
                                 }}
                               >
@@ -670,7 +672,8 @@ const Header: React.FC = () => {
           } else if (p.type === "brand") {
             navigate(`/brand/${p._id}`);
           } else {
-            navigate(`/product/${p._id}`);
+            // ✅ Prioritize slug for products
+            navigate(p.slug ? `/product/${p.slug}` : `/product/${p._id}`);
           }
         } else {
           setOpenSug(false);
