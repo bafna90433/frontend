@@ -19,7 +19,7 @@ import Header from "./components/Header";
 import BottomNav from "./components/BottomNav";
 import ComingSoon from "./components/ComingSoon";
 // We make Products static to improve LCP on the home page.
-import Products from "./components/Homepage"; 
+import Products from "./components/Homepage";
 
 // --- LAZY LOADED COMPONENTS (Non-critical) ---
 const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
@@ -92,7 +92,7 @@ const PageTracker = () => {
   useEffect(() => {
     // Run tracking only when the browser is idle to not block main thread
     if (!navigator.onLine) return;
-    
+
     const trackPage = async () => {
       try {
         await api.post("/analytics/track", {
@@ -155,14 +155,14 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
   return (
     <>
       {!isAuthPage && <Header />}
-      <main 
-        style={{ 
-          paddingBottom: "60px", 
-          minHeight: "100vh", 
-          display: "flex", 
-          flexDirection: "column", 
-          flexGrow: 1, 
-          position: "relative" 
+      <main
+        style={{
+          paddingBottom: "60px",
+          minHeight: "100vh",
+          display: "flex",
+          flexDirection: "column",
+          flexGrow: 1,
+          position: "relative"
         }}
       >
         <Suspense fallback={<PageLoader />}>{children}</Suspense>
@@ -202,7 +202,7 @@ const AppInner: React.FC = () => {
         if (maintRes?.data?.enabled && !isLocal) {
           setIsMaintenance(true);
         }
-        
+
         if (forceRes?.data?.enabled) {
           setForceLogin(true);
         }
@@ -218,7 +218,7 @@ const AppInner: React.FC = () => {
   // Socket Connection (Deferred)
   useEffect(() => {
     let socket: ReturnType<typeof io> | null = null;
-    
+
     // Connect socket later so it doesn't interrupt page load
     const timer = setTimeout(() => {
       socket = io(SOCKET_URL, {
@@ -239,8 +239,8 @@ const AppInner: React.FC = () => {
   return (
     <Router>
       <Suspense fallback={null}>
-         <NoInternet />
-         <MetaPixelLoader />
+        <NoInternet />
+        <MetaPixelLoader />
       </Suspense>
       <PageTracker />
 
@@ -252,7 +252,7 @@ const AppInner: React.FC = () => {
               <Route path="/" element={<Products />} />
               <Route path="/category/:slug" element={<Products />} />
               <Route path="/products" element={<Navigate to="/" replace />} />
-              
+
               <Route path="/hot-deals" element={<HotDealsPage />} />
               <Route path="/product/:id" element={<ProductDetails />} />
               <Route path="/cart" element={<Cart />} />
@@ -273,57 +273,57 @@ const AppInner: React.FC = () => {
               <Route
                 path="/checkout"
                 element={
-                    <ProtectedRoute>
-                      <Checkout />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <Checkout />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/my-account"
                 element={
-                    <ProtectedRoute>
-                      <MyAccount />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <MyAccount />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/edit-profile"
                 element={
-                    <ProtectedRoute>
-                      <EditProfile />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <EditProfile />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/orders"
                 element={
-                    <ProtectedRoute>
-                      <Orders />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <Orders />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/orders/:orderId"
                 element={
-                    <ProtectedRoute>
-                      <OrderDetails />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <OrderDetails />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/addresses"
                 element={
-                    <ProtectedRoute>
-                      <ManageAddresses />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <ManageAddresses />
+                  </ProtectedRoute>
                 }
               />
               <Route
                 path="/pending-reviews"
                 element={
-                    <ProtectedRoute>
-                      <PendingReviews />
-                    </ProtectedRoute>
+                  <ProtectedRoute>
+                    <PendingReviews />
+                  </ProtectedRoute>
                 }
               />
 

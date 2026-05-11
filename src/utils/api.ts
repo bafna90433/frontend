@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const RAW = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
+const RAW = "https://api.bafnatoys.com";
 export const API_ROOT: string = RAW.replace(/\/+$/, "").replace(/\/api\/?$/, "");
 export const API_URL: string = API_ROOT + "/api";
 export const MEDIA_URL: string =
