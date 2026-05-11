@@ -25,7 +25,7 @@ import Products from "./components/Homepage";
 const WhatsAppButton = React.lazy(() => import("./components/WhatsAppButton"));
 const FreeDeliveryModal = React.lazy(() => import("./components/FreeDeliveryModal"));
 const NoInternet = React.lazy(() => import("./components/NoInternet"));
-const Chatbot = React.lazy(() => import("./components/Chatbot")); // ✅ Added Chatbot
+// const Chatbot = React.lazy(() => import("./components/Chatbot"));
 const MetaPixelLoader = React.lazy(() => import("./components/MetaPixelLoader"));
 
 // --- LAZY LOADED PAGES ---
@@ -173,7 +173,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
         <Suspense fallback={null}>
           <FreeDeliveryModal cartTotal={cartTotal} limit={freeShippingThreshold} />
           <WhatsAppButton />
-          <Chatbot />
+          {/* <Chatbot /> */}
           <BottomNav />
         </Suspense>
       )}
