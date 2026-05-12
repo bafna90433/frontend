@@ -750,6 +750,71 @@ body.dark {
 .pd-mobile-bar { display: none; }
 
 /* ══════════════════════════════════════════
+   FLIPKART STYLE DESKTOP GALLERY (≥1025px)
+   ══════════════════════════════════════════ */
+@media (min-width: 1025px) {
+  /* Remove sticky from gallery so it scrolls naturally */
+  .pd-gallery {
+    position: static !important;
+  }
+  
+  /* Make the right side info section sticky instead! */
+  .pd-info {
+    position: sticky;
+    top: 20px;
+    align-self: start;
+  }
+
+  /* Hide carousel controls */
+  .pd-arrow, .pd-dots, .pd-thumbs-row {
+    display: none !important;
+  }
+
+  /* Make the track a 2-column grid */
+  .pd-carousel-track {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 16px !important;
+    transform: none !important; /* Overrides JS transform */
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Remove carousel wrapper constraints */
+  .pd-carousel-wrapper {
+    aspect-ratio: auto !important;
+    max-height: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: transparent !important;
+    overflow: visible !important;
+  }
+
+  /* Adjust individual slides */
+  .pd-carousel-slide {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 1 !important;
+    background: var(--pd-white);
+    border: 1px solid var(--pd-blight);
+    border-radius: var(--pd-r);
+    box-shadow: var(--pd-shadow);
+  }
+
+  /* If there's exactly 1 image, center it and don't stretch */
+  .pd-carousel-slide:only-child {
+    grid-column: 1 / -1;
+    max-width: 70%;
+    margin: 0 auto;
+  }
+
+  /* Adjust inner carousel */
+  .pd-carousel {
+    overflow: visible !important;
+  }
+}
+
+/* ══════════════════════════════════════════
    LARGE SCREEN (1400px+)
    ══════════════════════════════════════════ */
 @media (min-width: 1400px) {
