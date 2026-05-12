@@ -155,15 +155,10 @@ const ProductDetails: React.FC = () => {
     });
   }, []);
 
-  // Autoplay logic
+  // Autoplay logic (Disabled as per user request)
   const startAutoplay = useCallback(() => {
-    if (images.length <= 1) return;
-    if (autoplayRef.current) clearInterval(autoplayRef.current);
-    
-    autoplayRef.current = setInterval(() => {
-      setSelectedImage((prev) => (prev === images.length - 1 ? 0 : prev + 1));
-    }, 5000);
-  }, [images.length]);
+    // Auto-slide removed
+  }, []);
 
   const pauseAutoplay = useCallback(() => {
     if (autoplayRef.current) {
@@ -600,7 +595,10 @@ const ProductDetails: React.FC = () => {
                     <div
                       key={i}
                       className="pd-carousel-slide"
-                      onClick={() => setShowZoom(true)}
+                      onClick={() => {
+                        setSelectedImage(i);
+                        setShowZoom(true);
+                      }}
                     >
                       {!imgLoaded[i] && <div className="pd-skeleton-loader" />}
                       <img
