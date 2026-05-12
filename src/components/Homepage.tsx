@@ -31,6 +31,7 @@ import {
   Shield,
   BadgeCheck,
   ExternalLink,
+  Download,
   Instagram,
   Youtube,
   Facebook,
@@ -1638,9 +1639,9 @@ const Products: React.FC = () => {
                 {isGeneratingPDF ? (
                   <RefreshCw size={15} className="sp-spin" />
                 ) : (
-                  <ExternalLink size={15} />
+                  <Download size={15} />
                 )}
-                <span className="sp-pdf-text">Catalog</span>
+                <span className="sp-pdf-text">Download Catalog</span>
               </button>
 
               <div className="sp-sort-wrap">
