@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import api from "../utils/api";
 
 type Props = {
   cartTotal: number;
@@ -13,10 +13,10 @@ const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
   const [discountRules, setDiscountRules] = useState<any[]>([]);
 
   useEffect(() => {
-    axios
-      .get("/api/settings/discount-rules")
+    api
+      .get("/discount-rules")
       .then((res) => {
-        setDiscountRules(res.data || []);
+        setDiscountRules(Array.isArray(res.data) ? res.data : []);
       })
       .catch((err) => console.log("Failed to load discount rules:", err));
   }, []);
