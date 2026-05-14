@@ -323,6 +323,7 @@ const Products: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeDeals, setActiveDeals] = useState<HotDeal[]>([]);
   const [trustData, setTrustData] = useState<any>(null);
+  const [discountRules, setDiscountRules] = useState<any[]>([]);
 
   const [gridConfig, setGridConfig] = useState({ pc: 5, mobile: 2 });
 
@@ -446,6 +447,11 @@ const Products: React.FC = () => {
     api
       .get("/trust-settings")
       .then((r) => setTrustData(r.data))
+      .catch(console.error);
+
+    api
+      .get("/discount-rules")
+      .then((r) => setDiscountRules(r.data || []))
       .catch(console.error);
 
     api
@@ -1021,6 +1027,26 @@ const Products: React.FC = () => {
             <div className="sp-hero-glow sp-hero-glow-2" />
             <div className="sp-hero-glow sp-hero-glow-3" />
 
+            {/* LEFT EDGE MASSIVE VOLUME DISCOUNT BANNER (PC ONLY) */}
+            {discountRules.length > 0 && (
+              <div className="sp-hero-left-edge-banner">
+                <div className="sp-hleb-icon">
+                  <Zap size={36} />
+                </div>
+                <div className="sp-hleb-title">
+                  Volume<br />Discounts
+                </div>
+                <div className="sp-hleb-rules">
+                  {discountRules.map((r: any, i: number) => (
+                    <div className="sp-hleb-rule" key={i}>
+                      <span className="sp-hleb-amt">₹{r.minAmount.toLocaleString()} & ABOVE</span>
+                      <span className="sp-hleb-off">{r.discountPercentage}% OFF</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* DESKTOP HERO */}
             <div className="sp-hero-grid sp-hero-desktop">
               <div className="sp-hero-content">
@@ -1226,6 +1252,22 @@ const Products: React.FC = () => {
                       </div>
                     </div>
                   </div>
+
+                  {/* RIGHT SIDE COMPACT VOLUME DISCOUNTS */}
+                  {discountRules.length > 0 && (
+                    <div className="sp-mh-offer-discounts">
+                      <div className="sp-mh-od-header">
+                        <Zap size={10} />
+                        <span>DISCOUNTS</span>
+                      </div>
+                      {discountRules.map((r: any, i: number) => (
+                        <div className="sp-mh-od-rule" key={i}>
+                          <span className="sp-mh-od-amt">₹{r.minAmount >= 1000 ? (r.minAmount / 1000) + 'k' : r.minAmount}+</span>
+                          <span className="sp-mh-od-off">{r.discountPercentage}% OFF</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1584,21 +1626,7 @@ const Products: React.FC = () => {
             </div>
           </div>
 
-          {/* Mobile Prominent Catalog Download Link */}
-          <div className="sp-mob-catalog-bar sp-mob-only">
-            <button 
-              className="sp-mob-pdf-link" 
-              onClick={handleGeneratePDF}
-              disabled={isGeneratingPDF || displayed.length === 0}
-            >
-              {isGeneratingPDF ? (
-                <RefreshCw size={16} className="sp-spin" />
-              ) : (
-                <ExternalLink size={16} />
-              )}
-              <span>Download Wholesale Catalog PDF</span>
-            </button>
-          </div>
+
 
           {/* Floating Glass Toolbar */}
           <div className="sp-toolbar">
