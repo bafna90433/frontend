@@ -417,7 +417,11 @@ const Checkout: React.FC = () => {
       const payAmount = paymentMode === "ONLINE" ? finalTotalWithDiscount : applicableAdvance;
       const res = await loadRazorpay();
       if (!res) { alert("Payment gateway failed."); setPlacing(false); return; }
-      const { data: razorOrder } = await api.post("/payments/create-order", { amount: payAmount });
+      const frontendItems = cartItems.map((item: any) => ({
+        productId: item._id,
+        qty: (item.quantity || 0) * (item.piecesPerInner || item.piecesPerUnit || item.innerQty || 1),
+      }));
+      const { data: razorOrder } = await api.post("/payments/create-order", { items: frontendItems, paymentMode });
       const options = {
         key: (import.meta as any).env?.VITE_RAZORPAY_KEY || "rzp_test_YOUR_KEY_HERE",
         amount: razorOrder.amount, currency: "INR", name: "Bafna Toys",
