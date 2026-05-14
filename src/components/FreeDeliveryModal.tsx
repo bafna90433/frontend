@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 type Props = {
   cartTotal: number;
@@ -9,6 +10,16 @@ const STORAGE_KEY = "freeDeliverySkip";
 
 const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
   const [show, setShow] = useState(false);
+  const [discountRules, setDiscountRules] = useState<any[]>([]);
+
+  useEffect(() => {
+    axios
+      .get("/api/settings/discount-rules")
+      .then((res) => {
+        setDiscountRules(res.data || []);
+      })
+      .catch((err) => console.log("Failed to load discount rules:", err));
+  }, []);
 
   const remaining = useMemo(() => Math.max(0, (limit || 0) - (cartTotal || 0)), [cartTotal, limit]);
 
@@ -77,8 +88,23 @@ const FreeDeliveryModal = ({ cartTotal, limit }: Props) => {
           Add <b>₹{Number(remaining).toLocaleString()}</b> more to unlock.
         </p>
 
+        {discountRules.length > 0 && (
+          <div style={styles.discountBox}>
+            <div style={styles.discountTitle}>⚡ Volume Discounts Active!</div>
+            <div style={styles.discountRules}>
+              {discountRules.map((r, i) => (
+                <div key={i} style={styles.discountRule}>
+                  <span>₹{Number(r.minAmount).toLocaleString()}+</span>
+                  <strong>{r.discountPercentage}% OFF</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <button onClick={close} style={styles.btn}>
-          Ok
+          Got it!
+
         </button>
       </div>
     </div>
@@ -158,5 +184,38 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: "pointer",
     fontWeight: 700,
     width: "min(260px, 100%)",
+  },
+  discountBox: {
+    background: "rgba(168, 85, 247, 0.08)",
+    border: "1px dashed rgba(168, 85, 247, 0.4)",
+    borderRadius: 14,
+    padding: "16px",
+    margin: "8px 0 24px",
+    display: "flex",
+    flexDirection: "column",
+    gap: 12,
+  },
+  discountTitle: {
+    color: "#a855f7",
+    fontSize: 14,
+    fontWeight: 800,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  discountRules: {
+    display: "flex",
+    flexDirection: "column",
+    gap: 8,
+  },
+  discountRule: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    background: "#fff",
+    padding: "8px 14px",
+    borderRadius: 8,
+    fontSize: 13,
+    color: "#4b5563",
+    boxShadow: "0 2px 5px rgba(0,0,0,0.05)",
   },
 };
