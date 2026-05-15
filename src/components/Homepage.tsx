@@ -630,7 +630,7 @@ const Products: React.FC = () => {
       const pageHeight = doc.internal.pageSize.getHeight();
       const margin = 10;
       const cardW = (pageWidth - margin * 2) / 3;
-      const cardH = 85; // Height for each product block
+      const cardH = 100; // Height for each product block
       const imgSize = 55; // Larger images
 
       // Pre-fetch images (limit to 150 for performance)
@@ -717,30 +717,30 @@ const Products: React.FC = () => {
             const name = cleanName.length > 28 ? cleanName.substring(0, 25) + "..." : cleanName;
             doc.text(name, x + cardW / 2, y + imgSize + 11, { align: "center" });
 
-            doc.setFontSize(8);
+            // SKU (left) | Min Qty (right) — same line
+            let minQty = p.minOrderQty && p.minOrderQty > 0 ? p.minOrderQty : (p.piecesPerUnit && p.piecesPerUnit > 1 ? p.piecesPerUnit : 2);
+            doc.setFontSize(7.5);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(107, 114, 128);
-            doc.text(`SKU: ${p.sku || "—"}`, x + cardW / 2, y + imgSize + 16, { align: "center" });
+            doc.text(`SKU: ${p.sku || "—"}`, x + 5, y + imgSize + 16);
+            doc.text(`Min: ${minQty} Pcs`, x + cardW - 5, y + imgSize + 16, { align: "right" });
 
-            // Display MRP and Wholesale Price
+            // MRP (strikethrough) + Price
             const mrp = p.mrp || 0;
             const price = p.price || 0;
-
             if (mrp > 0) {
-              doc.setFontSize(8);
+              doc.setFontSize(7.5);
               doc.setTextColor(156, 163, 175);
               doc.setFont("helvetica", "normal");
-              doc.text(`MRP: Rs.${mrp}`, x + cardW / 2, y + imgSize + 21, { align: "center" });
-              // Strike through for MRP (optional)
+              doc.text(`MRP: Rs.${mrp}`, x + cardW / 2, y + imgSize + 22, { align: "center" });
               const mrpWidth = doc.getTextWidth(`MRP: Rs.${mrp}`);
               doc.setDrawColor(156, 163, 175);
-              doc.line(x + cardW/2 - mrpWidth/2 + 8, y + imgSize + 20, x + cardW/2 + mrpWidth/2, y + imgSize + 20);
+              doc.line(x + cardW/2 - mrpWidth/2 + 8, y + imgSize + 21.5, x + cardW/2 + mrpWidth/2, y + imgSize + 21.5);
             }
-
-            doc.setFontSize(11);
+            doc.setFontSize(10);
             doc.setTextColor(79, 70, 229);
             doc.setFont("helvetica", "bold");
-            doc.text(`Price: Rs.${price}`, x + cardW / 2, y + imgSize + (mrp > 0 ? 27 : 24), { align: "center" });
+            doc.text(`Rs.${price}`, x + cardW / 2, y + imgSize + (mrp > 0 ? 28 : 23), { align: "center" });
 
             currentItem++;
           }

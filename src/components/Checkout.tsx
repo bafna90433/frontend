@@ -181,6 +181,7 @@ const Checkout: React.FC = () => {
   const [codAdvance, setCodAdvance] = useState<number>(0);
   const [advanceType, setAdvanceType] = useState<"flat" | "percentage">("flat");
   const [isCodEnabled, setIsCodEnabled] = useState<boolean>(true);
+  const [customerNoAdvance, setCustomerNoAdvance] = useState<boolean>(false);
   
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [savingAddress, setSavingAddress] = useState(false);
@@ -231,6 +232,16 @@ const Checkout: React.FC = () => {
     else fetchDefaultAddress();
     fetchCodSettings();
     fetchDiscountRules();
+    // Fetch customer-specific settings
+    if (userData?._id) {
+      api.get(`/registrations/${userData._id}`).then(({ data }) => {
+        if (data.codEnabled === false) {
+          setIsCodEnabled(false);
+          setPaymentMode("ONLINE");
+        }
+        if (data.noAdvance === true) setCustomerNoAdvance(true);
+      }).catch(() => {});
+    }
   }, []);
 
   const fetchCodSettings = async () => {
@@ -353,6 +364,8 @@ const Checkout: React.FC = () => {
   if (advanceType === "percentage") {
     calculatedAdvance = Math.floor((finalTotalWithDiscount * codAdvance) / 100);
   }
+  // Customer-level: no advance required
+  if (customerNoAdvance) calculatedAdvance = 0;
 
   const applicableAdvance = Math.min(calculatedAdvance, finalTotalWithDiscount);
   const showCodAdvance = paymentMode === "COD" && applicableAdvance > 0;
