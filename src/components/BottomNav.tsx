@@ -144,7 +144,15 @@ const BottomNav: React.FC = () => {
             return (
               <button
                 key={item.label}
-                onClick={() => window.dispatchEvent(new CustomEvent("open-whatsapp-panel"))}
+                onClick={() => {
+                  // Mobile pe directly WhatsApp open karo
+                  const isMobile = window.innerWidth < 768;
+                  if (isMobile) {
+                    window.open("https://wa.me/919043347300", "_blank", "noopener,noreferrer");
+                  } else {
+                    window.dispatchEvent(new CustomEvent("open-whatsapp-panel"));
+                  }
+                }}
                 className="bn-item bn-item-whatsapp"
                 style={{ background: 'none', border: 'none', padding: '6px 0 4px', cursor: 'pointer' }}
               >
