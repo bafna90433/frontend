@@ -27,6 +27,7 @@ interface Item {
   price?: number;
   sku?: string;
   stock?: number;
+  gstRate?: number;
 }
 
 interface Address {
@@ -359,6 +360,19 @@ const Checkout: React.FC = () => {
 
   const discountAmt = appliedDiscount?.amount || 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
+
+  // GST breakdown (inclusive in price)
+  const gstBreakdown = cartItems.reduce((acc: Record<number, { base: number; gst: number }>, item: any) => {
+    const rate = item.gstRate || 0;
+    const itemTotal = (item.price || 0) * ((item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1));
+    const base = itemTotal / (1 + rate / 100);
+    const gst = itemTotal - base;
+    if (!acc[rate]) acc[rate] = { base: 0, gst: 0 };
+    acc[rate].base += base;
+    acc[rate].gst += gst;
+    return acc;
+  }, {});
+  const totalGst = Object.values(gstBreakdown).reduce((s, v) => s + v.gst, 0);
 
   let calculatedAdvance = codAdvance;
   if (advanceType === "percentage") {
@@ -1028,6 +1042,23 @@ const Checkout: React.FC = () => {
                   </div>
                 )}
               </div>
+
+              {/* GST Breakdown */}
+              {totalGst > 0 && (
+                <div style={{ margin: "6px 0", padding: "8px 10px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #bbf7d0" }}>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#15803d", marginBottom: 4 }}>GST Included (Breakup)</div>
+                  {Object.entries(gstBreakdown).filter(([, v]) => v.gst > 0).map(([rate, v]) => (
+                    <div key={rate} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#374151", marginBottom: 2 }}>
+                      <span>GST {rate}%</span>
+                      <span>₹{v.gst.toFixed(2)}</span>
+                    </div>
+                  ))}
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#15803d", borderTop: "1px solid #bbf7d0", paddingTop: 4, marginTop: 2 }}>
+                    <span>Total GST</span>
+                    <span>₹{totalGst.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
 
               <div className="co-side-divider" />
 
