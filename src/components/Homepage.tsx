@@ -626,19 +626,26 @@ const Products: React.FC = () => {
 
     try {
       const doc = new jsPDF("p", "mm", "a4");
-      const pageWidth = doc.internal.pageSize.getWidth();
-      const pageHeight = doc.internal.pageSize.getHeight();
-      const margin = 10;
-      const cardW = (pageWidth - margin * 2) / 3;
-      const cardH = 100; // Height for each product block
-      const imgSize = 55; // Larger images
+      const pageWidth  = doc.internal.pageSize.getWidth();   // 210mm
+      const pageHeight = doc.internal.pageSize.getHeight();  // 297mm
 
-      // Pre-fetch images (limit to 150 for performance)
-      const itemsToExport = displayed.slice(0, 150);
-      
+      const margin   = 8;
+      const cols     = 3;
+      const rows     = 3;
+      const headerH  = 26;   // header block height
+      const footerH  = 10;   // footer block height
+      const gap      = 3;    // gap between cards
+
+      const cardW = (pageWidth - margin * 2 - gap * (cols - 1)) / cols;
+      const availH = pageHeight - headerH - footerH - margin;
+      const cardH = (availH - gap * (rows - 1)) / rows;
+      const imgSize = cardH * 0.55;
+
+      const itemsToExport = displayed.slice(0, 300);
+
       Swal.fire({
         title: "Preparing Catalog...",
-        text: "Fetching high-quality images. Please wait.",
+        text: "Please wait while images load.",
         allowOutsideClick: false,
         didOpen: () => Swal.showLoading(),
         toast: true,
@@ -650,7 +657,6 @@ const Products: React.FC = () => {
           let base64 = "";
           if (p.images && p.images.length > 0) {
             try {
-              // Fetching 500x500 for high quality as requested
               const url = optimizeCloudinary(Array.isArray(p.images) ? p.images[0] : p.images, 500, 500);
               base64 = await getBase64ImageFromUrl(url);
             } catch (e) {}
@@ -661,104 +667,153 @@ const Products: React.FC = () => {
 
       Swal.close();
 
-      let currentItem = 0;
-      while (currentItem < processedData.length) {
-        if (currentItem > 0) doc.addPage();
+      const drawHeader = (pageNum: number, total: number) => {
+        // Blue header bar
+        doc.setFillColor(26, 35, 126);
+        doc.rect(0, 0, pageWidth, headerH - 4, "F");
 
-        // Branding Header (only on every page to look professional)
-        doc.setFontSize(22);
-        doc.setTextColor(79, 70, 229);
+        // Company name
+        doc.setFontSize(16);
         doc.setFont("helvetica", "bold");
-        doc.text("BAFNA TOYS", margin, 18);
-        
-        doc.setFontSize(9);
-        doc.setTextColor(107, 114, 128);
+        doc.setTextColor(255, 255, 255);
+        doc.text("BAFNA TOYS", margin, 10);
+
+        // Tagline
+        doc.setFontSize(7.5);
         doc.setFont("helvetica", "normal");
-        doc.text(`Wholesale Catalog — ${catName || "All Toys"}`, margin, 24);
-        doc.textAlign = "right";
-        doc.text(`Page ${doc.internal.getNumberOfPages()}`, pageWidth - margin, 24);
-        doc.textAlign = "left";
+        doc.setTextColor(180, 200, 255);
+        doc.text("B2B Wholesale Toy Catalog", margin, 16);
 
-        doc.setDrawColor(229, 231, 235);
-        doc.line(margin, 28, pageWidth - margin, 28);
+        // Category + page
+        doc.setFontSize(8);
+        doc.setTextColor(255, 255, 255);
+        doc.text(`${catName || "All Toys"}`, pageWidth / 2, 13, { align: "center" });
+        doc.text(`Page ${pageNum}`, pageWidth - margin, 10, { align: "right" });
+        doc.setFontSize(7);
+        doc.setTextColor(180, 200, 255);
+        doc.text(`www.bafnatoys.com`, pageWidth - margin, 16, { align: "right" });
 
-        // 3x3 Grid
-        const startY = 32;
-        for (let row = 0; row < 3; row++) {
-          for (let col = 0; col < 3; col++) {
+        // Divider
+        doc.setDrawColor(210, 220, 255);
+        doc.setLineWidth(0.3);
+        doc.line(margin, headerH - 2, pageWidth - margin, headerH - 2);
+      };
+
+      const drawFooter = () => {
+        doc.setFillColor(245, 247, 255);
+        doc.rect(0, pageHeight - footerH, pageWidth, footerH, "F");
+        doc.setFontSize(6.5);
+        doc.setTextColor(120, 130, 160);
+        doc.setFont("helvetica", "normal");
+        doc.text("Bafna Toys — Quality Wholesale Toys | 📞 +91 90433 47300 | bafnatoys.com", pageWidth / 2, pageHeight - 4, { align: "center" });
+      };
+
+      let currentItem = 0;
+      const totalPages = Math.ceil(processedData.length / (cols * rows));
+
+      while (currentItem < processedData.length) {
+        const pageNum = doc.internal.getNumberOfPages();
+        if (currentItem > 0) { doc.addPage(); }
+
+        drawHeader(pageNum === 0 ? 1 : pageNum, totalPages);
+        drawFooter();
+
+        const startY = headerH + 1;
+
+        for (let row = 0; row < rows; row++) {
+          for (let col = 0; col < cols; col++) {
             if (currentItem >= processedData.length) break;
 
             const p = processedData[currentItem];
-            const x = margin + col * cardW;
-            const y = startY + row * cardH;
+            const x = margin + col * (cardW + gap);
+            const y = startY + row * (cardH + gap);
 
-            // Image placeholder/box
-            doc.setDrawColor(243, 244, 246);
-            doc.rect(x + 2, y + 2, cardW - 4, cardH - 4);
+            // Card background + border
+            doc.setFillColor(252, 253, 255);
+            doc.setDrawColor(220, 225, 240);
+            doc.setLineWidth(0.3);
+            doc.roundedRect(x, y, cardW, cardH, 2, 2, "FD");
 
+            // Image
             if (p.imgBase64) {
               try {
-                // Center image in the card
                 const imgX = x + (cardW - imgSize) / 2;
-                doc.addImage(p.imgBase64, 'JPEG', imgX, y + 5, imgSize, imgSize);
+                doc.addImage(p.imgBase64, "JPEG", imgX, y + 3, imgSize, imgSize);
               } catch (e) {}
             } else {
-               doc.setFontSize(8);
-               doc.setTextColor(209, 213, 219);
-               doc.text("No Image", x + cardW/2, y + cardH/2, { align: "center" });
+              doc.setFontSize(7);
+              doc.setTextColor(200, 205, 215);
+              doc.text("No Image", x + cardW / 2, y + imgSize / 2 + 3, { align: "center" });
             }
 
-            // Text info
-            doc.setTextColor(31, 41, 55);
-            doc.setFontSize(8.5);
+            // Separator line under image
+            const textY = y + imgSize + 6;
+            doc.setDrawColor(235, 238, 248);
+            doc.setLineWidth(0.2);
+            doc.line(x + 3, textY - 2, x + cardW - 3, textY - 2);
+
+            // Product name
             doc.setFont("helvetica", "bold");
-            
-            const cleanName = cleanTextForPDF(p.name);
-            const name = cleanName.length > 28 ? cleanName.substring(0, 25) + "..." : cleanName;
-            doc.text(name, x + cardW / 2, y + imgSize + 11, { align: "center" });
-
-            // SKU (left) | Min Qty (right) — same line
-            let minQty = p.minOrderQty && p.minOrderQty > 0 ? p.minOrderQty : (p.piecesPerUnit && p.piecesPerUnit > 1 ? p.piecesPerUnit : 2);
             doc.setFontSize(7.5);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(107, 114, 128);
-            doc.text(`SKU: ${p.sku || "—"}`, x + 5, y + imgSize + 16);
-            doc.text(`Min: ${minQty} Pcs`, x + cardW - 5, y + imgSize + 16, { align: "right" });
+            doc.setTextColor(20, 30, 70);
+            const cleanName = cleanTextForPDF(p.name);
+            const name = cleanName.length > 30 ? cleanName.substring(0, 28) + "…" : cleanName;
+            doc.text(name, x + cardW / 2, textY + 1, { align: "center" });
 
-            // MRP (strikethrough) + Price
+            // SKU | Min Qty
+            const minQty = p.minOrderQty && p.minOrderQty > 0 ? p.minOrderQty : (p.piecesPerUnit && p.piecesPerUnit > 1 ? p.piecesPerUnit : 2);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(6.5);
+            doc.setTextColor(110, 120, 150);
+            doc.text(`SKU: ${p.sku || "—"}`, x + 4, textY + 6);
+            doc.text(`Min: ${minQty} Pcs`, x + cardW - 4, textY + 6, { align: "right" });
+
+            // MRP strikethrough + Price
             const mrp = p.mrp || 0;
             const price = p.price || 0;
             if (mrp > 0) {
-              doc.setFontSize(7.5);
-              doc.setTextColor(156, 163, 175);
+              doc.setFontSize(7);
+              doc.setTextColor(160, 165, 175);
               doc.setFont("helvetica", "normal");
-              doc.text(`MRP: Rs.${mrp}`, x + cardW / 2, y + imgSize + 22, { align: "center" });
-              const mrpWidth = doc.getTextWidth(`MRP: Rs.${mrp}`);
-              doc.setDrawColor(156, 163, 175);
-              doc.line(x + cardW/2 - mrpWidth/2 + 8, y + imgSize + 21.5, x + cardW/2 + mrpWidth/2, y + imgSize + 21.5);
+              const mrpTxt = `MRP: Rs.${mrp}`;
+              doc.text(mrpTxt, x + cardW / 2, textY + 11, { align: "center" });
+              const mw = doc.getTextWidth(mrpTxt);
+              doc.setDrawColor(160, 165, 175);
+              doc.setLineWidth(0.4);
+              doc.line(x + cardW / 2 - mw / 2, textY + 10.5, x + cardW / 2 + mw / 2, textY + 10.5);
             }
+
+            // Price — bold indigo
             doc.setFontSize(10);
-            doc.setTextColor(79, 70, 229);
             doc.setFont("helvetica", "bold");
-            doc.text(`Rs.${price}`, x + cardW / 2, y + imgSize + (mrp > 0 ? 28 : 23), { align: "center" });
+            doc.setTextColor(26, 35, 126);
+            doc.text(`Rs.${price}`, x + cardW / 2, textY + (mrp > 0 ? 16 : 11), { align: "center" });
+
+            // OFF badge (top-right of card)
+            if (mrp > 0 && price > 0) {
+              const offPct = Math.round(((mrp - price) / mrp) * 100);
+              if (offPct > 0) {
+                doc.setFillColor(220, 38, 38);
+                doc.roundedRect(x + cardW - 12, y + 2, 11, 6, 1, 1, "F");
+                doc.setFontSize(5.5);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(255, 255, 255);
+                doc.text(`${offPct}%OFF`, x + cardW - 6.5, y + 6.3, { align: "center" });
+              }
+            }
 
             currentItem++;
           }
         }
-
-        // Footer
-        doc.setFontSize(7);
-        doc.setTextColor(156, 163, 175);
-        doc.text("Bafna Toys Wholesale — Quality Toys at Best Prices", pageWidth / 2, pageHeight - 8, { align: "center" });
       }
 
-      doc.save(`Bafna_Toys_Gallery_${(catName || "All").replace(/\s+/g, "_")}.pdf`);
-      
+      doc.save(`Bafna_Toys_Catalog_${(catName || "All").replace(/\s+/g, "_")}.pdf`);
+
       Swal.fire({
         icon: "success",
-        title: "Gallery Downloaded",
-        text: "Professional 3x3 Grid Catalog is ready!",
-        timer: 2500,
+        title: "Catalog Downloaded!",
+        text: "Professional catalog is ready.",
+        timer: 2000,
         showConfirmButton: false
       });
 
