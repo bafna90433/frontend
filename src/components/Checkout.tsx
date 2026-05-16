@@ -196,9 +196,26 @@ const Checkout: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [minimumQtyError, setMinimumQtyError] = useState<string | null>(null);
   
-  const [mobSummaryOpen, setMobSummaryOpen] = useState(true); 
-  
+  const [mobSummaryOpen, setMobSummaryOpen] = useState(true);
+  const [productGstRates, setProductGstRates] = useState<Record<string, number>>({});
+  const [sidebarGstin, setSidebarGstin] = useState("");
+
   const [activeStep, setActiveStep] = useState(1);
+
+  // Fetch latest gstRate for all cart items from API
+  useEffect(() => {
+    if (!cartItems || cartItems.length === 0) return;
+    const ids = cartItems.map((i: any) => i._id).filter(Boolean);
+    Promise.all(ids.map((id: string) => api.get(`/products/${id}`).catch(() => null)))
+      .then(results => {
+        const rateMap: Record<string, number> = {};
+        results.forEach((res: any) => {
+          if (res?.data?._id) rateMap[res.data._id] = res.data.gstRate ?? 0;
+        });
+        setProductGstRates(rateMap);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cartItems.length]);
 
   // ✅ Meta Pixel: fire InitiateCheckout when checkout opens with items
   useEffect(() => {
@@ -361,9 +378,9 @@ const Checkout: React.FC = () => {
   const discountAmt = appliedDiscount?.amount || 0;
   const finalTotalWithDiscount = Math.max(0, cartTotal + shippingFee - discountAmt);
 
-  // GST breakdown (inclusive in price)
+  // GST breakdown — use API-fetched gstRate (always latest from DB)
   const gstBreakdown = cartItems.reduce((acc: Record<number, { base: number; gst: number }>, item: any) => {
-    const rate = item.gstRate || 0;
+    const rate = productGstRates[item._id] ?? item.gstRate ?? 0;
     const itemTotal = (item.price || 0) * ((item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1));
     const base = itemTotal / (1 + rate / 100);
     const gst = itemTotal - base;
@@ -1043,19 +1060,40 @@ const Checkout: React.FC = () => {
                 )}
               </div>
 
-              {/* GST Breakdown */}
+              {/* GST Info + GSTIN Input */}
               {totalGst > 0 && (
-                <div style={{ margin: "6px 0", padding: "8px 10px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #bbf7d0" }}>
-                  <div style={{ fontSize: 11, fontWeight: 700, color: "#15803d", marginBottom: 4 }}>GST Included (Breakup)</div>
-                  {Object.entries(gstBreakdown).filter(([, v]) => v.gst > 0).map(([rate, v]) => (
-                    <div key={rate} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#374151", marginBottom: 2 }}>
-                      <span>GST {rate}%</span>
-                      <span>₹{v.gst.toFixed(2)}</span>
-                    </div>
-                  ))}
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, fontWeight: 700, color: "#15803d", borderTop: "1px solid #bbf7d0", paddingTop: 4, marginTop: 2 }}>
-                    <span>Total GST</span>
-                    <span>₹{totalGst.toFixed(2)}</span>
+                <div style={{ margin: "6px 0", padding: "10px 12px", background: "#f0fdf4", borderRadius: 8, border: "1px solid #bbf7d0" }}>
+                  {/* GST rates list */}
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#15803d", letterSpacing: 0.3, marginBottom: 2 }}>
+                    GST {Object.entries(gstBreakdown).filter(([, v]) => v.gst > 0).map(([rate]) => `${rate}%`).join(", ")} IS ALREADY INCLUDED IN THE PRICES
+                  </div>
+                  <div style={{ fontSize: 11, color: "#374151", marginBottom: 8, lineHeight: 1.5 }}>
+                    You can avail GST Input if you add your GST details here
+                  </div>
+                  {/* GSTIN input */}
+                  <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <input
+                      type="text"
+                      placeholder="Enter GSTIN"
+                      value={sidebarGstin}
+                      onChange={e => setSidebarGstin(e.target.value.toUpperCase())}
+                      maxLength={15}
+                      style={{
+                        flex: 1,
+                        padding: "6px 10px",
+                        border: "1px solid #a7f3d0",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontFamily: "monospace",
+                        background: "#fff",
+                        color: "#1e293b",
+                        outline: "none",
+                        letterSpacing: 1,
+                      }}
+                    />
+                    {sidebarGstin.length === 15 && (
+                      <span style={{ fontSize: 11, color: "#15803d", fontWeight: 700, whiteSpace: "nowrap" }}>✓ Added</span>
+                    )}
                   </div>
                 </div>
               )}
