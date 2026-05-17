@@ -60,10 +60,22 @@
             "name": "Bafna Toys",
             "description": "Bafna Toys is one of the leading toys manufacturers in India supplying premium quality PVC dolls, windup toys, and pullback cars at factory wholesale prices.",
             "url": "https://bafnatoys.com/",
-            "logo": "https://bafnatoys.com/logo.webp",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://bafnatoys.com/logo.webp",
+              "width": 200,
+              "height": 200
+            },
+            "contactPoint": {
+              "@type": "ContactPoint",
+              "telephone": "+91-9043347300",
+              "contactType": "sales",
+              "availableLanguage": ["English", "Hindi", "Tamil"]
+            },
             "sameAs": [
-              "https://www.facebook.com/profile.php?id=61587643176791", 
-              "https://www.instagram.com/bafna_toys/"
+              "https://www.facebook.com/profile.php?id=61587643176791",
+              "https://www.instagram.com/bafna_toys/",
+              "https://wa.me/919043347300"
             ]
           },
           {
@@ -73,7 +85,8 @@
             "image": "https://bafnatoys.com/logo.webp",
             "url": "https://bafnatoys.com/",
             "telephone": "+91-9043347300",
-            "priceRange": "₹100-₹2000 (Wholesale)",
+            "priceRange": "₹30-₹2000 (Wholesale)",
+            "openingHours": "Mo-Sa 09:00-18:00",
             "address": {
               "@type": "PostalAddress",
               "streetAddress": "1-12, Sundapalayam Rd, Kalikkanaicken Palayam",
@@ -82,7 +95,28 @@
               "postalCode": "641007",
               "addressCountry": "IN"
             },
+            "geo": {
+              "@type": "GeoCoordinates",
+              "latitude": "11.0168",
+              "longitude": "76.9558"
+            },
             "parentOrganization": { "@id": "https://bafnatoys.com/#org" }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://bafnatoys.com/#website",
+            "url": "https://bafnatoys.com/",
+            "name": "Bafna Toys",
+            "description": "Leading Wholesale Toy Manufacturer in India",
+            "publisher": { "@id": "https://bafnatoys.com/#org" },
+            "potentialAction": {
+              "@type": "SearchAction",
+              "target": {
+                "@type": "EntryPoint",
+                "urlTemplate": "https://bafnatoys.com/products?search={search_term_string}"
+              },
+              "query-input": "required name=search_term_string"
+            }
           }
         ]
       }
