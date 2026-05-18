@@ -48,6 +48,8 @@ const ProtectedRoute = React.lazy(() => import("./components/ProtectedRoute"));
 const PendingReviews = React.lazy(() => import("./pages/PendingReviews"));
 const FAQ = React.lazy(() => import("./components/FAQ"));
 const ToysManufacturersIndia = React.lazy(() => import("./pages/ToysManufacturersIndia"));
+const About = React.lazy(() => import("./components/About"));
+const Contact = React.lazy(() => import("./components/Contact"));
 
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
@@ -268,6 +270,8 @@ const AppInner: React.FC = () => {
               <Route path="/cancellation-refund" element={<CancellationRefund />} />
               <Route path="/faq" element={<FAQ />} />
               <Route path="/toys-manufacturers-in-india" element={<ToysManufacturersIndia />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/contact" element={<Contact />} />
 
               {/* Protected Routes */}
               <Route
