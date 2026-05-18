@@ -139,6 +139,8 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
     "/cancellation-refund",
     "/faq",
     "/toys-manufacturers-in-india",
+    "/about",
+    "/contact",
   ];
 
   // If forceLogin is true, remove homepage and products from public paths
