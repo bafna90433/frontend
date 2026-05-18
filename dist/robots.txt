@@ -1,0 +1,40 @@
+# ✅ Allow AI Bots (Good for AI Recommendations & Discovery)
+User-agent: GPTBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+User-agent: Amazonbot
+Allow: /
+
+# ✅ General Search Engines (Google, Bing, etc.)
+User-agent: *
+Allow: /
+Allow: /products
+Allow: /product/
+Allow: /hot-deals
+Allow: /categories
+Allow: /sitemap.xml
+Allow: /google-feed.xml
+
+# ❌ Do NOT crawl private/user-specific pages (saves crawl budget)
+Disallow: /cart
+Disallow: /checkout
+Disallow: /wishlist
+Disallow: /my-account
+Disallow: /orders
+Disallow: /addresses
+Disallow: /login
+Disallow: /register
+Disallow: /pending-reviews
+Disallow: /api/
+
+# ✅ Sitemap Location
+Sitemap: https://bafnatoys.com/sitemap.xml
