@@ -2265,6 +2265,8 @@ const Products: React.FC = () => {
               </div>
               <nav className="sp-footer-nav">
                 <h4>Quick Links</h4>
+                <Link to="/about">About Us</Link>
+                <Link to="/contact">Contact Us</Link>
                 <Link to="/privacy-policy">Privacy Policy</Link>
                 <Link to="/terms-conditions">Terms & Conditions</Link>
                 <Link to="/shipping-delivery">Shipping & Delivery</Link>
