@@ -197,41 +197,62 @@ const About = () => {
                 </p>
               </div>
 
-              {/* Three Infrastructure Visual Cards Grid */}
+              {/* Dynamic Infrastructure Visual Cards Grid */}
               <div className="ab-infra-grid">
-                {[
-                  {
-                    img: trustData.manufacturingUnit || (trustData.factoryVisuals && trustData.factoryVisuals[0]?.image),
-                    label: "Manufacturing & Molding Unit",
-                    desc: "Equipped with heavy-duty injection molding machinery. Raw polymer pellets are transformed into high-durability, BIS-compliant toy components with smooth edges and durable build quality."
-                  },
-                  {
-                    img: trustData.packingDispatch || (trustData.factoryVisuals && trustData.factoryVisuals[1]?.image),
-                    label: "Assembly, QC & Packing",
-                    desc: "Where meticulous manual assembly, secondary paint checks, and final quality inspections take place. Every toy is carefully packaged into bulk retail cartons, ready for dispatch."
-                  },
-                  {
-                    img: trustData.warehouseStorage || (trustData.factoryVisuals && trustData.factoryVisuals[2]?.image),
-                    label: "Massive Storage & Logistics Warehouse",
-                    desc: "Our high-capacity logistics warehouse houses ready-to-ship stock of over 400+ toy products. This robust inventory management system allows us to dispatch orders within 24–48 hours."
-                  }
-                ].map((item, i) => item.img && (
-                  <div className="ab-infra-card" key={i}>
-                    <div className="ab-infra-img-wrap">
-                      <img 
-                        src={optimizeCloudinary(item.img, 450, 300)} 
-                        alt={item.label} 
-                        className="ab-infra-img"
-                        loading="lazy"
-                      />
-                      <div className="ab-infra-card-badge">{`Step 0${i + 1}`}</div>
-                    </div>
-                    <div className="ab-infra-content">
-                      <h4 className="ab-infra-label">{item.label}</h4>
-                      <p className="ab-infra-desc">{item.desc}</p>
-                    </div>
-                  </div>
-                ))}
+                {trustData.factoryVisuals && trustData.factoryVisuals.length > 0
+                  ? trustData.factoryVisuals.map((item: any, i: number) => item.image && (
+                      <div className="ab-infra-card" key={i}>
+                        <div className="ab-infra-img-wrap">
+                          <img 
+                            src={optimizeCloudinary(item.image, 450, 300)} 
+                            alt={item.label || `Process ${i + 1}`} 
+                            className="ab-infra-img"
+                            loading="lazy"
+                          />
+                          <div className="ab-infra-card-badge">{`Process 0${i + 1}`}</div>
+                        </div>
+                        <div className="ab-infra-content">
+                          <h4 className="ab-infra-label">{item.label || `Factory Process ${i + 1}`}</h4>
+                          <p className="ab-infra-desc">
+                            Part of our state-of-the-art toy manufacturing and assembly facility in Coimbatore, Tamil Nadu.
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  : [
+                      {
+                        img: trustData.manufacturingUnit,
+                        label: "Manufacturing & Molding Unit",
+                        desc: "Equipped with heavy-duty injection molding machinery. Raw polymer pellets are transformed into high-durability, BIS-compliant toy components with smooth edges and durable build quality."
+                      },
+                      {
+                        img: trustData.packingDispatch,
+                        label: "Assembly, QC & Packing",
+                        desc: "Where meticulous manual assembly, secondary paint checks, and final quality inspections take place. Every toy is carefully packaged into bulk retail cartons, ready for dispatch."
+                      },
+                      {
+                        img: trustData.warehouseStorage,
+                        label: "Massive Storage & Logistics Warehouse",
+                        desc: "Our high-capacity logistics warehouse houses ready-to-ship stock of over 400+ toy products. This robust inventory management system allows us to dispatch orders within 24–48 hours."
+                      }
+                    ].map((item, i) => item.img && (
+                      <div className="ab-infra-card" key={i}>
+                        <div className="ab-infra-img-wrap">
+                          <img 
+                            src={optimizeCloudinary(item.img, 450, 300)} 
+                            alt={item.label} 
+                            className="ab-infra-img"
+                            loading="lazy"
+                          />
+                          <div className="ab-infra-card-badge">{`Step 0${i + 1}`}</div>
+                        </div>
+                        <div className="ab-infra-content">
+                          <h4 className="ab-infra-label">{item.label}</h4>
+                          <p className="ab-infra-desc">{item.desc}</p>
+                        </div>
+                      </div>
+                    ))
+                }
               </div>
 
             </div>
