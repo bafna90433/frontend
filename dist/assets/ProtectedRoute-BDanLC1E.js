@@ -1,0 +1,1 @@
+import{j as t}from"./index-B9d5_2l9.js";import{N as r}from"./vendor-B3g7tiM-.js";import"./icons-Y21PpOYm.js";const u=({children:e})=>localStorage.getItem("user")?t.jsx(t.Fragment,{children:e}):t.jsx(r,{to:"/login",replace:!0});export{u as default};

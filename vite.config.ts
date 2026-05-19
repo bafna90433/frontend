@@ -30,7 +30,7 @@ export default defineConfig(async ({ mode }) => {
 
     build: {
       outDir: "dist",
-      target: "es2020",
+      target: ["es2015", "safari11"],
       minify: "esbuild",
       cssMinify: true,
       sourcemap: false,
