@@ -1,6 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Helmet } from "react-helmet-async";
+import api from "../utils/api";
 import "../styles/About.css";
+
+const CLOUD_NAME = (import.meta as any).env?.VITE_CLOUDINARY_CLOUD_NAME || "";
+
+const optimizeCloudinary = (
+  url: string | undefined,
+  w: number,
+  h: number,
+  crop = "c_fill"
+): string => {
+  if (!url) return "/placeholder.png";
+
+  if (url.includes("ik.imagekit.io")) {
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}tr=w-${w},h-${h},cm-at_max,f-auto,q-80`;
+  }
+
+  if (!url.startsWith("http") && CLOUD_NAME) {
+    return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
+  }
+  if (url.includes("res.cloudinary.com")) {
+    return url;
+  }
+  return url;
+};
 
 /* ── Animated Counter ─────────────────────────────────── */
 const Counter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: string; duration?: number }) => {
@@ -33,6 +58,15 @@ const Counter = ({ end, suffix = "", duration = 2000 }: { end: number; suffix?: 
 
 /* ── Main Component ───────────────────────────────────── */
 const About = () => {
+  const [trustData, setTrustData] = useState<any>(null);
+
+  useEffect(() => {
+    api
+      .get("/trust-settings")
+      .then((r) => setTrustData(r.data))
+      .catch(console.error);
+  }, []);
+
   return (
     <>
       <Helmet>
@@ -121,6 +155,32 @@ const About = () => {
             </div>
           </div>
         </section>
+
+        {/* ── FACTORY SHOWCASE ─────────────────────────────── */}
+        {trustData?.factoryImage && (
+          <section className="ab-section ab-factory">
+            <div className="ab-container">
+              <div className="ab-section-tag" style={{ textAlign: "center" }}>Our Infrastructure</div>
+              <h2 className="ab-section-title" style={{ textAlign: "center" }}>State-of-the-Art Toy Factory</h2>
+              <div className="ab-factory-frame">
+                <img 
+                  src={optimizeCloudinary(trustData.factoryImage, 1200, 500)} 
+                  alt="Bafna Toys Manufacturing Unit Coimbatore" 
+                  className="ab-factory-img"
+                  loading="lazy"
+                />
+                <div className="ab-factory-overlay-card">
+                  <div className="ab-factory-badge">🏭 Coimbatore Unit</div>
+                  <h3 className="ab-factory-heading">Direct from Source</h3>
+                  <p className="ab-factory-text">
+                    Every toy we sell is manufactured under strict quality standards inside our Coimbatore facility. 
+                    This guarantees 100% genuine products, certified safety compliance (BIS), and unmatched direct-from-source wholesale prices!
+                  </p>
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
 
         {/* ── WHY CHOOSE US ────────────────────────────────── */}
         <section className="ab-section ab-why">
