@@ -526,11 +526,24 @@ export async function onRequest(context: any) {
 
       } catch (err) {
         console.error("Bot middleware error:", err);
-        return next();
+        const fallbackResponse = await next();
+        return fallbackResponse;
       }
     }
   }
 
   // 5. Normal users (or non-product routes) get passed through to the React SPA
-  return next();
+  // We intercept the response and inject Cache-Control: no-store to prevent Instagram/FB WebViews from caching the index.html page
+  const response = await next();
+  const contentType = response.headers.get("Content-Type") || "";
+
+  if (contentType.includes("text/html")) {
+    const newResponse = new Response(response.body, response);
+    newResponse.headers.set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+    newResponse.headers.set("Pragma", "no-cache");
+    newResponse.headers.set("Expires", "0");
+    return newResponse;
+  }
+
+  return response;
 }
