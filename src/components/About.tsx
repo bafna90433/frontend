@@ -157,30 +157,87 @@ const About = () => {
         </section>
 
         {/* ── FACTORY SHOWCASE ─────────────────────────────── */}
-        {trustData?.factoryImage && (
+        {trustData && (
           <section className="ab-section ab-factory">
             <div className="ab-container">
-              <div className="ab-section-tag" style={{ textAlign: "center" }}>Our Infrastructure</div>
-              <h2 className="ab-section-title" style={{ textAlign: "center" }}>State-of-the-Art Toy Factory</h2>
-              <div className="ab-factory-frame">
-                <img 
-                  src={optimizeCloudinary(trustData.factoryImage, 1200, 500)} 
-                  alt="Bafna Toys Manufacturing Unit Coimbatore" 
-                  className="ab-factory-img"
-                  loading="lazy"
-                />
-                <div className="ab-factory-overlay-card">
-                  <div className="ab-factory-badge">🏭 Coimbatore Unit</div>
-                  <h3 className="ab-factory-heading">Direct from Source</h3>
-                  <p className="ab-factory-text">
-                    Every toy we sell is manufactured under strict quality standards inside our Coimbatore facility. 
-                    This guarantees 100% genuine products, certified safety compliance (BIS), and unmatched direct-from-source wholesale prices!
-                  </p>
+              <div className="ab-section-tag" style={{ textAlign: "center" }}>Our Manufacturing Facilities</div>
+              <h2 className="ab-section-title" style={{ textAlign: "center" }}>Inside Our State-of-the-Art Factory</h2>
+              
+              {/* Main Factory Banner */}
+              {trustData.factoryImage && (
+                <div className="ab-factory-frame">
+                  <img 
+                    src={optimizeCloudinary(trustData.factoryImage, 1200, 500)} 
+                    alt="Bafna Toys Coimbatore Manufacturing Unit" 
+                    className="ab-factory-img"
+                    loading="lazy"
+                  />
+                  <div className="ab-factory-overlay-card">
+                    <div className="ab-factory-badge">🏭 Main Coimbatore Unit</div>
+                    <h3 className="ab-factory-heading">Direct from Source</h3>
+                    <p className="ab-factory-text">
+                      Every toy we sell is manufactured under strict quality standards inside our Coimbatore facility. 
+                      This guarantees 100% genuine products, certified safety compliance (BIS), and unmatched direct-from-source wholesale prices!
+                    </p>
+                  </div>
                 </div>
+              )}
+
+              {/* Rich SEO Content Section */}
+              <div className="ab-factory-seo-text">
+                <p>
+                  As one of India's premier <strong>wholesale toy manufacturers</strong>, Bafna Toys operates a highly optimized 
+                  production plant in Coimbatore, Tamil Nadu. Our facility is equipped with automated injection molding machinery, 
+                  precision assembly systems, and strict safety testing lines to deliver the highest standard B2B wholesale toys to retailers.
+                </p>
+                <p>
+                  We are deeply committed to safety and regulatory compliance. Every single product manufactured by Bafna Toys is 
+                  <strong> BIS Certified (Bureau of Indian Standards)</strong>, meeting rigorous international toy safety guidelines. 
+                  By using non-toxic, high-grade plastic granules, we ensure that every pullback car, PVC doll, and squeezy toy is 100% child-safe.
+                </p>
               </div>
+
+              {/* Three Infrastructure Visual Cards Grid */}
+              <div className="ab-infra-grid">
+                {[
+                  {
+                    img: trustData.manufacturingUnit || (trustData.factoryVisuals && trustData.factoryVisuals[0]?.image),
+                    label: "Manufacturing & Molding Unit",
+                    desc: "Equipped with heavy-duty injection molding machinery. Raw polymer pellets are transformed into high-durability, BIS-compliant toy components with smooth edges and durable build quality."
+                  },
+                  {
+                    img: trustData.packingDispatch || (trustData.factoryVisuals && trustData.factoryVisuals[1]?.image),
+                    label: "Assembly, QC & Packing",
+                    desc: "Where meticulous manual assembly, secondary paint checks, and final quality inspections take place. Every toy is carefully packaged into bulk retail cartons, ready for dispatch."
+                  },
+                  {
+                    img: trustData.warehouseStorage || (trustData.factoryVisuals && trustData.factoryVisuals[2]?.image),
+                    label: "Massive Storage & Logistics Warehouse",
+                    desc: "Our high-capacity logistics warehouse houses ready-to-ship stock of over 400+ toy products. This robust inventory management system allows us to dispatch orders within 24–48 hours."
+                  }
+                ].map((item, i) => item.img && (
+                  <div className="ab-infra-card" key={i}>
+                    <div className="ab-infra-img-wrap">
+                      <img 
+                        src={optimizeCloudinary(item.img, 450, 300)} 
+                        alt={item.label} 
+                        className="ab-infra-img"
+                        loading="lazy"
+                      />
+                      <div className="ab-infra-card-badge">{`Step 0${i + 1}`}</div>
+                    </div>
+                    <div className="ab-infra-content">
+                      <h4 className="ab-infra-label">{item.label}</h4>
+                      <p className="ab-infra-desc">{item.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
             </div>
           </section>
         )}
+
 
         {/* ── WHY CHOOSE US ────────────────────────────────── */}
         <section className="ab-section ab-why">
