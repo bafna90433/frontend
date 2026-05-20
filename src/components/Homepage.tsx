@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { useLocation, useNavigate, Link, useParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import api, { MEDIA_URL } from "../utils/api";
+import api from "../utils/api";
 import ProductCard from "./ProductCard";
 import BannerSlider from "./BannerSlider";
 import "../styles/Products.css";
@@ -60,253 +60,20 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Swal from "sweetalert2";
 
+// ════ Extracted Sub-components & Utilities ════
+import AnimatedCounter from "./AnimatedCounter";
+import ProductSkeleton from "./ProductSkeleton";
+import BafnaDailySticky from "./BafnaDailySticky";
+import { RazorpayIcon, DelhiveryIcon } from "./HomepageIcons";
+import { optimizeCloudinary, cleanProduct, getBase64ImageFromUrl, cleanTextForPDF } from "../utils/HomepageUtils";
+import type { Product, Category, Banner, HotDeal } from "../types/HomepageTypes";
+
 const FloatingCheckoutButton = lazy(() => import("./FloatingCheckoutButton"));
 
-// ════════════════════════════════════════════════════════════
-// TYPES
-// ════════════════════════════════════════════════════════════
 
-type BulkTier = { inner: number; qty: number; price: number };
 
-type Product = {
-  _id: string;
-  name: string;
-  sku?: string;
-  images?: string[] | string;
-  price?: number;
-  innerQty?: number;
-  bulkPricing?: BulkTier[];
-  category?: { _id?: string; name?: string } | string;
-  taxFields?: string[];
-  tags?: string[];
-  description?: string;
-  [k: string]: any;
-};
 
-type Category = {
-  _id: string;
-  name: string;
-  image?: string;
-  link?: string;
-  slug?: string;
-};
 
-type Banner = { _id: string; imageUrl: string; link?: string };
-
-type HotDeal = {
-  productId: string;
-  discountType: "PERCENT" | "FLAT" | "NONE";
-  discountValue: number;
-  endsAt: string | null;
-};
-
-// ════════════════════════════════════════════════════════════
-// UTILITIES (UPDATED FOR IMAGEKIT & CLOUDINARY)
-// ════════════════════════════════════════════════════════════
-
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || "";
-
-const optimizeCloudinary = (
-  url: string | undefined,
-  w: number,
-  h: number,
-  crop = "c_fill"
-): string => {
-  if (!url) return "/placeholder.png";
-
-  if (url.includes("ik.imagekit.io")) {
-    const separator = url.includes("?") ? "&" : "?";
-    return `${url}${separator}tr=w-${w},h-${h},cm-at_max,f-auto,q-80`;
-  }
-
-  if (!url.startsWith("http") && CLOUD_NAME) {
-    return `https://res.cloudinary.com/${CLOUD_NAME}/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/${url}`;
-  }
-  if (url.includes("res.cloudinary.com")) {
-    if (url.includes("/image/upload/f_auto") || url.includes("/w_")) return url;
-    return url.replace(
-      "/image/upload/",
-      `/image/upload/f_auto,q_auto,w_${w},h_${h},${crop}/`
-    );
-  }
-
-  return url.startsWith("http")
-    ? url
-    : `${MEDIA_URL}/uploads/${encodeURIComponent(url)}`;
-};
-
-const cleanProduct = (raw: any): Product => ({
-  _id: String(raw._id ?? raw.id ?? ""),
-  name: raw.name ?? raw.title ?? "Untitled",
-  sku: raw.sku ?? "",
-  images: Array.isArray(raw.images)
-    ? raw.images
-    : typeof raw.images === "string"
-    ? [raw.images]
-    : [],
-  price: typeof raw.price === "number" ? raw.price : Number(raw.price) || 0,
-  mrp: Number(raw.mrp || raw.MRP || 0),
-  innerQty: raw.innerQty,
-  bulkPricing: Array.isArray(raw.bulkPricing) ? raw.bulkPricing : [],
-  category: raw.category ?? raw.categoryName ?? "",
-  taxFields: Array.isArray(raw.taxFields) ? raw.taxFields : [],
-  description: raw.description ?? "",
-  tags: Array.isArray(raw.tags) ? raw.tags : [],
-  ...raw,
-});
-
-// ════════════════════════════════════════════════════════════
-// ANIMATED COUNTER
-// ════════════════════════════════════════════════════════════
-
-const AnimatedCounter: React.FC<{
-  target: string | number;
-  duration?: number;
-}> = ({ target, duration = 2000 }) => {
-  const [count, setCount] = useState(0);
-  const ref = useRef<HTMLSpanElement>(null);
-  const hasAnimated = useRef(false);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !hasAnimated.current) {
-          hasAnimated.current = true;
-          const targetNum =
-            parseInt(String(target).replace(/\D/g, ""), 10) || 4900;
-          let start: number | null = null;
-          const step = (ts: number) => {
-            if (!start) start = ts;
-            const progress = Math.min((ts - start) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-            setCount(Math.floor(ease * targetNum));
-            if (progress < 1) requestAnimationFrame(step);
-            else setCount(targetNum);
-          };
-          requestAnimationFrame(step);
-        }
-      },
-      { threshold: 0.3 }
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [target, duration]);
-
-  return (
-    <span ref={ref}>
-      {count.toLocaleString("en-IN")}
-      {String(target).replace(/[0-9.,]/g, "")}
-    </span>
-  );
-};
-
-// ════════════════════════════════════════════════════════════
-// PDF UTILS
-// ════════════════════════════════════════════════════════════
-
-const getBase64ImageFromUrl = async (url: string): Promise<string> => {
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onloadend = () => resolve(reader.result as string);
-    reader.onerror = reject;
-    reader.readAsDataURL(blob);
-  });
-};
-
-const cleanTextForPDF = (str: string) => {
-  if (!str) return "";
-  // Remove non-standard characters that break PDF fonts
-  return str.replace(/[^\x00-\x7F]/g, "").trim();
-};
-
-// ════════════════════════════════════════════════════════════
-// SKELETON CARD
-// ════════════════════════════════════════════════════════════
-
-const ProductSkeleton: React.FC = () => (
-  <div className="sp-skeleton-card">
-    <div className="sp-skeleton-img sp-shimmer" />
-    <div className="sp-skeleton-body">
-      <div className="sp-skeleton-line sp-shimmer" style={{ width: "75%" }} />
-      <div className="sp-skeleton-line sp-shimmer" style={{ width: "50%" }} />
-      <div
-        className="sp-skeleton-line short sp-shimmer"
-        style={{ width: "35%" }}
-      />
-    </div>
-  </div>
-);
-
-// ════════════════════════════════════════════════════════════
-// RAZORPAY & DELHIVERY ICONS
-// ════════════════════════════════════════════════════════════
-const RazorpayIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M7.076 21.337H2L14.47 2.663h5.024L7.076 21.337z" fill="#3395FF" />
-    <path d="M13.228 15.262L10.916 21.337H16.94L22 6.876h-5.012l-3.76 8.386z" fill="#072654" />
-  </svg>
-);
-
-const DelhiveryIcon: React.FC<{ size?: number }> = ({ size = 20 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M2 17h2v-4h2l3 4h2.5l-3.4-4.5C9.8 12 11 10.8 11 9c0-2.2-1.8-4-4-4H2v12zm2-6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2H4z" fill="#E42529" />
-    <path d="M13 5v12h2v-4h3c2.2 0 4-1.8 4-4s-1.8-4-4-4h-5zm2 6V7h3c1.1 0 2 .9 2 2s-.9 2-2 2h-3z" fill="#E42529" />
-  </svg>
-);
-
-// ════════════════════════════════════════════════════════════
-// BAFNA DAILY STICKY FLOATING BANNER
-// ════════════════════════════════════════════════════════════
-
-const BD_IMG = "https://ik.imagekit.io/rishii/bafnatoys_images/sjkfs.webp?tr=w-400,f-auto,q-80";
-
-const BafnaDailySticky: React.FC = () => {
-  const [closed, setClosed] = useState(() => {
-    try { return sessionStorage.getItem("bd_banner_closed") === "1"; } catch { return false; }
-  });
-
-  if (closed) return null;
-
-  return (
-    <div className="sp-bd-sticky-wrap" id="bafnadaily-sticky-banner">
-      <button
-        className="sp-bd-sticky-close"
-        aria-label="Close Bafna Daily banner"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          setClosed(true);
-          try { sessionStorage.setItem("bd_banner_closed", "1"); } catch {}
-        }}
-      >
-        ✕
-      </button>
-      <a
-        href="https://bafnadaily.com"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="sp-bd-sticky-link"
-        aria-label="Bafna Daily – Visit our lifestyle page"
-      >
-        <img
-          src={BD_IMG}
-          alt="Bafna Daily – Visit our lifestyle page!"
-          className="sp-bd-sticky-img"
-          loading="lazy"
-          decoding="async"
-          width={400}
-          height={240}
-        />
-        <div className="sp-bd-sticky-label">
-          <span className="sp-bd-sticky-title">Bafna Daily</span>
-          <span className="sp-bd-sticky-sub">Visit our lifestyle page!</span>
-        </div>
-      </a>
-    </div>
-  );
-};
 
 // ════════════════════════════════════════════════════════════
 // MAIN COMPONENT
