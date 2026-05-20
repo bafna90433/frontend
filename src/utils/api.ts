@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const RAW = "https://api.bafnatoys.com";
+const isLocal = typeof window !== "undefined" && 
+  (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+const RAW = isLocal ? "http://localhost:5000" : "https://api.bafnatoys.com";
 export const API_ROOT: string = RAW.replace(/\/+$/, "").replace(/\/api\/?$/, "");
 export const API_URL: string = API_ROOT + "/api";
 export const MEDIA_URL: string =
