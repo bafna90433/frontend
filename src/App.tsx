@@ -50,6 +50,8 @@ const FAQ = React.lazy(() => import("./components/FAQ"));
 const ToysManufacturersIndia = React.lazy(() => import("./pages/ToysManufacturersIndia"));
 const About = React.lazy(() => import("./components/About"));
 const Contact = React.lazy(() => import("./components/Contact"));
+const BlogList = React.lazy(() => import("./components/BlogList"));
+const BlogPost = React.lazy(() => import("./components/BlogPost"));
 
 // --- CONFIGURATION ---
 const SOCKET_URL: string =
@@ -141,6 +143,7 @@ const LayoutWrapper: React.FC<{ children: React.ReactNode; forceLogin: boolean }
     "/toys-manufacturers-in-india",
     "/about",
     "/contact",
+    "/blogs",
   ];
 
   // If forceLogin is true, remove homepage and products from public paths
@@ -274,6 +277,8 @@ const AppInner: React.FC = () => {
               <Route path="/toys-manufacturers-in-india" element={<ToysManufacturersIndia />} />
               <Route path="/about" element={<About />} />
               <Route path="/contact" element={<Contact />} />
+              <Route path="/blogs" element={<BlogList />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
 
               {/* Protected Routes */}
               <Route

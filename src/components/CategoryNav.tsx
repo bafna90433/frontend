@@ -107,15 +107,25 @@ const CategoryNav: React.FC = () => {
         </button>
 
         <div className="category-scroll" ref={scrollRef}>
-          {/* All Toys */}
           <Link
             to="/products"
-            className={`category-item ${!activeCategory ? "active" : ""}`}
+            className={`category-item ${!activeCategory && location.pathname !== '/blogs' ? "active" : ""}`}
           >
             <span className="category-icon" aria-hidden>
               🎮
             </span>
             <span className="category-text">All Toys</span>
+          </Link>
+
+          {/* Blogs */}
+          <Link
+            to="/blogs"
+            className={`category-item ${location.pathname === '/blogs' ? "active" : ""}`}
+          >
+            <span className="category-icon" aria-hidden>
+              📝
+            </span>
+            <span className="category-text">Blogs</span>
           </Link>
 
           {/* Categories */}
