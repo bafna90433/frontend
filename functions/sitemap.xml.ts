@@ -1,9 +1,10 @@
 export async function onRequestGet(context: any) {
   try {
-    // Backend API se products aur categories fetch karo
-    const [productsRes, categoriesRes] = await Promise.all([
+    // Backend API se products, categories, aur blogs fetch karo
+    const [productsRes, categoriesRes, blogsRes] = await Promise.all([
       fetch("https://api.bafnatoys.com/api/products"),
-      fetch("https://api.bafnatoys.com/api/categories")
+      fetch("https://api.bafnatoys.com/api/categories"),
+      fetch("https://api.bafnatoys.com/api/blogs")
     ]);
     
     if (!productsRes.ok) {
@@ -17,6 +18,15 @@ export async function onRequestGet(context: any) {
     if (categoriesRes.ok) {
       const categoriesData = await categoriesRes.json();
       categories = categoriesData.categories || categoriesData || [];
+    }
+
+    let blogs = [];
+    if (blogsRes.ok) {
+      try {
+        blogs = await blogsRes.json();
+      } catch (err) {
+        console.error("Error parsing blogs for sitemap:", err);
+      }
     }
 
     const baseUrl = "https://bafnatoys.com";
@@ -39,6 +49,26 @@ export async function onRequestGet(context: any) {
     <loc>${baseUrl}/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/about</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/contact</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/toys-manufacturers-in-india</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>${baseUrl}/blogs</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
   </url>
   <url>
     <loc>${baseUrl}/products</loc>
@@ -81,7 +111,14 @@ export async function onRequestGet(context: any) {
       const productUrl = p.slug ? `${baseUrl}/product/${p.slug}` : `${baseUrl}/product/${p._id}`;
       let imageXml = "";
       
-      if (p.image) {
+      if (p.images && p.images.length > 0) {
+         const imageUrl = p.images[0].startsWith("http") ? p.images[0] : `https://api.bafnatoys.com/api/uploads/${p.images[0].replace(/^\/+/, "")}`;
+         imageXml = `
+    <image:image>
+      <image:loc>${escapeXml(imageUrl)}</image:loc>
+      <image:title>${escapeXml(p.name)}</image:title>
+    </image:image>`;
+      } else if (p.image) {
          const imageUrl = p.image.startsWith("http") ? p.image : `https://api.bafnatoys.com/api/uploads/${p.image.replace(/^\/+/, "")}`;
          imageXml = `
     <image:image>
@@ -118,6 +155,28 @@ export async function onRequestGet(context: any) {
     <loc>${escapeXml(categoryUrl)}</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>${imageXml}
+  </url>`;
+    });
+
+    // Dynamic Blog Routes
+    blogs.forEach((b: any) => {
+      const blogUrl = `${baseUrl}/blog/${b.slug}`;
+      let imageXml = "";
+      
+      if (b.coverImage) {
+         const imageUrl = b.coverImage.startsWith("http") ? b.coverImage : `https://api.bafnatoys.com/api/uploads/${b.coverImage.replace(/^\/+/, "")}`;
+         imageXml = `
+    <image:image>
+      <image:loc>${escapeXml(imageUrl)}</image:loc>
+      <image:title>${escapeXml(b.title)}</image:title>
+    </image:image>`;
+      }
+
+      xml += `
+  <url>
+    <loc>${escapeXml(blogUrl)}</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>${imageXml}
   </url>`;
     });
 
