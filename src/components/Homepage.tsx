@@ -817,7 +817,7 @@ const Products: React.FC = () => {
           title={seoTitle}
           description={`Buy bulk toys at wholesale prices from India's leading B2B toy supplier. ${catName ? `Explore our ${catName} collection.` : ''}`}
           keywords={`wholesale toys, bulk toys, B2B toys India${catName ? `, wholesale ${catName}` : ''}`}
-          url={`https://bafnatoys.com${location.pathname}${location.search}`}
+          url={`https://bafnatoys.com${location.pathname}`}
           items={categoryItems}
         />
       )}

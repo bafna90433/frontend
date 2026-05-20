@@ -21,6 +21,12 @@ const BOT_AGENTS = [
 export async function onRequest(context: any) {
   const { request, next } = context;
   const url = new URL(request.url);
+
+  // 301 Permanent Redirect /products -> / for SEO consolidation
+  if (url.pathname === "/products" || url.pathname === "/products/") {
+    return Response.redirect(`${url.origin}/`, 301);
+  }
+
   const userAgent = request.headers.get("User-Agent") || "";
 
   // 1. Check if the requester is a known search engine or social bot
@@ -849,17 +855,302 @@ export async function onRequest(context: any) {
     }
   }
 
-  // 6. Normal users (or non-product routes) get passed through to the React SPA
-  // We intercept the response and inject Cache-Control: no-store to prevent Instagram/FB WebViews from caching the index.html page
+  // Helper function to build page-specific SEO tags and static body content
+  async function getSeoDataForPath(pathname: string, origin: string): Promise<{
+    title: string;
+    description: string;
+    image: string;
+    ogType: string;
+    staticHtml: string;
+  }> {
+    const baseUrl = "https://bafnatoys.com";
+    const defaultImage = `${baseUrl}/logo.webp`;
+    
+    // Default values (Homepage / fallback)
+    let title = "Toys Manufacturers in India - Bafna Toys | Leading Toy Manufacturer";
+    let description = "Looking for top toys manufacturers in India? Bafna Toys is a leading wholesale toy manufacturer and supplier. Buy premium pullback cars, PVC dolls, rattles & board games at factory-direct rates.";
+    let image = defaultImage;
+    let ogType = "website";
+    
+    const buildStaticHtml = (h1: string, body: string) => `
+      <header style="background:#1a237e;padding:12px 20px;display:flex;align-items:center;gap:12px">
+        <img src="/logo.webp" alt="Bafna Toys Logo" width="48" height="48" />
+        <span style="color:#fff;font-size:20px;font-weight:700">Bafna Toys — Wholesale Toy Manufacturer, Coimbatore</span>
+      </header>
+      <main style="max-width:960px;margin:0 auto;padding:20px 16px;font-family:sans-serif;color:#1e293b">
+        <h1 style="font-size:26px;color:#1a237e">${h1}</h1>
+        <div style="font-size:15px;line-height:1.7;color:#374151">
+          ${body}
+        </div>
+      </main>
+    `;
+
+    let staticHtml = buildStaticHtml("Toys Manufacturers in India — Bafna Toys", `
+      <p>
+        Bafna Toys is one of India's leading wholesale toy manufacturers based in Coimbatore, Tamil Nadu.
+        We supply premium quality toys at factory-direct prices — pullback cars, PVC dolls, windup key toys,
+        board games, baby rattles, squeezy toys and educational toys. Trusted by retailers and distributors across India.
+      </p>
+      <h2>Our Product Categories</h2>
+      <ul>
+        <li>🚗 Pullback Cars & Vehicles</li>
+        <li>🪆 PVC Dolls & Figures</li>
+        <li>🔑 Windup Key Toys</li>
+        <li>🎲 Board Games & Puzzles</li>
+        <li>🍼 Baby Rattles & Teethers</li>
+        <li>🦆 Squeezy & Bath Toys</li>
+        <li>✏️ Educational Toys</li>
+        <li>🏍️ Motorcycle & Bike Toys</li>
+      </ul>
+      <h2>Why Buy from Bafna Toys?</h2>
+      <ul>
+        <li>Factory-direct wholesale prices — no middlemen</li>
+        <li>300+ unique toy products in catalogue</li>
+        <li>GST registered manufacturer (Coimbatore, Tamil Nadu)</li>
+        <li>Pan-India delivery — COD &amp; online payment accepted</li>
+        <li>Trusted by 1000+ retailers across India</li>
+        <li>BIS-compliant, child-safe materials</li>
+      </ul>
+    `);
+
+    // Match static pages from the staticBotPages dictionary
+    if (staticBotPages[pathname]) {
+      const page = staticBotPages[pathname];
+      title = page.title;
+      description = page.description;
+      staticHtml = buildStaticHtml(page.h1, page.body);
+    }
+    else if (pathname === "/toys-manufacturers-in-india") {
+      title = "Toys Manufacturers in India | Wholesale Toy Supplier - Bafna Toys";
+      description = "Looking for top toys manufacturers in India? Bafna Toys is a leading wholesale toy manufacturer and supplier. Buy premium pullback cars, PVC dolls, rattles & board games at factory-direct rates.";
+      staticHtml = buildStaticHtml("Toys Manufacturers in India", `
+        <p>Bafna Toys stands at the forefront of the Indian toy manufacturing industry. By integrating cutting-edge manufacturing automation with high-grade child-safe materials, we deliver premium products directly from our Coimbatore factory.</p>
+        <p>Our products are fully certified by the Bureau of Indian Standards (BIS), ensuring the highest safety and quality guidelines.</p>
+      `);
+    }
+    else if (pathname === "/blogs") {
+      title = "Latest Toy Industry Blogs & Updates | Bafna Toys";
+      description = "Read our latest articles about toy manufacturing, wholesale distribution tips, BIS standards, and new product releases from Bafna Toys.";
+      try {
+        const res = await fetch("https://api.bafnatoys.com/api/blogs");
+        if (res.ok) {
+          const blogs = await res.json();
+          const listHtml = blogs.map((b: any) => `
+            <div style="margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 15px;">
+              <h2><a href="/blog/${b.slug}" style="color:#059669; text-decoration:none;">${b.title}</a></h2>
+              <p style="color:#666; font-size:0.9rem;">By ${b.author || "Bafna Toys Team"} | ${b.createdAt ? new Date(b.createdAt).toLocaleDateString() : ""}</p>
+              <p>${b.excerpt || ""}</p>
+            </div>
+          `).join("");
+          staticHtml = buildStaticHtml("Bafna Toys Blog", `
+            <p>Insights on toy manufacturing in India, wholesale business tips, and market trends.</p>
+            <div style="margin-top: 20px;">${listHtml}</div>
+          `);
+        }
+      } catch (err) {
+        console.error("Error building static blogs HTML:", err);
+      }
+    }
+    else if (pathname.startsWith("/blog/")) {
+      const slug = pathname.split("/").filter(Boolean)[1];
+      if (slug) {
+        try {
+          const res = await fetch(`https://api.bafnatoys.com/api/blogs/${slug}`);
+          if (res.ok) {
+            const blog = await res.json();
+            title = blog.metaTitle || `${blog.title} | Bafna Toys Blog`;
+            description = blog.metaDescription || blog.excerpt || `Read the latest post on Bafna Toys: ${blog.title}`;
+            if (blog.coverImage) {
+              image = blog.coverImage.startsWith("http") ? blog.coverImage : `https://api.bafnatoys.com/api/uploads/${blog.coverImage.replace(/^\/+/, "")}`;
+            }
+            staticHtml = buildStaticHtml(blog.title, `
+              <p style="color:#666; font-size:0.9rem;">By ${blog.author || "Bafna Toys Team"} | Published ${blog.createdAt ? new Date(blog.createdAt).toLocaleDateString() : ""}</p>
+              ${blog.coverImage ? `<img src="${image}" alt="${blog.title}" style="width:100%; max-height:400px; object-fit:cover; border-radius:8px; margin-bottom:20px;" />` : ""}
+              <div style="font-size:1.1rem; line-height:1.8; color:#2d3748;">${blog.content}</div>
+            `);
+          }
+        } catch (err) {
+          console.error("Error building static blog post HTML:", err);
+        }
+      }
+    }
+    else if (pathname.startsWith("/category/")) {
+      const slug = pathname.split("/").filter(Boolean)[1];
+      if (slug) {
+        try {
+          const res = await fetch(`https://api.bafnatoys.com/api/categories/${slug}`);
+          if (res.ok) {
+            const data = await res.json();
+            const category = data.category;
+            const products = data.products || [];
+            if (category) {
+              title = `Wholesale ${category.name} | Buy Bulk Toys at Factory Price - Bafna Toys`;
+              description = `Buy ${category.name} wholesale from India's leading B2B toy supplier. High-quality, BIS-certified plastic toys, pullback cars, rattles, dolls & more at factory prices.`;
+              const rawImg = category.image || category.imageUrl;
+              if (rawImg) {
+                image = rawImg.startsWith("http") ? rawImg : `https://api.bafnatoys.com/api/uploads/${rawImg.replace(/^\/+/, "")}`;
+              }
+              const listHtml = products.map((p: any) => `
+                <div style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                  <div>
+                    <h3 style="margin:0;"><a href="/product/${p.slug || p._id}" style="color:#059669; text-decoration:none;">${p.name}</a></h3>
+                    <p style="margin:5px 0 0 0; font-size:0.85rem; color:#666;">SKU: ${p.sku} | Unit: ${p.unit || 'Piece'} ${p.packSize ? `(${p.packSize})` : ""}</p>
+                  </div>
+                  <div style="font-weight:bold; color:#333;">₹${p.price}</div>
+                </div>
+              `).join("");
+              staticHtml = buildStaticHtml(`Wholesale ${category.name} Manufacturer`, `
+                <p>${description}</p>
+                <p>Explore our wholesale catalogue of ${category.name} below. We offer low MOQs and direct factory shipping.</p>
+                <h2>Product Catalogue</h2>
+                <div>${listHtml || "<p>No products available in this category currently.</p>"}</div>
+              `);
+            }
+          }
+        } catch (err) {
+          console.error("Error building static category HTML:", err);
+        }
+      }
+    }
+    else if (pathname.startsWith("/product/")) {
+      const slug = pathname.split("/").filter(Boolean)[1];
+      if (slug) {
+        try {
+          const res = await fetch(`https://api.bafnatoys.com/api/products/${slug}`);
+          if (res.ok) {
+            const product = await res.json();
+            title = `${product.name} Wholesale at Factory Price | Bafna Toys`;
+            description = product.description || product.tagline || `Buy ${product.name} wholesale from Bafna Toys. Best wholesale toy supplier in India.`;
+            ogType = "product";
+            if (product.images && product.images.length > 0) {
+              const rawImg = product.images[0];
+              image = rawImg.startsWith("http") ? rawImg : `https://api.bafnatoys.com/api/uploads/${rawImg.replace(/^\/+/, "")}`;
+            }
+            staticHtml = buildStaticHtml(product.name, `
+              ${product.tagline ? `<p style="font-size:1.2rem; color:#059669; font-weight:500;">${product.tagline}</p>` : ""}
+              <div style="background:#f9f9f9; padding:20px; border-radius:8px; border-left:5px solid #059669; margin:20px 0;">
+                <h2 style="margin-top:0;">Wholesale Pricing & Details</h2>
+                <table style="width:100%; border-collapse:collapse;">
+                  <tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0; font-weight:bold; color:#666;">SKU Code:</td><td style="padding:8px 0; text-align:right;">${product.sku}</td></tr>
+                  <tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0; font-weight:bold; color:#666;">Wholesale Price:</td><td style="padding:8px 0; text-align:right; font-weight:bold; color:#059669;">₹${product.price} (Inclusive of GST)</td></tr>
+                  <tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0; font-weight:bold; color:#666;">MRP:</td><td style="padding:8px 0; text-align:right; text-decoration:line-through; color:#888;">₹${product.mrp || 0}</td></tr>
+                  <tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0; font-weight:bold; color:#666;">Standard Unit:</td><td style="padding:8px 0; text-align:right;">${product.unit || 'Piece'}</td></tr>
+                  <tr style="border-bottom:1px solid #eee;"><td style="padding:8px 0; font-weight:bold; color:#666;">Pack Configuration:</td><td style="padding:8px 0; text-align:right;">${product.packSize || 'N/A'}</td></tr>
+                  <tr><td style="padding:8px 0; font-weight:bold; color:#666;">Stock Status:</td><td style="padding:8px 0; text-align:right; font-weight:bold; color:${product.stock > 0 ? '#15803d' : '#b91c1c'};">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</td></tr>
+                </table>
+              </div>
+              <h2>Product Description</h2>
+              <p>${description}</p>
+            `);
+          }
+        } catch (err) {
+          console.error("Error building static product HTML:", err);
+        }
+      }
+    }
+
+    return { title, description, image, ogType, staticHtml };
+  }
+
+  // 6. Normal users get passed through to the React SPA with Edge-Side Metadata/Content Injection
   const response = await next();
   const contentType = response.headers.get("Content-Type") || "";
 
   if (contentType.includes("text/html")) {
-    const newResponse = new Response(response.body, response);
-    newResponse.headers.set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
-    newResponse.headers.set("Pragma", "no-cache");
-    newResponse.headers.set("Expires", "0");
-    return newResponse;
+    try {
+      // Clean canonical URL by stripping query parameters (prevent parameter pollution like srsltid)
+      const cleanCanonicalUrl = `${url.origin}${url.pathname}`;
+
+      // Normalize the path by removing trailing slash if necessary
+      let normalizedPath = url.pathname;
+      if (normalizedPath.length > 1 && normalizedPath.endsWith("/")) {
+        normalizedPath = normalizedPath.slice(0, -1);
+      }
+
+      const seo = await getSeoDataForPath(normalizedPath, url.origin);
+
+      // Perform rewriting on index.html dynamically at the edge
+      const rewrittenResponse = new HTMLRewriter()
+        .on("title", {
+          element(el) {
+            el.setInnerContent(seo.title);
+          }
+        })
+        .on("meta[name='description']", {
+          element(el) {
+            el.setAttribute("content", seo.description);
+          }
+        })
+        .on("link[rel='canonical']", {
+          element(el) {
+            el.setAttribute("href", cleanCanonicalUrl);
+          }
+        })
+        .on("meta[property='og:title']", {
+          element(el) {
+            el.setAttribute("content", seo.title);
+          }
+        })
+        .on("meta[property='og:description']", {
+          element(el) {
+            el.setAttribute("content", seo.description);
+          }
+        })
+        .on("meta[property='og:url']", {
+          element(el) {
+            el.setAttribute("content", cleanCanonicalUrl);
+          }
+        })
+        .on("meta[property='og:image']", {
+          element(el) {
+            el.setAttribute("content", seo.image);
+          }
+        })
+        .on("meta[property='og:type']", {
+          element(el) {
+            el.setAttribute("content", seo.ogType);
+          }
+        })
+        .on("meta[name='twitter:title']", {
+          element(el) {
+            el.setAttribute("content", seo.title);
+          }
+        })
+        .on("meta[name='twitter:description']", {
+          element(el) {
+            el.setAttribute("content", seo.description);
+          }
+        })
+        .on("meta[name='twitter:image']", {
+          element(el) {
+            el.setAttribute("content", seo.image);
+          }
+        })
+        .on(".seo-static-content", {
+          element(el) {
+            el.setInnerContent(seo.staticHtml, { html: true });
+          }
+        })
+        .transform(response);
+
+      const headers = new Headers(rewrittenResponse.headers);
+      headers.set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+      headers.set("Pragma", "no-cache");
+      headers.set("Expires", "0");
+
+      return new Response(rewrittenResponse.body, {
+        status: rewrittenResponse.status,
+        statusText: rewrittenResponse.statusText,
+        headers
+      });
+    } catch (err) {
+      console.error("HTMLRewriter failure:", err);
+      const newResponse = new Response(response.body, response);
+      newResponse.headers.set("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+      newResponse.headers.set("Pragma", "no-cache");
+      newResponse.headers.set("Expires", "0");
+      return newResponse;
+    }
   }
 
   return response;

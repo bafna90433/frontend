@@ -26,6 +26,12 @@ const CategorySEO: React.FC<CategorySEOProps> = ({
 }) => {
   const seoImage = image || "https://bafnatoys.com/logo.webp";
 
+  // ✅ Clean URL to avoid query parameters in canonical tags and schema
+  const cleanUrl = useMemo(() => {
+    if (!url) return "";
+    return url.split("?")[0].split("#")[0];
+  }, [url]);
+
   // ✅ PERFORMANCE FIX: useMemo se schema calculation ko block kiya (sirf dependency change par chalega)
   const schema = useMemo(() => {
     const baseSchema: Record<string, any> = {
@@ -33,7 +39,7 @@ const CategorySEO: React.FC<CategorySEOProps> = ({
       "@type": "CollectionPage",
       name: title,
       description,
-      url,
+      url: cleanUrl,
       publisher: {
         "@type": "Organization",
         name: "Bafna Toys",
@@ -59,7 +65,7 @@ const CategorySEO: React.FC<CategorySEOProps> = ({
     }
 
     return baseSchema;
-  }, [title, description, url, items]); // Dependencies
+  }, [title, description, cleanUrl, items]); // Dependencies
 
   return (
     <>
@@ -71,14 +77,14 @@ const CategorySEO: React.FC<CategorySEOProps> = ({
 
         {/* ✅ SEO FIX: Bot indexing directives */}
         <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
-        <link rel="canonical" href={url} />
+        <link rel="canonical" href={cleanUrl} />
 
         {/* Open Graph / Facebook */}
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Bafna Toys" />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
-        <meta property="og:url" content={url} />
+        <meta property="og:url" content={cleanUrl} />
         <meta property="og:image" content={seoImage} />
         <meta property="og:image:secure_url" content={seoImage} />
 
