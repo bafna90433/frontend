@@ -144,8 +144,8 @@ const Checkout: React.FC = () => {
 
   useEffect(() => {
     const invalid = cartItems.filter((item) => {
-      const { innerCount, minQty } = getItemValues(item);
-      return innerCount < minQty;
+      const { minQty } = getItemValues(item);
+      return (item.quantity || 0) < minQty;
     });
     if (invalid.length > 0) setMinimumQtyError(`Minimum qty not met: ${invalid.map((i) => i.name).join(", ")}`);
     else setMinimumQtyError(null);
@@ -231,7 +231,7 @@ const Checkout: React.FC = () => {
   // GST breakdown — use API-fetched gstRate (always latest from DB)
   const gstBreakdown = cartItems.reduce((acc: Record<number, { base: number; gst: number }>, item: any) => {
     const rate = productGstRates[item._id] ?? item.gstRate ?? 0;
-    const itemTotal = (item.price || 0) * ((item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1));
+    const itemTotal = (item.price || 0) * (item.quantity || 0);
     const base = itemTotal / (1 + rate / 100);
     const gst = itemTotal - base;
     if (!acc[rate]) acc[rate] = { base: 0, gst: 0 };
@@ -253,8 +253,8 @@ const Checkout: React.FC = () => {
   const payOnDeliveryAmount = Math.max(finalTotalWithDiscount - applicableAdvance, 0);
   
   const allItemsMeetMinQty = cartItems.every((item) => {
-    const { innerCount, minQty } = getItemValues(item);
-    return innerCount >= minQty;
+    const { minQty } = getItemValues(item);
+    return (item.quantity || 0) >= minQty;
   });
 
   const getButtonText = () => {
@@ -266,7 +266,7 @@ const Checkout: React.FC = () => {
   };
 
   const handlePlaceOrder = async () => {
-    if (cartItems.some((item) => { const { innerCount, minQty } = getItemValues(item); return innerCount < minQty; })) {
+    if (cartItems.some((item) => { const { minQty } = getItemValues(item); return (item.quantity || 0) < minQty; })) {
       alert("Some items do not meet minimum quantity."); return;
     }
     if (!user || !selectedAddress || !cartItems.length) { alert("Please add address and items."); return; }
@@ -276,7 +276,19 @@ const Checkout: React.FC = () => {
     if (isCodDirect) {
       try {
         setPlacing(true);
-        const items = cartItems.map((item: any) => ({ productId: item._id, sku: item.sku, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
+        const items = cartItems.map((item: any) => {
+          const piecesPerUnit = item.piecesPerUnit || item.piecesPerInner || item.innerQty || 1;
+          return {
+            productId: item._id,
+            sku: item.sku,
+            name: item.name,
+            qty: item.quantity || 0,
+            innerQty: piecesPerUnit,
+            inners: Math.round((item.quantity || 0) / piecesPerUnit) || 1,
+            price: item.price || 0,
+            image: item.image || ""
+          };
+        });
         const { data } = await api.post("/orders", { customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode: "COD", paymentId: null, codAdvancePaid: 0, codRemainingAmount: finalTotalWithDiscount });
         const orderNum = data.order?.orderNumber || data.orderNumber;
         setOrderNumber(orderNum);
@@ -313,7 +325,7 @@ const Checkout: React.FC = () => {
       if (!res) { alert("Payment gateway failed."); setPlacing(false); return; }
       const frontendItems = cartItems.map((item: any) => ({
         productId: item._id,
-        qty: (item.quantity || 0) * (item.piecesPerInner || item.piecesPerUnit || item.innerQty || 1),
+        qty: item.quantity || 0,
       }));
       const { data: razorOrder } = await api.post("/payments/create-order", { items: frontendItems, paymentMode });
       const options = {
@@ -325,7 +337,19 @@ const Checkout: React.FC = () => {
           try {
             const verifyRes = await api.post("/payments/verify", response);
             if (verifyRes.data?.success !== true) { alert("Payment verification failed."); setPlacing(false); return; }
-            const items = cartItems.map((item: any) => ({ productId: item._id, sku: item.sku, name: item.name, qty: (item.quantity || 0) * (item.piecesPerInner || item.innerQty || 1), innerQty: item.piecesPerInner || item.innerQty || 1, inners: item.quantity || 0, price: item.price || 0, image: item.image || "" }));
+            const items = cartItems.map((item: any) => {
+              const piecesPerUnit = item.piecesPerUnit || item.piecesPerInner || item.innerQty || 1;
+              return {
+                productId: item._id,
+                sku: item.sku,
+                name: item.name,
+                qty: item.quantity || 0,
+                innerQty: piecesPerUnit,
+                inners: Math.round((item.quantity || 0) / piecesPerUnit) || 1,
+                price: item.price || 0,
+                image: item.image || ""
+              };
+            });
             const advancePaid = paymentMode === "COD" ? applicableAdvance : 0;
             const { data } = await api.post("/orders", { customerId: user._id, items, itemsPrice: cartTotal, shippingPrice: shippingFee, discountAmount: discountAmt, total: finalTotalWithDiscount, shippingAddress: selectedAddress, paymentMode, paymentId: response.razorpay_payment_id, razorpayPaymentId: response.razorpay_payment_id, razorpayOrderId: razorOrder.id, codAdvancePaid: advancePaid, codRemainingAmount: Math.max(finalTotalWithDiscount - advancePaid, 0) });
             const orderNum = data.order?.orderNumber || data.orderNumber;
@@ -676,10 +700,9 @@ const Checkout: React.FC = () => {
               </div>
               <div className="co-card-body co-items-body">
                 {cartItems.map((item: Item) => {
-                  const { minQty, innerCount } = getItemValues(item);
-                  const itemTotal = (item.quantity || 0) * (item.price || 0) * (item.piecesPerInner || item.innerQty || 1);
+                  const { minQty, innerCount, totalPrice: itemTotal } = getItemValues(item);
                   const imgSrc = getThumbUrl(item.image, IMAGE_BASE_URL);
-                  const belowMin = innerCount < minQty;
+                  const belowMin = (item.quantity || 0) < minQty;
 
                   return (
                     <div key={item._id} className={`co-item ${belowMin ? "co-item--warn" : ""}`}>

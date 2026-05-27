@@ -24,10 +24,11 @@ export const getMinimumQuantity = (item: Item): number => {
 };
 
 export const getItemValues = (item: Item) => {
-  const innerCount = item.quantity || 0;
+  const piecesPerUnit = item.piecesPerUnit || item.piecesPerInner || item.innerQty || 1;
+  const innerCount = Math.round((item.quantity || 0) / piecesPerUnit) || 1;
   const unitPrice = item.price || 0;
   const minQty = getMinimumQuantity(item);
-  const totalPrice = innerCount * unitPrice * (item.piecesPerUnit || item.piecesPerInner || item.innerQty || 1);
+  const totalPrice = (item.quantity || 0) * unitPrice;
   return { innerCount, unitPrice, totalPrice, minQty };
 };
 
