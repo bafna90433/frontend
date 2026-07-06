@@ -55,6 +55,7 @@ import {
   CreditCard,
   Landmark,
 } from "lucide-react";
+import { FaWhatsapp } from "react-icons/fa";
 import { Skeleton } from "@mui/material";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -1177,6 +1178,22 @@ const Products: React.FC = () => {
             <ExternalLink size={13} />
           </a>
 
+          {/* ═══ WHATSAPP CHANNEL STRIP ═══ */}
+          {trustData?.whatsappChannelLink && (
+            <a
+              href={trustData.whatsappChannelLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="sp-whatsapp-strip"
+            >
+              <FaWhatsapp size={15} />
+              <span>
+                Join our WhatsApp Channel for the latest updates & offers! <strong>Join Channel</strong>
+              </span>
+              <ExternalLink size={13} />
+            </a>
+          )}
+
           {/* ═══ TRUST PARTNERS STRIP ═══ */}
           <div className="sp-trust-partners-strip">
             <div className="sp-trust-partners-inner">
@@ -2119,7 +2136,7 @@ const Products: React.FC = () => {
                       <Facebook size={16} /> Facebook
                     </a>
                   )}
-                  {trustData?.linkedinLink && (
+                   {trustData?.linkedinLink && (
                     <a
                       href={trustData.linkedinLink}
                       target="_blank"
@@ -2127,6 +2144,17 @@ const Products: React.FC = () => {
                       className="sp-social-link sp-social-li"
                     >
                       <Linkedin size={16} /> LinkedIn
+                    </a>
+                  )}
+                  {trustData?.whatsappChannelLink && (
+                    <a
+                      href={trustData.whatsappChannelLink}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="sp-social-link sp-social-wa"
+                      title="WhatsApp Channel"
+                    >
+                      <FaWhatsapp size={16} /> WhatsApp
                     </a>
                   )}
                 </div>

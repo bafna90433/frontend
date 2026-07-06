@@ -1111,6 +1111,36 @@
   filter: brightness(1.1);
 }
 
+/* ══════════════════════════════════════════
+   WHATSAPP STRIP & SOCIAL
+   ══════════════════════════════════════════ */
+.sp-whatsapp-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px 0;
+  background: linear-gradient(90deg, #25D366, #128C7E);
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  width: 100%;
+  transition: filter 0.3s var(--sp-ease);
+}
+
+.sp-whatsapp-strip strong {
+  font-weight: 800;
+}
+
+.sp-whatsapp-strip:hover {
+  filter: brightness(1.1);
+}
+
+.sp-social-wa {
+  background: #25d366;
+}
+
 .sp-banner-skeleton,
 .sp-banner-wrap {
   width: 100%;
